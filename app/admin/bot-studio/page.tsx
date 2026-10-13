@@ -229,21 +229,21 @@ export default function BotStudioDashboard() {
                         <button
                             onClick={loadData}
                             disabled={loading}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition-colors"
                         >
                             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                             Refresh
                         </button>
                         <Link
                             href="/admin/bot-studio/builder"
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition-colors"
                         >
                             <Layers className="h-4 w-4" />
                             Visual Builder
                         </Link>
                         <Link
                             href="/admin/bot-studio/editor"
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 text-sm font-medium transition-colors"
                         >
                             <Code2 className="h-4 w-4" />
                             AvScript Editor
@@ -257,7 +257,7 @@ export default function BotStudioDashboard() {
                                     alert("Please create a strategy first before deploying.");
                                 }
                             }}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold shadow-sm transition"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold shadow-sm transition-colors"
                         >
                             <Zap className="h-4 w-4" />
                             Deploy Bot
@@ -274,35 +274,35 @@ export default function BotStudioDashboard() {
 
                 {/* Metrics Bar */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Active Deployments</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">
+                            <span className="font-numeric text-2xl font-bold">
                                 {deployments.filter((d) => d.runtimeState === "running").length}
                             </span>
                             <span className="text-xs text-muted-foreground">of {deployments.length} bots</span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Saved Strategies</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">{strategies.length}</span>
+                            <span className="font-numeric text-2xl font-bold">{strategies.length}</span>
                             <span className="text-xs text-emerald-500 font-medium">Production ready</span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Signals Generated</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">
+                            <span className="font-numeric text-2xl font-bold">
                                 {deployments.reduce((acc, d) => acc + (d.signalCount || 0), 0)}
                             </span>
                             <span className="text-xs text-muted-foreground">across sessions</span>
                         </div>
                     </div>
-                    <div className="p-4 rounded-xl border border-border bg-card">
+                    <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gateway Executions</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="text-2xl font-bold">
+                            <span className="font-numeric text-2xl font-bold">
                                 {deployments.reduce((acc, d) => acc + (d.executionCount || 0), 0)}
                             </span>
                             <span className="text-xs text-primary font-medium">MT5 ACKed</span>
@@ -314,7 +314,7 @@ export default function BotStudioDashboard() {
                 <div className="flex border-b border-border gap-6">
                     <button
                         onClick={() => setActiveTab("deployments")}
-                        className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                        className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
                             activeTab === "deployments"
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -324,7 +324,7 @@ export default function BotStudioDashboard() {
                     </button>
                     <button
                         onClick={() => setActiveTab("strategies")}
-                        className={`pb-3 text-sm font-semibold transition border-b-2 ${
+                        className={`pb-3 text-sm font-semibold transition-colors border-b-2 ${
                             activeTab === "strategies"
                                 ? "border-primary text-primary"
                                 : "border-transparent text-muted-foreground hover:text-foreground"
@@ -369,7 +369,7 @@ export default function BotStudioDashboard() {
                                     return (
                                         <div
                                             key={bot.id}
-                                            className="p-5 rounded-xl border border-border bg-card shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                            className="p-5 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] flex flex-col md:flex-row md:items-center justify-between gap-4"
                                         >
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-3">
@@ -377,11 +377,11 @@ export default function BotStudioDashboard() {
                                                         {strat?.name || bot.strategyId}
                                                     </span>
                                                     <span
-                                                        className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                                                        className={`text-xs px-2.5 py-0.5 rounded-full font-semibold transition-colors ${
                                                             isRunning
-                                                                ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                                                ? "bg-positive/10 text-positive border border-positive/20"
                                                                 : isPaused
-                                                                ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                                                ? "bg-warning/10 text-warning border border-warning/20"
                                                                 : "bg-muted text-muted-foreground"
                                                         }`}
                                                     >
@@ -406,7 +406,7 @@ export default function BotStudioDashboard() {
                                                     <button
                                                         onClick={() => handleLifecycleTransition(bot.id, "running")}
                                                         disabled={actionLoading === bot.id}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         <Play className="h-3.5 w-3.5" />
                                                         Start
@@ -416,7 +416,7 @@ export default function BotStudioDashboard() {
                                                     <button
                                                         onClick={() => handleLifecycleTransition(bot.id, "paused")}
                                                         disabled={actionLoading === bot.id}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         <Pause className="h-3.5 w-3.5" />
                                                         Pause
@@ -426,7 +426,7 @@ export default function BotStudioDashboard() {
                                                     <button
                                                         onClick={() => handleLifecycleTransition(bot.id, "stopped")}
                                                         disabled={actionLoading === bot.id}
-                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition"
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-colors"
                                                     >
                                                         <Square className="h-3.5 w-3.5" />
                                                         Stop
@@ -437,7 +437,7 @@ export default function BotStudioDashboard() {
                                                 <button
                                                     onClick={() => handleTriggerTick(bot.id)}
                                                     disabled={actionLoading === `tick-${bot.id}`}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-muted/60 hover:bg-muted text-xs font-medium transition"
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-border bg-muted/60 hover:bg-muted text-xs font-medium transition-colors"
                                                     title="Trigger market candle evaluation tick"
                                                 >
                                                     <Activity className={`h-3.5 w-3.5 ${actionLoading === `tick-${bot.id}` ? "animate-spin" : ""}`} />
@@ -447,7 +447,7 @@ export default function BotStudioDashboard() {
                                                 {/* View Monitor Link */}
                                                 <Link
                                                     href={`/admin/bot-studio/deployments/${bot.id}`}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold transition"
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold transition-colors"
                                                 >
                                                     <Terminal className="h-3.5 w-3.5" />
                                                     Monitor
@@ -495,7 +495,7 @@ export default function BotStudioDashboard() {
                                     return (
                                         <div
                                             key={strat.id}
-                                            className="p-5 rounded-xl border border-border bg-card shadow-sm flex flex-col justify-between space-y-4"
+                                            className="p-5 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] flex flex-col justify-between space-y-4"
                                         >
                                             <div>
                                                 <div className="flex items-start justify-between gap-2">
@@ -565,14 +565,14 @@ export default function BotStudioDashboard() {
                                                                 ? `/admin/bot-studio/builder?id=${strat.id}`
                                                                 : `/admin/bot-studio/editor?id=${strat.id}`
                                                         }
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition"
+                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
                                                     >
                                                         Edit
                                                     </Link>
                                                     <button
                                                         onClick={() => handleRunBacktest(strat.id)}
                                                         disabled={actionLoading === `backtest-${strat.id}`}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition inline-flex items-center gap-1"
+                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors inline-flex items-center gap-1"
                                                     >
                                                         <BarChart3 className={`h-3 w-3 ${actionLoading === `backtest-${strat.id}` ? "animate-spin" : ""}`} />
                                                         {actionLoading === `backtest-${strat.id}` ? "Testing..." : "Backtest"}
@@ -582,14 +582,14 @@ export default function BotStudioDashboard() {
                                                             setSelectedStrategyId(strat.id);
                                                             setDeployModalOpen(true);
                                                         }}
-                                                        className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition"
+                                                        className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors"
                                                     >
                                                         Deploy
                                                     </button>
                                                 </div>
                                                 <button
                                                     onClick={() => handleDeleteStrategy(strat.id)}
-                                                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition"
+                                                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
                                                     title="Delete strategy"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -606,7 +606,7 @@ export default function BotStudioDashboard() {
                 {/* Deploy Modal */}
                 {deployModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                        <div className="bg-card border border-border rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="bg-card border border-border rounded-xl w-full max-w-md p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200">
                             <div>
                                 <h3 className="text-lg font-bold">Deploy Bot to MT5 Runtime</h3>
                                 <p className="text-xs text-muted-foreground mt-0.5">
@@ -640,7 +640,7 @@ export default function BotStudioDashboard() {
                                         <button
                                             type="button"
                                             onClick={() => setAccountMode("demo")}
-                                            className={`py-2 px-3 rounded-lg border text-xs font-semibold text-center transition ${
+                                            className={`py-2 px-3 rounded-lg border text-xs font-semibold text-center transition-colors ${
                                                 accountMode === "demo"
                                                     ? "border-primary bg-primary/10 text-primary"
                                                     : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -651,7 +651,7 @@ export default function BotStudioDashboard() {
                                         <button
                                             type="button"
                                             onClick={() => setAccountMode("live")}
-                                            className={`py-2 px-3 rounded-lg border text-xs font-semibold text-center transition ${
+                                            className={`py-2 px-3 rounded-lg border text-xs font-semibold text-center transition-colors ${
                                                 accountMode === "live"
                                                     ? "border-primary bg-primary/10 text-primary"
                                                     : "border-border bg-card text-muted-foreground hover:bg-muted"
@@ -703,7 +703,7 @@ export default function BotStudioDashboard() {
                 {/* Backtest Results Modal */}
                 {backtestModalOpen && backtestResult && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto">
-                        <div className="bg-card border border-border rounded-2xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
+                        <div className="bg-card border border-border rounded-xl w-full max-w-3xl p-6 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-200 my-8 max-h-[90vh] flex flex-col">
                             <div className="flex items-center justify-between pb-3 border-b border-border">
                                 <div className="flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-emerald-400" />

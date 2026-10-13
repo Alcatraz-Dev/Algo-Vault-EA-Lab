@@ -97,7 +97,7 @@ export default function ChallengeDetailPage() {
 
     return (
         <AppShell navGroups={navGroups} title="Challenge details" eyebrow={<SimulatedBadge />} maxWidth="max-w-5xl">
-            <Link href="/account/performance-arena" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+            <Link href="/account/performance-arena" className="mb-4 inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted hover:text-foreground">
                 <ArrowLeft className="h-3 w-3" /> Back to catalog
             </Link>
 
@@ -106,7 +106,7 @@ export default function ChallengeDetailPage() {
 
             {detail ? (
                 <div className="space-y-4">
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
                                 <div className="flex items-center gap-2">
@@ -165,13 +165,13 @@ export default function ChallengeDetailPage() {
                             </div>
                         </div>
                         {!detail.access.allowed && detail.access.reason ? (
-                            <p className="mt-2 text-xs text-warning dark:text-warning">{detail.access.reason}</p>
+                            <p className="mt-2 text-xs text-warning">{detail.access.reason}</p>
                         ) : null}
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
                         <CompatibilityPanel definitionId={detail.definition.id} />
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-2 text-sm font-semibold">How it works</h3>
                             <ol className="space-y-1.5 text-xs text-muted-foreground">
                                 <li>1. Join → a virtual account is created with the configured starting balance.</li>

@@ -199,7 +199,7 @@ export default function BotDetailPage() {
                     )}
                     <Link
                         href="/account/bots"
-                        className="flex w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
+                        className="flex w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors hover:bg-muted"
                     >
                         <ArrowLeft size={15} /> Back to My Bots
                     </Link>
@@ -218,7 +218,7 @@ export default function BotDetailPage() {
                     <div className="flex items-center gap-2">
                         <Link
                             href="/account/bots"
-                            className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm transition hover:bg-muted"
+                            className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm transition-colors hover:bg-muted"
                         >
                             <ArrowLeft size={14} /> All Bots
                         </Link>
@@ -230,7 +230,7 @@ export default function BotDetailPage() {
                     <div className="flex gap-2">
                         <Link
                             href="/pricing"
-                            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm transition hover:bg-muted"
+                            className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm transition-colors hover:bg-muted"
                         >
                             <ShieldCheck size={14} /> Upgrade
                         </Link>
@@ -238,7 +238,7 @@ export default function BotDetailPage() {
                 </div>
 
                 {bot.description && (
-                    <p className="rounded-lg border border-border bg-card px-5 py-4 text-sm text-muted-foreground">
+                    <p className="rounded-xl border border-border bg-card px-5 py-4 text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         {bot.description}
                     </p>
                 )}
@@ -257,7 +257,7 @@ export default function BotDetailPage() {
                     <StatCard label="Max drawdown" icon={<TrendingDown size={16} />} value={`$${Math.abs(stats?.maxDrawdown || 0).toFixed(2)}`} accent="red" />
                 </div>
 
-                <div className="rounded-lg border border-border bg-card p-5">
+                <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Bot size={15} /> Trade
                     </h3>
@@ -273,7 +273,7 @@ export default function BotDetailPage() {
 
                 {/* Equity curve from bot trades */}
                 {chartData.length > 2 && (
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-3 text-sm font-semibold text-foreground">Equity curve (bot trades)</h3>
                         <ResponsiveContainer width="100%" height={240}>
                             <AreaChart data={chartData}>
@@ -295,7 +295,7 @@ export default function BotDetailPage() {
 
                 {/* Open positions */}
                 {positions.length > 0 && (
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                             <MapPin size={15} /> Open Positions
                         </h3>
@@ -303,13 +303,13 @@ export default function BotDetailPage() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
-                                        <th className="px-3 py-2">Ticket</th>
-                                        <th className="px-3 py-2">Symbol</th>
-                                        <th className="px-3 py-2">Type</th>
-                                        <th className="px-3 py-2 text-right">Volume</th>
-                                        <th className="px-3 py-2 text-right">Open</th>
-                                        <th className="px-3 py-2 text-right">Current</th>
-                                        <th className="px-3 py-2 text-right">P/L</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Ticket</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Volume</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Open</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Current</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">P/L</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -320,9 +320,9 @@ export default function BotDetailPage() {
                                             <td className="px-3 py-2">
                                                 <span className={p.type === "BUY" ? "text-positive" : "text-destructive"}>{p.type}</span>
                                             </td>
-                                            <td className="px-3 py-2 text-right">{p.volume}</td>
-                                            <td className="px-3 py-2 text-right">{p.openPrice}</td>
-                                            <td className="px-3 py-2 text-right">{p.currentPrice}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{p.volume}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{p.openPrice}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{p.currentPrice}</td>
                                             <td className={`px-3 py-2 text-right font-medium ${p.profit >= 0 ? "text-positive" : "text-destructive"}`}>
                                                 {formatPnl(p.profit + p.swap)}
                                             </td>
@@ -336,7 +336,7 @@ export default function BotDetailPage() {
 
                 {/* Trade history */}
                 {trades.length > 0 && (
-                    <div className="rounded-lg border border-border bg-card p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-foreground">
                             <Clock size={15} /> Trade History
                         </h3>
@@ -344,14 +344,14 @@ export default function BotDetailPage() {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
-                                        <th className="px-3 py-2">Ticket</th>
-                                        <th className="px-3 py-2">Symbol</th>
-                                        <th className="px-3 py-2">Type</th>
-                                        <th className="px-3 py-2 text-right">Volume</th>
-                                        <th className="px-3 py-2 text-right">Open</th>
-                                        <th className="px-3 py-2 text-right">Close</th>
-                                        <th className="px-3 py-2 text-right">P/L</th>
-                                        <th className="px-3 py-2">Closed</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Ticket</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Volume</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Open</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Close</th>
+                                        <th className="px-3 py-2 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">P/L</th>
+                                        <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Closed</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -362,9 +362,9 @@ export default function BotDetailPage() {
                                             <td className="px-3 py-2">
                                                 <span className={t.type === "BUY" ? "text-positive" : "text-destructive"}>{t.type}</span>
                                             </td>
-                                            <td className="px-3 py-2 text-right">{t.volume}</td>
-                                            <td className="px-3 py-2 text-right">{t.openPrice}</td>
-                                            <td className="px-3 py-2 text-right">{t.closePrice}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{t.volume}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{t.openPrice}</td>
+                                            <td className="px-3 py-2 text-right font-numeric">{t.closePrice}</td>
                                             <td className={`px-3 py-2 text-right font-medium ${t.profit + t.commission + t.swap >= 0 ? "text-positive" : "text-destructive"}`}>
                                                 {formatPnl(t.profit + t.commission + t.swap)}
                                             </td>
@@ -378,7 +378,7 @@ export default function BotDetailPage() {
                 )}
 
                 {/* Notes */}
-                <div className="rounded-lg border border-border bg-card p-5 text-sm text-muted-foreground">
+                <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <p className="flex items-center gap-2 font-medium text-foreground">
                         <ShieldCheck size={16} /> About bot equity & P/L
                     </p>
@@ -406,11 +406,11 @@ function StatCard({
 }) {
     const colors = accent === "emerald" ? "bg-positive/10 text-positive" : accent === "red" ? "bg-destructive/10 text-destructive" : "bg-muted text-foreground";
     return (
-        <div className={`rounded-lg border border-border p-4 ${colors}`}>
+        <div className={`rounded-xl border border-border p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] ${colors}`}>
             <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider opacity-80">
                 {icon} {label}
             </div>
-            <p className="mt-2 text-xl font-bold">{value}</p>
+            <p className="mt-2 font-numeric text-xl font-bold">{value}</p>
         </div>
     );
 }

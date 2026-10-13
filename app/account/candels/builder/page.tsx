@@ -76,7 +76,7 @@ export default function CandelBuilderPage() {
         </Button>
       }
     >
-      <div className="space-y-6">
+      <div className="flex flex-col gap-4">
         <SectionHeader
           icon={<Hammer className="size-4" />}
           title="Templates"
@@ -94,11 +94,11 @@ export default function CandelBuilderPage() {
             description="The template catalog could not be loaded. Reload the page or check the seed data."
           />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {templates.map((template) => {
               const spec = getCandelRole(template.role);
               return (
-                <Card key={template.id} className="h-full">
+                <Card key={template.id} className="h-full rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                   <CardContent className="flex h-full flex-col gap-3">
                     <div className="flex items-start gap-3">
                       <CandelAvatar role={template.role} avatar={template.avatar} />
@@ -145,7 +145,7 @@ export default function CandelBuilderPage() {
           icon={<Settings2 className="size-4" />}
           title="My Candels"
           description="Customize an existing Candel's role, instructions and enabled tools."
-          meta={<span className="text-xs text-muted-foreground">{candels.length} total</span>}
+          meta={<span className="font-numeric text-xs text-muted-foreground">{candels.length} total</span>}
         />
 
         {!loading && candels.length === 0 ? (
@@ -156,9 +156,9 @@ export default function CandelBuilderPage() {
             description="Use a template above to create your first Candel."
           />
         ) : (
-          <div className="divide-y divide-border rounded-lg border border-border">
+          <div className="divide-y divide-border rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             {candels.map((candel) => (
-              <div key={candel.id} className="flex flex-wrap items-center gap-3 px-3 py-2.5">
+              <div key={candel.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
                 <CandelAvatar
                   role={candel.customization?.role}
                   avatar={candel.customization?.avatar}

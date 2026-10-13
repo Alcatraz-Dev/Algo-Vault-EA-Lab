@@ -153,7 +153,7 @@ export default async function StorePage({
                                                 ? formatPrice(price.unit_amount, price.currency)
                                                 : "—"}
                                         </span>
-                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                                        <span className="rounded-lg bg-muted px-2 py-0.5 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                                             {isSubscription ? "Monthly" : "One-time"}
                                         </span>
                                     </div>

@@ -644,7 +644,7 @@ export default function NewBotPage() {
                         description="General information about the trading product."
                     >
 
-                        <div className="grid gap-5 md:grid-cols-2">
+                        <div className="grid gap-4 md:grid-cols-2">
 
                             <div>
                                 <label className="mb-2 block text-sm text-muted-foreground">
@@ -783,7 +783,7 @@ export default function NewBotPage() {
                         description="Trading environment used by this product."
                     >
 
-                        <div className="grid gap-5 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <SelectField
                                 label="Product Type"
@@ -879,7 +879,7 @@ export default function NewBotPage() {
                         description="Enter verified results from your backtest."
                     >
 
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                             <Field
                                 label="Initial Deposit"
@@ -1006,7 +1006,7 @@ export default function NewBotPage() {
                         description="Choose how customers can access this product."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <Choice
                                 selected={
@@ -1086,7 +1086,7 @@ export default function NewBotPage() {
                         description="Help users understand the strategy risk."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-4">
+                        <div className="grid gap-4 md:grid-cols-4">
 
                             {[
                                 "low",
@@ -1216,7 +1216,7 @@ export default function NewBotPage() {
                         </label>
 
                         {form.licenseRequired && (
-                            <div className="mt-5 grid gap-5 md:grid-cols-2">
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
 
                                 <Field
                                     label="License Duration (days)"
@@ -1419,7 +1419,7 @@ export default function NewBotPage() {
                         description="Control whether the product is visible in the marketplace."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <Choice
                                 selected={
@@ -1476,11 +1476,11 @@ export default function NewBotPage() {
                     </Section>
 
                     {/* Submit */}
-                    <div className="flex justify-end gap-3 pb-10">
+                    <div className="flex items-center justify-end gap-2 border-t border-border pb-10 pt-6">
 
                         <Link
                             href="/admin"
-                            className="rounded-lg border border-border px-5 py-3 text-sm hover:bg-muted/70"
+                            className="rounded-lg border border-border bg-card px-5 py-3 text-sm transition-colors hover:bg-muted/70"
                         >
                             Cancel
                         </Link>
@@ -1493,7 +1493,7 @@ export default function NewBotPage() {
                                 saving ||
                                 uploadingFile
                             }
-                            className="flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
 
                             <Save
@@ -1556,7 +1556,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-lg border border-border bg-muted/30 p-6 md:p-7">
+        <section className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] md:p-7">
 
             <div className="mb-6 flex items-start gap-3">
 
@@ -1691,9 +1691,9 @@ function Choice({
         <button
             type="button"
             onClick={onClick}
-            className={`rounded-lg border p-4 text-left transition ${selected
-                ? "border-foreground/30 bg-muted"
-                : "border-border bg-foreground/10 hover:bg-muted/70"
+            className={`rounded-xl border p-4 text-left shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors ${selected
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-card hover:bg-muted/70"
                 }`}
         >
 

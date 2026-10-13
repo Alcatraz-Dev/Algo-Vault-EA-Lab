@@ -196,7 +196,7 @@ function Card({
     className?: string;
 }) {
     return (
-        <section className={cn("flex flex-col rounded-lg border border-border bg-card shadow-sm", className)}>
+        <section className={cn("flex flex-col rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]", className)}>
             <header className="flex items-center gap-2 border-b border-border px-4 py-2.5">
                 <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60" />
@@ -232,7 +232,7 @@ function Notice({ tone = "muted", children }: { tone?: "muted" | "negative"; chi
     return (
         <div
             className={cn(
-                "flex items-start gap-2 rounded-md border border-dashed px-3 py-4 text-xs",
+                "flex items-start gap-2 rounded-xl border border-dashed px-3 py-4 text-xs",
                 tone === "negative" ? "border-negative/30 bg-negative/5 text-negative" : "border-border text-muted-foreground"
             )}
         >
@@ -495,7 +495,7 @@ export default function DevWidgetPreviewPage() {
                 <p className="text-sm text-muted-foreground">
                     Every panel on this page reads authenticated market data. No fixtures are bundled.
                 </p>
-                <a href="/login?redirect=/dev-widget-preview" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
+                <a href="/login?redirect=/dev-widget-preview" className="rounded-xl bg-primary px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-primary-foreground">
                     Sign in
                 </a>
             </main>
@@ -511,7 +511,7 @@ export default function DevWidgetPreviewPage() {
                     This QA surface renders the Pro command-centre widgets and spends live AI budget, so it is gated on your
                     server-verified subscription.
                 </p>
-                <a href="/pricing" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
+                <a href="/pricing" className="rounded-xl bg-primary px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-primary-foreground">
                     View plans
                 </a>
             </main>
@@ -537,7 +537,7 @@ export default function DevWidgetPreviewPage() {
                         value={symbol}
                         onChange={(e) => setSymbol(e.target.value)}
                         aria-label="Symbol"
-                        className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] text-foreground"
+                        className="rounded-lg border border-border bg-card px-2 py-1.5 min-h-[44px] text-[12px] text-foreground"
                     >
                         {SUPPORTED_SYMBOLS.map((s) => (
                             <option key={s} value={s}>
@@ -549,7 +549,7 @@ export default function DevWidgetPreviewPage() {
                         value={timeframe}
                         onChange={(e) => setTimeframe(e.target.value)}
                         aria-label="Timeframe"
-                        className="rounded-md border border-border bg-card px-2 py-1.5 text-[12px] text-foreground"
+                        className="rounded-lg border border-border bg-card px-2 py-1.5 min-h-[44px] text-[12px] text-foreground"
                     >
                         {TIMEFRAMES.map((tf) => (
                             <option key={tf} value={tf}>
@@ -561,7 +561,7 @@ export default function DevWidgetPreviewPage() {
                         type="button"
                         onClick={() => setRefreshKey((k) => k + 1)}
                         disabled={snapshotLoading}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1.5 text-[12px] text-foreground transition hover:bg-muted disabled:opacity-60"
+                        className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-[12px] text-foreground transition hover:bg-muted disabled:opacity-60"
                     >
                         {snapshotLoading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
                         Refresh

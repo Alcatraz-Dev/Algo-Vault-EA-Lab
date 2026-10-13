@@ -81,7 +81,7 @@ export default function ExtensionDetailsPage() {
  return (
  <main className="min-h-screen bg-background text-foreground">
  <div className="mx-auto max-w-7xl px-6 py-12">
- <div className="h-8 w-32 animate-pulse rounded bg-muted/5" />
+ <div className="h-8 w-32 animate-pulse rounded-lg bg-muted/5" />
  <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
  <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
  <div className="h-[320px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
@@ -144,7 +144,7 @@ export default function ExtensionDetailsPage() {
  <div className="absolute inset-x-0 bottom-0">
  <div className="p-6 md:p-9">
  <div className="flex items-end gap-5">
- <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card/60 ">
+ <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card ">
  <Zap size={32} className="text-positive" />
  </div>
  <div>

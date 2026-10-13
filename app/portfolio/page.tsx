@@ -112,7 +112,7 @@ export default function PortfolioPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Wallet size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Sign In</a>
                 </div>
             </div>
         );
@@ -122,12 +122,13 @@ export default function PortfolioPage() {
         <div className="min-h-screen bg-background text-foreground" data-guide="portfolio">
             <SiteNavbar />
             <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-guide="page-header">
                     <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Portfolio Overview</h1>
+                        <p className="text-micro font-medium uppercase tracking-wider text-muted-foreground">Trading accounts</p>
+                        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">Portfolio Overview</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Aggregated view of all connected MT5 accounts</p>
                     </div>
-                    <button type="button" onClick={fetchPortfolio} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchPortfolio} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs font-medium text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -147,47 +148,47 @@ export default function PortfolioPage() {
                         </div>
 
                         {/* Accounts Table */}
-                        <div className="mb-6 rounded-lg border border-border/30 bg-muted/50" data-guide="accounts">
-                            <div className="border-b border-border/20 px-4 py-3">
-                                <h2 className="text-sm font-semibold text-foreground">Connected Accounts</h2>
+                        <div className="mb-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="accounts">
+                            <div className="border-b border-border px-5 py-4">
+                                <h2 className="text-sm font-semibold tracking-tight text-foreground">Connected Accounts</h2>
                             </div>
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
-                                            <th className="px-4 py-2.5 text-left">Status</th>
-                                            <th className="px-4 py-2.5 text-left">Broker</th>
-                                            <th className="px-4 py-2.5 text-left">Account</th>
-                                            <th className="px-4 py-2.5 text-right">Balance</th>
-                                            <th className="px-4 py-2.5 text-right">Equity</th>
-                                            <th className="px-4 py-2.5 text-right">Floating P/L</th>
-                                            <th className="px-4 py-2.5 text-right">Drawdown</th>
-                                            <th className="px-4 py-2.5 text-right">Positions</th>
-                                            <th className="px-4 py-2.5 text-right">Actions</th>
+                                        <tr className="border-b border-border text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                                            <th className="px-5 py-2.5 text-left font-medium">Status</th>
+                                            <th className="px-5 py-2.5 text-left font-medium">Broker</th>
+                                            <th className="px-5 py-2.5 text-left font-medium">Account</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Balance</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Equity</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Floating P/L</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Drawdown</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Positions</th>
+                                            <th className="px-5 py-2.5 text-right font-medium">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {portfolio.accounts.map((acc) => (
-                                            <tr key={acc.accountId} className="border-b border-border/10 hover:bg-muted/50">
-                                                <td className="px-4 py-2.5">
+                                            <tr key={acc.accountId} className="border-b border-border last:border-0 transition-colors hover:bg-muted">
+                                                <td className="px-5 py-2.5">
                                                     <span className={cn("flex items-center gap-1.5 text-xs", acc.status === "connected" ? "text-positive" : "text-muted-foreground")}>
-                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.status === "connected" ? "bg-positive" : "bg-muted")} />
+                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.status === "connected" ? "bg-positive" : "bg-muted-foreground")} />
                                                         {acc.status}
                                                     </span>
                                                 </td>
-                                                <td className="px-4 py-2.5 text-sm text-foreground">{acc.broker}</td>
-                                                <td className="px-4 py-2.5 font-numeric text-muted-foreground">{acc.mt5Account}</td>
-                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                <td className={cn("px-4 py-2.5 text-right font-numeric font-medium", acc.floatingPnl >= 0 ? "text-positive" : "text-negative")}>
+                                                <td className="px-5 py-2.5 text-sm text-foreground">{acc.broker}</td>
+                                                <td className="px-5 py-2.5 font-numeric text-muted-foreground">{acc.mt5Account}</td>
+                                                <td className="px-5 py-2.5 text-right font-numeric text-muted-foreground">${acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                                <td className="px-5 py-2.5 text-right font-numeric text-muted-foreground">${acc.equity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                                <td className={cn("px-5 py-2.5 text-right font-numeric font-medium", acc.floatingPnl >= 0 ? "text-positive" : "text-negative")}>
                                                     {acc.floatingPnl >= 0 ? "+" : ""}${acc.floatingPnl.toFixed(2)}
                                                 </td>
-                                                <td className={cn("px-4 py-2.5 text-right font-numeric", acc.drawdown > 10 ? "text-negative" : acc.drawdown > 5 ? "text-warning" : "text-muted-foreground")}>
+                                                <td className={cn("px-5 py-2.5 text-right font-numeric", acc.drawdown > 10 ? "text-negative" : acc.drawdown > 5 ? "text-warning" : "text-muted-foreground")}>
                                                     {acc.drawdown.toFixed(2)}%
                                                 </td>
-                                                <td className="px-4 py-2.5 text-right text-muted-foreground">{acc.positionsCount}</td>
-                                                <td className="px-4 py-2.5 text-right">
-                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-primary/10 px-2.5 py-1 text-micro text-primary hover:bg-primary/20 transition disabled:opacity-50">
+                                                <td className="px-5 py-2.5 text-right font-numeric text-muted-foreground">{acc.positionsCount}</td>
+                                                <td className="px-5 py-2.5 text-right">
+                                                    <button type="button" onClick={() => syncJournal(acc.accountId)} disabled={syncingJournal} className="rounded-lg bg-primary/10 px-2.5 py-1 text-micro font-medium text-primary transition-colors hover:bg-primary/20 disabled:opacity-50">
                                                         {syncingJournal ? "Syncing..." : "Sync Journal"}
                                                     </button>
                                                 </td>
@@ -201,27 +202,27 @@ export default function PortfolioPage() {
 
                         {/* Exposure */}
                         {portfolio.exposure.length > 0 && (
-                            <div className="rounded-lg border border-border/30 bg-muted/50">
-                                <div className="border-b border-border/20 px-4 py-3">
-                                    <h2 className="text-sm font-semibold text-foreground">Position Exposure</h2>
+                            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                                <div className="border-b border-border px-5 py-4">
+                                    <h2 className="text-sm font-semibold tracking-tight text-foreground">Position Exposure</h2>
                                 </div>
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-xs">
                                         <thead>
-                                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
-                                                <th className="px-4 py-2.5 text-left">Symbol</th>
-                                                <th className="px-4 py-2.5 text-left">Direction</th>
-                                                <th className="px-4 py-2.5 text-right">Total Volume</th>
-                                                <th className="px-4 py-2.5 text-right">Floating P/L</th>
+                                            <tr className="border-b border-border text-micro font-medium uppercase tracking-wider text-muted-foreground">
+                                                <th className="px-5 py-2.5 text-left font-medium">Symbol</th>
+                                                <th className="px-5 py-2.5 text-left font-medium">Direction</th>
+                                                <th className="px-5 py-2.5 text-right font-medium">Total Volume</th>
+                                                <th className="px-5 py-2.5 text-right font-medium">Floating P/L</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {portfolio.exposure.map((exp) => (
-                                                <tr key={`${exp.symbol}_${exp.type}`} className="border-b border-border/10">
-                                                    <td className="px-4 py-2.5 font-numeric font-medium text-foreground">{exp.symbol}</td>
-                                                    <td className={cn("px-4 py-2.5 font-medium", exp.type === "BUY" ? "text-positive" : "text-negative")}>{exp.type}</td>
-                                                    <td className="px-4 py-2.5 text-right font-numeric text-muted-foreground">{exp.volume.toFixed(2)}</td>
-                                                    <td className={cn("px-4 py-2.5 text-right font-numeric font-medium", exp.pnl >= 0 ? "text-positive" : "text-negative")}>
+                                                <tr key={`${exp.symbol}_${exp.type}`} className="border-b border-border last:border-0 transition-colors hover:bg-muted">
+                                                    <td className="px-5 py-2.5 font-numeric font-medium text-foreground">{exp.symbol}</td>
+                                                    <td className={cn("px-5 py-2.5 font-medium", exp.type === "BUY" ? "text-positive" : "text-negative")}>{exp.type}</td>
+                                                    <td className="px-5 py-2.5 text-right font-numeric text-muted-foreground">{exp.volume.toFixed(2)}</td>
+                                                    <td className={cn("px-5 py-2.5 text-right font-numeric font-medium", exp.pnl >= 0 ? "text-positive" : "text-negative")}>
                                                         {exp.pnl >= 0 ? "+" : ""}${exp.pnl.toFixed(2)}
                                                     </td>
                                                 </tr>
@@ -233,7 +234,7 @@ export default function PortfolioPage() {
                         )}
                     </>
                 ) : (
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-16 text-center">
+                    <div className="rounded-xl border border-dashed border-border bg-card p-16 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <Wallet size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No accounts connected</p>
                         <p className="mt-1 text-xs text-muted-foreground">Connect your MT5 account via the Trading Gateway</p>
@@ -246,12 +247,12 @@ export default function PortfolioPage() {
 
 function SummaryCard({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string; color?: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-2">
-                <Icon size={14} className="text-primary" />
-                <span className="text-micro font-semibold uppercase text-muted-foreground">{label}</span>
+                <Icon size={14} className="text-muted-foreground" aria-hidden="true" />
+                <span className="text-micro font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
             </div>
-            <p className={cn("mt-2 font-numeric text-lg font-bold", color || "text-foreground")}>{value}</p>
+            <p className={cn("mt-2 font-numeric text-lg font-semibold tracking-tight", color || "text-foreground")}>{value}</p>
         </div>
     );
 }

@@ -309,7 +309,7 @@ export default function AdminPlacementsPage() {
                     action={!q ? <Button type="button" size="sm" onClick={openCreate}><Plus /> New placement</Button> : undefined}
                 />
             ) : (
-                <div className="overflow-x-auto rounded-lg border border-border">
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[800px]">
                         <TableHeader>
                             <TableRow>
@@ -334,7 +334,7 @@ export default function AdminPlacementsPage() {
                                             {PLACEMENT_LABELS[p.key as PlacementType] || p.key}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">{p.priority}</TableCell>
+                                    <TableCell className="text-right font-numeric tabular-nums text-muted-foreground">{p.priority}</TableCell>
                                     <TableCell className="text-muted-foreground">
                                         {p.frequencyCap ? `${p.frequencyCap.type} · ${p.frequencyCap.limit}` : "—"}
                                     </TableCell>
@@ -372,7 +372,7 @@ export default function AdminPlacementsPage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
+                <DialogContent className="rounded-xl bg-popover max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New placement"}</DialogTitle>
                         <DialogDescription>
@@ -482,7 +482,7 @@ export default function AdminPlacementsPage() {
 
             {/* Preview dialog */}
             <Dialog open={previewing !== null} onOpenChange={(o) => { if (!o) setPreviewing(null); }}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Placement preview</DialogTitle>
                         <DialogDescription>

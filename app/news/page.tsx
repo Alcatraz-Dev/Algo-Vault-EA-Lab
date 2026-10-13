@@ -25,8 +25,8 @@ const CATEGORIES = [
 ];
 
 const SENTIMENT_CONFIG = {
-    bullish: { label: "Bullish", icon: TrendingUp, color: "text-positive-foreground", bg: "bg-positive/10" },
-    bearish: { label: "Bearish", icon: TrendingDown, color: "text-negative-foreground", bg: "bg-negative/10" },
+    bullish: { label: "Bullish", icon: TrendingUp, color: "text-positive", bg: "bg-positive/10" },
+    bearish: { label: "Bearish", icon: TrendingDown, color: "text-negative", bg: "bg-negative/10" },
     neutral: { label: "Neutral", icon: Minus, color: "text-muted-foreground", bg: "bg-muted" },
 };
 
@@ -60,13 +60,13 @@ export default function NewsPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition-colors">Sign In</Link></div></div>);
     }
 
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -75,7 +75,7 @@ export default function NewsPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Market News</h1>
                         <p className="mt-1.5 text-sm text-muted-foreground">Financial headlines and market sentiment</p>
                     </div>
-                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -118,7 +118,7 @@ export default function NewsPage() {
                             const timeAgo = getTimeAgo(item.publishedAt);
 
                             return (
-                                <div key={item.id} className="group rounded-lg border border-border bg-card p-5 transition-colors hover:bg-muted">
+                                <div key={item.id} className="group rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5 transition-colors hover:bg-muted">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1.5">
@@ -139,7 +139,7 @@ export default function NewsPage() {
                                             )}
                                         </div>
                                         {item.url && item.url !== "#" && (
-                                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 flex-shrink-0 rounded-md p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary transition">
+                                            <a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 flex-shrink-0 rounded-md p-1.5 text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-primary transition-colors">
                                                 <ExternalLink size={14} />
                                             </a>
                                         )}

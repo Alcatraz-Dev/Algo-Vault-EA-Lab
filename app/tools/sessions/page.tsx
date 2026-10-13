@@ -54,7 +54,7 @@ export default function TradingSessionsPage() {
             ]}
         >
             {/* Current Time + Active Sessions */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10">
@@ -84,7 +84,7 @@ export default function TradingSessionsPage() {
             </div>
 
             {/* Session Timeline */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 text-sm font-semibold text-foreground">24-Hour Session Timeline (UTC)</h2>
 
                 <div className="mb-2 flex">
@@ -220,7 +220,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -230,7 +230,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

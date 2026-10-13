@@ -109,7 +109,7 @@ export default function AgentDetailPage() {
                     </Link>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="flex items-start gap-4">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
                             <Bot size={24} className="text-primary" />
@@ -127,7 +127,7 @@ export default function AgentDetailPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Permissions</h3>
                         <div className="flex flex-wrap gap-1.5">
                             {(agent.permissions || []).map((p) => (
@@ -136,7 +136,7 @@ export default function AgentDetailPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Outputs</h3>
                         {agent.outputs && (agent.outputs || []).length > 0 ? (
                             <ul className="space-y-1 text-micro">
@@ -150,7 +150,7 @@ export default function AgentDetailPage() {
                     </div>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <h3 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground mb-3">Actions</h3>
                     <div className="flex flex-wrap gap-2">
                         <button

@@ -811,7 +811,7 @@ function AdminTelegramDashboard() {
             {/* Toast */}
             {toast && (
                 <div className="fixed top-4 right-4 z-50 animate-in fade-in slide-in-from-top-4">
-                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-xl ${
+                    <div className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-medium shadow-[0_1px_2px_rgb(0_0_0/0.05)] ${
                         toast.type === "success"
                             ? "border-positive/30 bg-positive/10 text-positive"
                             : "border-negative/30 bg-negative/10 text-negative"
@@ -823,7 +823,7 @@ function AdminTelegramDashboard() {
             )}
 
             {/* TOP BAR / STATUS HEADER */}
-            <div className="flex flex-col gap-4 rounded-lg border border-border/40 bg-card p-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-4 rounded-lg border border-border/40 bg-card p-6 md:flex-row md:items-center md:justify-between shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="flex items-center gap-4">
                     <div className={`flex h-12 w-12 items-center justify-center rounded-lg border ${
                         status.connected
@@ -1019,19 +1019,19 @@ function AdminTelegramDashboard() {
                             </button>
                         </div>
                     ) : (
-                        <div className="overflow-hidden rounded-lg border border-border/40 bg-card">
+                        <div className="overflow-hidden rounded-lg border border-border/40 bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-xs">
                                     <thead className="border-b border-border/40 bg-muted/20 uppercase tracking-wider text-muted-foreground">
                                         <tr>
-                                            <th className="px-4 py-3 font-semibold">Channel</th>
-                                            <th className="px-4 py-3 font-semibold">Status</th>
-                                            <th className="px-4 py-3 font-semibold">Group</th>
-                                            <th className="px-4 py-3 font-semibold">Style</th>
-                                            <th className="px-4 py-3 font-semibold">Signals</th>
-                                            <th className="px-4 py-3 font-semibold">Auto Exec</th>
-                                            <th className="px-4 py-3 font-semibold">Parsing</th>
-                                            <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Channel</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Status</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Group</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Style</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Signals</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Auto Exec</th>
+                                            <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Parsing</th>
+                                            <th className="px-4 py-3 text-right font-semibold text-micro uppercase tracking-wider text-muted-foreground">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border/30">
@@ -1063,11 +1063,11 @@ function AdminTelegramDashboard() {
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3">
-                                                        <span className="rounded-md border border-warning/20 bg-warning/5 px-2 py-0.5 text-micro font-semibold text-warning">
+                                                        <span className="rounded-lg border border-warning/20 bg-warning/5 px-2 py-0.5 text-micro font-semibold text-warning">
                                                             {src.style}
                                                         </span>
                                                     </td>
-                                                    <td className="px-4 py-3 font-semibold tabular-nums">
+                                                    <td className="px-4 py-3 font-semibold font-numeric tabular-nums">
                                                         {src.signalCount || 0}
                                                     </td>
                                                     <td className="px-4 py-3">
@@ -1119,7 +1119,7 @@ function AdminTelegramDashboard() {
             {/* TAB 2: CONNECT TELEGRAM USER ACCOUNT */}
             {activeTab === "connect" && (
                 <div className="mx-auto max-w-xl space-y-6">
-                    <div className="rounded-lg border border-border/40 bg-card p-6">
+                    <div className="rounded-lg border border-border/40 bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-6 flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10 text-warning">
                                 <Shield size={20} />
@@ -1388,7 +1388,7 @@ function AdminTelegramDashboard() {
                     </div>
 
                     {/* SEARCH & FILTERS BAR */}
-                    <div className="flex flex-col gap-3 rounded-lg border border-border/40 bg-card p-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-col gap-3 rounded-lg border border-border/40 bg-card p-4 md:flex-row md:items-center md:justify-between shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="relative flex-1">
                             <Search size={15} className="absolute left-3 top-2.5 text-muted-foreground" />
                             <input
@@ -1409,7 +1409,7 @@ function AdminTelegramDashboard() {
                                     className={`rounded-lg px-2.5 py-1 text-micro font-semibold transition ${
                                         channelTypeFilter === t
                                             ? "bg-warning text-background font-bold"
-                                            : "border border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted"
+                                            : "border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted"
                                     }`}
                                 >
                                     {t}
@@ -1451,7 +1451,7 @@ function AdminTelegramDashboard() {
                             <RefreshCw className="h-6 w-6 animate-spin text-warning" />
                         </div>
                     ) : channels.length === 0 ? (
-                        <div className="rounded-lg border border-border/40 bg-card p-8 text-center">
+                        <div className="rounded-lg border border-border/40 bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <p className="text-sm font-semibold">No channels fetched yet</p>
                             <p className="mt-1 text-xs text-muted-foreground">Click &quot;Fetch Channels&quot; above to discover channels available to your connected Telegram account.</p>
                             <button
@@ -1474,7 +1474,7 @@ function AdminTelegramDashboard() {
 
                             if (filteredChannels.length === 0) {
                                 return (
-                                    <div className="rounded-lg border border-border/40 bg-card p-8 text-center text-xs text-muted-foreground">
+                                    <div className="rounded-lg border border-border/40 bg-card p-8 text-center text-xs text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                         No channels match search query &quot;{channelSearch}&quot;
                                     </div>
                                 );
@@ -1496,7 +1496,7 @@ function AdminTelegramDashboard() {
                                                 }}
                                                 className={`cursor-pointer rounded-lg border p-4 transition ${
                                                     isChecked
-                                                        ? "border-warning/50 bg-warning/10 shadow-lg "
+                                                        ? "border-warning/50 bg-warning/10 shadow-[0_1px_2px_rgb(0_0_0/0.05)] "
                                                         : "border-border/40 bg-card hover:border-border"
                                                 }`}
                                             >
@@ -1506,11 +1506,11 @@ function AdminTelegramDashboard() {
                                                             type="checkbox"
                                                             checked={isChecked}
                                                             onChange={() => {}}
-                                                            className="h-4 w-4 rounded accent-warning"
+                                                            className="h-4 w-4 rounded-lg accent-warning"
                                                         />
                                                         <h4 className="font-bold text-foreground text-sm line-clamp-1">{ch.title}</h4>
                                                     </div>
-                                                    <span className="rounded-md bg-muted px-2 py-0.5 text-micro uppercase font-semibold text-muted-foreground">
+                                                    <span className="rounded-lg bg-muted px-2 py-0.5 text-micro uppercase font-semibold text-muted-foreground">
                                                         {ch.type}
                                                     </span>
                                                 </div>
@@ -1629,7 +1629,7 @@ function AdminTelegramDashboard() {
                         {groups.map((grp) => {
                             const assignedCount = sources.filter((s) => s.groupId === grp.id).length;
                             return (
-                                <div key={grp.id} className="flex flex-col justify-between rounded-lg border border-border/40 bg-card p-5">
+                                <div key={grp.id} className="flex flex-col justify-between rounded-lg border border-border/40 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                     <div>
                                         <div className="flex items-start justify-between gap-2">
                                             <div>
@@ -1648,7 +1648,7 @@ function AdminTelegramDashboard() {
                                         <div className="mt-4 grid grid-cols-2 gap-3 text-xs border-t border-border/30 pt-3">
                                             <div>
                                                 <span className="text-muted-foreground text-micro">Risk Multiplier:</span>
-                                                <p className="font-bold text-warning text-sm tabular-nums">{grp.riskMultiplier}x</p>
+                                                <p className="font-bold text-warning text-sm font-numeric tabular-nums">{grp.riskMultiplier}x</p>
                                             </div>
                                             <div>
                                                 <span className="text-muted-foreground text-micro">Auto Execution:</span>
@@ -1666,7 +1666,7 @@ function AdminTelegramDashboard() {
                                             </div>
                                             <div>
                                                 <span className="text-muted-foreground text-micro">Monitored Sources:</span>
-                                                <p className="font-semibold text-foreground tabular-nums">{assignedCount} channels</p>
+                                                <p className="font-semibold text-foreground font-numeric tabular-nums">{assignedCount} channels</p>
                                             </div>
                                         </div>
                                     </div>
@@ -1707,7 +1707,7 @@ function AdminTelegramDashboard() {
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2">
-                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-4">
+                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <label className="block text-xs font-semibold">Raw Telegram Signal Text</label>
                             <textarea
                                 rows={8}
@@ -1723,7 +1723,7 @@ function AdminTelegramDashboard() {
                                     id="aiFallback"
                                     checked={useAi}
                                     onChange={(e) => setUseAi(e.target.checked)}
-                                    className="h-4 w-4 rounded accent-warning"
+                                    className="h-4 w-4 rounded-lg accent-warning"
                                 />
                                 <label htmlFor="aiFallback" className="text-xs text-muted-foreground">Use AI Fallback if deterministic parser confidence &lt; 70%</label>
                             </div>
@@ -1748,7 +1748,7 @@ function AdminTelegramDashboard() {
                             </div>
                         </div>
 
-                        <div className="rounded-lg border border-border/40 bg-card p-5">
+                        <div className="rounded-lg border border-border/40 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Parser Inspection Result</h4>
 
                             {testResult ? (
@@ -1796,7 +1796,7 @@ function AdminTelegramDashboard() {
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2">
-                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-4">
+                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             {/* Symbol selector */}
                             <div>
                                 <label className="block text-xs font-semibold mb-1.5">Target Symbol</label>
@@ -1807,7 +1807,7 @@ function AdminTelegramDashboard() {
                                             type="button"
                                             onClick={() => setAiSymbol(sym)}
                                             className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition ${
-                                                aiSymbol === sym ? "bg-warning text-background font-bold" : "border border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted"
+                                                aiSymbol === sym ? "bg-warning text-background font-bold" : "border-border/40 bg-muted/20 text-muted-foreground hover:bg-muted"
                                             }`}
                                         >
                                             {sym}
@@ -1881,7 +1881,7 @@ function AdminTelegramDashboard() {
                                 <button
                                     onClick={() => handleGenerateAiSignal(true)}
                                     disabled={aiGenerating || !aiSymbol}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-warning py-2.5 text-xs font-semibold text-background transition hover:bg-warning disabled:opacity-50 shadow-lg "
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-warning py-2.5 text-xs font-semibold text-background transition hover:bg-warning disabled:opacity-50 shadow-[0_1px_2px_rgb(0_0_0/0.05)] "
                                 >
                                     {aiGenerating ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Send size={14} />}
                                     Generate & Publish to Pro Feed (By {aiSiteName})
@@ -1890,10 +1890,10 @@ function AdminTelegramDashboard() {
                         </div>
 
                         {/* Result Preview Box */}
-                        <div className="rounded-lg border border-border/40 bg-card p-5">
+                        <div className="rounded-lg border border-border/40 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Signal Analysis Result</h4>
-                                <span className="rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro font-bold text-warning">
+                                <span className="rounded-lg border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro font-bold text-warning">
                                     By {aiSiteName}
                                 </span>
                             </div>
@@ -1904,7 +1904,7 @@ function AdminTelegramDashboard() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <h3 className="text-base font-extrabold text-foreground">{aiGeneratedResult.generatedSignal?.symbol}</h3>
-                                                <span className={`rounded-md px-2 py-0.5 text-micro font-bold ${
+                                                <span className={`rounded-lg px-2 py-0.5 text-micro font-bold ${
                                                     aiGeneratedResult.generatedSignal?.direction === "BUY" ? "bg-positive/20 text-positive" : "bg-negative/20 text-negative"
                                                 }`}>
                                                     {aiGeneratedResult.generatedSignal?.direction}
@@ -1985,26 +1985,26 @@ function AdminTelegramDashboard() {
                         </button>
                     </div>
 
-                    <div className="overflow-hidden rounded-lg border border-border/40 bg-card">
+                    <div className="overflow-hidden rounded-lg border border-border/40 bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <table className="w-full text-left text-xs">
                             <thead className="border-b border-border/40 bg-muted/20 uppercase tracking-wider text-muted-foreground">
                                 <tr>
-                                    <th className="px-4 py-3 font-semibold">Channel Source</th>
-                                    <th className="px-4 py-3 font-semibold">Signals</th>
-                                    <th className="px-4 py-3 font-semibold">Wins</th>
-                                    <th className="px-4 py-3 font-semibold">Losses</th>
-                                    <th className="px-4 py-3 font-semibold">Win Rate</th>
-                                    <th className="px-4 py-3 font-semibold">Last Message</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Channel Source</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Signals</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Wins</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Losses</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Win Rate</th>
+                                    <th className="px-4 py-3 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Last Message</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/30">
                                 {analytics.map((item) => (
                                     <tr key={item.sourceId}>
                                         <td className="px-4 py-3 font-bold text-foreground">{item.channelName}</td>
-                                        <td className="px-4 py-3 tabular-nums">{item.totalSignals}</td>
-                                        <td className="px-4 py-3 tabular-nums text-positive">{item.wins}</td>
-                                        <td className="px-4 py-3 tabular-nums text-negative">{item.losses}</td>
-                                        <td className="px-4 py-3 font-bold tabular-nums text-warning">{item.winRate}%</td>
+                                        <td className="px-4 py-3 font-numeric tabular-nums">{item.totalSignals}</td>
+                                        <td className="px-4 py-3 font-numeric tabular-nums text-positive">{item.wins}</td>
+                                        <td className="px-4 py-3 font-numeric tabular-nums text-negative">{item.losses}</td>
+                                        <td className="px-4 py-3 font-bold font-numeric tabular-nums text-warning">{item.winRate}%</td>
                                         <td className="px-4 py-3 text-muted-foreground">
                                             {item.lastReceivedAt ? new Date(item.lastReceivedAt).toLocaleString() : "N/A"}
                                         </td>
@@ -2045,7 +2045,7 @@ function AdminTelegramDashboard() {
 
                     {/* Diagnostic Summary Panel */}
                     {diagnosticResult && (
-                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-3">
+                        <div className="rounded-lg border border-border/40 bg-card p-5 space-y-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h4 className="text-sm font-bold flex items-center gap-2">
                                 <Server size={16} className="text-warning" />
                                 Diagnostic Connection Results ({new Date(diagnosticResult.timestamp).toLocaleTimeString()})
@@ -2068,11 +2068,11 @@ function AdminTelegramDashboard() {
                     )}
 
                     {/* Logs Stream */}
-                    <div className="rounded-lg border border-border/40 bg-card p-4 font-numeric text-xs max-h-96 overflow-y-auto space-y-2">
+                    <div className="rounded-lg border border-border/40 bg-card p-4 font-numeric text-xs max-h-96 overflow-y-auto space-y-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         {logs.map((log) => (
                             <div key={log.id} className="flex items-start gap-2 border-b border-border/20 pb-1.5">
                                 <span className="text-muted-foreground text-micro shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                                <span className={`uppercase font-bold text-micro shrink-0 px-1.5 py-0.5 rounded ${
+                                <span className={`uppercase font-bold text-micro shrink-0 px-1.5 py-0.5 rounded-lg ${
                                     log.level === "error" ? "bg-negative/20 text-negative" : log.level === "success" ? "bg-positive/20 text-positive" : "bg-info/20 text-info"
                                 }`}>
                                     {log.level}
@@ -2089,8 +2089,8 @@ function AdminTelegramDashboard() {
 
             {/* SOURCE GROUP EDIT / CREATE MODAL */}
             {isCreatingGroup && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-md space-y-4 rounded-lg border border-border/40 bg-card p-6 shadow-2xl">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md space-y-4 rounded-lg border border-border/40 bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border/40 pb-3">
                             <h3 className="text-base font-bold text-foreground">
                                 {editingGroup ? `Edit Group: ${editingGroup.name}` : "Create New Source Group"}
@@ -2136,7 +2136,7 @@ function AdminTelegramDashboard() {
                                         max="5.0"
                                         value={groupForm.riskMultiplier ?? 1.0}
                                         onChange={(e) => setGroupForm({ ...groupForm, riskMultiplier: parseFloat(e.target.value) || 1.0 })}
-                                        className="w-full rounded-lg border border-border bg-background p-2.5 text-xs tabular-nums text-foreground outline-none focus:border-warning"
+                                        className="w-full rounded-lg border border-border bg-background p-2.5 text-xs font-numeric tabular-nums text-foreground outline-none focus:border-warning"
                                     />
                                 </div>
 
@@ -2165,7 +2165,7 @@ function AdminTelegramDashboard() {
                                         type="checkbox"
                                         checked={Boolean(groupForm.autoExecution)}
                                         onChange={(e) => setGroupForm({ ...groupForm, autoExecution: e.target.checked })}
-                                        className="h-4 w-4 rounded accent-warning"
+                                        className="h-4 w-4 rounded-lg accent-warning"
                                     />
                                 </div>
 
@@ -2175,7 +2175,7 @@ function AdminTelegramDashboard() {
                                         type="checkbox"
                                         checked={Boolean(groupForm.notificationEnabled)}
                                         onChange={(e) => setGroupForm({ ...groupForm, notificationEnabled: e.target.checked })}
-                                        className="h-4 w-4 rounded accent-warning"
+                                        className="h-4 w-4 rounded-lg accent-warning"
                                     />
                                 </div>
 
@@ -2185,7 +2185,7 @@ function AdminTelegramDashboard() {
                                         type="checkbox"
                                         checked={Boolean(groupForm.enabled)}
                                         onChange={(e) => setGroupForm({ ...groupForm, enabled: e.target.checked })}
-                                        className="h-4 w-4 rounded accent-warning"
+                                        className="h-4 w-4 rounded-lg accent-warning"
                                     />
                                 </div>
                             </div>
@@ -2213,7 +2213,7 @@ function AdminTelegramDashboard() {
             {/* EDIT SOURCE MODAL */}
             {editingSource && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-                    <div className="w-full max-w-lg rounded-lg border border-border/50 bg-card p-6 shadow-2xl space-y-4">
+                    <div className="w-full max-w-lg rounded-lg border border-border/50 bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] space-y-4">
                         <div className="flex items-center justify-between border-b border-border/40 pb-3">
                             <h3 className="font-bold text-base">Edit Monitored Source: {editingSource.name}</h3>
                             <button onClick={() => setEditingSource(null)} className="text-muted-foreground hover:text-foreground">✕</button>
@@ -2269,7 +2269,7 @@ function AdminTelegramDashboard() {
                                     type="checkbox"
                                     checked={editingSource.parsingEnabled}
                                     onChange={(e) => setEditingSource({ ...editingSource, parsingEnabled: e.target.checked })}
-                                    className="h-4 w-4 rounded accent-warning"
+                                    className="h-4 w-4 rounded-lg accent-warning"
                                 />
                             </div>
 
@@ -2279,7 +2279,7 @@ function AdminTelegramDashboard() {
                                     type="checkbox"
                                     checked={editingSource.autoExecution}
                                     onChange={(e) => setEditingSource({ ...editingSource, autoExecution: e.target.checked })}
-                                    className="h-4 w-4 rounded accent-warning"
+                                    className="h-4 w-4 rounded-lg accent-warning"
                                 />
                             </div>
                         </div>

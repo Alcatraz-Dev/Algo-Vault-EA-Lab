@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type AccountSnap = {
     accountId: string; mt5Account: string; broker: string;
@@ -102,7 +103,7 @@ export default function ComparePage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                         Sign In
                     </Link>
                 </div>
@@ -130,7 +131,7 @@ export default function ComparePage() {
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8" data-guide="page-header">
-                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft size={12} /> Back to Account
                     </Link>
                     <div className="flex items-center justify-between">
@@ -142,7 +143,7 @@ export default function ComparePage() {
                             type="button"
                             onClick={fetchData}
                             disabled={loading}
-                            className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-background/15 hover:text-foreground transition disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50"
                         >
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
@@ -160,7 +161,7 @@ export default function ComparePage() {
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No accounts to compare</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">Connect your MT5 accounts to see a side-by-side comparison.</p>
-                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                             Connect Account
                         </Link>
                     </div>
@@ -169,7 +170,7 @@ export default function ComparePage() {
                         {/* Summary Cards */}
                         {comparison && (
                             <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5" data-guide="summary">
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
                                             <Wallet size={14} className="text-info" />
@@ -180,7 +181,7 @@ export default function ComparePage() {
                                         ${comparison.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                                             <Activity size={14} className="text-primary" />
@@ -191,7 +192,7 @@ export default function ComparePage() {
                                         ${comparison.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
                                             <BarChart3 size={14} className="text-info" />
@@ -236,7 +237,7 @@ export default function ComparePage() {
                                                 <th
                                                     key={col.key}
                                                     onClick={() => toggleSort(col.key)}
-                                                    className="cursor-pointer px-4 py-3.5 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary transition select-none"
+                                                    className="cursor-pointer px-4 py-3.5 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors select-none"
                                                 >
                                                     <span className="inline-flex items-center gap-1">
                                                         {col.label}
@@ -256,7 +257,7 @@ export default function ComparePage() {
                                             <tr
                                                 key={acc.accountId}
                                                 className={cn(
-                                                    "border-b border-border/10 transition hover:bg-muted",
+                                                    "border-b border-border/10 transition-colors hover:bg-muted",
                                                     idx % 2 === 0 ? "bg-transparent" : "bg-muted/10"
                                                 )}
                                             >
@@ -264,7 +265,7 @@ export default function ComparePage() {
                                                     <div className="flex items-center gap-3">
                                                         <div className={cn(
                                                           "flex h-9 w-9 items-center justify-center rounded-lg text-xs font-bold",
-                                                            acc.online ? "bg-positive/10 text-positive" : "bg-muted/50/30 text-muted-foreground"
+                                                            acc.online ? "bg-positive/10 text-positive" : "bg-muted text-muted-foreground"
                                                         )}>
                                                             {acc.broker.charAt(0)}
                                                         </div>
@@ -283,13 +284,12 @@ export default function ComparePage() {
                                                     );
                                                 })}
                                                 <td className="px-5 py-4 text-right">
-                                                    <span className={cn(
-                                                        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-micro font-medium",
-                                                        acc.online ? "bg-positive/10 text-positive" : "bg-muted/50/30 text-muted-foreground"
-                                                    )}>
-                                                        <span className={cn("h-1.5 w-1.5 rounded-full", acc.online ? "bg-positive animate-pulse" : "bg-muted")} />
-                                                        {acc.online ? "Online" : "Offline"}
-                                                    </span>
+                                                    <StatusBadge
+                                                        tone={acc.online ? "connected" : "offline"}
+                                                        label={acc.online ? "Online" : "Offline"}
+                                                        dot
+                                                        pulse={acc.online}
+                                                    />
                                                 </td>
                                             </tr>
                                         ))}

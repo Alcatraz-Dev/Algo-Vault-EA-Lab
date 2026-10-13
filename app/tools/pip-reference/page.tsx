@@ -109,7 +109,7 @@ export default function PipReferencePage() {
                                         <button
                                             type="button"
                                             onClick={() => copyRow(inst)}
-                                            className="rounded-md p-1 text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+                                            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                                         >
                                             {copied === inst.symbol ? <Check size={12} className="text-positive" /> : <Copy size={12} />}
                                         </button>
@@ -121,7 +121,7 @@ export default function PipReferencePage() {
                 </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                 <h3 className="mb-2 text-xs font-semibold text-foreground">Formula</h3>
                 <p className="font-numeric text-micro text-muted-foreground">
                     Pip Value = Contract Size × Pip Size × Lots
@@ -154,7 +154,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -164,7 +164,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

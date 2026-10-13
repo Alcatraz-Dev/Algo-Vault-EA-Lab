@@ -112,7 +112,7 @@ export default function OverlapDetectorPage() {
             </div>
 
             {/* Overlap Map */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground"><Globe size={15} className="text-primary" /> 24-Hour Overlap Map</h2>
                 <div className="grid grid-cols-24 gap-1">
                     {Array.from({ length: 24 }, (_, h) => {
@@ -154,7 +154,7 @@ export default function OverlapDetectorPage() {
             </div>
 
             {/* Best Overlap Windows (Lite — top 5 by hours, no per-pair ranking) */}
-            <div className="rounded-lg border border-border bg-card p-5">
+            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                 <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground"><Zap size={15} className="text-warning" /> Best Overlap Windows</h2>
                 <div className="space-y-3">
                     {overlaps.sort((a, b) => b.hours.length - a.hours.length).slice(0, 5).map((o, i) => (
@@ -206,7 +206,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -216,7 +216,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

@@ -186,7 +186,7 @@ export default function AlertCenterPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition"><ArrowLeft size={12} /> Back to Account</Link>
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={12} /> Back to Account</Link>
 
                 <div className="mb-6 flex items-center justify-between" data-guide="page-header">
                     <div>
@@ -198,28 +198,28 @@ export default function AlertCenterPage() {
                             {selectMode ? (
                                 <>
                                     <span className="text-micro text-muted-foreground">{selected.size} selected</span>
-                                    <button type="button" onClick={selected.size > 0 ? bulkDelete : undefined} disabled={selected.size === 0} className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50">
+                                    <button type="button" onClick={selected.size > 0 ? bulkDelete : undefined} disabled={selected.size === 0} className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50">
                                         <Trash2 size={13} /> Delete
                                     </button>
-                                    <button type="button" onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition">
+                                    <button type="button" onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                                         <X size={13} /> Cancel
                                     </button>
                                 </>
                             ) : (
                                 <>
                                     {unreadCount > 0 && (
-                                        <button type="button" onClick={markAllRead} className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition">
+                                        <button type="button" onClick={markAllRead} className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
                                             <Eye size={13} /> Mark all read ({unreadCount})
                                         </button>
                                     )}
-                                    <button type="button" onClick={() => setSelectMode(true)} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition">
+                                    <button type="button" onClick={() => setSelectMode(true)} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
                                         <Trash2 size={13} /> Select
                                     </button>
                                     <button
                                         type="button"
                                         onClick={clearAll}
                                         className={cn(
-                                          "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition",
+                                          "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors",
                                             confirmClear
                                                 ? "border border-negative/40 bg-negative/20 text-negative hover:bg-negative/30"
                                                 : "border border-negative/20 bg-negative/10 text-negative hover:bg-negative/20"
@@ -235,19 +235,19 @@ export default function AlertCenterPage() {
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-4 gap-4" data-guide="stats">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Unread</p>
                         <p className="text-xl font-bold font-numeric text-primary">{unreadCount}</p>
                     </div>
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Target Hits</p>
                         <p className="text-xl font-bold font-numeric text-positive">{notifications.filter((n) => ["TP1_HIT", "TP2_HIT", "TP3_HIT"].includes(n.event || "")).length}</p>
                     </div>
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Risk Events</p>
                         <p className="text-xl font-bold font-numeric text-warning">{notifications.filter((n) => ["BREAK_EVEN_APPLIED", "PROFIT_LOCK_APPLIED"].includes(n.event || "")).length}</p>
                     </div>
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <p className="text-micro font-semibold uppercase text-muted-foreground">Total</p>
                         <p className="text-xl font-bold font-numeric text-foreground">{notifications.length}</p>
                     </div>
@@ -256,7 +256,7 @@ export default function AlertCenterPage() {
                 {/* Filters */}
                 <div className="mb-4 flex gap-2" data-guide="filters">
                     {(["all", "unread", "trades", "targets", "risk"] as const).map((f) => (
-                        <button key={f} type="button" onClick={() => { setFilter(f); setSelected(new Set()); setSelectMode(false); }} className={cn("rounded-lg px-4 py-2 text-xs font-medium transition-all", filter === f ? "bg-primary text-foreground" : "text-muted-foreground hover:text-muted-foreground bg-muted")}>
+                        <button key={f} type="button" onClick={() => { setFilter(f); setSelected(new Set()); setSelectMode(false); }} className={cn("rounded-lg px-4 py-2 text-xs font-medium transition-all", filter === f ? "bg-primary text-foreground" : "text-muted-foreground hover:text-foreground bg-muted")}>
                             {f.charAt(0).toUpperCase() + f.slice(1)}
                         </button>
                     ))}
@@ -320,7 +320,7 @@ export default function AlertCenterPage() {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); deleteNotif(notif.id); }}
-                                            className="rounded-lg p-1.5 text-muted-foreground hover:text-negative hover:bg-negative/10 transition flex-shrink-0"
+                                            className="rounded-lg p-1.5 text-muted-foreground hover:text-negative hover:bg-negative/10 transition-colors flex-shrink-0"
                                             aria-label="Delete notification"
                                             title="Delete notification"
                                         >

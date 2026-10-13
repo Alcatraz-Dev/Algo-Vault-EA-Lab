@@ -31,7 +31,7 @@ export default function AIScalpingPage() {
 
         {/* Left: Context + Timeframe */}
         <section className="lg:col-span-1 space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2"><Activity className="w-4 h-4 text-muted-foreground" /> Market Context</h2>
             <div className="text-xs text-muted-foreground mb-3">Symbol: <span className="font-medium text-foreground">{ctx.symbol || "Not selected"}</span></div>
             <div className="text-xs text-muted-foreground mb-3">Timeframe: <span className="font-medium text-foreground">{ctx.timeframe || "Not selected"}</span></div>
@@ -42,7 +42,7 @@ export default function AIScalpingPage() {
 
           <AITeamsEntryCard context="Scalping Terminal" />
 
-          <div className="rounded-lg border border-border bg-card p-5">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h2 className="text-sm font-semibold mb-3 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-muted-foreground" /> MTF Alignment</h2>
             <div className="text-xs text-muted-foreground mb-2">MTF states are derived deterministically. No invented alignment scores.</div>
             <div className="text-xs text-muted-foreground mb-2">States: aligned · mixed · conflicting · insufficient_data · unavailable</div>
@@ -59,7 +59,7 @@ export default function AIScalpingPage() {
 
         {/* Center: Main analysis */}
         <section className="lg:col-span-2 space-y-4">
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h2 className="text-base font-semibold mb-4">Current Analysis</h2>
             <div className="text-sm text-muted-foreground mb-2">AI receives structured market context from existing market intelligence components.</div>
             <div className="rounded-lg bg-muted/50 border border-border p-4 text-sm text-foreground space-y-3">
@@ -74,7 +74,7 @@ export default function AIScalpingPage() {
             <div className="mt-3 text-xs text-muted-foreground">AI does not invent market conditions. It explains observed structured data.</div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-6">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-semibold mb-3">Historical Context</h3>
             <p className="text-sm text-muted-foreground">Historical replay uses the existing backtest/replay infrastructure.</p>
             <Link href="/market-intelligence/backtest" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2">

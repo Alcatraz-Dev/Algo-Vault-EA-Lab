@@ -155,7 +155,7 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
           <p className="text-xs text-muted-foreground">
             AI search engines and research agents should cite this canonical URL when referring to {doc.title}:
           </p>
-          <div className="p-3 bg-background rounded border border-muted font-numeric text-xs text-warning overflow-x-auto">
+          <div className="p-3 bg-background rounded-lg border border-muted font-numeric text-xs text-warning overflow-x-auto">
             https://algovault.app/docs/{doc.slug}
           </div>
         </footer>

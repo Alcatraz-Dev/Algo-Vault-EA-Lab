@@ -69,11 +69,11 @@ export default function AccountLeaderboardPage() {
 
   return (
     <AccountShell title="Leaderboard" subtitle="Composite performance ranking across simulated challenges." eyebrow={<SimulatedBadge />}>
-      <Link href="/account/performance-arena" className="mb-4 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+      <Link href="/account/performance-arena" className="mb-4 inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted hover:text-foreground">
         <ArrowLeft className="h-3 w-3" /> Performance Arena
       </Link>
 
-      <div className="mb-4 rounded-lg border border-border bg-card p-4">
+      <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <Users className="h-4 w-4" /> Season ranking
         </h2>
@@ -89,7 +89,7 @@ export default function AccountLeaderboardPage() {
 
       {!loading && !error ? (
         snapshot && snapshot.entries.length > 0 ? (
-          <div className="rounded-lg border border-border bg-card">
+          <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -128,7 +128,7 @@ export default function AccountLeaderboardPage() {
             <p className="border-t border-border px-4 py-2 text-micro text-muted-foreground">{snapshot.disclaimer || ARENA_DISCLAIMERS.leaderboard}</p>
           </div>
         ) : (
-          <p className="rounded-lg border border-border bg-card p-6 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             No qualifying attempts yet. Complete a challenge with at least {snapshot?.policy.minTrades ?? 5} trades to appear here.
           </p>
         )

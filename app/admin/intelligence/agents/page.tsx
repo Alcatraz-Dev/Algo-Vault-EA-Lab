@@ -105,7 +105,7 @@ export default function AdminAgentsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search agents..."
-                        className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                        className="w-full rounded-xl border border-border bg-card py-3 pl-11 pr-4 text-sm transition-colors outline-none placeholder:text-muted-foreground focus:border-border/50"
                     />
                 </div>
                 <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ function AgentCard({
     const isBuiltIn = !agent.createdBy || agent.createdBy === "admin";
 
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden transition hover:border-border/50">
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-border">
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
@@ -220,7 +220,7 @@ function AgentCard({
                 </div>
 
                 {isExpanded && (
-                    <div className="mt-4 rounded-lg border border-border/30 bg-muted/30 p-4">
+                    <div className="mt-4 rounded-xl border border-border bg-muted/30 p-4">
                         <div className="grid gap-3 md:grid-cols-2">
                             <DetailRow label="ID" value={agent.id} copyable />
                             <DetailRow label="Created" value={agent.createdAt ? new Date(agent.createdAt).toLocaleString() : "—"} />

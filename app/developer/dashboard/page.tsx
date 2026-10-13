@@ -94,7 +94,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </Link>
 
  <div className="mx-auto max-w-lg mt-8">
- <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center">
+ <div className="rounded-xl border border-border/30 bg-muted/50 p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-lg bg-primary/10">
  <Shield size={24} className="text-primary" />
  </div>
@@ -132,7 +132,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "pending" && (
-          <div className="mt-6 rounded-lg border border-warning/20 bg-warning/[0.06] p-5 text-left">
+          <div className="mt-6 rounded-xl border border-warning/20 bg-warning/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <Clock size={18} className="text-warning shrink-0" />
  <div>
@@ -147,7 +147,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "approved" && (
-            <div className="mt-6 rounded-lg border border-positive/20 bg-positive/[0.06] p-5 text-left">
+            <div className="mt-6 rounded-xl border border-positive/20 bg-positive/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <CheckCircle2 size={18} className="text-positive shrink-0" />
  <div>
@@ -166,7 +166,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {requestState === "rejected" && (
-                <div className="mt-6 rounded-lg border border-negative/20 bg-negative/[0.06] p-5 text-left">
+                <div className="mt-6 rounded-xl border border-negative/20 bg-negative/[0.06] p-5 text-left">
  <div className="flex items-center gap-3">
  <XCircle size={18} className="text-negative shrink-0" />
  <div>
@@ -359,7 +359,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  {/* Stripe Connect Banner */}
  {stripe && !stripe.connected && (
- <div className="mb-6 rounded-lg border border-warning/20 bg-warning/[0.04] p-5">
+ <div className="mb-6 rounded-xl border border-warning/20 bg-warning/[0.04] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
@@ -374,7 +374,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
-                                      className="flex items-center gap-2 rounded-lg bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
+                                      className="flex min-h-[44px] items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  {onboarding ? "Connecting..." : "Connect Stripe"}
@@ -384,7 +384,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {stripe?.statusLabel === "Restricted" && (
- <div className="mb-6 rounded-lg border border-negative/20 bg-negative/[0.04] p-5">
+ <div className="mb-6 rounded-xl border border-negative/20 bg-negative/[0.04] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-negative/10">
@@ -409,7 +409,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {stripe?.connected && stripe.statusLabel === "Requirements Due" && (
- <div className="mb-6 rounded-lg border border-warning/20 bg-warning/[0.04] p-5">
+ <div className="mb-6 rounded-xl border border-warning/20 bg-warning/[0.04] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
@@ -440,7 +440,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
-                                                className="flex items-center gap-2 rounded-lg bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
+                                                className="flex min-h-[44px] items-center gap-2 rounded-xl bg-warning px-4 py-2.5 text-xs font-semibold text-background hover:bg-warning transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  Resume Onboarding
@@ -451,7 +451,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {stripe?.connected && !stripe.paymentsActive && stripe.statusLabel !== "Restricted" && stripe.statusLabel !== "Requirements Due" && (
- <div className="mb-6 rounded-lg border border-primary/20 bg-primary/[0.04] p-5">
+ <div className="mb-6 rounded-xl border border-primary/20 bg-primary/[0.04] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
  <Loader2 size={18} className="animate-spin text-primary" />
@@ -475,7 +475,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {stripe?.paymentsActive && (
- <div className="mb-6 rounded-lg border border-positive/20 bg-positive/[0.04] p-5">
+ <div className="mb-6 rounded-xl border border-positive/20 bg-positive/[0.04] p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-positive/10">
@@ -509,7 +509,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  {/* Developer Subscription Banner */}
  {devSub && (
- <div className="mb-6 rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="mb-6 rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -538,7 +538,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {/* Tabs */}
-                                                              <div className="mb-6 flex gap-2 rounded-lg border border-border/30 bg-muted/50 p-1">
+                                                              <div className="mb-6 flex gap-2 rounded-xl border border-border/30 bg-muted/50 p-1">
  {(["overview", "products", "create"] as const).map((t) => (
  <button
  key={t}
@@ -564,22 +564,22 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  {tab === "overview" && (
  <div className="space-y-6">
  <div className="grid grid-cols-3 gap-4">
- <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><DollarSign size={13} className="text-positive" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Revenue</span></div>
  <p className="text-2xl font-bold font-numeric text-positive">${earnings?.stats.totalRevenue || 0}</p>
  </div>
- <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><Package size={13} className="text-primary" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Products</span></div>
  <p className="text-2xl font-bold font-numeric text-foreground">{products.length}</p>
  </div>
- <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><TrendingUp size={13} className="text-warning" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Sales</span></div>
  <p className="text-2xl font-bold font-numeric text-foreground">{earnings?.stats.totalSales || 0}</p>
  </div>
  </div>
 
  {earnings?.recentSales && earnings.recentSales.length > 0 && (
- <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h3 className="mb-4 text-sm font-semibold text-foreground">Recent Sales</h3>
  <div className="space-y-2">
  {earnings.recentSales.map((sale) => (
@@ -603,13 +603,13 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  {tab === "products" && (
  <div className="space-y-3">
  {products.length === 0 ? (
- <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
+ <div className="rounded-xl border border-dashed border-border/40 p-16 text-center">
  <Package size={32} className="mx-auto text-muted-foreground" />
  <p className="mt-3 text-sm text-muted-foreground">No products yet</p>
  <button type="button" onClick={() => setTab("create")} className="mt-3 text-xs text-primary hover:underline">Create your first product</button>
  </div>
  ) : products.map((p) => (
- <div key={p.id} className="group rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted">
+ <div key={p.id} className="group rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all hover:bg-muted">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                                                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
@@ -645,7 +645,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {tab === "create" && (
- <div className="mx-auto max-w-xl rounded-lg border border-border/30 bg-muted/50 p-6">
+ <div className="mx-auto max-w-xl rounded-xl border border-border/30 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h2 className="mb-4 text-lg font-semibold text-foreground">Create Product</h2>
  <div className="space-y-4">
  <div>
@@ -694,7 +694,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  onImagesChange={(imgs) => setFormImages(imgs.join("\n"))}
  />
  {!stripe?.chargesEnabled && (
-                                                                                <div className="rounded-lg border border-warning/20 bg-warning/[0.04] p-3 text-micro text-warning/80">
+                                                                                <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-3 text-micro text-warning/80">
  <AlertTriangle size={12} className="mr-1 inline" />
  Connect your Stripe account first to sell paid products.
  </div>
@@ -703,7 +703,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={createProduct}
  disabled={!formName.trim() || creating}
-                                                                                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
+                                                                                  className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
  >
  {creating ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create Product
  </button>

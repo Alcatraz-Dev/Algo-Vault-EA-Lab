@@ -307,7 +307,7 @@ export default function AdminBotsPage() {
             <div className="mb-6 flex items-center justify-end gap-3">
                 <button
                     onClick={() => window.location.reload()}
-                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                    className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
                 >
                     <RefreshCw size={16} />
                     Refresh
@@ -315,7 +315,7 @@ export default function AdminBotsPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-lg bg-positive px-4 py-2 text-sm font-semibold text-background hover:bg-positive"
+                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90"
                 >
                     <Plus size={17} />
                     Add Product
@@ -369,7 +369,7 @@ export default function AdminBotsPage() {
             </div>
 
             {/* PRODUCTS */}
-            <section className="overflow-hidden rounded-lg border border-border bg-muted/30">
+            <section className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                 {/* SECTION HEADER */}
                 <div className="border-b border-border px-6 py-5">
@@ -446,27 +446,27 @@ export default function AdminBotsPage() {
 
                                 <tr>
 
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                         Product
                                     </th>
 
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                         Type
                                     </th>
 
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                         Platform
                                     </th>
 
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                         Price
                                     </th>
 
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                         Status
                                     </th>
 
-                                    <th className="px-6 py-4 font-medium text-right">
+                                    <th className="px-6 py-4 font-semibold text-right text-micro uppercase tracking-wider text-muted-foreground">
                                         Actions
                                     </th>
 
@@ -531,7 +531,7 @@ export default function AdminBotsPage() {
                                                     <div className="flex min-w-[360px] items-center gap-4">
 
                                                         {/* VISUAL */}
-                                                        <div className="relative h-[76px] w-[120px] shrink-0 overflow-hidden rounded-lg border border-border bg-card shadow-lg">
+                                                        <div className="relative h-[76px] w-[120px] shrink-0 overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                                                             {/* BANNER */}
                                                             {hasBanner &&
@@ -545,7 +545,7 @@ export default function AdminBotsPage() {
                                                                     loading="lazy"
                                                                 />
                                                             ) : (
-                                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.12),transparent_55%),linear-gradient(135deg,#18181b,#09090b)]">
+                                                                <div className="absolute inset-0 bg-muted">
                                                                     <div className="absolute inset-0 flex items-center justify-center opacity-20">
                                                                         <Bot
                                                                             size={
@@ -560,7 +560,7 @@ export default function AdminBotsPage() {
                                                             <div className="absolute inset-0 bg-background/70" />
 
                                                             {/* ICON */}
-                                                            <div className="absolute bottom-2 left-2 flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-foreground/30 bg-background/75 shadow-xl">
+                                                            <div className="absolute bottom-2 left-2 flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border border-foreground/30 bg-background/75 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                                                                 {hasIcon &&
                                                                     iconUrl ? (
@@ -584,7 +584,7 @@ export default function AdminBotsPage() {
                                                             </div>
 
                                                             {/* PLATFORM */}
-                                                            <div className="absolute right-2 top-2 rounded-md border border-border bg-foreground/65 px-1.5 py-0.5 text-micro font-medium text-foreground">
+                                                            <div className="absolute right-2 top-2 rounded-lg border border-border bg-foreground/65 px-1.5 py-0.5 text-micro font-medium text-foreground">
                                                                 {bot.platform ||
                                                                     "—"}
                                                             </div>
@@ -613,7 +613,7 @@ export default function AdminBotsPage() {
                                                             {/* LOGO */}
                                                             {hasLogo &&
                                                                 logoUrl ? (
-                                                                <div className="mt-2 inline-flex max-w-[150px] items-center rounded-md border border-border bg-foreground/[0.035] px-1.5 py-1">
+                                                                <div className="mt-2 inline-flex max-w-[150px] items-center rounded-lg border border-border bg-foreground/[0.035] px-1.5 py-1">
 
                                                                     <img
                                                                         src={
@@ -700,7 +700,7 @@ export default function AdminBotsPage() {
                                                 {/* PRICE */}
                                                 <td className="px-6 py-5">
 
-                                                    <p className="text-sm font-medium">
+                                                    <p className="text-sm font-numeric font-medium">
                                                         {formatPricing(
                                                             bot
                                                         )}
@@ -719,8 +719,8 @@ export default function AdminBotsPage() {
                                                         }
                                                         className={`rounded-lg px-2.5 py-1 text-xs transition ${bot.status ===
                                                           "published"
-                                                            ? "bg-muted text-foreground hover:bg-foreground/15"
-                                                            : "bg-card text-muted-foreground hover:bg-border"
+                                                            ? "bg-muted text-foreground hover:bg-muted"
+                                                            : "bg-card text-muted-foreground hover:bg-muted"
                                                             }`}
                                                     >
                                                         {
@@ -837,7 +837,7 @@ export default function AdminBotsPage() {
             </div>
 
             {/* RISK */}
-            <div className="mt-6 rounded-lg border border-border bg-muted/30 p-5">
+            <div className="mt-6 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                 <p className="text-xs leading-6 text-muted-foreground">
                     Trading involves substantial risk.
@@ -860,13 +860,13 @@ function StatCard({
     value: number;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-muted/30 p-5">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             <p className="text-xs text-muted-foreground">
                 {title}
             </p>
 
-            <p className="mt-2 text-2xl font-semibold">
+            <p className="mt-2 font-numeric text-2xl font-semibold">
                 {value}
             </p>
 
@@ -884,7 +884,7 @@ function BrandingInfo({
     description: string;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             <div className="flex items-center gap-3">
 

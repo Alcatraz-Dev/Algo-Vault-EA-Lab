@@ -162,7 +162,7 @@ export default function AdminGrowthExperimentsPage() {
 
             {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
                     <FlaskConical size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -219,7 +219,7 @@ export default function AdminGrowthExperimentsPage() {
                         ))}
                     </div>
 
-                    <div className="overflow-hidden rounded-lg border border-border">
+                    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                         <Table className="min-w-[860px]">
                             <TableHeader>
                                 <TableRow>
@@ -308,8 +308,8 @@ export default function AdminGrowthExperimentsPage() {
                         </Table>
                     </div>
 
-                    <div className="rounded-lg border border-border bg-card p-4">
-                        <h2 className="mb-2 text-sm font-medium text-foreground">How winning is determined</h2>
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-foreground">How winning is determined</h2>
                         <p className="text-xs text-muted-foreground">
                             A winner is declared only when an experiment has at least <b>{EXPERIMENT_MIN_SAMPLE_SIZE}</b> impressions per
                             variant and one variant shows a minimum <b>{EXPERIMENT_MIN_UPLIFT_PCT}%</b> relative uplift. Until
@@ -321,7 +321,7 @@ export default function AdminGrowthExperimentsPage() {
 
             {/* Create dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Create experiment</DialogTitle>
                         <DialogDescription>
@@ -411,7 +411,7 @@ function ExperimentDetailDialog({
 
     return (
         <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-            <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl md:max-w-4xl lg:max-w-5xl">
+            <DialogContent className="rounded-xl bg-popover max-h-[85vh] overflow-y-auto sm:max-w-3xl md:max-w-4xl lg:max-w-5xl">
                 <DialogHeader>
                     <DialogTitle>{experiment.name}</DialogTitle>
                     <DialogDescription>{experiment.hypothesis}</DialogDescription>

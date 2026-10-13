@@ -151,7 +151,7 @@ export default function MobileSignalsPage() {
           <h1 className="text-lg font-semibold">AI Signals</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-lg" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       </div>
     );
@@ -162,7 +162,7 @@ export default function MobileSignalsPage() {
       <div className="flex flex-col min-h-screen bg-background items-center justify-center p-8 text-center">
         <Radio className="h-16 w-16 text-muted-foreground mb-4" />
         <h1 className="text-xl font-semibold mb-2">Sign in to view signals</h1>
-        <Link href="/login"><Button className="w-full sm:w-auto">Sign In</Button></Link>
+        <Link href="/login"><Button className="w-full sm:w-auto min-h-[44px]">Sign In</Button></Link>
       </div>
     );
   }
@@ -228,10 +228,10 @@ export default function MobileSignalsPage() {
       </header>
 
       {/* Signal List */}
-      <div className="flex-1 overflow-auto p-3 pb-20">
+      <div className="flex-1 overflow-auto p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {loading ? (
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-lg" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
           </div>
         ) : filteredSignals.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground">
@@ -243,7 +243,7 @@ export default function MobileSignalsPage() {
           <div className="space-y-3">
             {filteredSignals.map((signal) => (
               <Link key={signal.id} href={`/signals/${signal.id}`} className="block">
-                <Card className={cn("p-3 transition-colors hover:border-primary/30", signal.status === "READY" && "border-positive/20", signal.status === "ACTIVE" && "border-info/20")}>
+                <Card className={cn("p-3 rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/30", signal.status === "READY" && "border-positive/20", signal.status === "ACTIVE" && "border-info/20")}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className={cn("p-2 rounded-lg flex-shrink-0", signal.direction === "BUY" ? "bg-positive/10" : "bg-negative/10")}>

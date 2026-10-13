@@ -137,7 +137,7 @@ export default function LivePage() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
             aria-label="Back to home"
           >
             <ArrowLeft size={18} />
@@ -148,7 +148,7 @@ export default function LivePage() {
               <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
             <div className="leading-none">
-              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-primary transition">
+              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-primary transition-colors">
                 AlgoVault
               </div>
               <div className="text-micro font-medium text-muted-foreground tracking-widest uppercase">Live</div>
@@ -164,7 +164,7 @@ export default function LivePage() {
             <button
               type="button"
               onClick={refresh}
-              className="rounded-full border border-border px-3 py-1 text-micro font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition"
+              className="rounded-full border border-border px-3 py-1 text-micro font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
               Refresh
             </button>
@@ -225,7 +225,7 @@ export default function LivePage() {
               onMouseLeave={() => setHoveredCountry(undefined)}
               onFocus={() => setHoveredCountry(c.country)}
               onBlur={() => setHoveredCountry(undefined)}
-              className={`text-left rounded-lg border p-4 transition ${
+              className={`text-left rounded-lg border p-4 transition-colors ${
                 hoveredCountry === c.country
                   ? "border-primary/50 bg-primary/5"
                   : "border-border bg-card/60 hover:border-border hover:bg-muted/40"
@@ -242,7 +242,7 @@ export default function LivePage() {
         </div>
 
         {/* Bottom info */}
-        <section className="rounded-lg border border-border bg-card p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-6 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <h2 className="text-lg font-extrabold tracking-tight text-foreground mb-1">
               AlgoVault Live Intelligence
@@ -255,13 +255,13 @@ export default function LivePage() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/market-intelligence"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/80 transition"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/80 transition-colors"
             >
               Market Intelligence
             </Link>
             <Link
-              href="/analysis"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted text-foreground border border-border text-sm font-bold hover:bg-muted/60 transition"
+              href="/account/analysis"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted text-foreground border border-border text-sm font-bold hover:bg-muted/60 transition-colors"
             >
               AI Analysis
             </Link>

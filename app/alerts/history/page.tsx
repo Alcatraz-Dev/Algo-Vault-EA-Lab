@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type AlertHistory = {
     id: string; source?: "manual" | "tool"; symbol: string; type: string; targetPrice: number | null;
@@ -144,7 +145,7 @@ export default function AlertHistoryPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     const filtered = getFiltered();
@@ -158,7 +159,7 @@ export default function AlertHistoryPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -173,13 +174,13 @@ export default function AlertHistoryPage() {
                                 type="button"
                                 onClick={bulkDelete}
                                 disabled={deleting}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
                             >
                                 {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
                                 Delete ({selected.size})
                             </button>
                         )}
-                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition">
+                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
                             <BellRing size={13} /> New Alert
                         </Link>
                     </div>
@@ -187,7 +188,7 @@ export default function AlertHistoryPage() {
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-4 gap-4" data-guide="stats">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                         <div className="flex items-center gap-2 mb-1"><Bell size={13} className="text-primary" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total</span></div>
                         <p className="text-xl font-bold font-numeric text-foreground">{stats.total}</p>
                     </div>
@@ -249,7 +250,7 @@ export default function AlertHistoryPage() {
                         <button
                             type="button"
                             onClick={selected.size === filtered.length ? deselectAll : selectAll}
-                            className="text-micro text-muted-foreground hover:text-foreground transition"
+                            className="text-micro text-muted-foreground hover:text-foreground transition-colors"
                         >
                             {selected.size === filtered.length ? "Deselect all" : "Select all"}
                         </button>
@@ -305,10 +306,10 @@ export default function AlertHistoryPage() {
                                                 {alert.type.replace(/_/g, " ")}
                                             </span>
                                             {alert.source === "tool" && (
-                                                <span className="rounded-md bg-primary/10 px-1.5 py-0.5 text-micro font-semibold text-primary">Tool</span>
+                                                <StatusBadge tone="active" label="Tool" />
                                             )}
                                             {alert.source === "manual" && (
-                                                <span className="rounded-md bg-info/10 px-1.5 py-0.5 text-micro font-semibold text-info">Manual</span>
+                                                <StatusBadge tone="info" label="Manual" />
                                             )}
                                             {alert.targetPrice && (
                                                 <span className="font-numeric text-micro text-muted-foreground">@ {alert.targetPrice}</span>
@@ -321,9 +322,7 @@ export default function AlertHistoryPage() {
                                     <div className="text-right flex-shrink-0">
                                         {alert.triggered ? (
                                             <div>
-                                                <span className="flex items-center gap-1 text-micro text-positive">
-                                                    <CheckCircle size={10} /> Triggered
-                                                </span>
+                                                <StatusBadge tone="positive" label="Triggered" icon={<CheckCircle size={10} />} />
                                                 {alert.triggeredPrice && (
                                                     <p className="font-numeric text-micro text-muted-foreground">@ {alert.triggeredPrice}</p>
                                                 )}
@@ -333,9 +332,7 @@ export default function AlertHistoryPage() {
                                             </div>
                                         ) : (
                                             <div>
-                                                <span className="flex items-center gap-1 text-micro text-warning">
-                                                    <Clock size={10} /> Waiting
-                                                </span>
+                                                <StatusBadge tone="warning" label="Waiting" icon={<Clock size={10} />} />
                                                 <p className="text-micro text-muted-foreground">Created {new Date(alert.createdAt).toLocaleDateString()}</p>
                                             </div>
                                         )}

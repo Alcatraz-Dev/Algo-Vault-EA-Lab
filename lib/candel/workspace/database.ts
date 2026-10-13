@@ -171,8 +171,8 @@ export async function deleteCandelInstance(id: string, userId: string): Promise<
 
 /**
  * Every per-Candel sub-tree that must be purged with the instance itself.
- * Keep this list in sync with the namespaces in `docs/opendots-phase1-audit.md`
- * — a path added there but forgotten here would leak orphaned user data.
+ * This list is the source of truth — a path added to the Candel schema
+ * but forgotten here would leak orphaned user data.
  */
 const CANDEL_CHILD_PATHS = [
   "candelConversations",

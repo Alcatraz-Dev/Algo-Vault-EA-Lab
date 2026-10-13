@@ -48,7 +48,7 @@ export default function ExecutionAnalyticsPage() {
                                     { label: "Total Costs", value: `$${data.totalCosts.toFixed(2)}`, color: "text-muted-foreground" },
                                     { label: "Total Orders", value: String(data.totalOrders), color: "text-foreground" },
                                 ].map((m) => (
-                                    <div key={m.label} className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                    <div key={m.label} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                         <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
                                         <p className={cn("mt-1 font-numeric text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>
@@ -56,16 +56,16 @@ export default function ExecutionAnalyticsPage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground"><Activity size={14} /> Execution Quality</div>
                                     <p className={cn("mt-2 text-3xl font-bold font-numeric", data.executionQuality === "EXCELLENT" ? "text-positive" : data.executionQuality === "GOOD" ? "text-primary" : data.executionQuality === "FAIR" ? "text-warning" : "text-negative")}>{data.executionQuality}</p>
                                 </div>
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock size={14} /> Avg Slippage</div>
                                     <p className="mt-2 text-3xl font-bold font-numeric text-warning">{data.avgSlippage}</p>
                                     <p className="mt-1 text-micro text-muted-foreground">pips per order</p>
                                 </div>
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingUp size={14} /> Cost Impact</div>
                                     <p className="mt-2 text-3xl font-bold font-numeric text-muted-foreground">{data.costImpactPct}%</p>
                                     <p className="mt-1 text-micro text-muted-foreground">of trade value</p>

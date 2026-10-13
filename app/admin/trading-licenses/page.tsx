@@ -199,13 +199,13 @@ export default function AdminTradingLicensesPage() {
                             placeholder="Search email, name, or plan..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-md border border-border bg-muted py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-ring focus:outline-none"
+                            className="w-full rounded-lg border border-border bg-muted py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-ring focus:outline-none"
                         />
                     </div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+                        className="rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
                     >
                         <option value="all">All Status</option>
                         <option value="active">Active</option>
@@ -216,7 +216,7 @@ export default function AdminTradingLicensesPage() {
                 <button
                     onClick={() => fetchLicenses()}
                     disabled={loading}
-                    className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     Refresh
                 </button>
@@ -228,7 +228,7 @@ export default function AdminTradingLicensesPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-lg border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Shield
                         size={40}
                         className="mx-auto text-muted-foreground mb-3"
@@ -242,19 +242,19 @@ export default function AdminTradingLicensesPage() {
                     </p>
                 </div>
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                <div className="overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-foreground">
                             <thead className="border-b border-border bg-muted text-xs uppercase font-semibold text-muted-foreground">
                                 <tr>
-                                    <th className="px-6 py-4">User</th>
-                                    <th className="px-6 py-4">Email</th>
-                                    <th className="px-6 py-4">Plan</th>
-                                    <th className="px-6 py-4">Status</th>
-                                    <th className="px-6 py-4 text-right">Max Accounts</th>
-                                    <th className="px-6 py-4">Start</th>
-                                    <th className="px-6 py-4">Expiration</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">User</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Email</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Plan</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                                    <th className="px-6 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Max Accounts</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Start</th>
+                                    <th className="px-6 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Expiration</th>
+                                    <th className="px-6 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">

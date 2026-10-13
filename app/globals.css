@@ -15,39 +15,38 @@
 }
 
 :root {
-  /* ── Graphite neutral scale (dark-first, cool gray-blue cast — never purple) ──
-     Matches DESIGN.md `oklch(0.155 0.005 255)`. Structure comes from surface
-     tone + hairline borders, not shadow or glow. */
-  --background: #0b0c0e;
-  --foreground: #f4f5f6;
-  --card: #111315; /* one step above the page */
-  --card-foreground: #f4f5f6;
-  --popover: #15171a;
-  --popover-foreground: #f4f5f6;
-  --secondary: #1c1e21;
-  --secondary-foreground: #f4f5f6;
-  --muted: #1c1e21;
-  --muted-foreground: #9a9fa6;
-  --accent: #1c1e21;
-  --accent-foreground: #f4f5f6;
+  /* ── Graphite neutral scale (dark-first, cool gray cast — never purple) ──
+     Structure comes from surface tone + hairline borders + soft elevation. */
+  --background: #0a0b0d;
+  --foreground: #f5f6f7;
+  --card: #121417; /* one step above the page */
+  --card-foreground: #f5f6f7;
+  --popover: #171a1f;
+  --popover-foreground: #f5f6f7;
+  --secondary: #1b1e24;
+  --secondary-foreground: #f5f6f7;
+  --muted: #1b1e24;
+  --muted-foreground: #9aa0a8;
+  --accent: #1b1e24;
+  --accent-foreground: #f5f6f7;
 
-  /* ── Vault gold — the single restrained brand accent ──
-     #de661c is the exact accent for solid fills, borders, active states, the
-     brand mark and selected interface elements. It is NEVER profit/buy.
-     Fills carry near-black ink (--primary-foreground) at 9.7:1 (AAA).
-     As text on graphite it is 10.4:1 (AAA). */
-  --primary: #de661c;
-  --primary-foreground: #1d1406;
-  --primary-text: #de661c;
+  /* ── Ember — the single rationed brand accent ──
+     #f97316 is the exact accent for solid fills, active states, the brand
+     mark and key CTAs. It is NEVER profit/buy/success (those are semantic).
+     Solid fills carry near-black ink (--primary-foreground).
+     As text on dark surfaces use --primary-text (#fb923c) for AA. */
+  --primary: #f97316;
+  --primary-foreground: #1c0e02;
+  --primary-text: #fb923c;
 
-  --destructive: #ff6369;
-  --destructive-foreground: #ff6369;
+  --destructive: #f87171;
+  --destructive-foreground: #f87171;
   /* Border colour token. Backed by `--border-color` (not `--border`) because
      FlyonUI claims `--border` for its 1px border *width* — see the theme bridge
      below. `border-border` → `var(--color-border)` → `var(--border-color)`. */
-  --border-color: #2b2e32;
-  --input: #35383c;
-  --ring: #de661c;
+  --border-color: #262a31;
+  --input: #33373e;
+  --ring: #f97316;
 
   /* ── ReUI-expected tokens ──
      Components installed from the `@reui` registry read `--focus`,
@@ -56,16 +55,17 @@
      brand accent (same as --ring); invert = the high-contrast inverse surface
      (ink on paper / paper on ink). Declared in :root AND .light so the theme
      override cascades exactly like the rest of the palette. */
-  --focus: #de661c;
-  --focus-foreground: #1d1406;
-  --invert: #f4f5f6;
-  --invert-foreground: #0b0c0e;
+  --focus: #f97316;
+  --focus-foreground: #1c0e02;
+  --invert: #f5f6f7;
+  --invert-foreground: #0a0b0d;
 
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   /* Motion system — shared easing so timing stays consistent app-wide. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Fixed semantic trading colors — never swapped per page. Verified >= 4.5:1
      as text on --background, --card and --muted (WCAG AA). The `-foreground`
@@ -73,15 +73,15 @@
      (e.g. bg-positive/10 text-positive-foreground). For solid semantic fills
      use `text-background` (adaptive ink) instead.
      positive/profit/buy/long = emerald · negative/loss/sell/short = red ·
-     warning/risk = amber · info = sky · destructive = red. */
-  --positive: #30d697;
-  --positive-foreground: #30d697;
-  --negative: #ff645f;
-  --negative-foreground: #ff645f;
-  --warning: #de661c;
-  --warning-foreground: #de661c;
-  --info: #3faff3;
-  --info-foreground: #3faff3;
+     warning/risk = amber · info = blue · destructive = red. */
+  --positive: #34d399;
+  --positive-foreground: #34d399;
+  --negative: #f87171;
+  --negative-foreground: #f87171;
+  --warning: #fbbf24;
+  --warning-foreground: #fbbf24;
+  --info: #60a5fa;
+  --info-foreground: #60a5fa;
   --success: var(--positive);
   --success-foreground: var(--positive-foreground);
 
@@ -101,7 +101,7 @@
   --chart-2: #3fd0c0; /* teal */
   --chart-3: #b79dff; /* violet */
   --chart-4: #f08fbf; /* pink */
-  --chart-5: #de661c; /* amber */
+  --chart-5: #f97316; /* ember */
 }
 
 .light {
@@ -111,12 +111,12 @@
   --card-foreground: #1c2024;
   --popover: #ffffff;
   --popover-foreground: #1c2024;
-  /* Solid gold fill stays the exact accent; near-black ink sits on top (9.7:1). */
-  --primary: #de661c;
-  --primary-foreground: #1d1406;
-  /* Deeper brand gold for text/links on light surfaces: 5.9:1 on #f9fafb and
-     6.1:1 on white — both AA. `--primary` stays the exact #de661c for solid
-     fills and borders. See the `html.light .text-primary` override below. */
+  /* Solid ember fill stays the exact accent; warm-white ink sits on top. */
+  --primary: #ea580c;
+  --primary-foreground: #fff7ed;
+  /* Deeper ember for text/links on light surfaces: ~4.6:1 on #f7f8fa — AA.
+     `--primary` stays exact for solid fills and borders. See the
+     `html.light .text-primary` override below. */
   --primary-text: #de661c;
   --secondary: #eff0f2;
   --secondary-foreground: #1c2024;
@@ -124,26 +124,26 @@
   --muted-foreground: #5f646a;
   --accent: #eff0f2;
   --accent-foreground: #1c2024;
-  --destructive: #c1121f;
-  --destructive-foreground: #c1121f;
-  --border-color: #dbdee2;
-  --input: #c4c8cd;
-  --ring: #de661c;
+  --destructive: #b91c1c;
+  --destructive-foreground: #b91c1c;
+  --border-color: #d9dde3;
+  --input: #c2c7ce;
+  --ring: #c2410c;
 
   /* ReUI-expected tokens, light theme (see the :root note). */
-  --focus: #de661c;
-  --focus-foreground: #1d1406;
+  --focus: #c2410c;
+  --focus-foreground: #fff7ed;
   --invert: #1c2024;
   --invert-foreground: #f9fafb;
 
-  --positive: #00794c;
-  --positive-foreground: #00794c;
-  --negative: #bb0916;
-  --negative-foreground: #bb0916;
-  --warning: #de661c;
-  --warning-foreground: #de661c;
-  --info: #0065b4;
-  --info-foreground: #0065b4;
+  --positive: #047857;
+  --positive-foreground: #047857;
+  --negative: #b91c1c;
+  --negative-foreground: #b91c1c;
+  --warning: #b45309;
+  --warning-foreground: #b45309;
+  --info: #1d4ed8;
+  --info-foreground: #1d4ed8;
   --success: var(--positive);
   --success-foreground: var(--positive-foreground);
   /* Categorical chart series — deeper variants for light surfaces */
@@ -151,7 +151,7 @@
   --chart-2: #0c7a6a; /* teal */
   --chart-3: #6d4bd0; /* violet */
   --chart-4: #c2478a; /* pink */
-  --chart-5: #de661c; /* amber */
+  --chart-5: #c2410c; /* ember */
 }
 
 /* ── FlyonUI theme bridge ──
@@ -186,10 +186,10 @@
   --color-error: var(--destructive);
   --color-error-content: var(--background);
 
-  /* Radii follow the one-system rule: controls = 6px, boxes = 8px. */
+  /* Radii follow the one-system rule: controls = sm, boxes = lg. */
   --radius-selector: 0.375rem;
   --radius-field: 0.375rem;
-  --radius-box: 0.5rem;
+  --radius-box: 0.625rem;
 
   /* Component base sizing. `--border` is FlyonUI's border *width* (a length),
      which is why the AlgoVault border colour lives in `--border-color`. */
@@ -336,11 +336,12 @@
   display: none;
 }
 
-/* ── Glass is restricted to overlays/drawers above content ──
-   Institutional Command forbids glass cards: panels, tables, order entry and
-   charts are solid (surface tone + hairline border). A single scrim utility is
-   all that remains, so any floating surface can sit above content predictably.
-   Decorative gradient / glow / shimmer helpers were removed with the redesign. */
+/* ── Glass is restricted to scrims above content ──
+   Per DESIGN.md §2.5: panels, tables, order entry and charts are solid
+   (surface tone + hairline border + soft elevation). Blur lives only in the
+   scrim below and in sticky shell chrome. Marketing light effects
+   (.av-beam/.av-aurora/.av-panel/.av-edge) are the curated exception — never
+   over live data. */
 .glass-scrim {
   background: color-mix(in srgb, var(--background) 72%, transparent);
   backdrop-filter: blur(10px);
@@ -590,7 +591,7 @@ body {
   );
 }
 
-/* ── Trigger.dev-style hero light system (brand gold) ── */
+/* ── Trigger.dev-style hero light system (brand ember) ── */
 @keyframes av-beam-sweep {
   0%   { transform: translateX(-140%) skewX(-10deg); opacity: 0; }
   6%   { opacity: 1; }
@@ -871,10 +872,10 @@ body {
 }
 
 /* ── Light-theme primary text ──
-   `--primary` (#de661c) is kept exact for solid fills/borders, where
-   near-black ink sits on top (9.7:1). As *text* on a light surface the light
-   gold only reaches ~1.5:1, so in the light theme `text-primary` resolves to
-   the deeper, AA-passing `--primary-text` (#865812, 5.9:1 on #f9fafb).
+   `--primary` (#ea580c) is kept exact for solid fills/borders, where
+   warm-white ink sits on top. As *text* on a light surface the fill ember
+   falls short of AA, so in the light theme `text-primary` resolves to
+   the deeper, AA-passing `--primary-text` (#c2410c, ~4.6:1 on #f7f8fa).
    Unlayered, so it wins over the Tailwind utility.
    Note: this covers the base `.text-primary` class only — state/opacity variants
    (`hover:text-primary`, `text-primary/70`) and other `text-primary-*` tokens
@@ -904,15 +905,17 @@ html.light .text-primary {
 .home-hero-glow, .home-hero-grid, .home-hero-rule { @apply pointer-events-none absolute; }
 .home-section { @apply border-b border-border bg-background; }
 
-/* ── Banned Pattern Helpers (for reference only, not to be used) ── */
-/* .bg-gradient-to-* — banned */
-/* .bg-linear-to-* — banned */
-/* .bg-clip-text.text-transparent — banned */
-/* .backdrop-blur-* on cards — banned */
-/* .rounded-2xl, .rounded-3xl on app surfaces — banned */
-/* .shadow-xl, .shadow-2xl, .shadow-3xl on cards — banned */
-/* .animate-ping except on live status dots — banned */
-/* text-[9px], text-[10px] — banned (use text-micro) */
+/* ── App-surface discipline (see DESIGN.md §2.5, §8.4) ──
+   Data surfaces stay solid: no glass/blur on cards, tables, or charts; blur is
+   reserved for scrims and sticky shell chrome. Marketing light effects
+   (.av-*) are curated exceptions — capped at 3 ambient loops per view, never
+   over live data, frozen under prefers-reduced-motion. */
+/* .backdrop-blur-* on data cards — avoid */
+/* raw gradient panels on data surfaces — avoid (use .av-* on marketing only) */
+/* .rounded-2xl, .rounded-3xl on app surfaces — avoid (use the radius ladder) */
+/* .shadow-xl, .shadow-2xl on cards — avoid (floating layers only) */
+/* .animate-ping except on live status dots — avoid */
+/* text-[9px], text-[10px] — avoid (use text-micro, 11px floor) */
 
 /* ── React Flow Studio Node Overrides ── */
 /* Strip the default ReactFlow wrapper box from custom wfNode type */

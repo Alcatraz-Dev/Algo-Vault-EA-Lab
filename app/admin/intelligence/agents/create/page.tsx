@@ -97,7 +97,7 @@ export default function CreateAgentPage() {
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Identity Card */}
-                        <div className="rounded-lg border border-border/30 bg-card p-6 shadow-sm">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1.5 w-8 rounded-full bg-info" />
                                 <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-info">Agent Identity</h3>
@@ -139,7 +139,7 @@ export default function CreateAgentPage() {
                         </div>
 
                         {/* Role & Status */}
-                        <div className="rounded-lg border border-border/30 bg-card p-6 shadow-sm">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1.5 w-8 rounded-full bg-info" />
                                 <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-info">Configuration</h3>
@@ -186,7 +186,7 @@ export default function CreateAgentPage() {
                         </div>
 
                         {/* Permissions */}
-                        <div className="rounded-lg border border-border/30 bg-card p-6 shadow-sm">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1.5 w-8 rounded-full bg-info" />
                                 <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-info">Permissions</h3>
@@ -208,7 +208,7 @@ export default function CreateAgentPage() {
                         </div>
 
                         {/* Outputs */}
-                        <div className="rounded-lg border border-border/30 bg-card p-6 shadow-sm">
+                        <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex items-center gap-2 mb-4">
                                 <div className="h-1.5 w-8 rounded-full bg-info" />
                                 <h3 className="text-xs font-bold uppercase tracking-[0.15em] text-info">Outputs</h3>
@@ -222,7 +222,7 @@ export default function CreateAgentPage() {
                         </div>
 
                         {/* Advanced */}
-                        <div className="rounded-lg border border-border/30 bg-card shadow-sm overflow-hidden">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] overflow-hidden">
                             <button
                                 type="button"
                                 onClick={() => setAdvancedOpen(!advancedOpen)}

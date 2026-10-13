@@ -46,7 +46,7 @@ export default function BrokerComparePage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
     }
 
     const bestBroker = brokers.reduce((best, b) => b.netPnl > (best?.netPnl || -Infinity) ? b : best, brokers[0]);
@@ -56,7 +56,7 @@ export default function BrokerComparePage() {
         <div className="min-h-screen bg-background text-foreground">
             <SiteNavbar />
 <div className="mx-auto max-w-7xl px-4 py-8">
-                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition">
+                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft size={12} /> Back to Account
                     </Link>
                     <div className="mb-6 flex items-center justify-between" data-guide="page-header">
@@ -64,7 +64,7 @@ export default function BrokerComparePage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Broker Comparison</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Compare trading costs, swaps, and net performance across brokers</p>
                     </div>
-                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -81,13 +81,13 @@ export default function BrokerComparePage() {
                     <>
                         {/* Summary */}
                         <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4" data-guide="stats">
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                 <p className="text-micro font-semibold uppercase text-muted-foreground">Brokers</p>
-                                <p className="mt-1 text-2xl font-bold text-foreground">{brokers.length}</p>
+                                <p className="mt-1 text-2xl font-bold font-numeric text-foreground">{brokers.length}</p>
                             </div>
                             <div className="rounded-lg border border-negative/10 bg-negative/[0.04] p-4">
                                 <p className="text-micro font-semibold uppercase text-negative">Total Cost (Swaps + Comm)</p>
-                                <p className="mt-1 text-2xl font-bold text-negative">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                                <p className="mt-1 text-2xl font-bold font-numeric text-negative">${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                             </div>
                             {bestBroker && (
                                 <div className="rounded-lg border border-positive/10 bg-positive/[0.04] p-4">
@@ -108,7 +108,7 @@ export default function BrokerComparePage() {
                         {/* Broker Cards */}
                         <div className="space-y-4">
                             {brokers.sort((a, b) => b.netPnl - a.netPnl).map((bp) => (
-                                <div key={bp.broker} className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                                <div key={bp.broker} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                     <div className="flex items-center justify-between mb-4">
                                         <div>
                                             <h3 className="text-lg font-bold text-foreground">{bp.broker}</h3>
@@ -122,23 +122,23 @@ export default function BrokerComparePage() {
 
                                     <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
                                         <div className="rounded-lg bg-muted p-3">
-                                            <p className="text-micro uppercase text-muted-foreground">Gross P/L</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Gross P/L</p>
                                             <p className={cn("mt-0.5 font-numeric text-sm font-bold", bp.totalPnl >= 0 ? "text-positive" : "text-negative")}>${bp.totalPnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3">
-                                            <p className="text-micro uppercase text-muted-foreground">Swap Costs</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Swap Costs</p>
                                             <p className="mt-0.5 font-numeric text-sm font-bold text-negative">-${bp.totalSwapCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3">
-                                            <p className="text-micro uppercase text-muted-foreground">Commission</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Commission</p>
                                             <p className="mt-0.5 font-numeric text-sm font-bold text-warning">-${bp.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3">
-                                            <p className="text-micro uppercase text-muted-foreground">Total Costs</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Costs</p>
                                             <p className="mt-0.5 font-numeric text-sm font-bold text-muted-foreground">${(bp.totalSwapCost + bp.totalCost).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                         </div>
                                         <div className="rounded-lg bg-muted p-3">
-                                            <p className="text-micro uppercase text-muted-foreground">Equity</p>
+                                            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Equity</p>
                                             <p className="mt-0.5 font-numeric text-sm font-bold text-foreground">${bp.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
                                         </div>
                                     </div>

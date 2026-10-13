@@ -100,16 +100,16 @@ export default function PerformanceArenaPage() {
             maxWidth="max-w-[1500px]"
             headerActions={
                 <div className="flex items-center gap-2">
-                    <Link href="/account/performance-arena/leaderboard" className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-muted">
+                    <Link href="/account/performance-arena/leaderboard" className="flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted">
                         <Users className="h-3.5 w-3.5" /> Leaderboard
                     </Link>
-                    <Link href="/account/performance-arena/profile" className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-muted">
+                    <Link href="/account/performance-arena/profile" className="flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted">
                         <Wallet className="h-3.5 w-3.5" /> Trader profile
                     </Link>
                 </div>
             }
         >
-            <div className="mb-4 rounded-lg border border-border bg-card p-4">
+            <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="max-w-3xl">
                         <h2 className="flex items-center gap-2 text-base font-semibold">
@@ -143,12 +143,12 @@ export default function PerformanceArenaPage() {
             {!loading && !error && active.length > 0 ? (
                 <div className="mb-6">
                     <h3 className="mb-2 text-sm font-semibold">Your active challenges</h3>
-                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         {active.map(({ attempt, metrics }) => (
                             <Link
                                 key={attempt.id}
                                 href={`/account/performance-arena/attempts/${attempt.id}`}
-                                className="rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/50"
+                                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/50 hover:shadow-md"
                             >
                                 <div className="flex items-center justify-between">
                                     <span className="font-numeric text-sm font-medium">{attempt.definitionKey}</span>
@@ -185,7 +185,7 @@ export default function PerformanceArenaPage() {
                 <>
                     <div className="mb-2 flex items-center justify-between">
                         <h3 className="text-sm font-semibold">Challenge catalog</h3>
-                        <span className="text-xs text-muted-foreground">{items?.length ?? 0} available</span>
+                        <span className="font-numeric text-xs text-muted-foreground">{items?.length ?? 0} available</span>
                     </div>
                     {items && items.length === 0 ? (
                         <ArenaLoading label="No challenges are published right now." />

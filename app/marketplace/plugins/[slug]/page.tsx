@@ -197,7 +197,7 @@ export default function PluginDetailsPage() {
  return (
  <main className="min-h-screen bg-background text-foreground">
  <div className="mx-auto max-w-7xl px-6 py-12">
- <div className="h-8 w-32 animate-pulse rounded bg-muted/5" />
+ <div className="h-8 w-32 animate-pulse rounded-lg bg-muted/5" />
  <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
  <div className="h-[500px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
  <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
@@ -260,7 +260,7 @@ export default function PluginDetailsPage() {
  <div className="absolute inset-x-0 bottom-0">
  <div className="flex flex-col gap-5 p-6 md:p-9 lg:flex-row lg:items-end lg:justify-between">
  <div className="flex items-end gap-5">
- <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card/60 ">
+ <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card ">
  {isExtension ? <Zap size={32} className="text-positive" /> : <Plug size={32} className="text-primary" />}
  </div>
  <div>
@@ -429,7 +429,7 @@ export default function PluginDetailsPage() {
  key={n}
  type="button"
  onClick={() => setReviewRating(n)}
- className="rounded p-1 transition hover:scale-110"
+ className="rounded-lg p-1 transition hover:scale-110"
  aria-label={`Rate ${n} stars`}
  >
  <Star size={20} className={n <= reviewRating ? "fill-warning text-warning" : "text-muted-foreground"} />

@@ -15,7 +15,7 @@ export default function AdminSandboxPage() {
             subtitle="Test agent outputs and plugin specs in isolated environments before publishing."
         >
             <div className="grid gap-4 lg:grid-cols-3">
-                <div className="lg:col-span-2 rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                         Sandbox Tests
                     </h3>
@@ -40,7 +40,7 @@ export default function AdminSandboxPage() {
                     </div>
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3">
                         Status
                     </h3>
@@ -69,10 +69,10 @@ export default function AdminSandboxPage() {
                 </div>
             </div>
 
-            <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
+            <div className="mt-4 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h3 className="text-sm font-semibold mb-3">Agent Sandbox Results</h3>
                 <table className="w-full text-xs">
-                    <thead className="text-muted-foreground uppercase tracking-wide">
+                    <thead className="text-[11px] uppercase tracking-wider text-muted-foreground">
                         <tr><th className="text-left pb-2">Agent</th><th className="text-left pb-2">Schema</th><th className="text-left pb-2">Security</th><th className="text-left pb-2">Workflow</th></tr>
                     </thead>
                     <tbody className="divide-y divide-border/10">

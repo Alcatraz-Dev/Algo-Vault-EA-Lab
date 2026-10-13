@@ -402,25 +402,25 @@ export default function AdminReviewsPage() {
                         <table className="w-full min-w-[1100px]">
                             <thead className="border-b border-border bg-muted/40">
                                 <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Review
                                     </th>
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Product
                                     </th>
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Customer
                                     </th>
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Rating
                                     </th>
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Status
                                     </th>
-                                    <th className="px-5 py-4">
+                                    <th className="px-5 py-4 text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Date
                                     </th>
-                                    <th className="px-5 py-4 text-right">
+                                    <th className="px-5 py-4 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                                         Actions
                                     </th>
                                 </tr>
@@ -506,7 +506,7 @@ export default function AdminReviewsPage() {
                                                 <td className="px-5 py-4">
                                                     <div className="flex items-center gap-1">
                                                         <Star className="h-4 w-4 fill-warning text-warning" />
-                                                        <span className="font-semibold">
+                                                        <span className="font-numeric font-semibold">
                                                             {
                                                                 review.rating
                                                             }

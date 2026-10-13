@@ -65,18 +65,21 @@ function directionConfig(direction: SignalDirection) {
 
 /**
  * Signal strength maps onto the shared semantic scale — positive for the top
- * tier, info for strong, warning for moderate — instead of a five-colour set.
+ * tier, info for strong, warning for moderate — via StatusBadge tones.
  */
-function strengthConfig(strength: SignalStrength) {
-    const map: Record<SignalStrength, string> = {
-        HIGH_CONVICTION: "text-positive-foreground border-positive/30 bg-positive/10",
-        VERY_STRONG: "text-info-foreground border-info/30 bg-info/10",
-        STRONG: "text-info-foreground border-info/30 bg-info/10",
-        GOOD: "text-foreground border-border bg-muted",
-        MODERATE: "text-warning-foreground border-warning/30 bg-warning/10",
-        WEAK: "text-muted-foreground border-border bg-muted",
-    };
-    return map[strength];
+function strengthTone(strength: SignalStrength): StatusTone {
+    switch (strength) {
+        case "HIGH_CONVICTION":
+        case "VERY_STRONG":
+            return "positive";
+        case "STRONG":
+        case "GOOD":
+            return "info";
+        case "MODERATE":
+            return "warning";
+        default:
+            return "neutral";
+    }
 }
 
 const STATUS_DISPLAY_MAP: Record<string, { label: string; tone: StatusTone; active: boolean }> = {
@@ -239,8 +242,8 @@ export default function SignalCard({
     const inProfit = deltaPct !== null ? (isBuy ? deltaPct >= 0 : deltaPct <= 0) : null;
 
     return (
-        <article className="flex flex-col rounded-lg border border-border bg-card transition-colors hover:border-foreground/20">
-            {isPro ? <div className="h-px w-full bg-primary/60" aria-hidden="true" /> : null}
+        <article className="flex flex-col rounded-xl border border-border bg-card shadow-sm transition-colors hover:border-foreground/20 hover:shadow-md">
+            {isPro ? <div className="h-px w-full rounded-t-xl bg-primary/60" aria-hidden="true" /> : null}
 
             <div className="flex flex-1 flex-col gap-4 p-4">
                 {/* Header */}
@@ -260,14 +263,10 @@ export default function SignalCard({
                             <div className="flex flex-wrap items-center gap-1.5">
                                 <h3 className="truncate text-sm font-semibold text-foreground">{signal.symbol}</h3>
                                 {isPro ? (
-                                    <span className="inline-flex shrink-0 items-center rounded border border-primary/30 bg-primary/10 px-1 text-micro font-semibold uppercase tracking-wide text-primary">
-                                        Pro
-                                    </span>
+                                    <StatusBadge tone="active" label="Pro" className="uppercase tracking-wide" />
                                 ) : null}
                                 {isHighestConfidence ? (
-                                    <span className="inline-flex shrink-0 items-center rounded border border-primary/30 bg-primary/10 px-1 text-micro font-semibold uppercase tracking-wide text-primary">
-                                        Top
-                                    </span>
+                                    <StatusBadge tone="active" label="Top" className="uppercase tracking-wide" />
                                 ) : null}
                             </div>
                             <p className="mt-0.5 text-micro text-muted-foreground">
@@ -275,17 +274,11 @@ export default function SignalCard({
                             </p>
                         </div>
                     </div>
-                    <span
-                        className={cn(
-                            "inline-flex shrink-0 items-center gap-1 rounded-pill border px-2.5 py-1 text-xs font-semibold",
-                            dir.bg,
-                            dir.border,
-                            dir.color
-                        )}
-                    >
-                        <DirIcon className="h-3 w-3" />
-                        {signal.direction}
-                    </span>
+                    <StatusBadge
+                        tone={isBuy ? "positive" : "negative"}
+                        label={signal.direction}
+                        icon={<DirIcon className="h-3 w-3" aria-hidden="true" />}
+                    />
                 </div>
 
                 {/* Live price delta */}
@@ -341,7 +334,7 @@ export default function SignalCard({
                         <span className="inline-flex items-center gap-2 text-micro font-medium uppercase tracking-wide text-muted-foreground">
                             Stop loss
                             {slHit ? (
-                                <span className="inline-flex items-center gap-1 rounded-pill bg-negative px-1.5 py-0.5 text-micro font-semibold normal-case text-background">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-negative px-1.5 py-0.5 text-micro font-semibold normal-case text-background">
                                     <AlertTriangle className="h-3 w-3" /> hit
                                 </span>
                             ) : null}
@@ -367,7 +360,7 @@ export default function SignalCard({
                                 <span className="inline-flex items-center gap-2 text-micro font-medium uppercase tracking-wide text-muted-foreground">
                                     {tp.label}
                                     {tp.hit ? (
-                                        <span className="inline-flex items-center gap-1 rounded-pill bg-positive px-1.5 py-0.5 text-micro font-semibold normal-case text-background">
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-positive px-1.5 py-0.5 text-micro font-semibold normal-case text-background">
                                             <Check className="h-3 w-3" /> hit
                                         </span>
                                     ) : null}
@@ -461,15 +454,11 @@ export default function SignalCard({
                 {/* Status + strength */}
                 <div className="flex flex-wrap items-center gap-1.5">
                     <StatusBadge tone={status.tone} label={status.label} dot={status.active} pulse={status.active} />
-                    <span
-                        className={cn(
-                            "inline-flex items-center gap-2 rounded-pill border px-2.5 py-0.5 text-micro font-semibold",
-                            strengthConfig(signal.strength ?? "MODERATE")
-                        )}
-                    >
-                        {signal.strength?.replaceAll("_", " ") || "Moderate"}
-                    </span>
-                    <span className="ml-auto inline-flex items-center gap-1 text-micro text-muted-foreground">
+                    <StatusBadge
+                        tone={strengthTone(signal.strength ?? "MODERATE")}
+                        label={signal.strength?.replaceAll("_", " ") || "Moderate"}
+                    />
+                    <span className="ml-auto inline-flex items-center gap-1 font-numeric text-micro text-muted-foreground">
                         <Clock className="h-3 w-3" /> {formatTimeAgo(signal.createdAt)}
                     </span>
                 </div>

@@ -53,7 +53,7 @@ export default function CurrencyStrengthPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Sign In</Link></div></div>);
     }
 
     const maxScore = Math.max(...data.map((d) => Math.abs(d.score)), 1);
@@ -76,7 +76,7 @@ export default function CurrencyStrengthPage() {
                 "Pair-strength heatmap",
             ]}
         >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg border border-border bg-card p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                 <div className="flex items-center gap-3 text-xs">
                     <span className="rounded-full border border-border bg-muted px-2 py-0.5 font-numeric text-muted-foreground">
                         Timeframe: H1 (Lite)
@@ -85,7 +85,7 @@ export default function CurrencyStrengthPage() {
                 </div>
                 <div className="flex items-center gap-3">
                     {lastUpdate > 0 && <span className="text-micro text-muted-foreground">Updated {new Date(lastUpdate).toLocaleTimeString()}</span>}
-                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-xs text-muted-foreground transition hover:bg-muted/60 disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted/60 disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -98,7 +98,7 @@ export default function CurrencyStrengthPage() {
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{CURRENCY_FLAGS[strongest.currency]}</span>
                             <div>
-                                <p className="text-xl font-bold text-positive">{strongest.currency}</p>
+                                <p className="text-xl font-bold font-numeric text-positive">{strongest.currency}</p>
                                 <p className="text-xs text-muted-foreground">Score: {strongest.score.toFixed(1)} · {strongest.change >= 0 ? "+" : ""}{strongest.change.toFixed(2)}%</p>
                             </div>
                         </div>
@@ -108,7 +108,7 @@ export default function CurrencyStrengthPage() {
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{CURRENCY_FLAGS[weakest.currency]}</span>
                             <div>
-                                <p className="text-xl font-bold text-negative">{weakest.currency}</p>
+                                <p className="text-xl font-bold font-numeric text-negative">{weakest.currency}</p>
                                 <p className="text-xs text-muted-foreground">Score: {weakest.score.toFixed(1)} · {weakest.change >= 0 ? "+" : ""}{weakest.change.toFixed(2)}%</p>
                             </div>
                         </div>
@@ -125,7 +125,7 @@ export default function CurrencyStrengthPage() {
                 </div>
             ) : (
                 <>
-                    <div className="rounded-lg border border-border bg-card p-6">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-6">
                         <h2 className="mb-4 text-sm font-semibold text-foreground">Strength Ranking</h2>
                         <div className="space-y-3">
                             {data.map((curr, idx) => {

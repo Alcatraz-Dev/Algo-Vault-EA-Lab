@@ -140,7 +140,7 @@ export default function ScannerPage() {
         <AccountShell title="Professional Market Scanner" subtitle="Multi-asset market scanner with real-time signals" onBack={() => router.push("/account")}>
             <div className="space-y-4" data-guide="scanner">
                 <div className="flex flex-wrap items-center gap-3" data-guide="controls">
-                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                    <button type="button" onClick={scan} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Scan Markets
                     </button>
                     <span className="text-xs text-muted-foreground">{filteredResults.length} symbols scanned</span>
@@ -168,7 +168,7 @@ export default function ScannerPage() {
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={imageUploading}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary hover:bg-primary/10 transition disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
                                 >
                                     {imageUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
                                     {imageUploading ? "Analyzing..." : "Upload Chart Image"}
@@ -196,10 +196,10 @@ export default function ScannerPage() {
                     </div>
                 )}
 
-                <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50" data-guide="results">
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="results">
                     <table className="w-full text-xs">
                         <thead>
-                            <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                            <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                 <th className="px-4 py-3 text-left">Symbol</th>
                                 <th className="px-4 py-3 text-left">Direction</th>
                                 <th className="px-4 py-3 text-right">Strength</th>

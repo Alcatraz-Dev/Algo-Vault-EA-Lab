@@ -1260,7 +1260,7 @@ export default function AdminAffiliatesPage() {
             {/* Filters */}
             <div className="mb-5 flex flex-col gap-3 rounded-lg border border-border bg-foreground/[0.025] p-3 md:flex-row md:items-center">
                 <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 
                     <input
                         value={
@@ -1276,7 +1276,7 @@ export default function AdminAffiliatesPage() {
                             )
                         }
                         placeholder="Search affiliates..."
-                        className="h-10 w-full rounded-lg border border-border bg-muted pl-9 pr-3 text-sm outline-none placeholder:text-foreground/25 focus:border-foreground/30"
+                        className="h-10 w-full rounded-lg border border-border bg-muted pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-foreground/30"
                     />
                 </div>
 
@@ -1321,7 +1321,7 @@ export default function AdminAffiliatesPage() {
                         </option>
                     </select>
 
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
             </div>
 
@@ -1330,36 +1330,36 @@ export default function AdminAffiliatesPage() {
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[1050px] text-left">
                         <thead className="border-b border-border bg-foreground/[0.025]">
-                            <tr className="text-xs uppercase tracking-wider text-foreground/35">
-                                <th className="px-5 py-4 font-medium">
+                            <tr className="text-xs uppercase tracking-wider text-muted-foreground">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Affiliate
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Category
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Commission
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Clicks
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Conversions
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Status
                                 </th>
 
-                                <th className="px-5 py-4 font-medium">
+                                <th className="px-5 py-4 font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Created
                                 </th>
 
-                                <th className="px-5 py-4 text-right font-medium">
+                                <th className="px-5 py-4 text-right font-semibold text-micro uppercase tracking-wider text-muted-foreground">
                                     Actions
                                 </th>
                             </tr>
@@ -1374,9 +1374,9 @@ export default function AdminAffiliatesPage() {
                                         }
                                         className="px-5 py-16 text-center"
                                     >
-                                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-foreground/50" />
+                                        <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
 
-                                        <p className="mt-3 text-sm text-foreground/50">
+                                        <p className="mt-3 text-sm text-muted-foreground">
                                             Loading
                                             affiliates...
                                         </p>
@@ -1393,12 +1393,12 @@ export default function AdminAffiliatesPage() {
                                     >
                                         <ExternalLink className="mx-auto h-8 w-8 text-foreground/40" />
 
-                                        <p className="mt-3 text-sm font-medium text-foreground/60">
+                                        <p className="mt-3 text-sm font-medium text-muted-foreground">
                                             No affiliate
                                             offers found
                                         </p>
 
-                                        <p className="mt-1 text-xs text-foreground/50">
+                                        <p className="mt-1 text-xs text-muted-foreground">
                                             Add your first
                                             affiliate
                                             partnership.
@@ -1434,7 +1434,7 @@ export default function AdminAffiliatesPage() {
                                                         />
                                                     ) : (
                                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50">
-                                                            <ExternalLink className="h-5 w-5 text-foreground/50" />
+                                                            <ExternalLink className="h-5 w-5 text-muted-foreground" />
                                                         </div>
                                                     )}
 
@@ -1460,20 +1460,20 @@ export default function AdminAffiliatesPage() {
                                             </td>
 
                                             <td className="px-5 py-4">
-                                                <span className="rounded-md border border-border bg-muted/50 px-2.5 py-1 text-xs text-foreground/60">
+                                                <span className="rounded-lg border border-border bg-muted/50 px-2.5 py-1 text-xs text-muted-foreground">
                                                     {offer.category ||
                                                         "Other"}
                                                 </span>
                                             </td>
 
                                             <td className="px-5 py-4">
-                                                <div className="font-medium">
+                                                <div className="font-numeric font-medium">
                                                     {formatCommission(
                                                         offer
                                                     )}
                                                 </div>
 
-                                                <div className="mt-0.5 text-xs text-foreground/50">
+                                                <div className="mt-0.5 text-xs text-muted-foreground">
                                                     {
                                                         offer.commissionType
                                                     }
@@ -1481,7 +1481,7 @@ export default function AdminAffiliatesPage() {
                                             </td>
 
                                             <td className="px-5 py-4">
-                                                <span className="font-medium">
+                                                <span className="font-numeric font-medium">
                                                     {Number(
                                                         offer.clicks ||
                                                         0
@@ -1490,7 +1490,7 @@ export default function AdminAffiliatesPage() {
                                             </td>
 
                                             <td className="px-5 py-4">
-                                                <span className="font-medium">
+                                                <span className="font-numeric font-medium">
                                                     {Number(
                                                         offer.conversions ||
                                                         0
@@ -1520,7 +1520,7 @@ export default function AdminAffiliatesPage() {
                                                         className={`text-xs font-medium ${offer.status ===
                                                           "active"
                                                             ? "text-positive"
-                                                            : "text-foreground/50"
+                                                            : "text-muted-foreground"
                                                             }`}
                                                     >
                                                         {offer.status ===
@@ -1531,7 +1531,7 @@ export default function AdminAffiliatesPage() {
                                                 </button>
                                             </td>
 
-                                            <td className="px-5 py-4 text-sm text-foreground/45">
+                                            <td className="px-5 py-4 text-sm text-muted-foreground">
                                                 {formatDate(
                                                     offer.createdAt
                                                 )}
@@ -1545,7 +1545,7 @@ export default function AdminAffiliatesPage() {
                                                         }
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/50 text-foreground/50 transition hover:bg-muted hover:text-foreground"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                                         title="Open affiliate URL"
                                                     >
                                                         <ExternalLink className="h-3.5 w-3.5" />
@@ -1557,7 +1557,7 @@ export default function AdminAffiliatesPage() {
                                                                 offer
                                                             )
                                                         }
-                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/50 text-foreground/50 transition hover:bg-muted hover:text-foreground"
+                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                                                         title="Edit"
                                                     >
                                                         <Pencil className="h-3.5 w-3.5" />
@@ -1598,13 +1598,13 @@ export default function AdminAffiliatesPage() {
                     0 && (
                         <div className="border-t border-border px-5 py-3 text-xs text-foreground/35">
                             Showing{" "}
-                            <span className="text-foreground/60">
+                            <span className="text-muted-foreground">
                                 {
                                     filteredOffers.length
                                 }
                             </span>{" "}
                             of{" "}
-                            <span className="text-foreground/60">
+                            <span className="text-muted-foreground">
                                 {
                                     offers.length
                                 }
@@ -1618,7 +1618,7 @@ export default function AdminAffiliatesPage() {
             <div className="mt-5 rounded-lg border border-border bg-muted/30 p-4">
                 <div className="flex gap-3">
                     <div className="mt-0.5 shrink-0">
-                        <Link2 className="h-4 w-4 text-foreground/50" />
+                        <Link2 className="h-4 w-4 text-muted-foreground" />
                     </div>
 
                     <div>
@@ -1642,7 +1642,7 @@ export default function AdminAffiliatesPage() {
     {
         showModal && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/75 p-4 backdrop-blur-sm">
-                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-lg">
+                <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-6 py-5">
                         <div>
                             <h2 className="text-lg font-semibold">
@@ -1651,7 +1651,7 @@ export default function AdminAffiliatesPage() {
                                     : "Add Affiliate"}
                             </h2>
 
-                            <p className="mt-1 text-xs text-foreground/50">
+                            <p className="mt-1 text-xs text-muted-foreground">
                                 Configure the affiliate
                                 partnership.
                             </p>
@@ -1665,7 +1665,7 @@ export default function AdminAffiliatesPage() {
                                 saving ||
                                 uploadingLogo
                             }
-                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground/50 transition hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                            className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                         >
                             <X className="h-4 w-4" />
                         </button>
@@ -1732,7 +1732,7 @@ export default function AdminAffiliatesPage() {
                                                         saving ||
                                                         uploadingLogo
                                                     }
-                                                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 text-sm font-medium text-foreground/60 transition hover:bg-muted hover:text-foreground disabled:opacity-50"
+                                                    className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-muted/50 px-4 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
                                                 >
                                                     <X className="h-4 w-4" />
                                                     Remove
@@ -1747,7 +1747,7 @@ export default function AdminAffiliatesPage() {
                                         </p>
 
                                         {logoFile && (
-                                            <p className="mt-1 truncate text-xs text-foreground/50">
+                                            <p className="mt-1 truncate text-xs text-muted-foreground">
                                                 Selected:{" "}
                                                 {
                                                     logoFile.name
@@ -1897,7 +1897,7 @@ export default function AdminAffiliatesPage() {
                                 className="input"
                             />
 
-                            <p className="mt-1.5 text-xs text-foreground/50">
+                            <p className="mt-1.5 text-xs text-muted-foreground">
                                 Must use HTTPS.
                             </p>
                         </Field>
@@ -2049,7 +2049,7 @@ export default function AdminAffiliatesPage() {
                                                     .checked
                                             )
                                         }
-                                        className="h-4 w-4 rounded border-border bg-background"
+                                        className="h-4 w-4 rounded-lg border-border bg-background"
                                     />
 
                                     <span className="flex items-center gap-2 text-sm text-foreground/70">
@@ -2070,7 +2070,7 @@ export default function AdminAffiliatesPage() {
                                 saving ||
                                 uploadingLogo
                             }
-                            className="h-10 rounded-lg border border-border px-4 text-sm font-medium text-foreground/60 transition hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                            className="h-10 rounded-lg border border-border px-4 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                         >
                             Cancel
                         </button>
@@ -2126,11 +2126,11 @@ function StatCard({
     return (
         <div className="rounded-lg border border-border bg-foreground/[0.025] p-5">
             <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm text-foreground/45">
+                <span className="text-sm text-muted-foreground">
                     {label}
                 </span>
 
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/50 text-foreground/50">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-muted/50 text-muted-foreground">
                     {icon}
                 </div>
             </div>
@@ -2153,7 +2153,7 @@ function Field({
 }) {
     return (
         <div>
-            <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-foreground/50">
+            <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {label}
 
                 {required && (

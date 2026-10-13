@@ -9,7 +9,7 @@ export default function MarketIntelligenceSmartMoneyPage() {
   const nav = useMemo(() => APP_NAV.map((g) => ({ ...g })), []);
   return (
     <AppShell navGroups={nav} title="Market Intelligence — Smart Money" subtitle="Institutional Activity Proxies" maxWidth="max-w-[1600px]">
-      <div className="rounded-lg border border-border bg-card p-8">
+      <div className="rounded-xl border border-border bg-card p-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-base font-semibold tracking-tight">Smart Money</h1>
           <Badge variant="outline">Phase 2</Badge>
@@ -18,7 +18,7 @@ export default function MarketIntelligenceSmartMoneyPage() {
 
         <div className="grid md:grid-cols-4 gap-4">
           {["Structure (BOS / CHoCH / MSS)", "Liquidity (BSL / SSL / EQH / EQL)", "FVG (Bullish / Bearish)", "Order Blocks / Breakers"].map((label) => (
-            <div key={label} className="rounded-lg border border-border/20 bg-background p-4 min-h-[160px]">
+            <div key={label} className="rounded-xl border border-border/20 bg-background p-4 min-h-[160px] shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <h3 className="font-bold text-sm mb-2">{label}</h3>
               <p className="text-xs text-muted-foreground">Only displayed when historical candle patterns support detection. No fake events.</p>
             </div>

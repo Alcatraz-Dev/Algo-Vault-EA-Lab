@@ -233,9 +233,9 @@ export default function GrowthCommandCenterPage() {
             </section>
 
             {/* ── Funnel ─────────────────────────────────────────────────── */}
-            <section className="rounded-lg border border-border p-4">
+            <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                    <h2 className="text-sm font-semibold text-foreground">Product funnel</h2>
+                    <h2 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Product funnel</h2>
                     <p className="text-xs text-muted-foreground">
                         Distinct users per stage. A stage with no data shows 0 rather than an estimated number.
                     </p>
@@ -252,7 +252,7 @@ export default function GrowthCommandCenterPage() {
                                         style={{ width: `${width}%` }}
                                     />
                                 </div>
-                                <span className="flex items-center justify-end gap-3 tabular-nums">
+                                <span className="flex items-center justify-end gap-3 font-numeric tabular-nums">
                                     <span className="w-16 text-right font-medium text-foreground">
                                         <Metric value={step.users} />
                                     </span>
@@ -289,8 +289,8 @@ export default function GrowthCommandCenterPage() {
             </section>
 
             {/* ── Feature ↔ Pro correlation ──────────────────────────────── */}
-            <section className="rounded-lg border border-border p-4">
-                <h2 className="text-sm font-semibold text-foreground">Which workflows correlate with Pro</h2>
+            <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">Which workflows correlate with Pro</h2>
                 <p className="mb-4 mt-1 text-xs text-muted-foreground">
                     This is <strong>correlation, not causation</strong>. Users who use a workflow may also be power users
                     in every other sense. Treat it as a prioritisation signal, never as proof a feature causes upgrades.
@@ -352,8 +352,8 @@ export default function GrowthCommandCenterPage() {
             </section>
 
             {/* ── What triggers upgrades ────────────────────────────────── */}
-            <section className="rounded-lg border border-border p-4">
-                <h2 className="text-sm font-semibold text-foreground">What users hit before upgrading</h2>
+            <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="text-[11px] font-semibold uppercase tracking-wider text-foreground">What users hit before upgrading</h2>
                 <p className="mb-4 mt-1 text-xs text-muted-foreground">
                     The Pro capability that triggered the gate, and how many of those users went on to subscribe.
                 </p>

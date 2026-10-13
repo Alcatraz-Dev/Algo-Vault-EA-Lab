@@ -75,7 +75,7 @@ export default function AIHistoricalPage() {
                         <option value="H4">H4</option>
                         <option value="D1">D1</option>
                     </select>
-                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Analyze"}
                     </button>
                 </div>
@@ -92,11 +92,11 @@ export default function AIHistoricalPage() {
                         </div>
 
                         <div className="grid gap-6 lg:grid-cols-2">
-                            <div className="rounded-lg border border-border bg-card p-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Brain className="h-4 w-4 text-muted-foreground" />AI Summary</h3>
                                 <p className="text-sm text-muted-foreground whitespace-pre-line">{data.aiSummary}</p>
                             </div>
-                            <div className="rounded-lg border border-border bg-card p-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><BarChart3 className="h-4 w-4 text-muted-foreground" />Structure Analysis</h3>
                                 <p className="text-sm text-muted-foreground">Bias: <span className="text-foreground font-medium">{data.structure.bias}</span></p>
                                 <p className="mt-2 text-sm text-muted-foreground">Swing Levels: {data.structure.levels}</p>
@@ -125,7 +125,7 @@ export default function AIHistoricalPage() {
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">{icon}<span>{label}</span></div>
             <p className="mt-2 text-lg font-bold text-foreground">{value}</p>
         </div>

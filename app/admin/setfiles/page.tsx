@@ -227,7 +227,7 @@ export default function AdminSetFilesPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-2 border-positive border-t-transparent"></div>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-lg border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <FileCode2 size={40} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-lg font-bold text-foreground">No Preset Files Found</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -245,7 +245,7 @@ export default function AdminSetFilesPage() {
                     {filtered.map((item) => (
                         <div
                             key={item.id}
-                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
+                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         >
                             <div>
                                 <div className="flex items-start justify-between">
@@ -309,7 +309,7 @@ export default function AdminSetFilesPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-lg font-bold text-foreground">Upload .set Preset File</h3>
                             <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">
@@ -330,7 +330,7 @@ export default function AdminSetFilesPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Currency Pair / Asset</label>
                                     <input
@@ -356,7 +356,7 @@ export default function AdminSetFilesPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-semibold uppercase text-muted-foreground mb-1">Product / Bot</label>
                                     <select

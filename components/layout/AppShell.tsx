@@ -289,10 +289,10 @@ export function AppShell({
                           onClick={() => setMobileOpen(false)}
                           aria-current={active ? "page" : undefined}
                           className={cn(
-                            "group/item relative flex h-8 items-center gap-2.5 rounded-button px-2.5 text-xs font-medium transition-colors",
+                            "group/item relative flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-xs font-medium transition-colors",
                             active
-                              ? "bg-primary/10 text-foreground"
-                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                              ? "border border-border bg-muted text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                              : "border border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground"
                           )}
                         >
                           {active ? (
@@ -411,7 +411,7 @@ export function AppShell({
             value={searchValue}
             onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search navigation…"
-            className="input h-7 w-full rounded-full border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground"
+            className="input h-8 w-full rounded-lg border-border bg-muted/40 pl-7 pr-2 text-xs placeholder:text-muted-foreground"
           />
           {searchValue ? (
             <button
@@ -438,7 +438,7 @@ export function AppShell({
   // muted icon that brightens on hover, a bigger touch target on phones and a
   // visible keyboard focus ring (DESIGN §14).
   const controlChip =
-    "h-10 w-10 shrink-0 rounded-full border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
+    "grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 sm:h-9 sm:w-9";
 
   const headerRight = (
     <div className="flex items-center gap-1.5 sm:gap-2">

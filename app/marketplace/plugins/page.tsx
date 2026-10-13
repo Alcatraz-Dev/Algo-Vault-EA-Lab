@@ -241,7 +241,7 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
     const perms = grantedPermissions(plugin.permissions);
     const isFree = plugin.pricing?.type === "free";
     return (
-        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
+        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="relative h-44 overflow-hidden border-b border-border/30 bg-muted">
                 <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
                 <div className="relative z-10 flex h-full flex-col justify-between p-5">
@@ -249,7 +249,7 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-border/50 bg-background">
                             <Plug size={20} className="text-primary" />
                         </div>
-                        <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium tracking-wide">
+                        <span className="rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-medium tracking-wide">
                             {CATEGORY_LABELS[plugin.category]}
                         </span>
                     </div>
@@ -283,12 +283,12 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
 
                 <div className="mt-4 flex flex-wrap gap-2">
                     {perms.slice(0, 3).map((p) => (
-                        <span key={p} className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                        <span key={p} className="rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             {permissionLabel(p)}
                         </span>
                     ))}
                     {perms.length > 3 && (
-                        <span className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground">
+                        <span className="rounded-lg bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                             +{perms.length - 3} more
                         </span>
                     )}
@@ -306,7 +306,7 @@ function PluginCard({ plugin }: { plugin: PluginRecord }) {
                     </p>
                     <Link
                         href={`/marketplace/plugins/${plugin.slug || plugin.id}`}
-                        className="flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
                     >
                         View Plugin <ArrowRight size={14} />
                     </Link>

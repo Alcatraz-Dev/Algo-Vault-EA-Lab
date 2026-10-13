@@ -96,7 +96,7 @@ export default function MobileMarketContextPage() {
 
     return (
         <MobileErrorBoundary>
-            <div className="space-y-3 px-4 py-4">
+            <div className="space-y-3 px-4 py-4 pb-[calc(2rem+env(safe-area-inset-bottom))] min-w-0">
                 <header className="flex items-center justify-between">
                     <div>
                         <h1 className="flex items-center gap-2 text-base font-semibold">
@@ -108,7 +108,7 @@ export default function MobileMarketContextPage() {
                     <button
                         type="button"
                         onClick={() => void load()}
-                        className="rounded-md border border-border p-2 text-muted-foreground"
+                        className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-xl border border-border bg-card text-muted-foreground transition-colors"
                         aria-label="Refresh market context"
                     >
                         {loading ? <Loader2 className="size-4 animate-spin" /> : <RefreshCw className="size-4" />}
@@ -116,7 +116,7 @@ export default function MobileMarketContextPage() {
                 </header>
 
                 {/* symbol picker */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <div className="flex gap-1.5 overflow-x-auto pb-1 min-w-0">
                     {MOBILE_SYMBOLS.map((s) => (
                         <button
                             key={s}
@@ -135,7 +135,7 @@ export default function MobileMarketContextPage() {
                 </div>
 
                 {error ? (
-                    <div className="flex items-start gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-micro text-warning">
+                    <div className="flex items-start gap-2 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-micro text-warning">
                         <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -150,7 +150,7 @@ export default function MobileMarketContextPage() {
                 {ctx ? (
                     <>
                         {/* regime */}
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Current regime
                             </h2>
@@ -183,7 +183,7 @@ export default function MobileMarketContextPage() {
                         </section>
 
                         {/* relationships */}
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Top relationships
                             </h2>
@@ -194,8 +194,8 @@ export default function MobileMarketContextPage() {
                             ) : (
                                 <ul className="mt-1.5 divide-y divide-border/60">
                                     {ctx.relationships.map((r) => (
-                                        <li key={r.symbol} className="flex items-center justify-between gap-2 py-1.5">
-                                            <span className="font-numeric text-xs text-foreground">{r.symbol}</span>
+                                        <li key={r.symbol} className="flex items-center justify-between gap-2 py-1.5 min-w-0">
+                                            <span className="font-numeric text-xs text-foreground truncate min-w-0">{r.symbol}</span>
                                             <span className="flex items-center gap-2">
                                                 <span
                                                     className={cn(
@@ -229,7 +229,7 @@ export default function MobileMarketContextPage() {
                         </section>
 
                         {/* correlation changes */}
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Correlation changes
                             </h2>
@@ -252,7 +252,7 @@ export default function MobileMarketContextPage() {
                         </section>
 
                         {/* portfolio impact */}
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Portfolio impact
                             </h2>
@@ -279,7 +279,7 @@ export default function MobileMarketContextPage() {
                         </section>
 
                         {/* narrative (§30) */}
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h2 className="text-micro font-semibold uppercase tracking-wide text-muted-foreground">
                                 Evidence summary
                             </h2>
@@ -306,8 +306,8 @@ export default function MobileMarketContextPage() {
                         {/* actions */}
                         <div className="flex flex-col gap-2">
                             <Link
-                                href="/mobile/alerts"
-                                className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2.5 text-xs"
+                                href="/alerts"
+                                className="flex min-h-[44px] items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5 text-xs transition-colors"
                             >
                                 <span className="flex items-center gap-2">
                                     <Activity className="size-3.5 text-muted-foreground" />

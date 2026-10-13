@@ -62,7 +62,7 @@ export default function TradeJournalPage() {
                             <Activity size={16} />
                             {journal.length} trades recorded
                         </div>
-                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition disabled:opacity-50">
+                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
@@ -77,10 +77,10 @@ export default function TradeJournalPage() {
                         </div>
                     ) : (
                         <>
-                            <div className="overflow-x-auto rounded-lg border border-border/30 bg-muted/50">
+                            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <table className="w-full text-xs">
                                     <thead>
-                                        <tr className="border-b border-border/20 text-micro uppercase text-muted-foreground">
+                                        <tr className="border-b border-border/20 text-[11px] uppercase tracking-wider text-muted-foreground">
                                             <th className="px-4 py-2.5 text-left">Symbol</th>
                                             <th className="px-4 py-2.5 text-left">Direction</th>
                                             <th className="px-4 py-2.5 text-right">Entry</th>
@@ -120,7 +120,7 @@ export default function TradeJournalPage() {
                                     { label: "Total Trades", value: String(journal.length), color: "text-foreground" },
                                     { label: "Winners", value: String(journal.filter((s: any) => s.result === "WIN").length), color: "text-positive" },
                                 ].map((m) => (
-                                    <div key={m.label} className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                                    <div key={m.label} className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                                         <span className="text-micro font-semibold uppercase text-muted-foreground">{m.label}</span>
                                         <p className={cn("mt-1 font-numeric text-lg font-bold", m.color)}>{m.value}</p>
                                     </div>

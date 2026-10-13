@@ -207,9 +207,9 @@ export default function MarketingAgentPage() {
       </div>
 
       {/* ── Prompt box ─────────────────────────────────────────────── */}
-      <Card>
+      <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <CardContent className="space-y-3 p-4">
-          <label htmlFor="ma-prompt" className="text-sm font-semibold">What do you want to market?</label>
+          <label htmlFor="ma-prompt" className="text-[11px] font-semibold uppercase tracking-wider">What do you want to market?</label>
           <textarea
             id="ma-prompt"
             value={prompt}
@@ -242,14 +242,14 @@ export default function MarketingAgentPage() {
 
       {/* ── Live progress (§43) ───────────────────────────────────── */}
       {activeJob && (
-        <Card>
+        <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <CardContent className="space-y-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">Execution timeline</span>
                 <Badge variant="secondary" className="text-micro">{activeJob.state}</Badge>
                 <Badge variant="outline" className="text-micro">{activeJob.mode}</Badge>
-                <Badge variant="outline" className="text-micro">{activeJob.consumedUnits}/{activeJob.estimatedUnits} units</Badge>
+                <Badge variant="outline" className="font-numeric text-micro tabular-nums">{activeJob.consumedUnits}/{activeJob.estimatedUnits} units</Badge>
               </div>
               <div className="flex gap-1.5">
                 {activeJob.state === "AWAITING_APPROVAL" && (
@@ -352,7 +352,7 @@ export default function MarketingAgentPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {/* ── Publishing ──────────────────────────────────────── */}
-        <Card>
+        <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <CardContent className="space-y-2 p-4">
             <h3 className="text-sm font-semibold">Publishing jobs</h3>
             {(publishing.data?.jobs ?? []).length === 0 ? (
@@ -374,7 +374,7 @@ export default function MarketingAgentPage() {
         </Card>
 
         {/* ── Schedules ───────────────────────────────────────── */}
-        <Card>
+        <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <CardContent className="space-y-2 p-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold"><CalendarClock size={14} /> Schedules</h3>
             {(schedules.data?.schedules ?? []).length === 0 ? (
@@ -394,7 +394,7 @@ export default function MarketingAgentPage() {
       </div>
 
       {/* ── Subsystem health (§84) ─────────────────────────────── */}
-      <Card>
+      <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <CardContent className="space-y-3 p-4">
           <h3 className="text-sm font-semibold">Subsystem health</h3>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
@@ -421,7 +421,7 @@ export default function MarketingAgentPage() {
       </Card>
 
       {/* ── Platform capabilities (§65) ────────────────────────── */}
-      <Card>
+      <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <CardContent className="space-y-3 p-4">
           <h3 className="text-sm font-semibold">Platform publishing capabilities</h3>
           <div className="overflow-x-auto">
@@ -452,7 +452,7 @@ export default function MarketingAgentPage() {
       </Card>
 
       {/* ── Social accounts (§32) ──────────────────────────────── */}
-      <Card>
+      <Card className="rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <CardContent className="space-y-3 p-4">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">Social accounts</h3>

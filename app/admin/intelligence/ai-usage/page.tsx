@@ -318,7 +318,7 @@ export default function AdminAIUsagePage() {
                                 {usage.providers.map((p) => (
                                     <div
                                         key={p.provider}
-                                        className="rounded-lg border border-border/30 bg-muted/5 p-4"
+                                        className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                                     >
                                         <div className="flex flex-wrap items-baseline justify-between gap-2">
                                             <p className="text-xs font-medium">{p.provider}</p>
@@ -413,7 +413,7 @@ function Metric({
     tone?: "negative";
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <p className="text-xs text-muted-foreground">{label}</p>
             <p
                 className={`mt-2 text-xl font-semibold ${tone === "negative" ? "text-destructive-foreground" : ""}`}
@@ -444,7 +444,7 @@ function BudgetRow({
     const showBar = status.tokenUtilization !== null || status.costUtilization !== null;
 
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/5 p-4">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                     <p className="text-xs font-medium capitalize">{label}</p>

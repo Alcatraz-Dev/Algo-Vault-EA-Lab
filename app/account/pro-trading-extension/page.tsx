@@ -353,7 +353,7 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* How it works */}
-                    <section className="rounded-lg border border-border bg-card p-6">
+                    <section className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h2 className="text-base font-semibold tracking-tight">How it works</h2>
                         <p className="mt-1 text-xs text-muted-foreground">
                             The extension connects your TradingView context to the AlgoVault intelligence stack. Nothing is invented —
@@ -367,7 +367,7 @@ export default function ProTradingExtensionPage() {
                                 { icon: Sparkles, title: "AI layer", body: "Structured analysis with explicit evidence and conflicting signals — never a black box." },
                             ].map((step, idx) => (
                                 <li key={step.title} className="flex gap-3 rounded-lg border border-border bg-muted/60 p-3">
-                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-micro font-semibold text-primary">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-micro font-semibold text-primary">
                                         {idx + 1}
                                     </span>
                                     <div>
@@ -386,13 +386,13 @@ export default function ProTradingExtensionPage() {
                 {/* sidebar */}
                 <aside className="space-y-4">
                     {/* entitlement card */}
-                    <section className="rounded-lg border border-border bg-card p-5">
+                    <section className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <header className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Entitlement</h3>
                             <button
                                 onClick={refresh}
                                 disabled={refreshing || !user}
-                                className="rounded p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
+                                className="rounded-lg p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-30"
                                 title="Refresh"
                             >
                                 <RefreshCw size={12} className={cn(refreshing && "animate-spin")} />
@@ -428,7 +428,7 @@ export default function ProTradingExtensionPage() {
                                             : "border-border bg-muted"
                                     )}
                                 >
-                                    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", isPro && !isExpired ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
+                                    <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-lg", isPro && !isExpired ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground")}>
                                         {isPro && !isExpired ? <ShieldCheck size={14} /> : <Lock size={14} />}
                                     </div>
                                     <div className="min-w-0 flex-1">
@@ -472,7 +472,7 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* extension install card */}
-                    <section className="rounded-lg border border-border bg-card p-5">
+                    <section className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <header className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Browser extension</h3>
                             <span
@@ -504,7 +504,7 @@ export default function ProTradingExtensionPage() {
                             </a>
                             {extensionConnected ? (
                                 <Link
-                                    href="/account/pro-trading-extension/install"
+                                    href="/account/tradingview"
                                     className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
                                 >
                                     <Activity size={12} /> Manage installation
@@ -514,7 +514,7 @@ export default function ProTradingExtensionPage() {
                     </section>
 
                     {/* usage card */}
-                    <section className="rounded-lg border border-border bg-card p-5">
+                    <section className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-sm font-semibold">Extension requirements</h3>
                         <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
                             <li className="flex items-center gap-2">

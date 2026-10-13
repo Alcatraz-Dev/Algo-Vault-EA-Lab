@@ -1220,7 +1220,7 @@ export default function EditBotPage() {
                         description="Edit the general information of this product."
                     >
 
-                        <div className="grid gap-5 md:grid-cols-2">
+                        <div className="grid gap-4 md:grid-cols-2">
 
                             <Field
                                 label="Product Name"
@@ -1318,7 +1318,7 @@ export default function EditBotPage() {
                         description="Optional icon, logo and banner used throughout the marketplace."
                     >
 
-                        <div className="grid gap-5 lg:grid-cols-3">
+                        <div className="grid gap-4 lg:grid-cols-3">
 
                             <BrandingCard
                                 type="icon"
@@ -1450,7 +1450,7 @@ export default function EditBotPage() {
                         description="Edit the trading environment."
                     >
 
-                        <div className="grid gap-5 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <SelectField
                                 label="Product Type"
@@ -1546,7 +1546,7 @@ export default function EditBotPage() {
                         description="Update verified historical backtest results."
                     >
 
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                             <Field
                                 label="Initial Deposit"
@@ -1673,7 +1673,7 @@ export default function EditBotPage() {
                         description="Manage product pricing."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <Choice
                                 selected={
@@ -1753,7 +1753,7 @@ export default function EditBotPage() {
                         description="Manage the displayed risk level."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-4">
+                        <div className="grid gap-4 md:grid-cols-4">
 
                             {[
                                 "low",
@@ -1883,7 +1883,7 @@ export default function EditBotPage() {
                         </label>
 
                         {form.licenseRequired && (
-                            <div className="mt-5 grid gap-5 md:grid-cols-2">
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
 
                                 <Field
                                     label="License Duration (days)"
@@ -2105,7 +2105,7 @@ export default function EditBotPage() {
                         description="Control product visibility."
                     >
 
-                        <div className="grid gap-3 md:grid-cols-3">
+                        <div className="grid gap-4 md:grid-cols-3">
 
                             <Choice
                                 selected={
@@ -2164,11 +2164,11 @@ export default function EditBotPage() {
                     </Section>
 
                     {/* Actions */}
-                    <div className="flex justify-between gap-3 pb-10">
+                    <div className="flex items-center justify-between gap-2 border-t border-border pb-10 pt-6">
 
                         <Link
                             href="/admin/bots"
-                            className="rounded-lg border border-border px-5 py-3 text-sm hover:bg-muted/70"
+                            className="rounded-lg border border-border bg-card px-5 py-3 text-sm transition-colors hover:bg-muted/70"
                         >
                             Cancel
                         </Link>
@@ -2184,7 +2184,7 @@ export default function EditBotPage() {
                                 uploadingBranding !==
                                 null
                             }
-                            className="flex items-center gap-2 rounded-lg bg-foreground px-6 py-3 text-sm font-medium text-background hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
 
                             <Save
@@ -2381,7 +2381,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-lg border border-border bg-muted/30 p-6 md:p-7">
+        <section className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] md:p-7">
 
             <div className="mb-6 flex items-start gap-3">
 
@@ -2518,9 +2518,9 @@ function Choice({
         <button
             type="button"
             onClick={onClick}
-            className={`rounded-lg border p-4 text-left transition ${selected
-                ? "border-border/60 bg-muted"
-                : "border-border bg-foreground/10 hover:bg-muted/70"
+            className={`rounded-xl border p-4 text-left shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors ${selected
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-card hover:bg-muted/70"
                 }`}
         >
 

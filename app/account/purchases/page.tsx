@@ -696,7 +696,7 @@ function PurchasesContent() {
 
                         <Link
                             href="/login?redirect=/account/purchases"
-                            className="mt-6 inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                            className="mt-6 inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                         >
                             Sign In
                         </Link>
@@ -721,7 +721,7 @@ function PurchasesContent() {
                 <div className="mb-6 flex justify-end" data-guide="page-header">
                     <Link
                         href="/marketplace"
-                        className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/60 hover:text-foreground"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/60 hover:text-foreground"
                     >
                         Browse Marketplace
                         <ExternalLink
@@ -820,7 +820,7 @@ function PurchasesContent() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="mt-6 inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
                             >
                                 Explore Marketplace
                             </Link>
@@ -935,7 +935,7 @@ function PurchasesContent() {
                                                     {product?.slug && (
                                                         <Link
                                                             href={`/marketplace/${product.slug}`}
-                                                            className="inline-flex items-center justify-center gap-2 rounded-md border border-border px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/70 hover:text-foreground"
+                                                            className="inline-flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm text-foreground transition hover:bg-muted/70 hover:text-foreground"
                                                         >
                                                             View Product
                                                             <ExternalLink
@@ -1082,7 +1082,7 @@ function PurchasesContent() {
                                                             );
                                                         }
                                                     }}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-40"
+                                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
                                                     {downloading ===
                                                         order.productId ? (

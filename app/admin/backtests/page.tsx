@@ -206,7 +206,7 @@ export default function AdminBacktestsPage() {
                     </button>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-lg border border-border bg-card p-12 text-center">
+                <div className="rounded-lg border border-border bg-card p-12 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <BarChart3 size={40} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-lg font-bold text-foreground">No Backtest Reports Published</h3>
                     <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
@@ -224,12 +224,12 @@ export default function AdminBacktestsPage() {
                     {filtered.map((item) => (
                         <div
                             key={item.id}
-                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between"
+                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border flex flex-col justify-between shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         >
                             <div>
                                 <div className="flex items-start justify-between">
                                     <div>
-                                        <span className="rounded-md bg-muted px-2 py-0.5 text-micro font-semibold text-foreground font-numeric">
+                                        <span className="rounded-lg bg-muted px-2 py-0.5 text-micro font-semibold text-foreground font-numeric">
                                             {item.pair} • {item.timeframe}
                                         </span>
                                         <h4 className="font-bold text-foreground text-base mt-2">{item.title}</h4>
@@ -281,7 +281,7 @@ export default function AdminBacktestsPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-sm">
-                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-2xl">
+                    <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border pb-4">
                             <h3 className="text-lg font-bold text-foreground">Add Backtest Report</h3>
                             <button onClick={() => setShowModal(false)} className="text-muted-foreground hover:text-foreground">

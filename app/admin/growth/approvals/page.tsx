@@ -174,7 +174,7 @@ export default function AdminApprovalsPage() {
                 </div>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
                     <FileText size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -229,7 +229,7 @@ export default function AdminApprovalsPage() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-sm font-medium text-foreground">Recent decisions ({filteredHistory.length})</h2>
                     </div>
-                    <div className="rounded-lg border border-border bg-card overflow-hidden">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] overflow-hidden">
                         {filteredHistory.length === 0 ? (
                             <div className="p-6 text-center text-xs text-muted-foreground">
                                 No approval history yet. Decisions will appear here after review.
@@ -269,8 +269,8 @@ export default function AdminApprovalsPage() {
                         )}
                     </div>
 
-                    <div className="rounded-lg border border-border bg-card p-4">
-                        <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Rules</h3>
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Rules</h3>
                         <ul className="space-y-1 text-xs text-muted-foreground">
                             <li>• Only tasks in <b>READY_FOR_REVIEW</b> appear in the queue.</li>
                             <li>• <b>Approve</b> moves the task to APPROVED — it can then be scheduled or published.</li>
@@ -285,8 +285,8 @@ export default function AdminApprovalsPage() {
             <div className="fixed inset-0 z-50" style={{ display: preview ? "block" : "none" }}>
                 <div className="fixed inset-0 bg-black/50" onClick={() => setPreview(null)} />
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="w-full max-w-2xl max-h-[85vh] rounded-lg border border-border bg-card overflow-y-auto">
-                        <div className="sticky top-0 flex items-center justify-between border-b border-border px-4 py-3 bg-card/95 backdrop-blur">
+                    <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-xl border border-border bg-popover shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <div className="sticky top-0 flex items-center justify-between border-b border-border bg-popover px-4 py-3">
                             <div>
                                 <h3 className="font-medium text-foreground">{preview?.title || preview?.topic}</h3>
                                 <p className="text-xs text-muted-foreground">
@@ -340,7 +340,7 @@ export default function AdminApprovalsPage() {
                                 )}
                             </div>
                         </div>
-                        <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-border px-4 py-3 bg-card/95 backdrop-blur">
+                        <div className="sticky bottom-0 flex items-center justify-end gap-2 border-t border-border bg-popover px-4 py-3">
                             <Button variant="outline" size="sm" onClick={() => setPreview(null)}>
                                 Close
                             </Button>
@@ -395,7 +395,7 @@ function ApprovalCard({
     const complianceOk = task.compliance?.passed;
 
     return (
-        <div className="rounded-lg border border-border bg-card p-3 transition hover:bg-muted/30">
+        <div className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/30">
             <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

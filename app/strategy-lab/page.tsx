@@ -10,7 +10,7 @@ export default function StrategyLabPage() {
             title="AI Strategy Lab"
             subtitle="Analyze → Discover → Generate → Backtest → Optimize → Validate → Deploy"
         >
-            <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,420px)]">
+            <div className="mb-6 grid gap-3 lg:grid-cols-[minmax(0,420px)]">
                 <AITeamsEntryCard context="Strategy Lab" />
             </div>
             <StrategyLabClient />

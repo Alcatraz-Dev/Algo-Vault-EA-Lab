@@ -64,7 +64,7 @@ export default function TraderProfilePage() {
             eyebrow={<SimulatedBadge />}
             maxWidth="max-w-5xl"
             headerActions={
-                <Link href="/account/performance-arena" className="flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs hover:bg-muted">
+                <Link href="/account/performance-arena" className="flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted">
                     <ArrowLeft className="h-3.5 w-3.5" /> Arena
                 </Link>
             }
@@ -86,7 +86,7 @@ export default function TraderProfilePage() {
                     </div>
 
                     <div className="mb-4 grid gap-4 lg:grid-cols-2">
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                                 <Award className="h-4 w-4" /> Badges & markets
                             </h3>
@@ -109,7 +109,7 @@ export default function TraderProfilePage() {
                             <p className="mt-3 text-micro text-muted-foreground">Visibility: {profile.visibility}</p>
                         </div>
 
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                                 <Wallet className="h-4 w-4" /> Reward ledger
                             </h3>
@@ -147,7 +147,7 @@ export default function TraderProfilePage() {
                         </div>
                     </div>
 
-                    <div className="mb-4 rounded-lg border border-border bg-card">
+                    <div className="mb-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="mb-2 flex items-center gap-2 border-b border-border p-4 text-sm font-semibold">
                             <History className="h-4 w-4" /> Performance history
                         </h3>

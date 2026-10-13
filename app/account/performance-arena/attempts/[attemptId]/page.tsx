@@ -340,7 +340,7 @@ export default function AccountChallengeDashboardPage() {
         </div>
       }
     >
-      <Link href="/account/performance-arena" className="mb-3 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+      <Link href="/account/performance-arena" className="mb-3 inline-flex items-center gap-1 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted hover:text-foreground">
         <ArrowLeft className="h-3 w-3" /> Performance Arena
       </Link>
 
@@ -362,8 +362,8 @@ export default function AccountChallengeDashboardPage() {
               ) : null}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1"><Timer className="h-3 w-3" />{Math.floor(state.metrics.timeRemainingMs / 86_400_000)}d {Math.floor((state.metrics.timeRemainingMs % 86_400_000) / 3_600_000)}h remaining</span>
-              <span className="rounded border border-border px-2 py-1">{state.metrics.dataQuality === "fresh" ? "Quote state: fresh" : "Quote state: stale / limited"}</span>
+              <span className="flex items-center gap-1 font-numeric"><Timer className="h-3 w-3" />{Math.floor(state.metrics.timeRemainingMs / 86_400_000)}d {Math.floor((state.metrics.timeRemainingMs % 86_400_000) / 3_600_000)}h remaining</span>
+              <span className="rounded-full border border-border bg-card px-2 py-1">{state.metrics.dataQuality === "fresh" ? "Quote state: fresh" : "Quote state: stale / limited"}</span>
             </div>
           </div>
 
@@ -401,14 +401,14 @@ export default function AccountChallengeDashboardPage() {
           </div>
 
           {/* Progress bars + checklist */}
-          <div className="mb-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+          <div className="mb-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] space-y-3">
               <LimitBar label="Profit target" usedPct={state.metrics.targetProgressPct} tone="positive" detail={`${formatCents(state.metrics.equityCents)} / ${formatCents(state.metrics.targetCents)}`} invert />
               <LimitBar label="Daily loss allowance" usedPct={state.metrics.dailyLossUsedPct} tone="warning" detail={`remaining ${formatCents(state.metrics.remainingDailyLossCents)}`} />
               <LimitBar label="Max drawdown allowance" usedPct={state.metrics.drawdownUsedPct} tone="negative" detail={`limit ${policy.maxDrawdownPct}% ${policy.maxDrawdownMode}`} />
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <p className="mb-2 text-xs font-medium text-muted-foreground">Path to passing</p>
               <ul className="space-y-1.5 text-xs">
                 {state.requirements.map((req) => (
@@ -423,7 +423,7 @@ export default function AccountChallengeDashboardPage() {
               </ul>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <p className="mb-2 text-xs font-medium text-muted-foreground">Recent rule events</p>
               <div className="max-h-44 overflow-y-auto">
                 <RuleEventList events={ruleFeed} />
@@ -444,16 +444,16 @@ export default function AccountChallengeDashboardPage() {
           ) : null}
 
           {/* Chart + trading */}
-          <div className="mb-3 grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
-            <div className="min-w-0 overflow-hidden rounded-lg border border-border bg-card">
+          <div className="mb-3 grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(320px,380px)]">
+            <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2">
                 <label className="sr-only" htmlFor="arena-chart-symbol">Chart symbol</label>
-                <select id="arena-chart-symbol" value={effectiveSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-md border border-border bg-background px-2 py-1.5 font-numeric text-xs text-foreground">
+                <select id="arena-chart-symbol" value={effectiveSymbol} onChange={(event) => setChartSymbol(event.target.value)} className="max-w-44 rounded-full border border-border bg-background px-3 py-1.5 font-numeric text-xs text-foreground transition-colors hover:bg-muted">
                   {symbols.map((symbol) => <option key={symbol} value={symbol}>{symbol} · {marketOfSymbol(symbol)}</option>)}
                 </select>
                 <div className="flex flex-wrap items-center gap-2 text-micro text-muted-foreground">
                   <span>{chartInterval.toUpperCase()} · Pro Terminal chart</span>
-                  <span className="rounded border border-border px-2 py-1" title={chartQuote ? `Quote timestamp ${new Date(chartQuote.timestamp).toLocaleTimeString()}` : "No current quote"}>{chartQuote && now !== null && now - chartQuote.timestamp <= 60_000 ? chartQuote.price.toLocaleString(undefined, { maximumFractionDigits: 6 }) : "Quote unavailable / stale"}</span>
+                  <span className="rounded-full border border-border bg-card px-2 py-1 font-numeric" title={chartQuote ? `Quote timestamp ${new Date(chartQuote.timestamp).toLocaleTimeString()}` : "No current quote"}>{chartQuote && now !== null && now - chartQuote.timestamp <= 60_000 ? chartQuote.price.toLocaleString(undefined, { maximumFractionDigits: 6 }) : "Quote unavailable / stale"}</span>
                   <span aria-label="Chart marker legend" className="hidden sm:inline">Entry / SL / TP levels</span>
                 </div>
               </div>
@@ -498,10 +498,10 @@ export default function AccountChallengeDashboardPage() {
           </div>
 
           {/* Compact bottom terminal: one active panel avoids stacking every data table on mobile. */}
-          <section className="mb-3 min-w-0 overflow-hidden rounded-lg border border-border bg-card" aria-label="Trading activity">
+          <section className="mb-3 min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]" aria-label="Trading activity">
             <div className="flex overflow-x-auto border-b border-border" role="tablist" aria-label="Trading activity panels">
               {(["positions", "orders", "history", "guardian"] as const).map((panel) => (
-                <button key={panel} type="button" role="tab" aria-selected={activePanel === panel} onClick={() => setActivePanel(panel)} className={`shrink-0 px-4 py-3 text-xs font-medium capitalize ${activePanel === panel ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <button key={panel} type="button" role="tab" aria-selected={activePanel === panel} onClick={() => setActivePanel(panel)} className={`shrink-0 px-4 py-3 text-xs font-medium capitalize transition-colors ${activePanel === panel ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                   {panel}{panel === "positions" ? ` (${state.openPositions.length})` : panel === "orders" ? ` (${state.pendingOrders.filter((order) => order.status === "pending" || order.status === "processing").length})` : ""}
                 </button>
               ))}

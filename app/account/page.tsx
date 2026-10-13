@@ -229,40 +229,40 @@ export default function AccountPage() {
             <div className="space-y-8 px-1">
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <Card className="group/card gap-0 overflow-hidden rounded-xl bg-card/80 backdrop-blur py-0 transition hover:shadow-xl hover:-translate-y-0.5">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Orders</p>
+                                <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Orders</p>
                                 <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="text-2xl font-semibold tracking-tight">{paidOrders.length}</p>
+                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{paidOrders.length}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 py-0">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Total Spent</p>
+                                <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Spent</p>
                                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="text-2xl font-semibold tracking-tight">{formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}</p>
+                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 py-0">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Active Licenses</p>
+                                <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Active Licenses</p>
                                 <ShieldCheck className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="text-2xl font-semibold tracking-tight">{activeCount}</p>
+                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{activeCount}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 py-0">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
-                                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Total Licenses</p>
+                                <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Licenses</p>
                                 <TrendingUp className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="text-2xl font-semibold tracking-tight">{licenseState?.total ?? 0}</p>
+                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{licenseState?.total ?? 0}</p>
                         </div>
                     </Card>
                 </div>
@@ -270,10 +270,10 @@ export default function AccountPage() {
                 {/* Chart + Profile */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Activity chart */}
-                    <Card className="gap-0 p-6 lg:col-span-2">
+                    <Card className="gap-0 rounded-xl bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:col-span-2">
                         <div className="border-b border-border px-5 py-4">
-                            <h2 className="font-semibold">Spending Overview</h2>
-                            <p className="text-sm text-muted-foreground">Your purchases over the last 6 months</p>
+                            <h2 className="text-sm font-semibold tracking-tight text-foreground">Spending Overview</h2>
+                            <p className="mt-1 text-xs text-muted-foreground">Your purchases over the last 6 months</p>
                         </div>
                         <div className="mt-6 px-5">
                             {paidOrders.length > 0 ? (
@@ -298,7 +298,7 @@ export default function AccountPage() {
                     </Card>
 
                     {/* Profile summary */}
-                    <Card variant="default" className="gap-0 overflow-hidden p-6 lg:col-span-2" data-guide="licenses-card">
+                    <Card variant="default" className="gap-0 overflow-hidden rounded-xl bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:col-span-1" data-guide="licenses-card">
                         <div className="flex items-center gap-4">
                             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
                                 <User className="h-7 w-7 text-muted-foreground" />
@@ -316,7 +316,7 @@ export default function AccountPage() {
                             {licenseState?.active === 0 && (
                                 <Link
                                     href="/marketplace"
-                                    className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:text-foreground"
+                                    className="rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     No active license — browse marketplace
                                 </Link>
@@ -435,8 +435,8 @@ export default function AccountPage() {
                 </div>
 
                 {/* Trading tools */}
-                <Card className="gap-0 p-6" data-guide="tools-card">
-                    <h2 className="font-semibold">Trading Tools & Market Utilities</h2>
+                <Card className="gap-0 rounded-xl bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="tools-card">
+                    <h2 className="text-sm font-semibold tracking-tight text-foreground">Trading Tools & Market Utilities</h2>
 
                     <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <ToolLink
@@ -452,7 +452,7 @@ export default function AccountPage() {
                             text="Review historical reports"
                         />
                         <ToolLink
-                            href="/sessions"
+                            href="/tools/sessions"
                             icon={<Clock className="h-5 w-5 text-muted-foreground" />}
                             title="Trading Sessions"
                             text="Live market hours clock"
@@ -564,7 +564,7 @@ export default function AccountPage() {
 
                 {/* Risk */}
                 <div className="rounded-lg border border-warning/30 bg-warning-muted p-5">
-                    <p className="text-xs leading-5 text-muted-foreground">
+                    <p className="text-xs leading-6 text-muted-foreground">
                         <span className="font-semibold text-foreground">Risk Disclosure:</span>{" "}
                         Trading involves substantial risk of loss. Backtests, historical
                         results and simulated performance do not guarantee future results.
@@ -590,9 +590,9 @@ function StatCard({
     sparkColor: string;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-muted/30 p-5">
+        <div className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
                     {icon}
                 </div>
             </div>
@@ -623,18 +623,18 @@ function QuickCard({
     text: string;
 }) {
     return (
-        <Card className="gap-0 py-3 hover:bg-muted/60 transition">
+        <Card className="gap-0 rounded-xl bg-card py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted">
             <Link href={href} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-md ${iconClass}`}>
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-full ${iconClass}`}>
                         {icon}
                     </div>
                     <div>
-                        <h3 className="font-semibold">{title}</h3>
-                        <p className="text-xs text-muted-foreground">{text}</p>
+                        <h3 className="text-sm font-semibold tracking-tight text-foreground">{title}</h3>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{text}</p>
                     </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-foreground" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
             </Link>
         </Card>
     );
@@ -654,13 +654,13 @@ function ToolLink({
     className?: string;
 }) {
     return (
-        <Card className={`gap-0 ${className}`}>
-            <Link href={href} className="flex items-center justify-between rounded-lg px-4 py-4 transition hover:bg-muted/60">
+        <Card className={`gap-0 rounded-xl bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted ${className}`}>
+            <Link href={href} className="flex items-center justify-between rounded-lg px-4 py-4 transition-colors hover:bg-muted">
                 <div className="flex items-center gap-3">
                     {icon}
                     <div>
-                        <p className="text-sm font-medium">{title}</p>
-                        <p className="text-xs text-muted-foreground">{text}</p>
+                        <p className="text-sm font-medium text-foreground">{title}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{text}</p>
                     </div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-muted-foreground" />

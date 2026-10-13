@@ -133,7 +133,7 @@ export default function AdminAITradingTeamsPage() {
         >
             <div className="space-y-6">
                 {message ? (
-                    <p className="rounded border border-border bg-muted/40 px-3 py-2 text-xs">{message}</p>
+                    <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs">{message}</p>
                 ) : null}
 
                 {/* ── Monitoring ─────────────────────────────────────── */}
@@ -153,7 +153,7 @@ export default function AdminAITradingTeamsPage() {
                             <Loader2 className="size-4 animate-spin" />
                         </div>
                     ) : error ? (
-                        <p className="mt-3 rounded border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        <p className="mt-3 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                             {error}
                         </p>
                     ) : snapshot ? (
@@ -166,7 +166,7 @@ export default function AdminAITradingTeamsPage() {
                             </div>
 
                             <div className="grid gap-3 lg:grid-cols-3">
-                                <div className="rounded-lg border border-border/60 bg-card p-4 lg:col-span-2">
+                                <div className="rounded-lg border border-border/60 bg-card p-4 lg:col-span-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                     <SectionHeader title="Agent usage" icon={<Bot className="size-4" />} />
                                     {snapshot.agents.length === 0 ? (
                                         <p className="mt-2 text-xs text-muted-foreground">No agent executions recorded yet.</p>
@@ -175,30 +175,30 @@ export default function AdminAITradingTeamsPage() {
                                             <table className="w-full min-w-[520px] text-left text-xs">
                                                 <thead className="text-micro tracking-wide text-muted-foreground uppercase">
                                                     <tr>
-                                                        <th className="py-1.5 pr-3">Agent</th>
-                                                        <th className="py-1.5 pr-3">Runs</th>
-                                                        <th className="py-1.5 pr-3">Completed</th>
-                                                        <th className="py-1.5 pr-3">Failed</th>
-                                                        <th className="py-1.5 pr-3">Error rate</th>
-                                                        <th className="py-1.5 pr-3">Avg duration</th>
-                                                        <th className="py-1.5">Avg conf</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Agent</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Runs</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Completed</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Failed</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Error rate</th>
+                                                        <th className="py-1.5 pr-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Avg duration</th>
+                                                        <th className="py-1.5 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Avg conf</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {snapshot.agents.slice(0, 12).map((agent) => (
                                                         <tr key={agent.agentId} className="border-t border-border/50">
                                                             <td className="py-1.5 pr-3 font-medium">{agent.name}</td>
-                                                            <td className="py-1.5 pr-3 tabular-nums">{agent.runs}</td>
-                                                            <td className="py-1.5 pr-3 tabular-nums text-positive">{agent.completed}</td>
-                                                            <td className="py-1.5 pr-3 tabular-nums text-destructive">{agent.failed}</td>
-                                                            <td className="py-1.5 pr-3 tabular-nums">
+                                                            <td className="py-1.5 pr-3 font-numeric tabular-nums">{agent.runs}</td>
+                                                            <td className="py-1.5 pr-3 font-numeric tabular-nums text-positive">{agent.completed}</td>
+                                                            <td className="py-1.5 pr-3 font-numeric tabular-nums text-destructive">{agent.failed}</td>
+                                                            <td className="py-1.5 pr-3 font-numeric tabular-nums">
                                                                 <StatusBadge
                                                                     tone={agent.errorRate > 0.2 ? "negative" : agent.errorRate > 0 ? "warning" : "positive"}
                                                                     label={`${Math.round(agent.errorRate * 100)}%`}
                                                                 />
                                                             </td>
-                                                            <td className="py-1.5 pr-3 tabular-nums">{(agent.avgDurationMs / 1000).toFixed(1)}s</td>
-                                                            <td className="py-1.5 tabular-nums">{Math.round(agent.avgConfidence * 100)}%</td>
+                                                            <td className="py-1.5 pr-3 font-numeric tabular-nums">{(agent.avgDurationMs / 1000).toFixed(1)}s</td>
+                                                            <td className="py-1.5 font-numeric tabular-nums">{Math.round(agent.avgConfidence * 100)}%</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -208,13 +208,13 @@ export default function AdminAITradingTeamsPage() {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div className="rounded-lg border border-border/60 bg-card p-4">
+                                    <div className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                         <SectionHeader title="Data modes" />
                                         <ul className="mt-2 space-y-1 text-xs">
                                             {Object.entries(snapshot.dataModes).map(([mode, count]) => (
                                                 <li key={mode} className="flex items-center justify-between">
                                                     <Badge variant="outline" className="text-micro">{mode.toUpperCase()}</Badge>
-                                                    <span className="tabular-nums">{count}</span>
+                                                    <span className="font-numeric tabular-nums">{count}</span>
                                                 </li>
                                             ))}
                                             {Object.keys(snapshot.dataModes).length === 0 ? (
@@ -222,13 +222,13 @@ export default function AdminAITradingTeamsPage() {
                                             ) : null}
                                         </ul>
                                     </div>
-                                    <div className="rounded-lg border border-border/60 bg-card p-4">
+                                    <div className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                         <SectionHeader title="Product events" />
                                         <ul className="mt-2 space-y-1 text-xs">
                                             {snapshot.events.slice(0, 8).map((event) => (
                                                 <li key={event.type} className="flex items-center justify-between">
                                                     <span className="text-muted-foreground">{event.type}</span>
-                                                    <span className="tabular-nums">{event.count}</span>
+                                                    <span className="font-numeric tabular-nums">{event.count}</span>
                                                 </li>
                                             ))}
                                             {snapshot.events.length === 0 ? (
@@ -239,14 +239,14 @@ export default function AdminAITradingTeamsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/60 bg-card p-4">
+                            <div className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <SectionHeader title="Recent failures" icon={<AlertTriangle className="size-4" />} />
                                 {snapshot.recentFailures.length === 0 ? (
                                     <p className="mt-2 text-xs text-muted-foreground">No failed or partial runs in the sampled window.</p>
                                 ) : (
                                     <ul className="mt-2 space-y-1 text-xs">
                                         {snapshot.recentFailures.map((failure) => (
-                                            <li key={failure.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-border/50 px-2 py-1.5">
+                                            <li key={failure.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border/50 px-2 py-1.5">
                                                 <span>
                                                     {new Date(failure.startedAt).toLocaleString()} · {failure.teamName}
                                                 </span>
@@ -260,7 +260,7 @@ export default function AdminAITradingTeamsPage() {
                                 )}
                                 <p className="mt-3 text-micro text-muted-foreground">
                                     AI provider usage, tokens and estimated cost are tracked by the existing AI usage
-                                    system under source <code className="rounded bg-muted px-1">agent / ai-trading-team/*</code>.
+                                    system under source <code className="rounded-lg bg-muted px-1">agent / ai-trading-team/*</code>.
                                 </p>
                             </div>
                         </div>
@@ -281,27 +281,27 @@ export default function AdminAITradingTeamsPage() {
                     />
 
                     {showTemplateForm ? (
-                        <div className="mt-3 rounded-lg border border-border/60 bg-card p-4">
+                        <div className="mt-3 rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="grid gap-3 sm:grid-cols-3">
                                 <Field label="Name">
                                     <input
                                         value={templateDraft.name}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, name: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Market">
                                     <input
                                         value={templateDraft.market}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, market: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Style">
                                     <select
                                         value={templateDraft.style}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, style: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-ring"
                                     >
                                         {["scalping", "intraday", "swing", "position", "research"].map((s) => (
                                             <option key={s} value={s}>{s}</option>
@@ -309,19 +309,19 @@ export default function AdminAITradingTeamsPage() {
                                     </select>
                                 </Field>
                                 <Field label="Entry TF">
-                                    <input value={templateDraft.entryTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, entryTimeframe: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
+                                    <input value={templateDraft.entryTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, entryTimeframe: e.target.value }))} className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
                                 </Field>
                                 <Field label="Confirmation TF">
-                                    <input value={templateDraft.confirmationTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, confirmationTimeframe: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
+                                    <input value={templateDraft.confirmationTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, confirmationTimeframe: e.target.value }))} className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
                                 </Field>
                                 <Field label="Context TF">
-                                    <input value={templateDraft.contextTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, contextTimeframe: e.target.value }))} className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
+                                    <input value={templateDraft.contextTimeframe} onChange={(e) => setTemplateDraft((d) => ({ ...d, contextTimeframe: e.target.value }))} className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring" />
                                 </Field>
                                 <Field label="Risk profile">
                                     <select
                                         value={templateDraft.riskProfile}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, riskProfile: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-ring"
                                     >
                                         {["conservative", "balanced", "aggressive"].map((s) => (
                                             <option key={s} value={s}>{s}</option>
@@ -332,7 +332,7 @@ export default function AdminAITradingTeamsPage() {
                                     <select
                                         value={templateDraft.behavior}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, behavior: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-ring"
                                     >
                                         {["consensus", "evidence-weighted", "risk-first", "research-first"].map((s) => (
                                             <option key={s} value={s}>{s}</option>
@@ -343,14 +343,14 @@ export default function AdminAITradingTeamsPage() {
                                     <input
                                         value={templateDraft.agentIds}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, agentIds: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
                                     />
                                 </Field>
                                 <Field label="Description">
                                     <input
                                         value={templateDraft.description}
                                         onChange={(e) => setTemplateDraft((d) => ({ ...d, description: e.target.value }))}
-                                        className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
+                                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring"
                                     />
                                 </Field>
                             </div>
@@ -370,7 +370,7 @@ export default function AdminAITradingTeamsPage() {
                     ) : (
                         <ul className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                             {templates.map((template) => (
-                                <li key={template.id} className="rounded-lg border border-border/60 bg-card p-4">
+                                <li key={template.id} className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                     <div className="flex items-start justify-between gap-2">
                                         <div>
                                             <p className="text-sm font-semibold">{template.name}</p>
@@ -418,12 +418,12 @@ function MetricCard({
     sub?: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/60 bg-card p-4">
+        <div className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between">
                 <span className="text-micro text-muted-foreground">{label}</span>
                 {icon}
             </div>
-            <p className="mt-1 text-2xl font-bold tabular-nums">{value}</p>
+            <p className="mt-1 text-2xl font-bold font-numeric tabular-nums">{value}</p>
             {sub ? <p className="text-micro text-muted-foreground">{sub}</p> : null}
         </div>
     );

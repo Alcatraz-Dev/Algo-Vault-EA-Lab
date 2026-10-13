@@ -143,7 +143,7 @@ export default function AdminLiveMapPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{label}</p>
-                  <p className="mt-2 text-xl font-bold text-foreground tabular-nums">{value}</p>
+                  <p className="mt-2 text-xl font-bold text-foreground font-numeric tabular-nums">{value}</p>
                   {sub && <p className="mt-1 text-micro text-muted-foreground">{sub}</p>}
                 </div>
                 <div className="rounded-lg border border-border bg-muted/50 p-2.5">
@@ -187,14 +187,14 @@ export default function AdminLiveMapPage() {
               className={`text-left rounded-lg border p-4 transition ${
                 hoveredCountry === c.country
                   ? "border-primary/50 bg-primary/5"
-                  : "border-border bg-card/60 hover:bg-muted/40"
+                  : "border-border bg-card hover:bg-muted/40"
               }`}
             >
               <div className="flex items-center gap-2">
                 <span aria-hidden className="text-lg leading-none">{c.flag ?? flagFromCountryCode(c.countryCode)}</span>
                 <span className="text-xs font-bold text-foreground truncate">{c.country}</span>
               </div>
-              <div className="mt-2 text-xl font-extrabold text-foreground tabular-nums">{c.activeUsers}</div>
+              <div className="mt-2 text-xl font-extrabold text-foreground font-numeric tabular-nums">{c.activeUsers}</div>
               <div className="text-micro uppercase tracking-wider text-muted-foreground">active traders</div>
             </button>
           ))}

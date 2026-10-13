@@ -197,7 +197,7 @@ function EquityCurveChart({ signals }: { signals: AISignal[] }) {
 
 function StatCard({ label, value, sub, color = "text-foreground" }: { label: string; value: string; sub?: string; color?: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-card p-4 text-center">
+        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4 text-center">
             <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
             <p className={`mt-1.5 font-numeric text-2xl font-black ${color}`}>{value}</p>
             {sub && <p className="mt-0.5 text-micro text-muted-foreground">{sub}</p>}
@@ -273,7 +273,7 @@ function BySymbolBreakdown({ signals }: { signals: AISignal[] }) {
     if (breakdown.length === 0) return null;
 
     return (
-        <div className="mt-6 rounded-lg border border-border/30 bg-card p-4">
+        <div className="mt-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Performance by Symbol</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 {breakdown.map(({ sym, count, winRate, totalR, totalUSD }) => (
@@ -439,7 +439,7 @@ export default function SignalHistoryPage() {
             <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
                 <div className="text-center">
                     <p className="text-sm text-muted-foreground">Sign in to view signal history.</p>
-                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
+                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
                         Sign In
                     </Link>
                 </div>
@@ -455,7 +455,7 @@ export default function SignalHistoryPage() {
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
                 {/* ── Back link ── */}
-                <Link href="/signals" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground">
+                <Link href="/signals" className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
                     <ArrowLeft size={16} />
                     Back to Signals
                 </Link>

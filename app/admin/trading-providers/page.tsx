@@ -173,7 +173,7 @@ export default function AdminTradingProvidersPage() {
           <button
             type="button"
             onClick={refresh}
-            className="ml-auto inline-flex items-center gap-1.5 rounded border border-border px-2 py-1 text-xs hover:bg-muted"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-border px-2 py-1 text-xs hover:bg-muted"
           >
             <RefreshCw className={cn("size-3", loading && "animate-spin")} />
             Refresh
@@ -214,10 +214,10 @@ export default function AdminTradingProvidersPage() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">Provider</th>
-                  <th className="px-3 py-2">Environments</th>
-                  <th className="px-3 py-2">Operational</th>
-                  <th className="px-3 py-2">Note</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Provider</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Environments</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Operational</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Note</th>
                 </tr>
               </thead>
               <tbody>
@@ -244,14 +244,14 @@ export default function AdminTradingProvidersPage() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">Account</th>
-                  <th className="px-3 py-2">Provider</th>
-                  <th className="px-3 py-2">Env</th>
-                  <th className="px-3 py-2">State</th>
-                  <th className="px-3 py-2">Heartbeat</th>
-                  <th className="px-3 py-2">Balance</th>
-                  <th className="px-3 py-2">Equity</th>
-                  <th className="px-3 py-2">Error</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Account</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Provider</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Env</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">State</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Heartbeat</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Balance</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Equity</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Error</th>
                 </tr>
               </thead>
               <tbody>
@@ -293,12 +293,12 @@ export default function AdminTradingProvidersPage() {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border bg-muted/40 text-micro uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">When</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Account</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Provider ref</th>
-                  <th className="px-3 py-2">Error</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">When</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Account</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Provider ref</th>
+                  <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Error</th>
                 </tr>
               </thead>
               <tbody>

@@ -65,7 +65,7 @@ export default function IntelligenceHub() {
     }, [signedIn]);
 
     return (
-        <div className="space-y-4 p-4 pb-8">
+        <div className="space-y-4 p-4 pb-[calc(2rem+env(safe-area-inset-bottom))]">
             <header>
                 <h1 className="text-lg font-semibold">Intelligence</h1>
                 <p className="text-xs text-muted-foreground">
@@ -73,7 +73,7 @@ export default function IntelligenceHub() {
                 </p>
             </header>
 
-            <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 {INTELLIGENCE_DESTINATIONS.map((destination) => {
                     const Icon = destination.icon;
                     const count = counts?.[destination.id as keyof Counts];
@@ -81,9 +81,9 @@ export default function IntelligenceHub() {
                         <li key={destination.id}>
                             <Link
                                 href={destination.href}
-                                className="flex items-center gap-3 px-3 py-3 active:bg-muted/60"
+                                className="flex items-center gap-3 px-3 py-3 min-h-[44px] transition-colors active:bg-muted/60"
                             >
-                                <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                                <Icon className="size-4 shrink-0 text-primary" aria-hidden />
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-medium">{destination.label}</span>
@@ -96,7 +96,7 @@ export default function IntelligenceHub() {
                                     <p className="text-micro text-muted-foreground">{destination.purpose}</p>
                                 </div>
                                 {count !== undefined && count !== null && (
-                                    <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                                    <span className="shrink-0 font-numeric text-xs text-muted-foreground">
                                         {typeof count === "number" ? count : count}
                                     </span>
                                 )}

@@ -315,7 +315,7 @@ export default function AdminAIAgentsPage() {
                             </Button>
                         }
                     />
-                    <div className="mt-2 flex items-center gap-1.5 rounded-md border border-border bg-background px-2">
+                    <div className="mt-2 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2">
                         <Search className="size-3.5 text-muted-foreground" />
                         <input
                             value={search}
@@ -357,7 +357,7 @@ export default function AdminAIAgentsPage() {
                 </aside>
 
                 {/* ── Editor ─────────────────────────────────────────── */}
-                <section className="rounded-lg border border-border/60 bg-card p-4">
+                <section className="rounded-lg border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     {!draft ? (
                         <EmptyState
                             icon={<Sparkles className="size-5" />}
@@ -404,7 +404,7 @@ export default function AdminAIAgentsPage() {
                             </div>
 
                             {message ? (
-                                <p className={`rounded border px-3 py-2 text-xs ${message.isError ? "border-destructive/40 bg-destructive/5 text-destructive" : "border-positive/40 bg-positive/5 text-positive"}`}>
+                                <p className={`rounded-lg border px-3 py-2 text-xs ${message.isError ? "border-destructive/40 bg-destructive/5 text-destructive" : "border-positive/40 bg-positive/5 text-positive"}`}>
                                     {message.text}
                                 </p>
                             ) : null}
@@ -416,8 +416,8 @@ export default function AdminAIAgentsPage() {
                                         key={item.id}
                                         type="button"
                                         onClick={() => setSection(item.id)}
-                                        className={`shrink-0 rounded-md px-2.5 py-1 text-micro ${
-                                            section === item.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                                        className={`shrink-0 rounded-lg px-2.5 py-1 text-micro ${
+                                            section === item.id ? "bg-background text-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]" : "text-muted-foreground"
                                         }`}
                                     >
                                         {item.label}
@@ -467,7 +467,7 @@ export default function AdminAIAgentsPage() {
                                             value={String(draft.maxRetries ?? 1)}
                                             onChange={(v) => update({ maxRetries: Number(v) })}
                                         />
-                                        <div className="sm:col-span-3 rounded border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
+                                        <div className="sm:col-span-3 rounded-lg border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
                                             The orchestrator enforces wave timeouts, run-level budgets and cooperative
                                             cancellation on top of these per-agent limits. Invalid JSON or failed
                                             validation is retried, then the agent fails structurally — never fakes output.
@@ -549,7 +549,7 @@ export default function AdminAIAgentsPage() {
                                                     /* live JSON typing — ignore partial documents */
                                                 }
                                             }}
-                                            className="w-full rounded-md border border-border bg-background px-2.5 py-2 font-numeric text-xs outline-none focus:border-ring"
+                                            className="w-full rounded-lg border border-border bg-background px-2.5 py-2 font-numeric text-xs outline-none focus:border-ring"
                                         />
                                     </div>
                                 ) : section === "activation" ? (
@@ -564,7 +564,7 @@ export default function AdminAIAgentsPage() {
                                             value={draft.requiredSections.join(", ")}
                                             onChange={(v) => update({ requiredSections: v.split(",").map((s) => s.trim()).filter(Boolean) })}
                                         />
-                                        <div className="rounded border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
+                                        <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-micro text-muted-foreground">
                                             Relevance filtering: agents whose activation tags do not match the request
                                             intents are skipped with a reason — a technical-only question will not wake
                                             every agent.
@@ -580,7 +580,7 @@ export default function AdminAIAgentsPage() {
                                         </p>
                                         <p>
                                             Per-agent performance counters are aggregated automatically into
-                                            <code className="rounded bg-muted px-1">aiAgentMetrics/{draft.id}</code> and
+                                            <code className="rounded-lg bg-muted px-1">aiAgentMetrics/{draft.id}</code> and
                                             shown in AI Monitoring.
                                         </p>
                                     </div>
@@ -636,7 +636,7 @@ export default function AdminAIAgentsPage() {
 
                                         {testResult ? (
                                             <div className="grid gap-3 lg:grid-cols-2">
-                                                <div className="rounded border border-border/60 bg-muted/20 p-3">
+                                                <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                                                     <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Input</p>
                                                     <pre className="mt-1 max-h-48 overflow-auto text-micro whitespace-pre-wrap">
                                                         {JSON.stringify(testResult.input, null, 2)}
@@ -656,7 +656,7 @@ export default function AdminAIAgentsPage() {
                                                         <p key={i} className="text-micro text-warning">{warning}</p>
                                                     ))}
                                                 </div>
-                                                <div className="rounded border border-border/60 bg-muted/20 p-3">
+                                                <div className="rounded-lg border border-border/60 bg-muted/20 p-3">
                                                     <p className="text-micro font-semibold tracking-wide text-muted-foreground uppercase">Output</p>
                                                     <pre className="mt-1 max-h-72 overflow-auto text-micro whitespace-pre-wrap">
                                                         {JSON.stringify(testResult.output, null, 2)}
@@ -679,7 +679,7 @@ export default function AdminAIAgentsPage() {
                                                 {versions.map((version) => (
                                                     <li
                                                         key={`${version.id}-${version.version}`}
-                                                        className="flex items-center justify-between gap-2 rounded border border-border/60 px-3 py-2 text-xs"
+                                                        className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-3 py-2 text-xs"
                                                     >
                                                         <span>
                                                             v{version.version}{" "}
@@ -734,7 +734,7 @@ function LabeledInput({
                     value={value}
                     disabled={disabled}
                     onChange={(e) => onChange(e.target.value)}
-                    className="w-full rounded-md border border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-ring disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-background px-2.5 py-2 text-sm outline-none focus:border-ring disabled:opacity-60"
                 />
             ) : (
                 <input
@@ -742,7 +742,7 @@ function LabeledInput({
                     value={value}
                     disabled={disabled}
                     onChange={(e) => onChange(e.target.value)}
-                    className="h-9 w-full rounded-md border border-border bg-background px-2.5 text-sm outline-none focus:border-ring disabled:opacity-60"
+                    className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm outline-none focus:border-ring disabled:opacity-60"
                 />
             )}
         </label>
@@ -766,7 +766,7 @@ function LabeledSelect({
             <select
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="h-9 w-full rounded-md border border-border bg-background px-2 text-sm outline-none focus:border-ring"
+                className="h-9 w-full rounded-lg border border-border bg-background px-2 text-sm outline-none focus:border-ring"
             >
                 {options.map((option) => (
                     <option key={option} value={option}>

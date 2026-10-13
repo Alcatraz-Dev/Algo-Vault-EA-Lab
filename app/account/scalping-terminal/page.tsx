@@ -62,7 +62,7 @@ export default function ScalpTerminalPage() {
                 subtitle="The full chart, overlays, replay, order flow, intelligence and journal"
                 onBack={() => void router.push("/account")}
             >
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Lock className="size-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">Sign in to open the Pro Scalping Terminal</p>
                     <a
@@ -83,7 +83,7 @@ export default function ScalpTerminalPage() {
                 subtitle="The full chart, overlays, replay, order flow, intelligence and journal"
                 onBack={() => void router.push("/account")}
             >
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <span className="text-warning">&#128274;</span>
                     <h3 className="text-xl font-semibold text-foreground">Pro Scalping Terminal</h3>
                     <p className="max-w-sm text-sm text-muted-foreground leading-relaxed">

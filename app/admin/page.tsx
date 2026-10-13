@@ -247,7 +247,7 @@ export default function AdminPage() {
                 <button
                     onClick={() => loadDashboard(true)}
                     disabled={refreshing || loading}
-                    className="flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
+                    className="flex h-8 items-center gap-2 rounded-lg border border-border bg-card px-4 text-xs font-medium text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/70 hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw
                         size={16}
@@ -258,7 +258,7 @@ export default function AdminPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
+                    className="flex h-8 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/80"
                 >
                     <Plus size={17} />
                     Add Bot
@@ -267,8 +267,16 @@ export default function AdminPage() {
 
                         {/* Error */}
                         {error && (
-                            <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-                                {error}
+                            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-negative/30 bg-negative-muted p-4 text-sm text-negative shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                                <span>{error}</span>
+                                <button
+                                    onClick={() => loadDashboard(true)}
+                                    disabled={refreshing || loading}
+                                    className="flex h-8 items-center gap-2 rounded-lg border border-negative/30 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                                >
+                                    <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+                                    Retry
+                                </button>
                             </div>
                         )}
 
@@ -288,12 +296,12 @@ export default function AdminPage() {
                                             href={
                                                 stat.href
                                             }
-                                            className="rounded-lg border border-border bg-card p-5 transition hover:border-border hover:bg-muted/50"
+                                            className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/50"
                                         >
 
                                             <div className="flex items-center justify-between">
 
-                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/50">
+                                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                                     <Icon
                                                         size={
                                                             18
@@ -310,13 +318,13 @@ export default function AdminPage() {
 
                                             </div>
 
-                                            <p className="mt-5 text-sm text-muted-foreground">
+                                            <p className="mt-5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                                                 {
                                                     stat.title
                                                 }
                                             </p>
 
-                                            <p className="mt-1 font-numeric text-2xl font-semibold">
+                                            <p className="mt-1 font-numeric text-2xl font-semibold text-foreground">
 
                                                 {loading
                                                     ? "—"
@@ -324,11 +332,13 @@ export default function AdminPage() {
 
                                             </p>
 
-                                            <p className="mt-2 text-xs text-muted-foreground">
-                                                {
-                                                    stat.change
-                                                }
-                                            </p>
+                                            <div className="mt-2">
+                                                <Badge variant="outline" className="font-numeric font-normal">
+                                                    {
+                                                        stat.change
+                                                    }
+                                                </Badge>
+                                            </div>
 
                                         </Link>
                                     );
@@ -338,20 +348,20 @@ export default function AdminPage() {
                         </div>
 
                         {/* Quick Access */}
-                        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                            <Link href="/ai-copilot" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <Link href="/ai-copilot" className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/50">
                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Brain size={20} /></div>
                                 <div><p className="text-sm font-semibold text-foreground">AI Copilot</p><p className="text-xs text-muted-foreground">Market analysis & trading insights</p></div>
                             </Link>
-                            <Link href="/scanner" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                            <Link href="/scanner" className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/50">
                                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Activity size={20} /></div>
                                 <div><p className="text-sm font-semibold text-foreground">Market Scanner</p><p className="text-xs text-muted-foreground">Scan assets across markets</p></div>
                             </Link>
-                             <Link href="/insights" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                             <Link href="/insights" className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/50">
                                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><Sparkles size={20} /></div>
                                  <div><p className="text-sm font-semibold text-foreground">AI Insights</p><p className="text-xs text-muted-foreground">Intelligence & trend analysis</p></div>
                              </Link>
-                             <Link href="/admin/workflows" className="flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:bg-muted/50">
+                             <Link href="/admin/workflows" className="flex items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-muted/50">
                                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground"><GitBranch size={20} /></div>
                                  <div><p className="text-sm font-semibold text-foreground">Workflow Studio</p><p className="text-xs text-muted-foreground">Monitor runs, manage templates, kill switch</p></div>
                              </Link>
@@ -360,16 +370,16 @@ export default function AdminPage() {
                         {/* Revenue + License overview */}
                         <div className="mt-6 grid gap-6 lg:grid-cols-2">
 
-                            <div className="rounded-lg border border-border bg-card p-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                                 <div className="flex items-start justify-between">
 
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                                             Revenue
                                         </p>
 
-                                        <p className="mt-2 font-numeric text-3xl font-semibold">
+                                        <p className="mt-2 font-numeric text-3xl font-semibold text-foreground">
                                             {loading
                                                 ? "—"
                                                 : formatCurrency(
@@ -383,7 +393,7 @@ export default function AdminPage() {
                                         </p>
                                     </div>
 
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                         <DollarSign
                                             size={
                                                 18
@@ -399,7 +409,7 @@ export default function AdminPage() {
                                         Total revenue
                                     </span>
 
-                                    <span className="font-numeric text-sm font-medium">
+                                    <span className="font-numeric text-sm font-medium text-foreground">
                                         {loading
                                             ? "—"
                                             : formatCurrency(
@@ -430,16 +440,16 @@ export default function AdminPage() {
 
                             </div>
 
-                            <div className="rounded-lg border border-border bg-card p-6">
+                            <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                                 <div className="flex items-start justify-between">
 
                                     <div>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                                             Licenses
                                         </p>
 
-                                        <p className="mt-2 font-numeric text-3xl font-semibold">
+                                        <p className="mt-2 font-numeric text-3xl font-semibold text-foreground">
                                             {loading
                                                 ? "—"
                                                 : stats?.activeLicenses ??
@@ -451,7 +461,7 @@ export default function AdminPage() {
                                         </p>
                                     </div>
 
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                         <KeyRound
                                             size={
                                                 18
@@ -494,12 +504,12 @@ export default function AdminPage() {
                         </div>
 
                         {/* Recent Bots */}
-                        <div className="mt-10 rounded-lg border border-border bg-card">
+                        <div className="mt-10 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                             <div className="flex items-center justify-between border-b border-border p-5">
 
                                 <div>
-                                    <h2 className="font-medium">
+                                    <h2 className="text-sm font-semibold text-foreground">
                                         Recent Bots
                                     </h2>
 
@@ -510,7 +520,7 @@ export default function AdminPage() {
 
                                 <Link
                                     href="/admin/bots"
-                                    className="text-sm text-muted-foreground hover:text-foreground"
+                                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     View all
                                 </Link>
@@ -520,8 +530,16 @@ export default function AdminPage() {
                             <div className="divide-y divide-border">
 
                                 {loading ? (
-                                    <div className="p-8 text-center text-sm text-muted-foreground">
-                                        Loading bots...
+                                    <div className="space-y-3 p-5" aria-label="Loading bots">
+                                        {[0, 1, 2].map((i) => (
+                                            <div key={i} className="flex items-center gap-4">
+                                                <div className="h-10 w-10 animate-pulse rounded-lg bg-muted" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="h-3 w-1/3 animate-pulse rounded-full bg-muted" />
+                                                    <div className="h-3 w-1/4 animate-pulse rounded-full bg-muted" />
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : data?.recentBots.length ? (
                                     data.recentBots.map(
@@ -535,7 +553,7 @@ export default function AdminPage() {
 
                                                 <div className="flex items-center gap-4">
 
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                                         <Bot
                                                             size={
                                                                 18
@@ -587,7 +605,7 @@ export default function AdminPage() {
 
                                                     <Link
                                                         href={`/admin/bots`}
-                                                        className="rounded-md border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted/70"
+                                                        className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted/70"
                                                     >
                                                         Edit
                                                     </Link>
@@ -598,8 +616,15 @@ export default function AdminPage() {
                                         )
                                     )
                                 ) : (
-                                    <div className="p-8 text-center text-sm text-muted-foreground">
-                                        No bots found.
+                                    <div className="p-8 text-center">
+                                        <p className="text-sm text-muted-foreground">No bots found.</p>
+                                        <Link
+                                            href="/admin/bots/new"
+                                            className="mt-3 inline-flex h-8 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
+                                        >
+                                            <Plus size={14} />
+                                            Add Bot
+                                        </Link>
                                     </div>
                                 )}
 
@@ -608,12 +633,12 @@ export default function AdminPage() {
                         </div>
 
                         {/* Recent Orders */}
-                        <div className="mt-6 rounded-lg border border-border bg-card">
+                        <div className="mt-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
                             <div className="flex items-center justify-between border-b border-border p-5">
 
                                 <div>
-                                    <h2 className="font-medium">
+                                    <h2 className="text-sm font-semibold text-foreground">
                                         Recent Sales
                                     </h2>
 
@@ -624,7 +649,7 @@ export default function AdminPage() {
 
                                 <Link
                                     href="/admin/orders"
-                                    className="text-sm text-muted-foreground hover:text-foreground"
+                                    className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
                                 >
                                     View all
                                 </Link>
@@ -634,8 +659,17 @@ export default function AdminPage() {
                             <div className="divide-y divide-border">
 
                                 {loading ? (
-                                    <div className="p-8 text-center text-sm text-muted-foreground">
-                                        Loading sales...
+                                    <div className="space-y-3 p-5" aria-label="Loading sales">
+                                        {[0, 1, 2].map((i) => (
+                                            <div key={i} className="flex items-center gap-4">
+                                                <div className="h-10 w-10 animate-pulse rounded-lg bg-muted" />
+                                                <div className="flex-1 space-y-2">
+                                                    <div className="h-3 w-1/3 animate-pulse rounded-full bg-muted" />
+                                                    <div className="h-3 w-1/4 animate-pulse rounded-full bg-muted" />
+                                                </div>
+                                                <div className="h-5 w-16 animate-pulse rounded-full bg-muted" />
+                                            </div>
+                                        ))}
                                     </div>
                                 ) : data?.recentOrders.length ? (
                                     data.recentOrders.map(
@@ -649,7 +683,7 @@ export default function AdminPage() {
 
                                                 <div className="flex items-center gap-4">
 
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted/50">
+                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                                                         <ShoppingCart
                                                             size={
                                                                 17
@@ -677,14 +711,14 @@ export default function AdminPage() {
                                                 <div className="flex items-center gap-5">
 
                                                     <div className="text-right">
-                                                        <p className="font-numeric text-sm font-medium">
+                                                        <p className="font-numeric text-sm font-medium text-foreground">
                                                             {formatCurrency(
                                                                 order.amount,
                                                                 order.currency
                                                             )}
                                                         </p>
 
-                                                        <p className="mt-1 text-xs text-muted-foreground">
+                                                        <p className="mt-1 font-numeric text-xs text-muted-foreground">
                                                             {formatDate(
                                                                 order.paidAt
                                                             )}
@@ -699,8 +733,14 @@ export default function AdminPage() {
                                         )
                                     )
                                 ) : (
-                                    <div className="p-8 text-center text-sm text-muted-foreground">
-                                        No completed sales yet.
+                                    <div className="p-8 text-center">
+                                        <p className="text-sm text-muted-foreground">No completed sales yet.</p>
+                                        <Link
+                                            href="/admin/orders"
+                                            className="mt-3 inline-flex h-8 items-center rounded-lg border border-border px-4 text-xs font-medium transition-colors hover:bg-muted/70"
+                                        >
+                                            View orders
+                                        </Link>
                                     </div>
                                 )}
 
@@ -720,11 +760,11 @@ function LicenseStat({
 }) {
     return (
         <div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 {label}
             </p>
 
-            <p className="mt-1 font-numeric text-sm font-medium">
+            <p className="mt-1 font-numeric text-sm font-medium text-foreground">
                 {value}
             </p>
         </div>

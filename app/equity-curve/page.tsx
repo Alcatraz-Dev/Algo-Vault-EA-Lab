@@ -56,13 +56,13 @@ export default function EquityCurvePage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-muted-foreground transition">
+                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
                     <ArrowLeft size={12} /> Back to Account
                 </Link>
 
@@ -72,7 +72,7 @@ export default function EquityCurvePage() {
                         <p className="mt-1.5 text-sm text-muted-foreground">Track your account equity and balance over time</p>
                     </div>
                     {curves.length > 0 && (
-                        <button onClick={() => void fetchData()} disabled={loading} className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition disabled:opacity-50">
+                        <button onClick={() => void fetchData()} disabled={loading} className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50">
                             <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     )}
@@ -88,7 +88,7 @@ export default function EquityCurvePage() {
                                 className={`rounded-md px-4 py-2 text-xs font-medium transition-all ${
                                     selected === c.accountId
                                         ? "bg-primary/10 text-primary"
-                                        : "text-muted-foreground hover:text-muted-foreground bg-muted"
+                                        : "text-muted-foreground hover:text-foreground bg-muted"
                                 }`}
                             >
                                 {c.accountName}
@@ -99,19 +99,19 @@ export default function EquityCurvePage() {
 
                 {stats && (
                     <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4" data-guide="stats">
-                        <div className="rounded-lg border border-border/30 bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                             <div className="flex items-center gap-2 mb-1"><DollarSign size={13} className="text-muted-foreground" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Net P/L</span></div>
                             <p className={`text-xl font-bold font-numeric ${stats.pnl >= 0 ? "text-positive" : "text-negative"}`}>{stats.pnl >= 0 ? "+" : ""}{stats.pnl.toFixed(2)}</p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                             <div className="flex items-center gap-2 mb-1"><TrendingUp size={13} className="text-muted-foreground" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Return %</span></div>
                             <p className={`text-xl font-bold font-numeric ${stats.pnlPct >= 0 ? "text-positive" : "text-negative"}`}>{stats.pnlPct >= 0 ? "+" : ""}{stats.pnlPct.toFixed(2)}%</p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                             <div className="flex items-center gap-2 mb-1"><Activity size={13} className="text-muted-foreground" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Max Drawdown</span></div>
                             <p className="text-xl font-bold font-numeric text-negative">-{stats.drawdown.toFixed(2)}%</p>
                         </div>
-                        <div className="rounded-lg border border-border/30 bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
                             <div className="flex items-center gap-2 mb-1"><TrendingDown size={13} className="text-muted-foreground" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Data Points</span></div>
                             <p className="text-xl font-bold font-numeric text-foreground">{stats.points}</p>
                         </div>
@@ -127,7 +127,7 @@ export default function EquityCurvePage() {
                         <p className="mt-1 text-micro text-muted-foreground">Equity curve will appear once your AlgoVault Gateway EA starts reporting account balance updates</p>
                     </div>
                 ) : (
-                    <div className="rounded-lg border border-border/30 bg-card p-5" data-guide="chart">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5" data-guide="chart">
                         <h2 className="mb-4 text-sm font-semibold text-foreground">Equity & Balance Over Time</h2>
                         <div className="h-96">
                             <ResponsiveContainer width="100%" height="100%">

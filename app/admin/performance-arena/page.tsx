@@ -172,14 +172,14 @@ export default function PerformanceArenaAdminPage() {
                 </Button>
             </div>
 
-            <div className="mb-4 flex flex-wrap gap-1 border-b border-border pb-2">
+            <div className="mb-4 flex flex-wrap gap-2 border-b border-border pb-3">
                 {tabs.map((t) => (
                     <button
                         key={t.id}
                         type="button"
                         onClick={() => setTab(t.id)}
-                        className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
-                            tab === t.id ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted"
+                        className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            tab === t.id ? "border-primary/40 bg-primary/15 text-primary" : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
                         }`}
                     >
                         {t.icon} {t.label}
@@ -187,9 +187,9 @@ export default function PerformanceArenaAdminPage() {
                 ))}
             </div>
 
-            {error ? <div className="mb-3 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{error}</div> : null}
+            {error ? <div className="mb-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive shadow-[0_1px_2px_rgb(0_0_0/0.05)]">{error}</div> : null}
             {loading ? (
-                <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">Loading arena data…</div>
+                <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">Loading arena data…</div>
             ) : null}
 
             {!loading && tab === "overview" && analytics ? (
@@ -210,7 +210,7 @@ export default function PerformanceArenaAdminPage() {
                     </div>
 
                     <div className="grid gap-4 lg:grid-cols-2">
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-2 text-sm font-semibold">Settlement reasons</h3>
                             {Object.keys(analytics.failureReasons).length === 0 ? (
                                 <p className="text-xs text-muted-foreground">No settlements recorded yet.</p>
@@ -225,7 +225,7 @@ export default function PerformanceArenaAdminPage() {
                                 </ul>
                             )}
                         </div>
-                        <div className="rounded-lg border border-border bg-card p-4">
+                        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-2 text-sm font-semibold">Challenge definitions</h3>
                             <ul className="space-y-1 text-xs">
                                 {analytics.definitions.map((def) => (
@@ -243,7 +243,7 @@ export default function PerformanceArenaAdminPage() {
             ) : null}
 
             {!loading && tab === "challenges" ? (
-                <div className="rounded-lg border border-border bg-card">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -304,7 +304,7 @@ export default function PerformanceArenaAdminPage() {
 
             {!loading && tab === "rewards" && rewards ? (
                 <div className="space-y-4">
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="mb-3 flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-sm font-semibold">
                                 <BadgeCheck className="h-4 w-4" /> Reward policies
@@ -342,7 +342,7 @@ export default function PerformanceArenaAdminPage() {
                         ))}
                     </div>
 
-                    <div className="rounded-lg border border-border bg-card">
+                    <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="border-b border-border px-4 py-3 text-sm font-semibold">Reward ledger (latest {Math.min(rewards.ledger.length, 100)})</h3>
                         <div className="max-h-96 overflow-y-auto">
                             <Table>
@@ -385,7 +385,7 @@ export default function PerformanceArenaAdminPage() {
             ) : null}
 
             {!loading && tab === "fraud" ? (
-                <div className="rounded-lg border border-border bg-card">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     {flags.length === 0 ? (
                         <p className="p-6 text-center text-sm text-muted-foreground">No fraud flags recorded. 🎉</p>
                     ) : (
@@ -439,9 +439,9 @@ export default function PerformanceArenaAdminPage() {
 
 function Stat({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-3">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <p className="text-micro text-muted-foreground">{label}</p>
-            <p className="font-numeric text-lg font-semibold tabular-nums">{value}</p>
+            <p className="font-numeric text-lg font-semibold tabular-nums text-foreground">{value}</p>
             {sub ? <p className="text-micro text-muted-foreground">{sub}</p> : null}
         </div>
     );

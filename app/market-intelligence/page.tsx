@@ -13,7 +13,7 @@ export default function MarketIntelligenceCommandCenterPage() {
     <AppShell navGroups={nav} title="Market Intelligence — Command Center" subtitle="Analyze → Detect → Validate → Research → Build" maxWidth="max-w-[1600px]">
       <div className="flex flex-col gap-4">
         {/* Global Context Bar */}
-        <div className="rounded-lg border border-border bg-card p-3 flex flex-wrap items-center gap-3 text-micro">
+        <div className="rounded-xl border border-border bg-card p-3 flex flex-wrap items-center gap-3 text-micro shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <div className="font-black text-sm">COMMAND CENTER</div>
           <div className="rounded bg-muted/30 px-2 py-0.5">XAUUSD</div>
           <div className="rounded bg-muted/30 px-2 py-0.5">M5</div>
@@ -30,7 +30,7 @@ export default function MarketIntelligenceCommandCenterPage() {
 
         <div className="grid lg:grid-cols-[1fr_320px] gap-4">
           {/* Main Chart Workspace */}
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               <span>Market Workspace</span>
               <span>Existing chart overlay adapter · Smart Money · Sessions · Indicators</span>
@@ -43,7 +43,7 @@ export default function MarketIntelligenceCommandCenterPage() {
 
           {/* Intelligence / Evidence */}
           <div className="flex flex-col gap-4">
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <h3 className="font-bold text-sm mb-2">Intelligence Layer (Phase 7.4)</h3>
               <div className="text-xs space-y-2 text-muted-foreground">
                 <div><strong>Facts</strong> — deterministic engine outputs (SMC / Indicators / MTF / Sessions)</div>
@@ -57,7 +57,7 @@ export default function MarketIntelligenceCommandCenterPage() {
               </div>
             </div>
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
               <h3 className="font-bold text-sm mb-2">Smart Money Summary</h3>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div><strong>Structure</strong> — unknown (engine state required)</div>
@@ -73,7 +73,7 @@ export default function MarketIntelligenceCommandCenterPage() {
 
         {/* Bottom: Replay / Evidence / Quick Actions / Trade Journal / Performance Summary */}
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs uppercase">
               <span>Replay Controls</span>
               <span>ReplayEngine reused — future-safe</span>
@@ -83,7 +83,7 @@ export default function MarketIntelligenceCommandCenterPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Evidence Chain</h3>
             <div className="text-xs text-muted-foreground space-y-1">
               <div>Market Event → Smart Money → Trade → Backtest → Research</div>
@@ -91,34 +91,34 @@ export default function MarketIntelligenceCommandCenterPage() {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Advanced Analysis</a>
-              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Backtest</a>
-              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Research</a>
-              <a href="/trading-studio" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20">Trading Studio</a>
+              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
+              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
+              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
+              <a href="/strategy-lab" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
             </div>
           </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-4">
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center justify-between mb-3 text-xs uppercase tracking-wider text-muted-foreground">
               <span>Live Monitor</span>
               <span>Existing data + Smart Money + Indicators + MTF</span>
             </div>
             <div className="rounded-lg border border-border/20 bg-background/20 p-4 min-h-[100px] text-xs text-muted-foreground">Monitoring uses existing analytics. No new engine.</div>
           </div>
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Watchlist (Live)</h3>
-            <table className="w-full text-micro text-left border-collapse"><thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead><tbody className="divide-y divide-border/50"><tr><td>XAUUSD</td><td>M5</td><td>LIVE</td><td>—</td></tr><tr><td>EURUSD</td><td>M15</td><td>LIVE</td><td>—</td></tr></tbody></table>
+            <table className="w-full text-micro text-left border-collapse font-numeric"><thead className="text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border/20"><tr><th>Symbol</th><th>TF</th><th>Data</th><th>Setup</th></tr></thead><tbody className="divide-y divide-border/50"><tr><td>XAUUSD</td><td>M5</td><td>LIVE</td><td>—</td></tr><tr><td>EURUSD</td><td>M15</td><td>LIVE</td><td>—</td></tr></tbody></table>
           </div>
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Active Setups</h3>
             <div className="text-xs text-muted-foreground">No setups configured. Create from existing conditions.</div>
           </div>
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Setup Memory (Phase 10)</h3>
             <div className="text-xs text-muted-foreground">Persistent lifecycle of monitored setups. Real evidence only. No fabricated predictions or scores.</div>
           </div>

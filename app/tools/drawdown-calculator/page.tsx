@@ -49,7 +49,7 @@ export default function DrawdownCalculator() {
     }, [balance, lossPercent, consecutiveLosses]);
 
     const inputClass =
-        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition";
+        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors";
 
     return (
         <ToolPageShell
@@ -68,7 +68,7 @@ export default function DrawdownCalculator() {
             ]}
         >
             <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-lg border border-border bg-card p-5">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                     <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <TrendingDown size={15} className="text-negative" /> Parameters
                     </h2>
@@ -103,25 +103,25 @@ export default function DrawdownCalculator() {
                             <div className="rounded-lg border border-negative/20 bg-negative/[0.04] p-5">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <p className="text-micro uppercase text-muted-foreground">Final Balance</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Final Balance</p>
                                         <p className="mt-1 font-numeric text-xl font-bold text-foreground">${calc.finalBalance.toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-micro uppercase text-muted-foreground">Total Drawdown</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Drawdown</p>
                                         <p className="mt-1 font-numeric text-xl font-bold text-negative">-{calc.drawdownPct}%</p>
                                     </div>
                                     <div>
-                                        <p className="text-micro uppercase text-muted-foreground">Amount Lost</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Amount Lost</p>
                                         <p className="font-numeric text-sm font-bold text-negative">${calc.totalDrawdown.toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-micro uppercase text-muted-foreground">Risk Per Trade</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Risk Per Trade</p>
                                         <p className="font-numeric text-sm font-bold text-muted-foreground">${calc.riskPerTrade.toLocaleString()}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border bg-card p-5">
+                            <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                                 <h3 className="mb-3 text-xs font-semibold text-muted-foreground">Equity Curve</h3>
                                 <div className="flex items-end gap-1 h-32">
                                     {calc.curve.map((val, i) => {
@@ -175,7 +175,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -185,7 +185,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

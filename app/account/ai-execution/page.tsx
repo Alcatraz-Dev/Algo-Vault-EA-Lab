@@ -253,14 +253,14 @@ export default function AiExecutionPage() {
 
                 {/* ── Mode + safety banner ─────────────────────────────── */}
                 <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground"><Settings2 className="h-3.5 w-3.5" /> Execution mode</div>
                         <p className={cn("mt-2 text-sm font-semibold", automationActive ? "text-warning" : "text-foreground")}>{MODE_LABEL[mode] ?? mode}</p>
                         <button type="button" onClick={() => setShowPolicy((s) => !s)} className="mt-3 text-xs text-primary hover:underline">
                             {showPolicy ? "Hide policy" : "Configure policy"}
                         </button>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground"><Shield className="h-3.5 w-3.5" /> Kill switch</div>
                         {killSwitch.engaged ? (
                             <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-negative"><ShieldOff className="h-4 w-4" /> ENGAGED {killSwitch.reason ? `— ${killSwitch.reason}` : ""}</p>
@@ -269,7 +269,7 @@ export default function AiExecutionPage() {
                         )}
                         <p className="mt-3 text-micro text-muted-foreground">Platform admins can halt all automated execution instantly.</p>
                     </div>
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-muted-foreground"><Activity className="h-3.5 w-3.5" /> MT5 account</div>
                         <p className="mt-2 text-sm font-semibold">{state?.account.connected ? <span className="text-positive">Connected</span> : <span className="text-warning">Not connected</span>}</p>
                         <p className="mt-1 text-micro text-muted-foreground">Execution runs through your existing gateway account.</p>
@@ -287,7 +287,7 @@ export default function AiExecutionPage() {
 
                 {/* ── Policy editor ────────────────────────────────────── */}
                 {showPolicy && (
-                    <div className="rounded-lg border border-border bg-card p-4">
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <h3 className="text-sm font-semibold">Automation policy</h3>
                         <p className="mt-1 text-micro text-muted-foreground">Limits are clamped server-side against platform hard ceilings — the UI can only narrow them, never widen.</p>
 
@@ -334,7 +334,7 @@ export default function AiExecutionPage() {
                                 type="button"
                                 onClick={savePolicy}
                                 disabled={policyBusy}
-                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
                             >
                                 {policyBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Settings2 className="h-3.5 w-3.5" />}
                                 Save policy
@@ -364,7 +364,7 @@ export default function AiExecutionPage() {
                     ) : (
                         <div className="overflow-hidden rounded-lg border border-border">
                             <table className="w-full text-xs">
-                                <thead className="bg-muted/40 text-left text-muted-foreground">
+                                <thead className="bg-muted/40 text-left text-muted-foreground text-[11px] uppercase tracking-wider">
                                     <tr>
                                         <th className="px-3 py-2 font-medium">Plan</th>
                                         <th className="px-3 py-2 font-medium">Instrument</th>
@@ -441,7 +441,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                     <span className="rounded-full border border-border px-2 py-0.5 text-micro text-muted-foreground">{plan.timeframe}</span>
                     <span className="rounded-full border border-border px-2 py-0.5 text-micro text-muted-foreground">risk {plan.riskPercent}%</span>
                 </div>
-                <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition", open && "rotate-90")} />
+                <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-colors", open && "rotate-90")} />
             </button>
 
             {open && (
@@ -484,7 +484,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             type="button"
                             onClick={() => onDecision("approve")}
                             disabled={busy}
-                            className="inline-flex items-center gap-1.5 rounded-md bg-positive px-4 py-1.5 text-xs font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-positive px-4 py-1.5 text-xs font-semibold text-background transition-colors hover:opacity-90 disabled:opacity-50"
                         >
                             {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                             Approve &amp; execute
@@ -493,7 +493,7 @@ function ApprovalCard({ plan, busy, onDecision }: { plan: TradePlan; busy: boole
                             type="button"
                             onClick={() => onDecision("withdraw")}
                             disabled={busy}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs transition hover:bg-muted disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs transition-colors hover:bg-muted disabled:opacity-50"
                         >
                             <XCircle className="h-3.5 w-3.5" />
                             Withdraw

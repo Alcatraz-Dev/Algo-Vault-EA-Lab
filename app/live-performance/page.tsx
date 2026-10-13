@@ -600,7 +600,7 @@ export default function LivePerformancePage() {
 
                 {/* BOT SELECTOR */}
                 {products.length > 0 && (
-                    <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                    <div className="rounded-lg border border-border/30 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
@@ -762,12 +762,12 @@ export default function LivePerformancePage() {
                 )}
 
                 {/* EQUITY CURVE CHART */}
-                <div className="rounded-lg border border-border/30 bg-card/60 p-6">
+                <div className="rounded-lg border border-border/30 bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                                 <span>Live Performance Charts</span>
-                                <span className="rounded-md border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro text-positive font-semibold uppercase">
+                                <span className="rounded-lg border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro text-positive font-semibold uppercase">
                                     {metrics.isLive ? "Real MT5 Data" : "Awaiting Heartbeat"}
                                 </span>
                             </h2>
@@ -872,13 +872,13 @@ export default function LivePerformancePage() {
 
                 {/* RISK + RATIOS + EXECUTION PROFILE */}
                 <div className="grid gap-6 md:grid-cols-3">
-                    <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                    <div className="rounded-lg border border-border/30 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
                                 <Activity className="h-4 w-4 text-positive" />
                                 <span>Risk Profile</span>
                             </h3>
-                            <span className={`text-micro uppercase tracking-wider font-semibold px-2 py-0.5 rounded border ${
+                            <span className={`text-micro uppercase tracking-wider font-semibold px-2 py-0.5 rounded-lg border ${
                                 metrics.maxDrawdown === null || metrics.maxDrawdown === 0
                                     ? "text-muted-foreground bg-muted border-border"
                                     : metrics.maxDrawdown < 15
@@ -923,13 +923,13 @@ export default function LivePerformancePage() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                    <div className="rounded-lg border border-border/30 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
                                 <Zap className="h-4 w-4 text-info" />
                                 <span>Trade Stats</span>
                             </h3>
-                            <span className="text-micro uppercase tracking-wider font-semibold text-info bg-info/10 border border-info/20 px-2 py-0.5 rounded">
+                            <span className="text-micro uppercase tracking-wider font-semibold text-info bg-info/10 border border-info/20 px-2 py-0.5 rounded-lg">
                                 {metrics.isLive ? "Live" : "Idle"}
                             </span>
                         </div>
@@ -968,13 +968,13 @@ export default function LivePerformancePage() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                    <div className="rounded-lg border border-border/30 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center justify-between border-b border-border/30 pb-3">
                             <h3 className="font-bold text-foreground flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-positive" />
                                 <span>Trade Execution Profile</span>
                             </h3>
-                            <span className="text-micro uppercase tracking-wider font-semibold text-chart-4 bg-chart-4/10 border border-chart-4/20 px-2 py-0.5 rounded">
+                            <span className="text-micro uppercase tracking-wider font-semibold text-chart-4 bg-chart-4/10 border border-chart-4/20 px-2 py-0.5 rounded-lg">
                                 Real Trades
                             </span>
                         </div>

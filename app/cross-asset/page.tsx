@@ -116,7 +116,7 @@ export default function CrossAssetExplorerPage() {
                         <button
                             type="button"
                             onClick={() => reload(true)}
-                            className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition hover:bg-muted"
+                            className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-muted"
                             disabled={loading}
                         >
                             {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
@@ -126,7 +126,7 @@ export default function CrossAssetExplorerPage() {
                 </header>
 
                 {/* controls */}
-                <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-3">
+                <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                     <label className="flex flex-col gap-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                         Symbol
                         <span className="flex items-center gap-1">
@@ -180,7 +180,7 @@ export default function CrossAssetExplorerPage() {
                                 type="button"
                                 onClick={() => setFilter(f.id)}
                                 className={cn(
-                                    "rounded-full border px-2.5 py-1 text-micro transition",
+                                    "rounded-full border px-2.5 py-1 text-micro transition-colors",
                                     filter === f.id
                                         ? "border-primary bg-primary/15 text-primary"
                                         : "border-border text-muted-foreground hover:bg-muted"
@@ -250,7 +250,7 @@ export default function CrossAssetExplorerPage() {
                         selectedPair={selectedPair}
                         onSelect={setSelectedPair}
                     />
-                    <section className="rounded-lg border border-border bg-card p-3">
+                    <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                         <header className="flex items-baseline justify-between gap-2">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                                 Correlation timeline
@@ -277,7 +277,7 @@ export default function CrossAssetExplorerPage() {
 
                 {/* matrix */}
                 <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                    <section className="rounded-lg border border-border bg-card p-3">
+                    <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                         <header className="flex items-baseline justify-between gap-2">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                                 Correlation matrix
@@ -295,13 +295,13 @@ export default function CrossAssetExplorerPage() {
                         </div>
                     </section>
                     <div className="grid gap-3">
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">Clusters</h3>
                             <div className="mt-2">
                                 <ClustersPanel clusters={data?.clusters} />
                             </div>
                         </section>
-                        <section className="rounded-lg border border-border bg-card p-3">
+                        <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                             <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">Market factors</h3>
                             <div className="mt-2">
                                 <FactorsPanel factors={data?.factors} />
@@ -312,7 +312,7 @@ export default function CrossAssetExplorerPage() {
 
                 {/* events */}
                 <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                    <section className="rounded-lg border border-border bg-card p-3">
+                    <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                         <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
                             Cross-asset events
                         </h3>
@@ -320,7 +320,7 @@ export default function CrossAssetExplorerPage() {
                             <EventsPanel signals={data?.signals} />
                         </div>
                     </section>
-                    <section className="rounded-lg border border-border bg-card p-3">
+                    <section className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                         <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">Lead-lag (observed)</h3>
                         <div className="mt-2 space-y-2">
                             {(data?.leadLag ?? []).length === 0 ? (

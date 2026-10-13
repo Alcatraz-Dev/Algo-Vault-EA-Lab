@@ -120,9 +120,9 @@ export default function MobileAccountPage() {
           <h1 className="text-lg font-semibold">Account</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-20 rounded-lg" />
-          <Skeleton className="h-20 rounded-lg" />
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
         </div>
       </div>
     );
@@ -133,7 +133,7 @@ export default function MobileAccountPage() {
       <div className="flex flex-col min-h-screen bg-background items-center justify-center p-8 text-center">
         <User className="h-16 w-16 text-muted-foreground mb-4" />
         <h1 className="text-xl font-semibold mb-2">Sign in to access your account</h1>
-        <Link href="/login"><Button className="w-full sm:w-auto">Sign In</Button></Link>
+        <Link href="/login"><Button className="w-full sm:w-auto min-h-[44px]">Sign In</Button></Link>
       </div>
     );
   }
@@ -174,21 +174,21 @@ export default function MobileAccountPage() {
         <CardContent className="p-4">
           <h3 className="font-semibold mb-3 flex items-center gap-2"><Wallet className="h-5 w-5" /> Trading Accounts</h3>
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-lg bg-muted/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Total Balance</p>
-              <p className="font-numeric text-xl font-bold mt-1">{formatCurrency(totalBalance)}</p>
+              <p className="font-numeric text-xl font-bold mt-1 truncate">{formatCurrency(totalBalance)}</p>
             </div>
-            <div className="rounded-lg bg-muted/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Equity</p>
-              <p className={cn("font-numeric text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
+              <p className={cn("font-numeric text-xl font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
             </div>
-            <div className="rounded-lg bg-muted/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Floating P&L</p>
-              <p className={cn("font-numeric text-xl font-bold mt-1", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
+              <p className={cn("font-numeric text-xl font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
             </div>
-            <div className="rounded-lg bg-muted/50 p-3">
+            <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Online</p>
-              <p className="font-numeric text-xl font-bold mt-1 text-positive">{onlineAccounts} / {accounts.length}</p>
+              <p className="font-numeric text-xl font-bold mt-1 text-positive truncate">{onlineAccounts} / {accounts.length}</p>
             </div>
           </div>
           {accounts.length > 0 && (
@@ -242,14 +242,14 @@ export default function MobileAccountPage() {
             <Wallet className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-semibold mb-1">No trading accounts connected</h3>
             <p className="text-sm text-muted-foreground mb-4">Connect your MT5 account to track balance, equity, and positions.</p>
-            <Link href="/account/trading-access"><Button>Connect MT5 Account</Button></Link>
+            <Link href="/account/trading-access"><Button className="min-h-[44px]">Connect MT5 Account</Button></Link>
           </CardContent>
         </Card>
       ) : (
         <>
           {accounts.map((acc) => (
             <Link key={acc.id} href={`/account/trading-access/${acc.id}`} className="block">
-              <Card className={cn("p-3 transition-colors hover:border-primary/30", acc.status !== "online" && "border-negative/30")}>
+              <Card className={cn("p-3 rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/30", acc.status !== "online" && "border-negative/30")}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className={cn("p-2 rounded-lg", acc.status === "online" ? "bg-positive/10" : "bg-negative/10")}>
@@ -287,7 +287,7 @@ export default function MobileAccountPage() {
             <Link href="/account/licenses"><Button variant="ghost" size="sm">View All</Button></Link>
           </div>
           <p className="text-sm text-muted-foreground mb-4">License management is available on the full account page.</p>
-          <Link href="/account/licenses"><Button className="w-full">Manage Licenses</Button></Link>
+          <Link href="/account/licenses"><Button className="w-full min-h-[44px]">Manage Licenses</Button></Link>
         </CardContent>
       </Card>
     </div>
@@ -301,8 +301,8 @@ export default function MobileAccountPage() {
             <h3 className="font-semibold flex items-center gap-2"><CreditCard className="h-5 w-5" /> Subscription</h3>
             <Link href="/pricing"><Button variant="ghost" size="sm">Upgrade</Button></Link>
           </div>
-          <div className="rounded-lg bg-muted/50 p-4">
-            <div className="flex items-center justify-between">
+          <div className="rounded-xl bg-muted/50 p-4">
+            <div className="flex items-center justify-between gap-3 min-w-0">
               <div>
                 <p className="font-semibold">{isPro ? "Pro Plan" : "Free Plan"}</p>
                 <p className="text-sm text-muted-foreground">{isPro ? "Active subscription" : "No active subscription"}</p>
@@ -312,7 +312,7 @@ export default function MobileAccountPage() {
               </Badge>
             </div>
           </div>
-          {!isPro && <Link href="/pricing" className="mt-3 block"><Button className="w-full">Upgrade to Pro</Button></Link>}
+          {!isPro && <Link href="/pricing" className="mt-3 block"><Button className="w-full min-h-[44px]">Upgrade to Pro</Button></Link>}
         </CardContent>
       </Card>
     </div>
@@ -327,7 +327,7 @@ export default function MobileAccountPage() {
             <Link href="/account/bots"><Button variant="ghost" size="sm">View All</Button></Link>
           </div>
           <p className="text-sm text-muted-foreground mb-4">Bot management is available on the full account page.</p>
-          <Link href="/account/bots"><Button className="w-full">Manage Bots</Button></Link>
+          <Link href="/account/bots"><Button className="w-full min-h-[44px]">Manage Bots</Button></Link>
         </CardContent>
       </Card>
     </div>
@@ -339,7 +339,7 @@ export default function MobileAccountPage() {
         <CardContent className="p-4">
           <h3 className="font-semibold flex items-center gap-2 mb-4"><Bell className="h-5 w-5" /> Notifications</h3>
           <p className="text-sm text-muted-foreground mb-4">Manage your notification preferences for signals, bots, risk alerts, and more.</p>
-          <Link href="/account/settings#notifications"><Button className="w-full">Notification Settings</Button></Link>
+          <Link href="/account/settings#notifications"><Button className="w-full min-h-[44px]">Notification Settings</Button></Link>
         </CardContent>
       </Card>
     </div>
@@ -371,7 +371,7 @@ export default function MobileAccountPage() {
     licenses: renderLicenses,
     subscriptions: renderSubscriptions,
     bots: renderBots,
-    signals: () => <div className="p-4 pb-20"><Link href="/signals"><Button className="w-full">View AI Signals</Button></Link></div>,
+    signals: () => <div className="p-4 pb-20"><Link href="/signals"><Button className="w-full min-h-[44px]">View AI Signals</Button></Link></div>,
     notifications: renderNotifications,
     settings: renderSettings,
   };

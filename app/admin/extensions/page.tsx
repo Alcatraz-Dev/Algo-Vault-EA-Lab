@@ -116,13 +116,13 @@ export default function AdminExtensionsPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Extension</th>
-                                    <th className="px-4 py-3">Type</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3">Version</th>
-                                    <th className="px-4 py-3">Installs</th>
-                                    <th className="px-4 py-3">Active</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Extension</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Version</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Installs</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Active</th>
+                                    <th className="px-4 py-3 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -140,9 +140,9 @@ export default function AdminExtensionsPage() {
                                             <td className="px-4 py-3">
                                                 <StatusBadge tone={pluginStatusTone(ext.status)} label={ext.status} dot />
                                             </td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">v{ext.version}</td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">{formatNumber(ext.installs)}</td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">{formatNumber(ext.activeUsers)}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">v{ext.version}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">{formatNumber(ext.installs)}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">{formatNumber(ext.activeUsers)}</td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {ext.status === "published" && (

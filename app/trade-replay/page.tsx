@@ -201,7 +201,7 @@ export default function TradeReplayPage() {
                         </div>
                         <Link
                             href="/login"
-                            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition hover:bg-primary/90"
+                            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
                         >
                             Sign in
                         </Link>
@@ -224,7 +224,7 @@ export default function TradeReplayPage() {
                             type="button"
                             onClick={() => setActiveTab("terminal")}
                             className={cn(
-                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition",
+                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-colors",
                                 activeTab === "terminal"
                                     ? "bg-primary text-primary-foreground "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
@@ -236,7 +236,7 @@ export default function TradeReplayPage() {
                             type="button"
                             onClick={() => setActiveTab("signals")}
                             className={cn(
-                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition",
+                              "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-colors",
                                 activeTab === "signals"
                                     ? "bg-primary text-primary-foreground "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
@@ -328,7 +328,7 @@ export default function TradeReplayPage() {
                                             setSearchQuery(e.target.value);
                                             setCurrentIndex(0);
                                         }}
-                                        className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 font-numeric text-xs outline-none transition focus:border-primary"
+                                        className="w-full rounded-lg border border-border bg-background py-1.5 pl-9 pr-3 font-numeric text-xs outline-none transition-colors focus:border-primary"
                                     />
                                 </div>
 
@@ -349,7 +349,7 @@ export default function TradeReplayPage() {
                                                     setCurrentIndex(0);
                                                 }}
                                                 className={cn(
-                                                  "rounded-lg px-3 py-1.5 text-xs font-bold transition",
+                                                  "rounded-lg px-3 py-1.5 text-xs font-bold transition-colors",
                                                     active
                                                         ? "border border-primary/30 bg-primary/20 text-primary"
                                                         : "bg-muted/40 text-muted-foreground hover:text-foreground"
@@ -366,7 +366,7 @@ export default function TradeReplayPage() {
                                             setTimeframeFilter(e.target.value);
                                             setCurrentIndex(0);
                                         }}
-                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition"
+                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition-colors"
                                     >
                                         <option value="ALL">All TFs</option>
                                         {timeframes.map((tf) => (
@@ -380,7 +380,7 @@ export default function TradeReplayPage() {
                                             setSortOrder(e.target.value as SortOrder);
                                             setCurrentIndex(0);
                                         }}
-                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition"
+                                        className="h-8 rounded-lg border border-border bg-background px-2.5 font-numeric text-xs text-muted-foreground outline-none transition-colors"
                                     >
                                         <option value="oldest">Oldest first</option>
                                         <option value="newest">Newest first</option>
@@ -390,7 +390,7 @@ export default function TradeReplayPage() {
                                         type="button"
                                         onClick={() => user && void loadSignals(user)}
                                         disabled={loading}
-                                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                                        className="flex h-8 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
                                         title="Reload signal history"
                                     >
                                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
@@ -404,7 +404,7 @@ export default function TradeReplayPage() {
                                     <button
                                         type="button"
                                         onClick={() => user && void loadSignals(user)}
-                                        className="flex items-center gap-1.5 rounded-lg bg-negative/20 px-3 py-1.5 font-bold text-negative transition hover:bg-negative/30"
+                                        className="flex items-center gap-1.5 rounded-lg bg-negative/20 px-3 py-1.5 font-bold text-negative transition-colors hover:bg-negative/30"
                                     >
                                         <RefreshCw size={12} /> Retry
                                     </button>
@@ -480,7 +480,7 @@ export default function TradeReplayPage() {
                                                 </div>
                                                 <Link
                                                     href={`/signals/${currentSignal.id}`}
-                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-micro font-semibold text-foreground transition hover:border-primary/40 hover:text-primary"
+                                                    className="mt-2 inline-flex items-center gap-1 rounded-lg border border-border bg-background px-2.5 py-1 text-micro font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
                                                 >
                                                     <ExternalLink size={11} /> Open full dossier
                                                 </Link>
@@ -637,7 +637,7 @@ export default function TradeReplayPage() {
                                                     type="button"
                                                     disabled={currentIndex <= 0}
                                                     onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-40"
+                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                                                 >
                                                     <ChevronLeft size={13} /> Prev
                                                 </button>
@@ -645,7 +645,7 @@ export default function TradeReplayPage() {
                                                     type="button"
                                                     disabled={currentIndex >= filteredSignals.length - 1}
                                                     onClick={() => setCurrentIndex((i) => Math.min(filteredSignals.length - 1, i + 1))}
-                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground disabled:opacity-40"
+                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                                                 >
                                                     Next <ChevronRight size={13} />
                                                 </button>

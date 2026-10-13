@@ -179,7 +179,7 @@ export default function AdminMonetizationPage() {
                     }
                 />
             ) : (
-                <section className="rounded-lg border border-border bg-card p-4">
+                <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-foreground">Revenue records</h2>
                         <span className="text-xs text-muted-foreground">
@@ -202,7 +202,7 @@ export default function AdminMonetizationPage() {
                                         {e.offerId ? `offer ${e.offerId.slice(-6)}` : e.campaignId ? `campaign ${e.campaignId.slice(-6)}` : e.placementKey || REVENUE_LABELS[e.type]}
                                         {e.recordedAt ? ` · ${fmtRelative(e.recordedAt)}` : ""}
                                     </span>
-                                    <span className="font-semibold text-foreground">{fmtCurrency(e.amount, e.currency || "USD")}</span>
+                                    <span className="font-numeric font-semibold tabular-nums text-foreground">{fmtCurrency(e.amount, e.currency || "USD")}</span>
                                 </li>
                             ))}
                     </ul>
@@ -221,7 +221,7 @@ export default function AdminMonetizationPage() {
 
             <div className="grid gap-6 lg:grid-cols-3">
                 {/* ── Ad networks ── */}
-                <section className="rounded-lg border border-border bg-card p-4">
+                <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-foreground">Ad networks</h2>
                         <Globe size={15} className="text-muted-foreground" />
@@ -251,7 +251,7 @@ export default function AdminMonetizationPage() {
                 </section>
 
                 {/* ── Placements & ads ── */}
-                <section className="rounded-lg border border-border bg-card p-4">
+                <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-foreground">Placements & ads</h2>
                         <MousePointer size={15} className="text-muted-foreground" />
@@ -259,11 +259,11 @@ export default function AdminMonetizationPage() {
                     <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-md border border-border bg-background p-3">
                             <p className="text-xs text-muted-foreground">Placements</p>
-                            <p className="mt-1 text-lg font-semibold text-foreground">{fmtNumber((placements.data || []).length)}</p>
+                            <p className="mt-1 font-numeric text-lg font-semibold tabular-nums text-foreground">{fmtNumber((placements.data || []).length)}</p>
                         </div>
                         <div className="rounded-md border border-border bg-background p-3">
                             <p className="text-xs text-muted-foreground">Ads</p>
-                            <p className="mt-1 text-lg font-semibold text-foreground">{fmtNumber((ads.data || []).length)}</p>
+                            <p className="mt-1 font-numeric text-lg font-semibold tabular-nums text-foreground">{fmtNumber((ads.data || []).length)}</p>
                         </div>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -277,7 +277,7 @@ export default function AdminMonetizationPage() {
                 </section>
 
                 {/* ── Settings summary ── */}
-                <section className="rounded-lg border border-border bg-card p-4">
+                <section className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="mb-3 flex items-center justify-between">
                         <h2 className="text-sm font-medium text-foreground">Settings</h2>
                         <SettingsIcon size={15} className="text-muted-foreground" />

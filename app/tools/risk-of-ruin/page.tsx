@@ -49,7 +49,7 @@ export default function RiskOfRuinCalculator() {
     }, [winRate, riskReward, riskPerTrade, maxDrawdown]);
 
     const inputClass =
-        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition";
+        "w-full rounded-md border border-border/40 bg-muted/40 px-3 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none transition-colors";
 
     return (
         <ToolPageShell
@@ -67,7 +67,7 @@ export default function RiskOfRuinCalculator() {
             ]}
         >
             <div className="grid gap-6 lg:grid-cols-2">
-                <div className="rounded-lg border border-border bg-card p-5">
+                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                     <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-foreground">
                         <Shield size={15} className="text-primary" /> Inputs
                     </h2>
@@ -129,13 +129,13 @@ export default function RiskOfRuinCalculator() {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="rounded-lg bg-muted p-4">
-                                    <p className="text-micro uppercase text-muted-foreground">Trades to Double</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Trades to Double</p>
                                     <p className="mt-1 font-numeric text-xl font-bold text-foreground">
                                         {calc.tradesToDouble === Infinity ? "∞" : calc.tradesToDouble}
                                     </p>
                                 </div>
                                 <div className="rounded-lg bg-muted p-4">
-                                    <p className="text-micro uppercase text-muted-foreground">Max Consec Losses</p>
+                                    <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Max Consec Losses</p>
                                     <p className="mt-1 font-numeric text-xl font-bold text-foreground">{calc.maxConsecLosses}</p>
                                 </div>
                             </div>
@@ -176,7 +176,7 @@ function ProTile({ title, description }: { title: string; description: string })
     return (
         <Link
             href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition hover:border-primary/40 hover:bg-primary/[0.05]"
+            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
         >
             <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-foreground">{title}</h4>
@@ -186,7 +186,7 @@ function ProTile({ title, description }: { title: string; description: string })
                 </span>
             </div>
             <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition group-hover:gap-1.5">
+            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
                 <Sparkles className="size-3" />
                 Unlock
                 <ArrowUpRight className="size-3" />

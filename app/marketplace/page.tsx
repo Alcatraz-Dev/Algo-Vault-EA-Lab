@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MarketplaceSponsoredAd } from "@/components/growth/MarketplaceSponsoredAd";
+import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@/components/ui/button";
 import {
-    ArrowLeft,
     ArrowRight,
     BarChart3,
     Bot,
@@ -95,6 +98,7 @@ type Filter =
 export default function MarketplacePage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [activeFilter, setActiveFilter] =
         useState<Filter>("all");
     const [search, setSearch] = useState("");
@@ -135,6 +139,7 @@ export default function MarketplacePage() {
 
                 setProducts(list);
                 setLoading(false);
+                setError(false);
             },
             (error) => {
                 console.error(
@@ -143,6 +148,7 @@ export default function MarketplacePage() {
                 );
 
                 setLoading(false);
+                setError(true);
             }
         );
 
@@ -278,38 +284,15 @@ export default function MarketplacePage() {
         <main className="min-h-screen bg-background text-foreground">
 
             {/* Header */}
-            <section className="pb-10" data-guide="page-header">
+            <section className="mx-auto max-w-7xl px-6 pt-6" data-guide="page-header">
 
-                <div className="mx-auto max-w-7xl px-6 py-10">
-
-                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-
-                        <div className="max-w-2xl">
-
-                            <Link
-                                href="/account"
-                                className="mb-6 inline-flex min-h-[32px] items-center gap-2 rounded-md text-sm text-muted-foreground transition-colors motion-reduce:transition-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                            >
-                                <ArrowLeft size={16} />
-                                Back to Account
-                            </Link>
-
-                            <h1 className="text-2xl font-semibold tracking-tight">
-                                Trading tools built
-                                <br />
-                                for serious traders.
-                            </h1>
-
-                            <p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">
-                                Explore Expert Advisors,
-                                indicators and automated
-                                trading tools for MT5, MT4
-                                and TradingView.
-                            </p>
-
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-3">
+                <PageHeader
+                    backHref="/account"
+                    eyebrow="Marketplace"
+                    title="Trading tools built for serious traders."
+                    subtitle="Explore Expert Advisors, indicators and automated trading tools for MT5, MT4 and TradingView."
+                    actions={
+                        <div className="grid grid-cols-3 gap-2">
 
                             <MiniStat
                                 icon={
@@ -355,15 +338,13 @@ export default function MarketplacePage() {
                             />
 
                         </div>
-
-                    </div>
-
-                </div>
+                    }
+                />
 
             </section>
 
             {/* Plugins & Extensions hub banner */}
-            <section className="bg-muted/30">
+            <section className="mt-6 border-y border-border bg-card">
                 <div className="mx-auto max-w-7xl px-6 py-8">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div className="max-w-xl">
@@ -411,7 +392,7 @@ export default function MarketplacePage() {
                                 )
                             }
                             placeholder="Search products, symbols..."
-                            className="w-full rounded-md border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border bg-card py-3 pl-11 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/30"
                         />
 
                     </div>
@@ -439,10 +420,10 @@ export default function MarketplacePage() {
                                     filter.value
                                 )
                             }
-                            className={`whitespace-nowrap rounded-md border px-4 py-2.5 text-xs transition ${activeFilter ===
+                            className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-colors ${activeFilter ===
                                 filter.value
-                                ? "border-border/50 bg-background text-foreground"
-                                : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
+                                ? "border-primary/40 bg-primary/10 text-primary"
+                                : "border-border bg-card text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             {filter.label}
@@ -454,50 +435,98 @@ export default function MarketplacePage() {
 
                 {/* Loading */}
                 {loading && (
-                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" aria-busy="true" aria-label="Loading products">
 
-                        {[1, 2, 3].map(
+                        {[1, 2, 3, 4, 5, 6].map(
                             (item) => (
                                 <div
                                     key={item}
-                                    className="h-80 animate-pulse rounded-lg border border-border/30 bg-muted/50"
-                                />
+                                    className="overflow-hidden rounded-xl border border-border bg-card shadow-sm"
+                                >
+                                    <div className="h-52 animate-pulse bg-muted" />
+                                    <div className="flex flex-col gap-3 p-5">
+                                        <div className="h-4 w-3/4 animate-pulse rounded-md bg-muted" />
+                                        <div className="h-4 w-1/2 animate-pulse rounded-md bg-muted" />
+                                        <div className="mt-2 grid grid-cols-3 gap-2">
+                                            <div className="h-14 animate-pulse rounded-lg bg-muted" />
+                                            <div className="h-14 animate-pulse rounded-lg bg-muted" />
+                                            <div className="h-14 animate-pulse rounded-lg bg-muted" />
+                                        </div>
+                                        <div className="mt-2 h-9 animate-pulse rounded-lg bg-muted" />
+                                    </div>
+                                </div>
                             )
                         )}
 
                     </div>
                 )}
 
-                {/* Empty */}
+                {/* Error */}
                 {!loading &&
-                    filteredProducts.length ===
-                    0 && (
-                        <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                    error && (
+                        <div className="rounded-xl border border-border bg-card px-6 py-14 text-center shadow-sm">
 
-                            <Bot
-                                size={40}
-                                className="mx-auto text-muted-foreground"
-                            />
-
-                            <h2 className="mt-5 text-lg font-medium">
-                                No products found
-                            </h2>
-
-                            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
-                                Try another search or
-                                filter. Published
-                                products will appear
-                                here automatically.
+                            <p className="text-sm font-semibold text-foreground">
+                                Couldn&apos;t load products
                             </p>
+
+                            <p className="mx-auto mt-1 max-w-md text-xs leading-6 text-muted-foreground">
+                                Something went wrong while
+                                loading the marketplace.
+                                Please try again.
+                            </p>
+
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="mt-4"
+                                onClick={() =>
+                                    window.location.reload()
+                                }
+                            >
+                                Retry
+                            </Button>
 
                         </div>
                     )}
 
+                {/* Empty */}
+                {!loading &&
+                    !error &&
+                    filteredProducts.length ===
+                    0 && (
+                        <EmptyState
+                            icon={
+                                <Bot
+                                    size={18}
+                                    aria-hidden="true"
+                                />
+                            }
+                            title="No products found"
+                            description="Try another search or filter. Published products will appear here automatically."
+                            action={
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setSearch("");
+                                        setActiveFilter(
+                                            "all"
+                                        );
+                                    }}
+                                >
+                                    Clear search &amp; filters
+                                </Button>
+                            }
+                        />
+                    )}
+
                 {/* Products */}
                     {!loading &&
+                    !error &&
                     filteredProducts.length >
                     0 && (
-                        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3" data-guide="products">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" data-guide="products">
 
                             {filteredProducts.map(
                                 (product) => (
@@ -516,7 +545,7 @@ export default function MarketplacePage() {
                     )}
 
                 {/* Risk */}
-                <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="mt-10 rounded-xl border border-border bg-card p-5 shadow-sm">
 
                     <div className="flex gap-3">
 
@@ -571,10 +600,10 @@ function ProductCard({
     const hasLogo = hasBrandingItem(product.branding?.logo);
 
     return (
-        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60">
+        <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md">
 
             {/* Banner / Product Visual Header */}
-            <div className="relative h-52 overflow-hidden border-b border-border/30 bg-muted">
+            <div className="relative h-52 overflow-hidden border-b border-border bg-muted">
 
                 {hasBanner ? (
                     <>
@@ -588,9 +617,7 @@ function ProductCard({
                         <div className="pointer-events-none absolute inset-0 bg-background/70" />
                     </>
                 ) : (
-                    <div className="absolute inset-0">
-                        <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
-                    </div>
+                    <div className="absolute inset-0 bg-muted" aria-hidden="true" />
                 )}
 
                 {/* Card Header Foreground */}
@@ -608,20 +635,20 @@ function ProductCard({
                                     product={product}
                                     type="logo"
                                     size="md"
-                                    className="rounded-lg border border-border/50 bg-background transition group-hover:border-primary/30"
+                                    className="rounded-lg border border-border bg-card transition-colors group-hover:border-primary/30"
                                 />
                             ) : (
                                 <ProductBranding
                                     product={product}
                                     type="icon"
                                     size="md"
-                                    className="rounded-lg border border-border/50 bg-background transition group-hover:border-primary/30"
+                                    className="rounded-lg border border-border bg-card transition-colors group-hover:border-primary/30"
                                 />
                             )}
 
                             {/* Smaller Sub-Icon Badge on the Bottom-Right Corner of the Logo */}
                             {hasLogo && hasIcon && (
-                                <div className="absolute -bottom-28 -right-72 flex h-6 w-6 items-center justify-center rounded-md border border-border bg-card">
+                                <div className="absolute -bottom-2 -right-2 flex h-6 w-6 items-center justify-center rounded-md border border-border bg-card">
                                     <ProductBranding
                                         product={product}
                                         type="icon"
@@ -635,20 +662,20 @@ function ProductCard({
 
                         {/* Platform Badge */}
                         {product.platform && (
-                            <span className="rounded-md border border-border bg-card px-2.5 py-1 text-xs font-medium tracking-wide text-foreground">
+                            <Badge variant="outline">
                                 {product.platform}
-                            </span>
+                            </Badge>
                         )}
 
                     </div>
 
                     {/* Bottom Row: Category Tag & Product Name */}
                     <div>
-                        <span className="inline-block text-micro font-semibold uppercase tracking-wider text-positive">
+                        <span className="inline-block text-micro font-semibold uppercase tracking-wider text-muted-foreground">
                             {productType}
                         </span>
 
-                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground transition group-hover:text-primary">
+                        <h2 className="mt-0.5 line-clamp-1 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
                             {product.name}
                         </h2>
                         {(product.rating?.count ?? 0) > 0 && (
@@ -754,13 +781,27 @@ function ProductCard({
                 </div>
 
                 {/* Bottom */}
-                <div className="mt-6 flex items-center justify-between border-t border-border/30 pt-5">
+                <div className="mt-6 flex items-center justify-between border-t border-border pt-5">
 
                     <div>
 
-                        <p className="text-micro text-muted-foreground">
-                            Price
-                        </p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-micro text-muted-foreground">
+                                Price
+                            </p>
+                            {isFree ? (
+                                <Badge variant="success">
+                                    Free
+                                </Badge>
+                            ) : (
+                                <Badge
+                                    variant="outline"
+                                    className="border-primary/30 bg-primary/10 text-primary"
+                                >
+                                    Paid
+                                </Badge>
+                            )}
+                        </div>
 
                         <p className="mt-1 font-numeric text-lg font-semibold">
                             {isFree
@@ -774,7 +815,7 @@ function ProductCard({
 
                     <Link
                         href={`/marketplace/${product.slug}`}
-                        className="flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                        className="flex items-center gap-2 rounded-lg border border-border bg-muted px-4 py-2.5 text-xs font-medium text-foreground transition-colors hover:border-primary/30 hover:text-primary"
                     >
                         View Product
 
@@ -806,7 +847,7 @@ function Stat({
     value: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/30 p-3">
+        <div className="rounded-lg border border-border bg-muted p-3">
 
             <p className="text-micro text-muted-foreground">
                 {label}
@@ -830,7 +871,7 @@ function MiniStat({
     label: string;
 }) {
     return (
-        <div className="min-w-[90px] rounded-lg border border-border/30 bg-muted/50 p-3">
+        <div className="min-w-[96px] rounded-xl border border-border bg-card p-3 shadow-sm">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
@@ -866,8 +907,8 @@ function HubLink({
     return (
         <Link
             href={href}
-            className={`w-full rounded-lg border p-4 transition sm:w-56 ${
-                active ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/50 hover:border-border/50"
+            className={`w-full rounded-xl border p-4 transition-colors duration-200 ${
+                active ? "border-primary/40 bg-primary/10" : "border-border bg-muted hover:border-primary/30"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-medium">

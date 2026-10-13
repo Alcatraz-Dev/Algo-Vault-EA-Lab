@@ -47,13 +47,13 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Engine Versions</h2>
-        <div className="border rounded-lg overflow-hidden bg-card">
+        <div className="border-border rounded-lg overflow-hidden bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <table className="w-full text-sm">
             <thead className="bg-muted">
               <tr>
-                <th className="text-left px-4 py-2 font-medium">Engine</th>
-                <th className="text-left px-4 py-2 font-medium">Version</th>
-                <th className="text-left px-4 py-2 font-medium">Source of truth</th>
+                <th className="text-left px-4 py-2 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Engine</th>
+                <th className="text-left px-4 py-2 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Version</th>
+                <th className="text-left px-4 py-2 font-semibold text-micro uppercase tracking-wider text-muted-foreground">Source of truth</th>
               </tr>
             </thead>
             <tbody>
@@ -84,7 +84,7 @@ export default function AdminIntelligenceCloud() {
       {unversioned.length > 0 && (
         <section>
           <h2 className="text-xl font-semibold mb-3">Reproducibility Work List</h2>
-          <div className="border rounded-lg p-5 bg-card space-y-2">
+          <div className="border-border rounded-lg p-5 bg-card space-y-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <p className="text-sm text-muted-foreground">                  These engines publish no version constant, so results they produce cannot yet be pinned to
                   an exact engine build:
             </p>
@@ -101,7 +101,7 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Operational Metrics</h2>
-        <div className="border rounded-lg p-5 bg-card flex items-start gap-3">
+        <div className="border-border rounded-lg p-5 bg-card flex items-start gap-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <Info className="w-5 h-5 text-warning mt-0.5" />
           <div className="space-y-1 text-sm">
             <p>
@@ -122,7 +122,7 @@ export default function AdminIntelligenceCloud() {
         <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
           <Zap className="w-5 h-5" /> Webhook Delivery Contract
         </h2>
-        <div className="border rounded-lg p-5 bg-card space-y-2 text-sm">
+        <div className="border-border rounded-lg p-5 bg-card space-y-2 text-sm shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <p>Every delivery carries these headers:</p>
           <ul className="list-disc pl-6 text-muted-foreground space-y-1">
             <li><code>X-AlgoVault-Event</code> — event type</li>
@@ -140,7 +140,7 @@ export default function AdminIntelligenceCloud() {
 
       <section>
         <h2 className="text-xl font-semibold mb-3">Certification Disclosures</h2>
-        <div className="border rounded-lg p-5 bg-card">
+        <div className="border-border rounded-lg p-5 bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <ul className="list-disc pl-6 text-sm text-muted-foreground space-y-1">
             {REQUIRED_CERTIFICATION_DISCLOSURES.map((line) => (
               <li key={line}>{line}</li>
@@ -164,7 +164,7 @@ function Stat({
   emphasis?: boolean;
 }) {
   return (
-    <div className="rounded-lg border p-5 bg-card space-y-2">
+    <div className="rounded-lg border border-border p-5 bg-card space-y-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       <div className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
         {icon} {label}
       </div>

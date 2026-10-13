@@ -198,7 +198,7 @@ export default function MobileMarketsPage() {
           <h1 className="text-lg font-semibold">Markets</h1>
         </header>
         <div className="flex-1 p-4 space-y-4">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
         </div>
       </div>
     );
@@ -209,7 +209,7 @@ export default function MobileMarketsPage() {
       <div className="flex flex-col min-h-screen bg-background items-center justify-center p-8 text-center">
         <BarChart2 className="h-16 w-16 text-muted-foreground mb-4" />
         <h1 className="text-xl font-semibold mb-2">Sign in to view markets</h1>
-        <Link href="/login"><Button className="w-full sm:w-auto">Sign In</Button></Link>
+        <Link href="/login"><Button className="w-full sm:w-auto min-h-[44px]">Sign In</Button></Link>
       </div>
     );
   }
@@ -272,12 +272,12 @@ export default function MobileMarketsPage() {
       </header>
 
       {/* Symbol List */}
-      <div className="flex-1 overflow-auto p-3 pb-20">
+      <div className="flex-1 overflow-auto p-3 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         {error && !loading && (
           <div className="flex flex-col items-center justify-center h-64 text-center text-muted-foreground p-4">
             <AlertCircle className="h-12 w-12 mb-3 opacity-50 text-negative" />
             <p className="text-sm">{error}</p>
-            <Button variant="outline" size="sm" className="mt-3" onClick={fetchMarketData}>
+            <Button variant="outline" size="sm" className="mt-3 min-h-[44px]" onClick={fetchMarketData}>
               <RefreshCw className="h-4 w-4 mr-1" />
               Retry
             </Button>
@@ -286,7 +286,7 @@ export default function MobileMarketsPage() {
         {loading ? (
           <div className="space-y-3">
             {[...Array(6)].map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-lg" />
+              <Skeleton key={i} className="h-20 rounded-xl" />
             ))}
           </div>
         ) : filteredQuotes.length === 0 ? (
@@ -299,7 +299,7 @@ export default function MobileMarketsPage() {
           <div className="space-y-2">
             {filteredQuotes.map((sym) => (
               <Link key={sym.symbol} href={`/markets/${sym.symbol}`} className="block">
-                <Card className="p-3 transition-colors hover:border-primary/30 active:bg-muted/50">
+                <Card className="p-3 rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/30 active:bg-muted/50">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="flex items-center gap-2">

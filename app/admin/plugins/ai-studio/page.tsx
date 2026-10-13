@@ -388,7 +388,7 @@ export default function AdminAiStudioPage() {
                                     onClick={() => publish(draft.id, true)}
                                     disabled={!passed || publishing === "now"}
                                     className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                                        passed ? "bg-positive/15 text-positive hover:bg-positive/25" : "border border-border/30 bg-muted/5 text-muted-foreground"
+                                        passed ? "bg-positive/15 text-positive hover:bg-positive/25" : "border-border/30 bg-muted/5 text-muted-foreground"
                                     }`}
                                     title={passed ? "Publish to the marketplace immediately" : "Fix the validation failures before publishing"}
                                 >

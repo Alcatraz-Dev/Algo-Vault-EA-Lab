@@ -345,7 +345,7 @@ export default function DonatePage() {
                     </div>
 
                     {/* Checkout Panel */}
-                    <div className="rounded-lg border border-border/30 bg-card p-6 h-fit sticky top-8">
+                    <div className="rounded-lg border border-border/30 bg-card p-6 h-fit sticky top-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="flex items-center gap-2 mb-5 border-b border-border/30 pb-5">
                             <Sparkles size={16} className="text-primary" />
                             <h3 className="font-bold text-foreground">Your Donation</h3>

@@ -117,7 +117,7 @@ export default function AdminAIMonitorPage() {
                     <Activity className="mr-2 size-4 animate-pulse" /> Loading…
                 </div>
             ) : !user ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border bg-card p-10 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <BrainCircuit className="size-8 text-muted-foreground" />
                     <p className="text-sm font-medium text-foreground">Admin sign-in required</p>
                     <a
@@ -134,26 +134,26 @@ export default function AdminAIMonitorPage() {
                         <button
                             type="button"
                             onClick={() => user && void load(user)}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs transition hover:bg-muted"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2 py-1 text-xs transition hover:bg-muted"
                         >
                             <RefreshCw className="size-3" /> Refresh
                         </button>
                     </div>
                     {error ? <p className="text-xs text-negative">{error}</p> : null}
-                    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                    <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <table className="w-full min-w-[760px] text-left text-xs">
                             <thead className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                                 <tr>
-                                    <th className="px-3 py-2">Provider</th>
-                                    <th className="px-3 py-2">Type</th>
-                                    <th className="px-3 py-2">Cost</th>
-                                    <th className="px-3 py-2">Circuit</th>
-                                    <th className="px-3 py-2">Latency</th>
-                                    <th className="px-3 py-2">Success</th>
-                                    <th className="px-3 py-2">Failures</th>
-                                    <th className="px-3 py-2">Rate-limited</th>
-                                    <th className="px-3 py-2">Last used</th>
-                                    <th className="px-3 py-2">Status</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Provider</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Cost</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Circuit</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Latency</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Success</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Failures</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Rate-limited</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Last used</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60">
@@ -194,19 +194,19 @@ export default function AdminAIMonitorPage() {
                     <p className="-mt-2 text-micro text-muted-foreground">
                         Recent orchestrated decisions from ai/decisions. Concise rationale and evidence only — no hidden reasoning traces are stored or displayed.
                     </p>
-                    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+                    <div className="overflow-x-auto rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <table className="w-full min-w-[720px] text-left text-xs">
                             <thead className="border-b border-border text-micro uppercase tracking-wide text-muted-foreground">
                                 <tr>
-                                    <th className="px-3 py-2">Time</th>
-                                    <th className="px-3 py-2">Symbol</th>
-                                    <th className="px-3 py-2">Direction</th>
-                                    <th className="px-3 py-2">Jev</th>
-                                    <th className="px-3 py-2">LLM</th>
-                                    <th className="px-3 py-2">Risk</th>
-                                    <th className="px-3 py-2">Final</th>
-                                    <th className="px-3 py-2">Confidence</th>
-                                    <th className="px-3 py-2">Rationale</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Time</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Symbol</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Direction</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Jev</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">LLM</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Risk</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Final</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Confidence</th>
+                                    <th className="px-3 py-2 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Rationale</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-border/60">

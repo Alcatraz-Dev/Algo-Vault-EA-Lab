@@ -37,16 +37,16 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
     SCANNING: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
     FORMING: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
     WATCH: { bg: "bg-warning/10", text: "text-warning-foreground", border: "border-warning/30" },
-    READY: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    ACTIVE: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    TP1_HIT: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    TP2_HIT: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    TP3_HIT: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    RUNNER: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
-    CANCELLED: { bg: "bg-negative/10", text: "text-negative-foreground", border: "border-negative/30" },
+    READY: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    ACTIVE: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    TP1_HIT: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    TP2_HIT: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    TP3_HIT: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    RUNNER: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
+    CANCELLED: { bg: "bg-negative/10", text: "text-negative", border: "border-negative/30" },
     EXPIRED: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
-    STOPPED: { bg: "bg-negative/10", text: "text-negative-foreground", border: "border-negative/30" },
-    COMPLETED: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
+    STOPPED: { bg: "bg-negative/10", text: "text-negative", border: "border-negative/30" },
+    COMPLETED: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
     NEW: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
 };
 
@@ -56,7 +56,7 @@ const STRENGTH_STYLES: Record<string, { bg: string; text: string; border: string
     GOOD: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
     STRONG: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
     VERY_STRONG: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
-    HIGH_CONVICTION: { bg: "bg-positive/10", text: "text-positive-foreground", border: "border-positive/30" },
+    HIGH_CONVICTION: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
 };
 
 function confidenceColor(c: number) {
@@ -105,7 +105,7 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
     const secSinceQuote = pricesUpdatedAt > 0 ? Math.round((Date.now() - pricesUpdatedAt) / 1000) : null;
 
     return (
-        <div className={cn("mt-6 rounded-lg border border-border bg-card p-5")}>
+        <div className={cn("mt-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5")}>
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <span className={`h-2 w-2 rounded-full ${isLive ? "animate-pulse bg-positive" : "bg-muted-foreground/40"}`} />
@@ -131,7 +131,7 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
                 </div>
                 <div className="flex items-center gap-2">
                     {isLive && secSinceQuote !== null && <span className="text-micro text-muted-foreground">{secSinceQuote}s ago</span>}
-                    <button onClick={onRefresh} className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition">
+                    <button onClick={onRefresh} className="rounded-md p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors">
                         <RefreshCw size={12} />
                     </button>
                 </div>
@@ -433,7 +433,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
         return (
             <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
                 <div className="relative mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-16 sm:px-6 lg:px-8">
-                    <div className="w-full max-w-md rounded-lg border border-border bg-card p-8 text-center">
+                    <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-8 text-center">
                         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-primary/30 bg-primary/10">
                             <Zap className="h-7 w-7 text-primary" />
                         </div>
@@ -509,7 +509,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 <Link
                     href="/signals/pro"
-                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
+                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                     <ArrowLeft size={16} />
                     Back to Pro Signals
@@ -525,8 +525,8 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                             <span
                                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                                     isBuy
-                                        ? "border-positive/30 bg-positive/10 text-positive-foreground"
-                                        : "border-negative/30 bg-negative/10 text-negative-foreground"
+                                        ? "border-positive/30 bg-positive/10 text-positive"
+                                        : "border-negative/30 bg-negative/10 text-negative"
                                 }`}
                             >
                                 {isBuy ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
@@ -608,26 +608,26 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                     <div className="space-y-6 lg:col-span-2">
                         <SignalTerminalChart signal={signal} height={460} />
 
-                        <div className="rounded-lg border border-border bg-card p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Signal Levels
                             </h3>
                             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                <div className="rounded-lg border border-border/30 bg-muted/50 p-3">
+                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">
                                     <p className="text-micro uppercase tracking-wider text-muted-foreground">Entry</p>
                                     <p className="mt-1 font-numeric text-lg font-bold text-foreground">
                                         {formatPrice(signal.entry, signal.symbol)}
                                     </p>
                                 </div>
                                 <div className="rounded-lg border border-negative/30 bg-negative/5 p-3">
-                                    <p className="text-micro uppercase tracking-wider text-negative-foreground/70">Stop Loss</p>
+                                    <p className="text-micro uppercase tracking-wider text-negative/70">Stop Loss</p>
                                     <p className="mt-1 font-numeric text-lg font-bold text-negative">
                                         {formatPrice(signal.stopLoss, signal.symbol)}
                                     </p>
                                 </div>
                                 {signal.tp1 && (
                                     <div className="rounded-lg border border-positive/30 bg-positive/5 p-3">
-                                        <p className="text-micro uppercase tracking-wider text-positive-foreground/70">TP1</p>
+                                        <p className="text-micro uppercase tracking-wider text-positive/70">TP1</p>
                                         <p className="mt-1 font-numeric text-lg font-bold text-positive">
                                             {formatPrice(signal.tp1, signal.symbol)}
                                         </p>
@@ -635,7 +635,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 )}
                                 {signal.tp2 && (
                                     <div className="rounded-lg border border-positive/30 bg-positive/5 p-3">
-                                        <p className="text-micro uppercase tracking-wider text-positive-foreground/70">TP2</p>
+                                        <p className="text-micro uppercase tracking-wider text-positive/70">TP2</p>
                                         <p className="mt-1 font-numeric text-lg font-bold text-positive">
                                             {formatPrice(signal.tp2, signal.symbol)}
                                         </p>
@@ -643,7 +643,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 )}
                                 {signal.tp3 && (
                                     <div className="rounded-lg border border-positive/30 bg-positive/5 p-3">
-                                        <p className="text-micro uppercase tracking-wider text-positive-foreground/70">TP3</p>
+                                        <p className="text-micro uppercase tracking-wider text-positive/70">TP3</p>
                                         <p className="mt-1 font-numeric text-lg font-bold text-positive">
                                             {formatPrice(signal.tp3, signal.symbol)}
                                         </p>
@@ -651,7 +651,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 )}
                                 {signal.tp4 && (
                                     <div className="rounded-lg border border-positive/30 bg-positive/5 p-3">
-                                        <p className="text-micro uppercase tracking-wider text-positive-foreground/70">TP4</p>
+                                        <p className="text-micro uppercase tracking-wider text-positive/70">TP4</p>
                                         <p className="mt-1 font-numeric text-lg font-bold text-positive">
                                             {formatPrice(signal.tp4, signal.symbol)}
                                         </p>
@@ -659,7 +659,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 )}
                                 {(signal as AISignal & { tp5?: number }).tp5 && (
                                     <div className="rounded-lg border border-positive/30 bg-positive/5 p-3">
-                                        <p className="text-micro uppercase tracking-wider text-positive-foreground/70">TP5</p>
+                                        <p className="text-micro uppercase tracking-wider text-positive/70">TP5</p>
                                         <p className="mt-1 font-numeric text-lg font-bold text-positive">
                                             {formatPrice((signal as AISignal & { tp5?: number }).tp5!, signal.symbol)}
                                         </p>
@@ -680,7 +680,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                     <div className="space-y-6">
                         <ConfidenceBreakdown breakdown={signal.confidenceBreakdown} />
 
-                        <div className="rounded-lg border border-border bg-card p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <div className="mb-4 flex items-center gap-2">
                                 <Crosshair size={14} className="text-muted-foreground" />
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -724,7 +724,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                             </div>
                         </div>
 
-                        <div className="rounded-lg border border-border bg-card p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <div className="mb-4 flex items-center gap-2">
                                 <Calculator size={14} className="text-muted-foreground" />
                                 <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
@@ -784,7 +784,7 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                             </div>
                         </div>
 
-                        <div className="rounded-lg border border-border bg-card p-5">
+                        <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
                             <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Actions
                             </h3>
@@ -807,8 +807,8 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
                                 {executionResult && (
                                     <div className={`rounded-md border p-3 text-xs ${
                                         executionResult.ok
-                                            ? "border-positive/30 bg-positive/10 text-positive-foreground"
-                                            : "border-negative/30 bg-negative/10 text-negative-foreground"
+                                            ? "border-positive/30 bg-positive/10 text-positive"
+                                            : "border-negative/30 bg-negative/10 text-negative"
                                     }`}>
                                         <p>{executionResult.msg}</p>
                                         {executionResult.commandId && (

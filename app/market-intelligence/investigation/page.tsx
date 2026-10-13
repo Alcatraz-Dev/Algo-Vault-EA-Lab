@@ -45,7 +45,7 @@ function InvestigationContent() {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <section className="lg:col-span-2 rounded-lg border border-border bg-card p-6">
+        <section className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h2 className="text-base font-semibold mb-4">Investigation Overview</h2>
           <p className="text-sm text-muted-foreground mb-2">Investigation workspace connects the selected root node through the Phase 13 Knowledge Graph.</p>
           <div className="rounded-lg bg-muted/50 border border-border p-4 text-sm text-foreground space-y-1">
@@ -56,7 +56,7 @@ function InvestigationContent() {
           <div className="mt-4 text-xs text-muted-foreground">Evidence categories: FACT (observed), INTERPRETATION (derived), LIMITATION (constraints / replay / missing sources).</div>
         </section>
 
-        <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+        <section className="rounded-xl border border-border bg-card p-6 space-y-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h3 className="font-semibold">Lineage & Evidence Sections</h3>
           <div className="text-xs text-muted-foreground space-y-2">
             <p><span className="font-medium">FACT</span> — Lineage relationships from Knowledge Graph.</p>

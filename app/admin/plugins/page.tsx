@@ -196,15 +196,15 @@ export default function AdminPluginsPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
-                                    <th className="px-4 py-3">Record</th>
-                                    <th className="px-4 py-3">Type</th>
-                                    <th className="px-4 py-3">Status</th>
-                                    <th className="px-4 py-3">Version</th>
-                                    <th className="px-4 py-3">Price</th>
-                                    <th className="px-4 py-3">Installs</th>
-                                    <th className="px-4 py-3">Active</th>
-                                    <th className="px-4 py-3">Rating</th>
-                                    <th className="px-4 py-3 text-right">Actions</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Record</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Version</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Price</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Installs</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Active</th>
+                                    <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Rating</th>
+                                    <th className="px-4 py-3 text-right text-micro font-semibold uppercase tracking-wider text-muted-foreground">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -226,13 +226,13 @@ export default function AdminPluginsPage() {
                                             <td className="px-4 py-3">
                                                 <StatusBadge tone={pluginStatusTone(record.status)} label={record.status} dot />
                                             </td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">v{record.version}</td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">v{record.version}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">
                                                 {record.pricing?.type === "free" ? "Free" : `${record.pricing?.currency?.toUpperCase() || "USD"} ${Number(record.pricing?.price || 0).toFixed(2)}`}
                                             </td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">{formatNumber(record.installs)}</td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">{formatNumber(record.activeUsers)}</td>
-                                            <td className="px-4 py-3 text-xs text-muted-foreground">
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">{formatNumber(record.installs)}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">{formatNumber(record.activeUsers)}</td>
+                                            <td className="px-4 py-3 text-xs text-muted-foreground font-numeric">
                                                 {record.rating?.count ? `${record.rating.average.toFixed(1)} (${record.rating.count})` : "—"}
                                             </td>
                                             <td className="px-4 py-3">

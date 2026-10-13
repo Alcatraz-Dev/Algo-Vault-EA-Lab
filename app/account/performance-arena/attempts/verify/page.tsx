@@ -62,7 +62,7 @@ function VerifyContent() {
     }, [token, orderId, verifyAndStart]);
 
     return (
-        <div className="mx-auto max-w-lg space-y-6 rounded-lg border border-border bg-card p-8 text-center shadow-lg">
+        <div className="mx-auto max-w-lg space-y-6 rounded-xl border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             {status === "verifying" && (
                 <div className="space-y-4 py-8">
                     <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
@@ -102,7 +102,7 @@ function VerifyContent() {
 export default function ChallengeVerifyPage() {
     return (
         <AccountShell title="Verifying Challenge Access" subtitle="Confirming your payment and initializing your virtual account.">
-            <Suspense fallback={<div className="p-8 text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /></div>}>
+            <Suspense fallback={<div className="rounded-xl border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]"><Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" /></div>}>
                 <VerifyContent />
             </Suspense>
         </AccountShell>

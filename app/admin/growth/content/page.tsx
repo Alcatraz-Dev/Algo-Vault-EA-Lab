@@ -232,7 +232,7 @@ export default function AdminGrowthContentPage() {
 
             {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : "error"}>{notice.text}</NoticeBanner>}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="relative min-w-52 flex-1 sm:max-w-xs">
                     <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -303,7 +303,7 @@ export default function AdminGrowthContentPage() {
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[780px]">
                         <TableHeader>
                             <TableRow>
@@ -446,8 +446,8 @@ export default function AdminGrowthContentPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-2 text-sm font-medium text-foreground">Publishing rules</h2>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-foreground">Publishing rules</h2>
                 <p className="text-xs text-muted-foreground">
                     Content is only publishable after approval (<b>APPROVED</b> or <b>SCHEDULED</b>). Publish actually sends the content through the
                     configured channel adapter — when a channel has no credentials it reports <b>NOT_CONFIGURED</b> and nothing is published. Every
@@ -457,7 +457,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Create dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>New content</DialogTitle>
                         <DialogDescription>Creates a marketing task, then optionally runs the AI pipeline immediately.</DialogDescription>
@@ -527,7 +527,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Preview dialog */}
             <Dialog open={preview !== null} onOpenChange={(o) => { if (!o) setPreview(null); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+                <DialogContent className="rounded-xl bg-popover max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>{preview?.title || preview?.topic}</DialogTitle>
                         <DialogDescription>
@@ -591,7 +591,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Publish dialog */}
             <Dialog open={publishTask !== null} onOpenChange={(o) => { if (!o) { setPublishTask(null); setPublishChannel(""); } }}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Publish content</DialogTitle>
                         <DialogDescription>
@@ -629,7 +629,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Schedule dialog */}
             <Dialog open={scheduleTask !== null} onOpenChange={(o) => { if (!o) setScheduleTask(null); }}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Schedule publishing</DialogTitle>
                         <DialogDescription>Marks the task as scheduled for the target time (state SCHEDULED).</DialogDescription>
@@ -663,7 +663,7 @@ export default function AdminGrowthContentPage() {
 
             {/* Reject dialog */}
             <Dialog open={rejectTask !== null} onOpenChange={(o) => { if (!o) setRejectTask(null); }}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Reject content</DialogTitle>
                         <DialogDescription>Add a reason — it is stored on the task and keeps the feedback loop honest.</DialogDescription>

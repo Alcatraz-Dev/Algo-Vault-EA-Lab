@@ -293,7 +293,7 @@ export default function AdminWorkflowsPage() {
       {/* Toast Notification */}
       {toastMessage && (
         <div
-          className={`fixed bottom-6 right-6 z-50 rounded-lg px-4 py-3 shadow-2xl text-xs font-semibold flex items-center gap-2 border animate-in fade-in slide-in-from-bottom-2 ${
+          className={`fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)] text-xs font-semibold flex items-center gap-2 border ${
             toastMessage.isError
               ? "bg-negative text-background border-negative"
               : "bg-secondary text-secondary-foreground border-border"
@@ -335,7 +335,7 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {summary?.killSwitchReason && (
-        <div className="mb-5 rounded-lg border border-negative/30 bg-negative/10 px-4 py-3 text-xs sm:text-sm text-negative dark:text-negative font-semibold flex items-center gap-2">
+        <div className="mb-5 rounded-xl border border-negative/30 bg-negative-muted px-4 py-3 text-xs sm:text-sm text-negative font-semibold flex items-center gap-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <AlertTriangle size={18} className="shrink-0 text-negative" />
           <span>{summary.killSwitchReason}</span>
         </div>
@@ -351,7 +351,7 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {/* Filter and Workflow Search Section */}
-      <div className="mb-6 rounded-lg border border-border bg-card p-4 space-y-4">
+      <div className="mb-6 rounded-xl border border-border bg-card p-4 space-y-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
             <Search size={14} className="absolute left-3 top-3 text-muted-foreground" />
@@ -371,7 +371,7 @@ export default function AdminWorkflowsPage() {
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
-                className={`text-xs px-3 py-1 rounded-lg border capitalize whitespace-nowrap transition-colors ${
+                className={`text-xs px-3 py-1 rounded-full border capitalize whitespace-nowrap transition-colors ${
                   statusFilter === st
                     ? "bg-primary text-primary-foreground border-primary font-medium"
                     : "border-border bg-background hover:bg-muted text-foreground"
@@ -385,10 +385,10 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {/* Main Workflows List */}
-      <div className="mb-8 rounded-lg border border-border bg-card overflow-hidden" data-guide="workflows-list">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-muted/20">
+      <div className="mb-8 rounded-xl border border-border bg-card overflow-hidden shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="workflows-list">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border bg-muted/20">
           <div>
-            <h3 className="font-bold text-sm text-foreground">Workflow Definitions ({filteredWorkflows.length})</h3>
+            <h3 className="font-bold text-sm text-foreground font-numeric">Workflow Definitions ({filteredWorkflows.length})</h3>
             <p className="text-xs text-muted-foreground">Manage and run automated intelligence strategies across the platform</p>
           </div>
           <Button size="sm" variant="outline" onClick={loadData} disabled={loading}>
@@ -399,7 +399,7 @@ export default function AdminWorkflowsPage() {
         {loading ? (
           <div className="p-8 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 rounded-lg border border-border bg-muted/30 animate-pulse" />
+              <div key={i} className="h-16 rounded-xl border border-border bg-muted/30 animate-pulse" />
             ))}
           </div>
         ) : filteredWorkflows.length === 0 ? (
@@ -419,7 +419,7 @@ export default function AdminWorkflowsPage() {
               const isBusy = actionLoadingId === wf.id;
 
               return (
-                <div key={wf.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-muted/20 transition-colors">
+                <div key={wf.id} className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card transition-colors hover:bg-muted/20">
                   {/* Left: Info */}
                   <div className="space-y-1.5 min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -428,21 +428,21 @@ export default function AdminWorkflowsPage() {
                         tone={wf.status === "active" ? "positive" : wf.status === "paused" ? "warning" : "info"}
                         label={wf.status}
                       />
-                      <span className="text-micro px-2 py-0.5 rounded bg-muted text-muted-foreground border">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border font-numeric">
                         v{wf.version || "1.0.0"}
                       </span>
                     </div>
 
                     <p className="text-xs text-muted-foreground line-clamp-1">{wf.description || "No description provided."}</p>
 
-                    <div className="flex items-center gap-4 text-micro text-muted-foreground flex-wrap">
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground font-numeric flex-wrap">
                       <span className="flex items-center gap-1">
                         <Layers size={11} className="text-info" /> {nodeCount} nodes
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock size={11} className="text-warning" /> Trigger: {wf.trigger || "manual"}
                       </span>
-                      <span>ID: <code className="bg-muted px-1.5 py-0.5 rounded text-micro">{wf.id}</code></span>
+                      <span>ID: <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-numeric">{wf.id}</code></span>
                     </div>
                   </div>
 
@@ -515,31 +515,31 @@ export default function AdminWorkflowsPage() {
       </div>
 
       {/* Failures & Audit Log */}
-      <div className="rounded-lg border border-border bg-card p-5" data-guide="audit-log">
-        <h3 className="font-bold text-sm text-foreground mb-3">System Execution Audit Log</h3>
-        <p className="text-xs text-muted-foreground mb-4">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="audit-log">
+        <h3 className="font-bold text-sm text-foreground mb-1">System Execution Audit Log</h3>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4">
           Recent failed executions and automated triggers monitored by the Intelligence Router.
         </p>
 
         {summary?.recentFailures && summary.recentFailures.length > 0 ? (
-          <div className="divide-y divide-border border rounded-lg overflow-hidden">
+          <div className="divide-y divide-border border border-border rounded-xl overflow-hidden">
             {summary.recentFailures.map((run) => (
-              <div key={run.id} className="p-3 text-xs flex items-center justify-between gap-3 bg-muted/10">
+              <div key={run.id} className="p-3 text-xs flex items-center justify-between gap-3 bg-muted/10 transition-colors hover:bg-muted/20">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-foreground">{run.workflowName || run.workflowId}</span>
                     <StatusBadge tone="negative" label={run.status} />
                   </div>
-                  {run.error && <p className="text-negative font-numeric text-micro mt-0.5 truncate">{run.error}</p>}
+                  {run.error && <p className="text-negative font-numeric text-xs mt-0.5 truncate">{run.error}</p>}
                 </div>
-                <span className="text-micro text-muted-foreground shrink-0">
+                <span className="text-xs text-muted-foreground font-numeric shrink-0">
                   {new Date(run.startedAt).toLocaleTimeString()}
                 </span>
               </div>
             ))}
           </div>
         ) : (
-          <div className="p-4 rounded-lg border border-dashed text-center text-xs text-muted-foreground">
+          <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
             No recent failures detected. All automated systems operating within nominal parameters.
           </div>
         )}
@@ -550,10 +550,10 @@ export default function AdminWorkflowsPage() {
 
 function StatCard({ icon, label, value }: { icon: ReactNode; label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[140px]">
+    <div className="rounded-xl border border-border bg-card px-4 py-2.5 flex items-center gap-3 min-w-[140px] shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       <div className="p-2 rounded-lg bg-muted/40 shrink-0">{icon}</div>
       <div className="min-w-0">
-        <div className="text-sm font-semibold text-foreground truncate">{value}</div>
+        <div className="text-sm font-semibold font-numeric text-foreground truncate">{value}</div>
         <div className="text-xs text-muted-foreground">{label}</div>
       </div>
     </div>
@@ -562,11 +562,11 @@ function StatCard({ icon, label, value }: { icon: ReactNode; label: string; valu
 
 function MiniStat({ icon, label, value }: { icon: ReactNode; label: string; value: number | string }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-3.5 py-2.5">
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3.5 py-2.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       {icon}
       <div>
-        <p className="text-micro text-muted-foreground">{label}</p>
-        <p className="text-sm font-semibold text-foreground">{value}</p>
+        <p className="text-xs uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold font-numeric text-foreground">{value}</p>
       </div>
     </div>
   );

@@ -351,7 +351,7 @@ export default function AdminAffiliatePage() {
                     action={!q ? <Button type="button" size="sm" onClick={openCreate}><Plus /> New offer</Button> : undefined}
                 />
             ) : (
-                <div className="overflow-x-auto rounded-lg border border-border">
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[720px]">
                         <TableHeader>
                             <TableRow>
@@ -380,9 +380,9 @@ export default function AdminAffiliatePage() {
                                         <Badge variant="outline" className="text-xs normal-case">
                                             {COMMISSION_MODEL_LABELS[o.commissionModel as keyof typeof COMMISSION_MODEL_LABELS] || o.commissionModel}
                                         </Badge>
-                                        <p className="mt-1 text-xs text-foreground">{fmtCurrency(o.commissionAmount, o.currency || "USD")}</p>
+                                        <p className="mt-1 font-numeric text-xs tabular-nums text-foreground">{fmtCurrency(o.commissionAmount, o.currency || "USD")}</p>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground">
+                                    <TableCell className="text-right font-numeric tabular-nums text-muted-foreground">
                                         {fmtNumber(o.clicks ?? 0)} / {fmtNumber(o.conversions ?? 0)}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
@@ -414,7 +414,7 @@ export default function AdminAffiliatePage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <h2 className="mb-2 text-sm font-medium text-foreground">Attribution policy</h2>
                 <p className="text-xs text-muted-foreground">
                     Counters shown here are reconciled from real click and conversion events (use <b>Reconcile counters</b> to recompute them from
@@ -425,7 +425,7 @@ export default function AdminAffiliatePage() {
 
             {/* Create / edit dialog */}
             <Dialog open={dialogOpen} onOpenChange={(o) => { if (!o && !busy) setDialogOpen(false); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
+                <DialogContent className="rounded-xl bg-popover max-h-[85vh] overflow-y-auto sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>{editing ? `Edit ${editing.name}` : "New affiliate offer"}</DialogTitle>
                         <DialogDescription>

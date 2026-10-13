@@ -165,7 +165,7 @@ export default function AdminGrowthReportsPage() {
 
             {notice && <NoticeBanner variant={notice.kind === "ok" ? "success" : notice.kind === "info" ? "info" : "error"}>{notice.text}</NoticeBanner>}
 
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <Select aria-label="Filter by interval" value={interval} onChange={(e) => setInterval(e.target.value)}>
                     <option value="">All intervals</option>
                     {REPORT_INTERVALS.map((iv) => (
@@ -208,7 +208,7 @@ export default function AdminGrowthReportsPage() {
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border">
+                <div className="overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:tabular-nums">
                     <Table className="min-w-[640px]">
                         <TableHeader>
                             <TableRow>
@@ -244,8 +244,8 @@ export default function AdminGrowthReportsPage() {
                 </div>
             )}
 
-            <div className="rounded-lg border border-border bg-card p-4">
-                <h2 className="mb-2 text-sm font-medium text-foreground">What every report contains</h2>
+            <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <h2 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-foreground">What every report contains</h2>
                 <p className="text-xs text-muted-foreground">
                     Each report is computed from stored growth data only — traffic, conversion, campaign, content and revenue performance. No values
                     are invented to fill a section; when a metric has insufficient data the report says so.
@@ -254,7 +254,7 @@ export default function AdminGrowthReportsPage() {
 
             {/* Generate dialog */}
             <Dialog open={genOpen} onOpenChange={setGenOpen}>
-                <DialogContent className="sm:max-w-md md:max-w-xl lg:max-w-2xl">
+                <DialogContent className="rounded-xl bg-popover sm:max-w-md md:max-w-xl lg:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Generate report</DialogTitle>
                         <DialogDescription>
@@ -284,7 +284,7 @@ export default function AdminGrowthReportsPage() {
 
             {/* View report dialog */}
             <Dialog open={viewing !== null} onOpenChange={(o) => { if (!o) setViewing(null); }}>
-                <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+                <DialogContent className="rounded-xl bg-popover max-h-[85vh] overflow-y-auto sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
                      <DialogHeader>
                         <DialogTitle>{viewing?.title}</DialogTitle>
                         {viewing ? (
