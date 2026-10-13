@@ -255,7 +255,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                 </Reveal>
 
                 <Reveal delay={100}>
-                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-[#141414] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
+                    <div className="mt-10 overflow-hidden rounded-2xl border-none bg-[#141414] dark:bg-[#141414] dark:bg-[#141414] dark:bg-[#141414] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.8)]">
                         {/* Sample tabs, inline at the top of the card */}
                         <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.06] px-2 py-1.5">
                             <span className="flex h-7 items-center gap-2 rounded-lg bg-[#0a0a0a] px-2.5 text-[10px] font-semibold text-foreground/70 shadow-md">
@@ -326,7 +326,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                     </span>
                                 </div>
                                 <div className="h-44" role="img" aria-label={cardData.title + " curve"}>
-                                    <div className="h-full rounded-xl bg-[#141414] p-2 shadow-md text-[11px]">
+                                    <div className="h-full rounded-xl bg-[#141414] dark:bg-[#141414] dark:bg-[#141414] dark:bg-[#141414] p-2 shadow-md text-[11px]">
                                         <div className="mb-1 flex justify-between text-xs font-medium"><span className="text-muted-foreground">{cardData.tracesSub}</span></div>
                                         {tab === "pine" ? (
                                             <div className="h-32 w-full rounded-lg overflow-hidden">
