@@ -347,14 +347,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                         )}
                                     </div>
                                 </div>
-                                <dl className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3">
-                                    {(cardData.tiles || tiles).map((t:any) => (
-                                        <div key={t.label} className="min-w-0">
-                                            <dt className="truncate text-[11px] text-muted-foreground">{t.label}</dt>
-                                            <dd className="mt-0.5 truncate font-numeric text-lg font-semibold tracking-tight text-foreground">{t.value}</dd>
-                                        </div>
-                                    ))}
-                                </dl>
+
                                 <p className="mt-auto pt-2 text-[11px] leading-4 text-muted-foreground">{cardData.note}</p>
                             </div>
                         </div>
