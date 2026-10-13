@@ -32,6 +32,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "**/*.d.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts",
@@ -56,6 +57,7 @@
     // binary installed under chrome-extension/node_modules. The root Next.js
     // typecheck cannot resolve `@playwright/test` here, so exclude it from the
     // root typecheck (it is typechecked when the e2e runner invokes tsc).
-    "e2e"
+    "e2e",
+    "apps/desktop"
   ]
 }

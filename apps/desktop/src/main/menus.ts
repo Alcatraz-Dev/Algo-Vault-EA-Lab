@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, globalShortcut } from 'electron';
+import { app, BrowserWindow, Menu, globalShortcut, MenuItemConstructorOptions } from 'electron';
 import pkg from '../package.json';
 
 const APP_NAME = (pkg as { name: string }).name;
@@ -33,7 +33,7 @@ export interface WindowActions {
 export function createWindowActions(): WindowActions {
   let mainWindow: BrowserWindow | null = null;
 
-  return {
+  const actions: WindowActions = {
     minimize: () => {
       if (mainWindow) mainWindow.minimize();
     },
@@ -49,7 +49,7 @@ export function createWindowActions(): WindowActions {
 }
 
 export function createApplicationMenu(actions: WindowActions): void {
-  const menuTemplate: electron.MenuItemConstructorOptions[] = [
+  const menuTemplate: MenuItemConstructorOptions[] = [
     {
       label: 'File',
       submenu: [
