@@ -6,6 +6,7 @@
     "outDir": "compiled",
     "declaration": false,
     "jsx": "preserve",
+    "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },

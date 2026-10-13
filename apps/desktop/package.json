@@ -8,71 +8,104 @@
   "type": "module",
   "main": "compiled/main/main.js",
   "scripts": {
-    "dev": "tsx src/main/main.ts",
+    "dev": "ALGOVAULT_DEV=1 tsx src/main/main.ts",
     "build": "tsc -p tsconfig.build.json",
+    "build:next": "NEXT_OUTPUT_STANDALONE=1 next build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "electron .",
     "lint": "eslint src --ext .ts,.tsx",
-    "rebuild-icons": "node scripts/rebuild-icons.js",
-    "dist": "electron-builder --dir",
-    "dist:mac": "electron-builder --mac",
-    "dist:win": "electron-builder --win",
-    "dist:mac-universal": "electron-builder --mac --universal",
-    "package:mac": "electron-builder --mac --publish=never"
+    "package:mac": "npm run build && electron-builder --mac --arm64 --publish=never",
+    "package:win": "npm run build && electron-builder --win --publish=never",
+    "dist": "npm run build && electron-builder --mac --arm64 --dir --publish=never"
   },
-  "dependencies": {},
   "devDependencies": {
-    "electron": "36.0.0",
     "@types/node": "^20.17.10",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
+    "electron": "36.0.0",
+    "electron-builder": "^26.4.5",
     "eslint": "^9.39.5",
     "tsx": "^4.19.4",
-    "typescript": "^5.9.3",
-    "electron-builder": "^26.4.5"
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": "22.x"
   },
+  "author": "AlgoVault",
   "build": {
+    "electronVersion": "36.0.0",
     "appId": "com.algovault.desktop",
     "productName": "AlgoVault",
     "directories": {
-      "output": "build/desktop-build",
+      "output": "dist/desktop-build",
       "buildResources": "public"
     },
     "files": [
       "compiled/main/**/*",
       "compiled/preload/**/*",
-      "compiled/renderer/**/*",
-      "package.json",
-      "node_modules/electron/**/*"
+      "compiled/shared/**/*",
+      "public/icons/**/*",
+      "package.json"
     ],
     "asarUnpack": [
-      ".next",
-      ".next/standalone",
-      "node_modules/next",
       "*.node"
     ],
     "extraResources": [
       {
         "from": "../../.next/standalone",
-        "to": ".next/standalone"
+        "to": "standalone",
+        "filter": [
+          "**/*",
+          "!**/.next/node_modules/**"
+        ]
+      },
+      {
+        "from": "../../.next/standalone/node_modules",
+        "to": "standalone/node_modules"
+      },
+      {
+        "from": "../../.next/standalone/.next/node_modules",
+        "to": "standalone/.next/node_modules"
+      },
+      {
+        "from": "../../.next/static",
+        "to": "standalone/.next/static"
+      },
+      {
+        "from": "../../public",
+        "to": "standalone/public"
       }
     ],
     "mac": {
       "category": "public.app-category.finance",
       "icon": "public/icons/icon-512x512.png",
-      "target": ["dmg", "zip"],
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
       "artifactName": "AlgoVault-${version}-${arch}.${ext}"
     },
     "win": {
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "icon": "public/icons/icon-512x512.png",
       "artifactName": "AlgoVault-Setup-${version}-${arch}.${ext}"
     },
     "linux": {
-      "target": ["AppImage"],
+      "target": [
+        "AppImage"
+      ],
       "category": "Finance"
     },
     "publish": {

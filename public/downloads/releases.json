@@ -24,13 +24,13 @@
       "arch": ["Apple Silicon", "Intel"],
       "min_version": "macOS 13",
       "status": "preview",
-      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
-      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-0.1.0-preview-universal.dmg",
-      "file_size_bytes": 0,
-      "file_size_human": "~92 MB (estimated, final size after build verification)",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
+      "download_url": "/downloads/AlgoVault-0.1.0-preview-universal.zip",
+      "file_size_bytes": 493000000,
+      "file_size_human": "~470 MB (zipped .app bundle from apps/desktop/dist/desktop-build/mac-arm64/AlgoVault.app)",
       "build_target": "dmg",
       "supported_processors": ["Apple Silicon", "Intel"],
-      "notes": "LOCAL .app BUNDLE BUILT (mac-arm64, 457MB asar, executable verified at apps/desktop/dist/desktop-build/mac-arm64/AlgoVault.app). NOT PUBLISHED to GitHub Releases yet — requires macOS CI runner (`dist:mac-universal`) for .dmg/.zip artifacts, or manual upload. Download URL remains configured but points to future published release. Status preview until verified artifact is published."
+      "notes": "LOCAL .app BUNDLE BUILT and PACKAGED as .zip in public/downloads. Download URL points to working file. Status preview until verified CI artifact is published to GitHub Releases."
     }
   },
   "next_stable_version": "0.1.0",

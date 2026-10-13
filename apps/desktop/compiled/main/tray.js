@@ -1,6 +1,8 @@
 import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import pkg from '../../package.json' with { type: 'json' };
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const APP_NAME = pkg.name;
 const APP_VERSION = pkg.version;
 /**
