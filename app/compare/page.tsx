@@ -1,5 +1,6 @@
 "use client";
 
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -129,26 +130,23 @@ export default function ComparePage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8" data-guide="page-header">
-                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                        <ArrowLeft size={12} /> Back to Account
-                    </Link>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Account Comparison</h1>
-                            <p className="mt-1.5 text-sm text-muted-foreground">Side-by-side metrics for all connected MT5 accounts</p>
-                        </div>
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Account Analytics"
+                    title="Account Comparison"
+                    subtitle="Side-by-side metrics for all connected MT5 accounts"
+                    actions={
                         <button
                             type="button"
                             onClick={fetchData}
                             disabled={loading}
-                            className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
                         >
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
-                    </div>
-                </div>
+                    }
+                />
 
                 {loading && accounts.length === 0 ? (
                     <div className="flex h-64 items-center justify-center">
@@ -169,8 +167,8 @@ export default function ComparePage() {
                     <>
                         {/* Summary Cards */}
                         {comparison && (
-                            <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5" data-guide="summary">
-                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
+                            <div className="mt-6 mb-12 grid grid-cols-2 gap-4 lg:grid-cols-5" data-guide="summary">
+                                <div className="rounded-xl border border-border bg-gradient-to-br from-card to-card/80 shadow-[0_1px_2px_rgb(0_0_0/0.08)] p-5 ring-1 ring-border/20">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
                                             <Wallet size={14} className="text-info" />
@@ -181,7 +179,7 @@ export default function ComparePage() {
                                         ${comparison.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
+                                <div className="rounded-xl border border-border bg-gradient-to-br from-card to-card/80 shadow-[0_1px_2px_rgb(0_0_0/0.08)] p-5 ring-1 ring-border/20">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
                                             <Activity size={14} className="text-primary" />
@@ -192,7 +190,7 @@ export default function ComparePage() {
                                         ${comparison.totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                     </p>
                                 </div>
-                                <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
+                                <div className="rounded-xl border border-border bg-gradient-to-br from-card to-card/80 shadow-[0_1px_2px_rgb(0_0_0/0.08)] p-5 ring-1 ring-border/20">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-info/10">
                                             <BarChart3 size={14} className="text-info" />
@@ -201,7 +199,7 @@ export default function ComparePage() {
                                     </div>
                                     <p className="text-xl font-bold font-numeric text-foreground">{comparison.totalTrades}</p>
                                 </div>
-                                <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
+                                <div className="rounded-xl border border-positive/20 bg-gradient-to-br from-positive/[0.08] to-positive/[0.02] shadow-[0_1px_2px_rgb(0_0_0/0.08)] p-5 ring-1 ring-positive/10">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-positive/10">
                                             <Trophy size={14} className="text-positive" />
@@ -211,7 +209,7 @@ export default function ComparePage() {
                                     <p className="text-sm font-bold text-positive">{comparison.bestPerformer?.broker || "N/A"}</p>
                                     <p className="text-micro text-muted-foreground">PF {comparison.bestPerformer?.profitFactor}</p>
                                 </div>
-                                <div className="rounded-lg border border-negative/10 bg-negative/[0.03] p-4">
+                                <div className="rounded-xl border border-negative/20 bg-gradient-to-br from-negative/[0.08] to-negative/[0.02] shadow-[0_1px_2px_rgb(0_0_0/0.08)] p-5 ring-1 ring-negative/10">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-negative/10">
                                             <ArrowDownRight size={14} className="text-negative" />

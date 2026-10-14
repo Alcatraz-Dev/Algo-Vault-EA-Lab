@@ -12,12 +12,12 @@ import { ToolBadge } from "@/components/tools/tier-ui";
 import { TOOL_CATALOG } from "@/lib/tools-catalog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { Card } from "@/components/ui/card";
 
 type Tier = {
     id: string;
     name: string;
-    emoji: string;
     price: number;
     period: string;
     description: string;
@@ -32,7 +32,6 @@ const TIERS: Tier[] = [
     {
         id: "free",
         name: "Free / Lite",
-        emoji: "🎯",
         price: 0,
         period: "forever",
         description: "The Lite versions of every public tool — useful on their own, free forever.",
@@ -52,7 +51,6 @@ const TIERS: Tier[] = [
     {
         id: "pro",
         name: "Pro",
-        emoji: "⚡",
         price: 29,
         period: "month",
         description: "Unlock every Pro tool, the chart workspace, replay, persistence and AI explanations.",
@@ -77,7 +75,6 @@ const TIERS: Tier[] = [
     {
         id: "enterprise",
         name: "Enterprise",
-        emoji: "👑",
         price: 99,
         period: "month",
         description: "For teams and institutions managing multiple accounts at scale.",
@@ -184,23 +181,19 @@ export default function PricingPage() {
                 </Link>
 
                 {/* Header */}
-                <div className="text-center mt-4" data-guide="page-header">
-                    <Badge
-                        variant="outline"
-                        className="h-7 gap-1.5 px-3 text-muted-foreground"
-                    >
-                        <Sparkles />
-                        Free / Lite vs Pro, side by side
-                    </Badge>
-                    <h1 className="mt-6 text-4xl font-semibold tracking-tight md:text-5xl">
-                        Tools that earn the upgrade.
-                    </h1>
-                    <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                        Every public tool has a real, useful Lite path that&apos;s free forever.
-                        Pro unlocks the chart workspace, replay, persistence, AI explanations and exports on top.
-                        You only subscribe when Pro gives you something you can use every day.
-                    </p>
-                </div>
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Pricing"
+                    title="Tools that earn the upgrade."
+                    subtitle="Every public tool has a real, useful Lite path that's free forever. Pro unlocks the chart workspace, replay, persistence, AI explanations and exports on top. You only subscribe when Pro gives you something you can use every day."
+                    actions={
+                        <Badge variant="outline" className="h-7 gap-1.5 px-3 text-muted-foreground">
+                            <Sparkles size={14} />
+                            Free / Lite vs Pro, side by side
+                        </Badge>
+                    }
+                />
 
                 {/* Tiers */}
                 <div className="mt-14 grid gap-6 md:grid-cols-3">

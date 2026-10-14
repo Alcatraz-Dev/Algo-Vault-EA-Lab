@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen, Menu, MenuItem, shell } from 'electron';
+import { app, BrowserWindow, screen, Menu, MenuItem, nativeTheme, shell } from 'electron';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -9,6 +9,33 @@ const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 780;
 const DEFAULT_WIDTH = 1380;
 const DEFAULT_HEIGHT = 860;
+/**
+ * Design-system tokens mirrored from `app/globals.css` so the desktop chrome
+ * matches the web app's surface and accent colours exactly. Keeping these in
+ * sync by hand is cheaper than reading the compiled CSS at runtime.
+ */
+const DESIGN = {
+    bg: '#0b0c0e', // zinc-950 — primary window surface
+    bgElevated: '#121316', // zinc-900/950 mix — title bar / cards
+    border: '#27272a', // zinc-800 — subtle separators
+    text: '#e4e4e7', // zinc-200 — primary text
+    textMuted: '#a1a1aa', // zinc-400 — secondary text
+    accent: '#f97316', // Ember — brand accent for traffic-light / focus
+};
+function macChrome() {
+    const dark = nativeTheme.shouldUseDarkColors;
+    return {
+        titleBarStyle: 'hiddenInset',
+        trafficLightPosition: { x: 16, y: 18 },
+        titleBarOverlay: {
+            color: dark ? DESIGN.bg : '#fafafa',
+            symbolColor: dark ? DESIGN.accent : '#3f3f46',
+            height: 44,
+        },
+        vibrancy: dark ? 'under-window' : 'sidebar',
+        visualEffectState: 'active',
+    };
+}
 function readState() {
     try {
         const file = join(app.getPath('userData'), 'window-state.json');
@@ -120,23 +147,42 @@ export function createWindow() {
         minWidth: MIN_WIDTH,
         minHeight: MIN_HEIGHT,
         frame: true,
-        titleBarStyle: 'hiddenInset',
-        trafficLightPosition: { x: 14, y: 16 },
-        titleBarOverlay: { color: '#0b0c0e', symbolColor: '#f97316', height: 36 },
         autoHideMenuBar: process.platform !== 'darwin',
         show: false,
-        backgroundColor: '#0b0c0e',
+        backgroundColor: DESIGN.bg,
+        // macOS gets the full hidden-inset + vibrancy treatment; Windows/Linux
+        // keep the OS frame so users get the native window controls.
+        ...(process.platform === 'darwin' ? macChrome() : {
+            titleBarStyle: 'default',
+            // Mica gives Windows 11 a tasteful native-tinted chrome.
+            ...(process.platform === 'win32' ? { backgroundMaterial: 'mica' } : {}),
+        }),
         webPreferences: {
             preload: preloadPath,
             nodeIntegration: false,
             contextIsolation: true,
             devTools: !process.env.ELECTRON_NO_DEV_TOOLS,
             sandbox: true,
+            // Smooth visuals — match the web app's 60fps target.
+            backgroundThrottling: false,
         },
     });
     mainWindow = win;
     if (currentState.maximized) {
         win.maximize();
+    }
+    // Re-apply title bar overlay when the OS theme changes so the chrome stays
+    // in sync with the system appearance without restarting the app.
+    if (process.platform === 'darwin') {
+        const refresh = () => {
+            if (win.isDestroyed())
+                return;
+            const next = macChrome();
+            win.setTitleBarOverlay?.(next.titleBarOverlay);
+            win.setVibrancy?.(next.vibrancy);
+        };
+        nativeTheme.on('updated', refresh);
+        win.on('closed', () => nativeTheme.off('updated', refresh));
     }
     // Prevent white flash: show only when content is ready
     win.once('ready-to-show', () => {

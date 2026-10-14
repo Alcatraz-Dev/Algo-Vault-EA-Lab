@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MarketplaceSponsoredAd } from "@/components/growth/MarketplaceSponsoredAd";
 import { PageHeader } from "@/components/ui/page-header";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
@@ -286,76 +287,33 @@ export default function MarketplacePage() {
             {/* Header */}
             <section className="mx-auto max-w-7xl px-6 pt-6" data-guide="page-header">
 
-                <PageHeader
+                <ModernPageHeader
                     backHref="/account"
                     eyebrow="Marketplace"
                     title="Trading tools built for serious traders."
                     subtitle="Explore Expert Advisors, indicators and automated trading tools for MT5, MT4 and TradingView."
                     actions={
                         <div className="grid grid-cols-3 gap-2">
-
-                            <MiniStat
-                                icon={
-                                    <Bot size={15} />
-                                }
-                                value={
-                                    products.length
-                                }
-                                label="Products"
-                            />
-
-                            <MiniStat
-                                icon={
-                                    <CheckCircle2
-                                        size={15}
-                                    />
-                                }
-                                value={
-                                    products.filter(
-                                        (p) =>
-                                            p.pricing
-                                                ?.type ===
-                                                  "free"
-                                    ).length
-                                }
-                                label="Free"
-                            />
-
-                            <MiniStat
-                                icon={
-                                    <BarChart3
-                                        size={15}
-                                    />
-                                }
-                                value={
-                                    products.filter(
-                                        (p) =>
-                                            p.productType ===
-                                              "expert_advisor"
-                                    ).length
-                                }
-                                label="EAs"
-                            />
-
+                            <MiniStat icon={<Bot size={15} />} value={products.length} label="Products" />
+                            <MiniStat icon={<CheckCircle2 size={15} />} value={products.filter((p) => p.pricing?.type === "free").length} label="Free" />
+                            <MiniStat icon={<BarChart3 size={15} />} value={products.filter((p) => p.productType === "expert_advisor").length} label="EAs" />
                         </div>
                     }
                 />
 
             </section>
 
-            {/* Plugins & Extensions hub banner */}
-            <section className="mt-6 border-y border-border bg-card">
-                <div className="mx-auto max-w-7xl px-6 py-8">
-                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            {/* Plugins & Extensions hub banner — modern glow card */}
+            <section className="mx-auto max-w-7xl px-6 pt-6">
+                <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-[0_1px_3px_rgb(0_0_0/0.05)]">
+                    <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                    <div className="relative z-10 flex flex-col gap-5 px-6 py-8 lg:flex-row lg:items-center lg:justify-between lg:px-8 lg:py-10">
                         <div className="max-w-xl">
                             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
                                 <Sparkles size={14} />
-                                Plugins &amp; Extensions 
+                                Plugins &amp; Extensions
                             </div>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                Background intelligence agents that analyze your strategies, markets and risk on a schedule you control —
-                                plus extensions that connect outside tools.
-                            </p>
+                            <p className="mt-2 text-sm leading-6 text-muted-foreground">Background intelligence agents that analyze your strategies, markets and risk on a schedule you control — plus extensions that connect outside tools.</p>
                         </div>
                         <div className="flex flex-col gap-3 sm:flex-row">
                             <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Bot size={18} />} active />
@@ -422,8 +380,8 @@ export default function MarketplacePage() {
                             }
                             className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-medium transition-colors ${activeFilter ===
                                 filter.value
-                                ? "border-primary/40 bg-primary/10 text-primary"
-                                : "border-border bg-card text-muted-foreground hover:text-foreground"
+                                ? "border-primary/50 bg-gradient-to-r from-primary/20 to-amber-500/10 text-foreground font-semibold shadow-sm"
+                                : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-primary/30"
                                 }`}
                         >
                             {filter.label}
@@ -908,7 +866,7 @@ function HubLink({
         <Link
             href={href}
             className={`w-full rounded-xl border p-4 transition-colors duration-200 ${
-                active ? "border-primary/40 bg-primary/10" : "border-border bg-muted hover:border-primary/30"
+                active ? "border-orange-400/60 bg-gradient-to-br from-orange-500/10 to-amber-400/5 shadow-sm" : "border-border bg-card hover:border-primary/30 hover:bg-muted/60"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-medium">

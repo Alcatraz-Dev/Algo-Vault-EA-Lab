@@ -1,21 +1,24 @@
 import React from "react";
 
+/**
+ * Empty draggable title-bar strip — sits inside the Next.js page so the
+ * macOS `titleBarOverlay` has a matching surface that catches
+ * `WebkitAppRegion: drag` for moving the window.
+ *
+ * No chrome text or logo here — the macOS traffic lights sit in the leading
+ * 80px reserved by `DesktopNav`, and the brand is already present in the
+ * web app's top bar / sidebar / footer.
+ *
+ * Colours read from CSS variables (`bg-card`, `border-border`) so the strip
+ * stays in lockstep with the rest of the theme.
+ */
 export default function DesktopChrome() {
   return (
     <div
-      className="flex h-10 w-full items-center select-none bg-gradient-to-b from-[#0b0c0e] to-[#121316] pl-36 pr-4 text-sm text-[#a1a1aa] border-b border-[#27272a] backdrop-blur-sm"
+      className="h-11 w-full shrink-0 select-none border-b border-border bg-card"
       data-slot="desktop-chrome"
       style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
-    >
-      <div className="flex items-center gap-3 font-medium tracking-tight text-white">
-        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-gradient-to-r from-[#f97316] to-[#ea580c] text-[0.6rem] font-extrabold text-white">
-          AV
-        </span>
-        <div className="flex flex-col items-start">
-          <span className="text-[0.875rem] font-semibold tracking-tight">AlgoVault</span>
-          <span className="text-[0.625rem] tracking-tighter text-[#9ca3af]">v{process.env.NEXT_PUBLIC_VERSION || '0.1.0'}</span>
-        </div>
-      </div>
-    </div>
+      aria-hidden
+    />
   );
 }

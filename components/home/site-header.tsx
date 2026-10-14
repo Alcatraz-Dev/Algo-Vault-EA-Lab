@@ -60,10 +60,13 @@ export default function SiteHeader() {
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 8);
+        const desktopContent = document.querySelector<HTMLElement>("[data-desktop-content]");
+        const scrollTarget: EventTarget = desktopContent ?? window;
+        const onScroll = () =>
+            setScrolled(desktopContent ? desktopContent.scrollTop > 8 : window.scrollY > 8);
         onScroll();
-        window.addEventListener("scroll", onScroll, { passive: true });
-        return () => window.removeEventListener("scroll", onScroll);
+        scrollTarget.addEventListener("scroll", onScroll, { passive: true });
+        return () => scrollTarget.removeEventListener("scroll", onScroll);
     }, []);
 
     useEffect(() => {
@@ -107,6 +110,7 @@ export default function SiteHeader() {
 
     return (
         <header
+            data-home-site-header=""
             className={`sticky top-0 z-50 border-b border-border bg-background/90 text-foreground backdrop-blur-md transition-shadow duration-200 motion-reduce:transition-none ${scrolled ? "shadow-md" : "shadow-none"}`}
         >            <div className="mx-auto flex min-h-14 w-full max-w-350 items-center justify-between gap-6">
                 <Link href="/" className="flex shrink-0 items-center gap-3">

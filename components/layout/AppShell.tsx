@@ -29,7 +29,11 @@ import { Badge } from "@/components/ui/badge";
 export type NavItem = {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string; size?: number }>;
+  icon: React.ComponentType<{
+    className?: string;
+    size?: number;
+    strokeWidth?: number | string;
+  }>;
   badge?: string;
   pro?: boolean;
 };
@@ -537,12 +541,13 @@ export function AppShell({
 
   return (
     <div
+      data-app-shell=""
       className="flex min-h-screen bg-background text-foreground"
       style={shellHeaderStyle(headerHeight)}
     >
       {/* Desktop sidebar */}
       {hideSidebar || fullscreen ? null : (
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
+        <aside data-app-sidebar="" className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card lg:flex">
           {sidebarInner}
         </aside>
       )}
@@ -551,6 +556,7 @@ export function AppShell({
       {hideSidebar || fullscreen ? null : (
         <div
           ref={mobileDrawerRef}
+          data-app-mobile-drawer=""
           className={cn(
             "fixed inset-0 z-50 transition-[visibility] duration-200 motion-reduce:transition-none lg:hidden",
             mobileOpen ? "visible" : "invisible pointer-events-none"
@@ -586,10 +592,8 @@ export function AppShell({
       )}
 
       {/* Content column */}
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
-        {/* Topbar — page header: back/menu controls, title block, global actions.
-            Translucent + blurred instead of a bottom border, so the title stands on
-            its own (the sticky chrome may blur content passing underneath). */}
+      <div data-app-shell-content="" className="flex min-h-screen min-w-0 flex-1 flex-col">
+        {/* Page header: back/menu controls, title block and global actions. */}
         <header
           ref={headerRef}
           data-guide="page-header"

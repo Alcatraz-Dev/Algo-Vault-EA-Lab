@@ -1121,3 +1121,47 @@ html.dark .react-flow__minimap {
     animation: none !important;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Desktop shell — replace AppShell's web sidebar with the native-style rail.
+   These stable markers avoid coupling the rule to Tailwind's class ordering.
+   ───────────────────────────────────────────────────────────────────── */
+html[data-desktop="true"] [data-app-sidebar],
+html[data-desktop="true"] [data-app-mobile-drawer] {
+  display: none !important;
+}
+
+/* The app frame owns scrolling in Electron; the document itself must not
+   become a second scroll container. */
+html[data-desktop="true"] {
+  height: 100%;
+  overflow: hidden;
+}
+html[data-desktop="true"] body {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* The marketing navbar begins immediately beneath Electron's native titlebar;
+   app headers move with the page instead of staying pinned like browser chrome. */
+html[data-desktop="true"] [data-desktop-content]:has([data-home-page]) {
+  padding-top: 0;
+}
+html[data-desktop="true"] [data-home-site-header],
+html[data-desktop="true"] [data-guide="page-header"] {
+  position: static;
+}
+html[data-desktop="true"] [data-app-shell],
+html[data-desktop="true"] [data-app-shell-content] {
+  min-height: auto;
+}
+
+/* The rail tooltip is portaled to body, outside all shell scroll/overflow
+   containers. Resolve every surface and text color from the active theme. */
+html[data-desktop="true"] [data-desktop-tooltip] {
+  color: var(--popover-foreground);
+  background-color: var(--popover);
+  border-color: var(--border-color);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--foreground) 14%, transparent);
+}

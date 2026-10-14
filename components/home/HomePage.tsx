@@ -37,7 +37,7 @@ export default function HomePage({ data }: { data: HomeData }) {
     }, []);
 
     return (
-        <div className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
+        <div data-home-page="" className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
             <SiteHeader />
             <main>
                 <TickerStrip />

@@ -35,13 +35,29 @@ const clipboardBridge = {
 const notificationBridge = {
     show: (options) => electron_1.ipcRenderer.invoke('notification:show', options),
 };
-const connectionState = {
-    online: true,
-    offline: false,
-};
 const updaterBridge = {
     check: () => electron_1.ipcRenderer.invoke('updater:check'),
-    onUpdate: (_callback) => { },
+    onUpdateAvailable: (callback) => {
+        const handler = () => callback();
+        electron_1.ipcRenderer.on('updater:update-available', handler);
+        return () => {
+            electron_1.ipcRenderer.removeListener('updater:update-available', handler);
+        };
+    },
+    onUpdateDownloaded: (callback) => {
+        const handler = () => callback();
+        electron_1.ipcRenderer.on('updater:update-downloaded', handler);
+        return () => {
+            electron_1.ipcRenderer.removeListener('updater:update-downloaded', handler);
+        };
+    },
+    onError: (callback) => {
+        const handler = (_event, message) => callback(message);
+        electron_1.ipcRenderer.on('updater:error', handler);
+        return () => {
+            electron_1.ipcRenderer.removeListener('updater:error', handler);
+        };
+    },
 };
 const navigationBridge = {
     onNavigate: (callback) => {
@@ -60,6 +76,19 @@ const navigationBridge = {
     },
 };
 const openExternal = (url) => electron_1.ipcRenderer.invoke('app:openExternally', url);
+const connectionBridge = {
+    getStatus: () => electron_1.ipcRenderer.invoke('connection:getStatus'),
+    onStatusChange: (callback) => {
+        const onOnline = () => callback({ online: true });
+        const onOffline = () => callback({ online: false });
+        electron_1.ipcRenderer.on('connection:online', onOnline);
+        electron_1.ipcRenderer.on('connection:offline', onOffline);
+        return () => {
+            electron_1.ipcRenderer.removeListener('connection:online', onOnline);
+            electron_1.ipcRenderer.removeListener('connection:offline', onOffline);
+        };
+    },
+};
 const algovaultApi = {
     isDesktop: true,
     platform: process.platform,
@@ -69,35 +98,14 @@ const algovaultApi = {
     dialog: dialogBridge,
     clipboard: clipboardBridge,
     notification: notificationBridge,
-    connection: {
-        getStatus: () => electron_1.ipcRenderer.invoke('connection:getStatus'),
-        onStatusChange: (callback) => {
-            const onOnline = () => callback({ online: true });
-            const onOffline = () => callback({ online: false });
-            electron_1.ipcRenderer.on('connection:online', onOnline);
-            electron_1.ipcRenderer.on('connection:offline', onOffline);
-            return () => {
-                electron_1.ipcRenderer.removeListener('connection:online', onOnline);
-                electron_1.ipcRenderer.removeListener('connection:offline', onOffline);
-            };
-        },
-    },
-    updater: {
-        check: () => electron_1.ipcRenderer.invoke('updater:check'),
-        onUpdate: (callback) => {
-            const handler = () => callback();
-            electron_1.ipcRenderer.on('updater:update-available', handler);
-            return () => {
-                electron_1.ipcRenderer.removeListener('updater:update-available', handler);
-            };
-        },
-    },
+    connection: connectionBridge,
+    updater: updaterBridge,
     navigation: navigationBridge,
 };
 try {
     electron_1.contextBridge.exposeInMainWorld('__ALGOVAULT_DESKTOP__', true);
     electron_1.contextBridge.exposeInMainWorld('algovault', algovaultApi);
-    // Backwards compatibility wrappers
+    // Backwards compatibility wrappers for the old surface used by ad-hoc scripts.
     electron_1.contextBridge.exposeInMainWorld('app', appBridge);
     electron_1.contextBridge.exposeInMainWorld('windowControls', windowControls);
     electron_1.contextBridge.exposeInMainWorld('openExternal', openExternal);
@@ -105,15 +113,3 @@ try {
 catch (err) {
     console.error('[desktop] preload bridge setup failed', err);
 }
-// Internal listeners to sync state
-electron_1.ipcRenderer.on('connection:online', () => {
-    connectionState.online = true;
-    connectionState.offline = false;
-});
-electron_1.ipcRenderer.on('connection:offline', () => {
-    connectionState.offline = true;
-    connectionState.online = false;
-});
-electron_1.ipcRenderer.on('updater:error', (_event, message) => {
-    console.warn('[desktop] updater error:', message);
-});

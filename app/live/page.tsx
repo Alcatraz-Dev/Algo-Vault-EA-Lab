@@ -22,6 +22,7 @@ import LiveStatsRow from "@/components/live/LiveStatsRow";
 import LiveActivityFeed from "@/components/live/LiveActivityFeed";
 import GlobalActivity from "@/components/live/GlobalActivity";
 import MarketActivity from "@/components/live/MarketActivity";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 
 function LiveTicker() {
@@ -132,60 +133,26 @@ export default function LivePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
-      {/* Top nav */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center gap-4">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-lg p-2 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-            aria-label="Back to home"
-          >
-            <ArrowLeft size={18} />
-          </Link>
-          <div className="w-px h-6 bg-border" />
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <div className="leading-none">
-              <div className="text-sm font-extrabold tracking-tight text-foreground group-hover:text-primary transition-colors">
-                AlgoVault
-              </div>
-              <div className="text-micro font-medium text-muted-foreground tracking-widest uppercase">Live</div>
-            </div>
-          </Link>
-          <div className="ml-auto flex items-center gap-2">
-            {sessions.length > 0 && (
-              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1 text-micro font-semibold text-positive">
-                <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
-                {sessions.join(" + ")} open
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={refresh}
-              className="rounded-full border border-border px-3 py-1 text-micro font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              Refresh
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-10 space-y-8">
-        {/* Title */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground leading-[1.1]">
-              AlgoVault <span className="text-primary">Live</span>
-            </h1>
-            <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed">
-              Real-time trading intelligence around the world. See where market analysis, smart money,
-              and AI signals are being generated — aggregated safely at country level.
-            </p>
-          </div>
-          <UpdatedBadge lastTick={lastTick} />
-        </div>
+        <ModernPageHeader
+            backHref="/"
+            backLabel="Back to home"
+            eyebrow="Live Intelligence"
+            title="AlgoVault Live"
+            subtitle="Real-time trading intelligence around the world. See where market analysis, smart money, and AI signals are being generated — aggregated safely at country level."
+            actions={
+                <div className="flex items-center gap-2">
+                    {sessions.length > 0 && (
+                        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-positive/20 bg-positive/10 px-3 py-1 text-micro font-semibold text-positive">
+                            <span className="h-1.5 w-1.5 rounded-full bg-positive animate-pulse" />
+                            {sessions.join(" + ")} open
+                        </span>
+                    )}
+                    <UpdatedBadge lastTick={lastTick} />
+                    <button type="button" onClick={refresh} className="rounded-full border border-border px-3 py-1 text-micro font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">Refresh</button>
+                </div>
+            }
+        />
 
         <LiveTicker />
 
@@ -194,7 +161,7 @@ export default function LivePage() {
 
         {/* Main grid: map + side panels */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <section className="lg:col-span-8 relative" aria-label="World activity map">
+          <section className="lg:col-span-12 relative" aria-label="World activity map">
             <LiveWorldMap
               clusters={clusters}
               hoveredCountry={hoveredCountry}
@@ -206,14 +173,12 @@ export default function LivePage() {
               Hover a country for its aggregated breakdown.
             </p>
           </section>
-          <aside className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <aside className="lg:col-span-12 grid grid-cols-1 gap-4">
             <LiveActivityFeed activities={activities} />
             <GlobalActivity clusters={clusters} />
             <MarketActivity activities={activities} />
           </aside>
         </div>
-
-        <ScalpingTerminal pro={hasPro} />
 
         {/* Top countries strip */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

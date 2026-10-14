@@ -7,12 +7,14 @@
  * Inside the Electron desktop: activates all desktop-specific behaviors:
  *   • Wires native menu navigation to the Next.js router
  *   • Shows offline connection banner
- *   • Injects global CSS class `data-desktop="true"` on <html> so CSS
+ *   • Mounts the document-level tooltip layer for the icons-only rail
+ *   • Injects global CSS attribute `data-desktop="true"` on <html> so CSS
  *     rules can suppress website-only chrome (navbar, footer, etc.)
  */
 import { useEffect } from "react";
 import { DesktopMenuRouter } from "./DesktopMenuRouter";
 import { DesktopConnectionBanner } from "./DesktopConnectionBanner";
+import { DesktopTooltipLayer } from "./DesktopTooltipLayer";
 import { useIsDesktop } from "@/hooks/use-desktop";
 
 export function DesktopShellProvider() {
@@ -33,6 +35,7 @@ export function DesktopShellProvider() {
     <>
       <DesktopMenuRouter />
       <DesktopConnectionBanner />
+      <DesktopTooltipLayer />
     </>
   );
 }

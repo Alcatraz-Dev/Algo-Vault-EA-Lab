@@ -117,6 +117,7 @@ function wireConnection() {
     if (!mainWindow)
         return;
     const win = mainWindow;
+    connection.start();
     connection.onOnline(() => {
         if (!win.isDestroyed())
             win.webContents.send('connection:online');

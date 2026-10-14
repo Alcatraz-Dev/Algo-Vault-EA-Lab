@@ -1,5 +1,6 @@
 "use client";
 
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
@@ -141,94 +142,15 @@ export default function AffiliatesPage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            {/* Header */}
-            <header className="border-b border-border/30">
-                <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 md:px-8">
-                    <Link
-                        href="/"
-                        className="flex items-center gap-3"
-                    >
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-foreground">
-                            <ArrowUpRight className="h-5 w-5" />
-                        </div>
-
-                        <div>
-                            <div className="font-semibold">
-                                {siteName}
-                            </div>
-
-                            <div className="text-xs text-foreground/50">
-                                Trading Marketplace
-                            </div>
-                        </div>
-                    </Link>
-
-                    <nav className="hidden items-center gap-6 text-sm text-foreground/50 md:flex">
-                        <Link
-                            href="/marketplace"
-                            className="transition hover:text-foreground"
-                        >
-                            Marketplace
-                        </Link>
-
-                        <Link
-                            href="/backtests"
-                            className="transition hover:text-foreground"
-                        >
-                            Backtests
-                        </Link>
-
-                        <Link
-                            href="/performance-arena/leaderboard"
-                            className="transition hover:text-foreground"
-                        >
-                            Rankings
-                        </Link>
-
-                        <Link
-                            href="/affiliates"
-                            className="text-foreground"
-                        >
-                            Recommended
-                        </Link>
-
-                        <Link
-                            href="/account"
-                            className="transition hover:text-foreground"
-                        >
-                            Account
-                        </Link>
-                    </nav>
-                </div>
-            </header>
 
             <main className="mx-auto max-w-7xl px-5 py-12 md:px-8">
-                {/* Hero */}
-                <div className="max-w-3xl" data-guide="page-header">
-                    <Link
-                        href="/account"
-                        className="mb-6 inline-flex items-center gap-2 text-sm text-foreground/50 transition hover:text-foreground"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back to Account
-                    </Link>
-
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border/30 bg-muted/5 px-3 py-1.5 text-xs text-foreground/50">
-                        <ShieldCheck className="h-3.5 w-3.5" />
-                        Recommended Partners
-                    </div>
-
-                    <h1 className="text-2xl font-semibold tracking-tight">
-                        Recommended Trading
-                        Partners
-                    </h1>
-
-                    <p className="mt-5 max-w-2xl text-base leading-7 text-foreground/45">
-                        Explore selected brokers, trading
-                        tools and services that may complement
-                        your automated trading setup.
-                    </p>
-                </div>
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Recommended Partners"
+                    title="Recommended Trading Partners"
+                    subtitle="Explore selected brokers, trading tools and services that may complement your automated trading setup."
+                />
 
                 {/* Search */}
                 <div className="mt-10 max-w-xl">
@@ -237,11 +159,9 @@ export default function AffiliatesPage() {
 
                         <input
                             value={search}
-                            onChange={(event) =>
-                                setSearch(event.target.value)
-                            }
+                            onChange={(event) => setSearch(event.target.value)}
                             placeholder="Search partners..."
-                            className="h-12 w-full rounded-lg border border-border/30 bg-muted pl-11 pr-4 text-sm outline-none placeholder:text-foreground/25 focus:border-border/50"
+                            className="h-11 w-full rounded-xl border border-border bg-card pl-11 pr-4 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground/60 focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition"
                         />
                     </div>
                 </div>
@@ -270,7 +190,7 @@ export default function AffiliatesPage() {
                                 No partners found
                             </h2>
 
-                            <p className="mt-2 text-sm text-foreground/35">
+                            <p className="mt-2 text-sm text-muted-foreground">
                                 Try another search term.
                             </p>
                         </div>
@@ -329,11 +249,11 @@ export default function AffiliatesPage() {
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground/50" />
 
                         <div>
-                            <h3 className="text-sm font-medium text-foreground/70">
+                            <h3 className="text-sm font-medium text-amber-700 font-extrabold">
                                 Affiliate Disclosure
                             </h3>
 
-                            <p className="mt-2 text-xs leading-6 text-foreground/35">
+                            <p className="mt-2 text-xs leading-6 text-muted-foreground">
                                 Some links on this page are
                                 affiliate links. {siteName} may
                                 receive compensation if you use
@@ -377,13 +297,13 @@ function AffiliateCard({
 
     return (
         <article
-            className={`group relative overflow-hidden rounded-lg border bg-foreground/6 transition ${featured
-                ? "border-warning/20"
+            className={`group relative overflow-hidden rounded-2xl border shadow-[0_1px_3px_rgb(0_0_0/0.05)] transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md ${featured
+                ? "border-amber-400/40 bg-gradient-to-br from-amber-500/[0.06] to-card"
                 : "border-border/30"
                 } hover:bg-foreground/10`}
         >
             {featured && (
-                <div className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full border border-warning/20 bg-warning/10 px-2.5 py-1 text-micro font-medium text-warning">
+                <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border bg-gradient-to-r from-amber-400 to-orange-400 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-md">
                     <Star className="h-3 w-3 fill-current" />
                     Featured
                 </div>
@@ -418,7 +338,7 @@ function AffiliateCard({
                             {offer.name}
                         </h3>
 
-                        <p className="mt-1 text-xs text-foreground/35">
+                        <p className="mt-1 text-xs text-muted-foreground">
                             {offer.provider ||
                                 "Recommended Partner"}
                         </p>
@@ -433,15 +353,15 @@ function AffiliateCard({
                     </div>
                 )}
 
-                <p className="mt-5 min-h-[48px] text-sm leading-6 text-foreground/45">
+                <p className="mt-5 min-h-[48px] text-sm leading-6 text-foreground/80">
                     {offer.description ||
                         "Explore this recommended trading service."}
                 </p>
 
                 {commission && (
-                    <div className="mt-5 rounded-lg border border-border/30 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                    <div className="mt-5 rounded-lg border border-border/30 bg-gradient-to-r from-amber-500/10 to-primary/5 border border-amber-400/20 px-3 py-2 text-xs font-medium text-foreground">
                         Partnership:{" "}
-                        <span className="text-foreground/70">
+                        <span className="text-amber-700 font-extrabold">
                             {commission}
                         </span>
                     </div>
@@ -451,7 +371,7 @@ function AffiliateCard({
                     href={`/api/affiliate/click?offerId=${encodeURIComponent(
                         offer.id
                     )}`}
-                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-background px-4 text-sm font-semibold text-foreground transition hover:bg-background/90"
+                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-amber-500 px-4 text-sm font-extrabold text-white shadow-md transition hover:brightness-110"
                 >
                     Visit Offer
                     <ArrowUpRight className="h-4 w-4" />

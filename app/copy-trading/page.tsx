@@ -1,5 +1,6 @@
 "use client";
 
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
@@ -407,38 +408,26 @@ export default function CopyTradingPage() {
 
             <div className="relative mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
 
-                {/* Back */}
-                <Link href="/account" className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
-                    <ArrowLeft size={16} />
-                    Back to Account
-                </Link>
-
                 {/* Header */}
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between" data-guide="page-header">
-                    <div>
-                        <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-micro font-medium uppercase tracking-wider text-muted-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                            <Copy size={13} className="text-primary" />
-                            Automated Signal Mirroring
-                        </div>
-                        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-foreground">Copy Trading</h1>
-                        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                            Mirror trades from master MT5 accounts to your own account in real time. Set custom lot sizing, risk limits, and filters.
-                        </p>
-                    </div>
-
-                    {followerConfigs.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (masterAccounts.length > 0) openSetupModal(masterAccounts[0]);
-                            }}
-                            className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                        >
-                            <Plus size={16} />
-                            Add Follower
-                        </button>
-                    )}
-                </div>
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Automated Signal Mirroring"
+                    title="Copy Trading"
+                    subtitle="Mirror trades from master MT5 accounts to your own account in real time. Set custom lot sizing, risk limits, and filters."
+                    actions={
+                        followerConfigs.length > 0 ? (
+                            <button
+                                type="button"
+                                onClick={() => { if (masterAccounts.length > 0) openSetupModal(masterAccounts[0]); }}
+                                className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                            >
+                                <Plus size={16} />
+                                Add Follower
+                            </button>
+                        ) : undefined
+                    }
+                />
 
                 {/* Summary Stats */}
                 {followerConfigs.length > 0 && (

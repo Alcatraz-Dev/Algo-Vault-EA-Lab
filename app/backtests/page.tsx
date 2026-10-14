@@ -57,6 +57,7 @@ import {
 } from "recharts";
 
 import ProGate from "@/components/subscription/ProGate";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type Product = {
     id: string;
@@ -600,49 +601,26 @@ export default function BacktestsPage() {
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                {/* HEADER NAVIGATION */}
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between" data-guide="page-header">
-                    <div>
-                        <Link
-                            href="/account"
-                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to Account
-                        </Link>
-
-                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
-                            <Sparkles className="h-4 w-4" />
-                            Verified Strategy Analytics & Backtest Suite
+                {/* BACKTEST REPORT HEADER */}
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Verified Strategy Analytics & Backtest Suite"
+                    title="Backtest Reports"
+                    subtitle="Institutional-grade MT5 strategy tester metrics, multi-timeframe analytics, risk of ruin breakdown, and live MT5 execution benchmarking."
+                    actions={
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Link href="/live-performance" className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-foreground">
+                                <Activity className="h-4 w-4 text-positive" />
+                                <span>Live Performance</span>
+                            </Link>
+                            <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+                                <Bot className="h-4 w-4 text-primary-foreground" />
+                                <span>Explore EAs</span>
+                            </Link>
                         </div>
-
-                        <h1 className="mt-2 text-xl font-semibold tracking-tight sm:text-2xl">
-                            Backtest Reports
-                        </h1>
-
-                        <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-                            Institutional-grade MT5 strategy tester metrics, multi-timeframe analytics, risk of ruin breakdown, and live MT5 execution benchmarking.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Link
-                            href="/live-performance"
-                            className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted hover:text-foreground"
-                        >
-                            <Activity className="h-4 w-4 text-positive" />
-                            <span>Live Performance</span>
-                        </Link>
-
-                        <Link
-                            href="/marketplace"
-                            className="inline-flex items-center gap-2 rounded-lg border border-warning/20 bg-warning/10 px-4 py-2.5 text-sm font-medium text-warning transition-colors hover:bg-warning/20"
-                        >
-                            <Bot className="h-4 w-4" />
-                            <span>Explore EAs</span>
-                        </Link>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* BOT SELECTOR BAR WITH REAL BOT LOGO */}
                 <div className="mt-8 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="bot-selector">
@@ -705,7 +683,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("myfxbook")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "myfxbook"
-                                    ? "bg-warning text-foreground shadow-sm  font-semibold"
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-md font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -716,7 +694,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("mt5")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "mt5"
-                                    ? "bg-warning text-foreground shadow-sm  font-semibold"
+                                    ? "bg-gradient-to-r from-blue-600 to-cyan-400 text-white shadow-md font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -727,7 +705,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("trades")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "trades"
-                                    ? "bg-warning text-foreground shadow-sm  font-semibold"
+                                    ? "bg-gradient-to-r from-emerald-500 to-teal-400 text-white shadow-md font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -738,7 +716,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("comparison")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "comparison"
-                                    ? "bg-warning text-foreground shadow-sm  font-semibold"
+                                    ? "bg-gradient-to-r from-violet-600 to-purple-400 text-white shadow-md font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -754,7 +732,7 @@ export default function BacktestsPage() {
                     <div className="mt-8 space-y-8">
                         {/* KPI STAT CARDS */}
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-guide="metrics">
-                            <div className="rounded-xl border border-border bg-positive-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                            <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Total Return</span>
                                     <TrendingUp className="h-4 w-4 text-positive" />
@@ -767,7 +745,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-warning-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                            <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Win Rate</span>
                                     <Target className="h-4 w-4 text-warning" />
@@ -780,7 +758,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-info-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                            <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Profit Factor</span>
                                     <BarChart3 className="h-4 w-4 text-info" />
@@ -793,7 +771,7 @@ export default function BacktestsPage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-xl border border-border bg-negative-muted p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                            <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                     <span>Max Drawdown</span>
                                     <TrendingDown className="h-4 w-4 text-negative" />

@@ -6,7 +6,8 @@
     "outDir": "compiled",
     "declaration": false,
     "module": "NodeNext",
-    "moduleResolution": "NodeNext"
+    "moduleResolution": "NodeNext",
+    "rootDir": "src"
   },
   "include": ["src/main", "src/shared", "src/preload"],
   "exclude": ["src/components", "src/renderer", "**/*.test.ts", "**/*.test.tsx"]
