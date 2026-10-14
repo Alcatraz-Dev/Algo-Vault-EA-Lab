@@ -104,7 +104,7 @@ export default function MarketHeader({
     onRefresh,
     // Offset by the shell's real sticky-header height (`--shell-header-h`, published by
     // AppShell/AdminShell); the 3.5rem fallback matches the standalone 56px topbar.
-    stickyTop = "top-[var(--shell-header-h,3.5rem)]",
+    stickyTop = "top-[var(--shell-header-h)]",
 }: MarketHeaderProps) {
     const [showSymbolDropdown, setShowSymbolDropdown] = useState(false);
 

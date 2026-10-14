@@ -62,6 +62,7 @@
   --invert-foreground: #0a0b0d;
 
   --radius: 0.625rem;
+  --shell-header-h: 3.5rem;
 
   /* Motion system — shared easing so timing stays consistent app-wide. */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);

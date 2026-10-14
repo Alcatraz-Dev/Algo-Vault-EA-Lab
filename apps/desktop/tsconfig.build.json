@@ -5,7 +5,7 @@
     "allowImportingTsExtensions": false,
     "outDir": "compiled",
     "declaration": false,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
