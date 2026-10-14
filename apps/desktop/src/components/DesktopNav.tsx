@@ -18,18 +18,9 @@ export default function DesktopNav() {
   const navigate = (route: string) => window.history.pushState(null, "", route);
   return (
     <nav
-      className="flex w-16 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none"
+      className="flex w-20 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none"
       aria-label="Desktop navigation rail"
     >
-      <button
-        type="button"
-        onClick={() => navigate("/")}
-        className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#f97316] to-[#ea580c] text-sm font-extrabold text-white shadow-lg shadow-[#f97316]/20 ring-1 ring-[#f97316]/30 transition-transform hover:scale-[1.05] hover:shadow-[#f97316]/30 active:scale-[0.98]"
-        aria-label="AlgoVault home"
-        title="AlgoVault"
-      >
-        AV
-      </button>
       <div className="h-px w-6 bg-[#27272a] mb-2" />
       {navItems.map((item) => (
         <button

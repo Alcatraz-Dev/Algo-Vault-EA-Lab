@@ -181,7 +181,7 @@ export default function AccountSettingsPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (!currentUser) {
-                router.replace("/login");
+                router.replace("/login?redirect=/account/settings");
                 return;
             }
 
