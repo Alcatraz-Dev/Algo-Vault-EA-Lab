@@ -43,7 +43,6 @@
     "files": [
       "compiled/main/**/*",
       "compiled/preload/**/*",
-      "compiled/components/**/*",
       "compiled/shared/**/*",
       "public/icons/**/*",
       "package.json"

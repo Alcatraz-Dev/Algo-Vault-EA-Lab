@@ -1,49 +1,90 @@
-import { app } from 'electron';
-import EventEmitter from 'node:events';
+import dns from 'node:dns';
+import { EventEmitter } from 'node:events';
+import { log } from './next-server.js';
 
-export interface ConnectionEvents {
-  online: () => void;
-  offline: () => void;
-}
+/**
+ * OS-level network connectivity detection for the AlgoVault desktop shell.
+ *
+ * The Electron main process has no `window` or `navigator`, so we probe the OS
+ * directly. The signal:
+ *
+ *   1. DNS — `dns.lookup` on a well-known host reports whether the resolver
+ *      itself is reachable (handles captive portals, DNS-only outages, link
+ *      down — all the states where the OS is "offline" from the user's POV).
+ *
+ * DNS alone is sufficient: any user-meaningful "the feed is down" state is
+ * either DNS failure or upstream unreachability, both of which this catches.
+ */
+
+const PROBE_HOSTS = [
+  // Cloudflare — any of these resolving means the DNS resolver and the
+  // upstream network path are functional.
+  '1.1.1.1',
+];
+
+const PROBE_INTERVAL_MS = 5_000;
+const PROBE_TIMEOUT_MS = 2_500;
 
 const emitter = new EventEmitter();
-
-// Electron main process has no `window`/`navigator` — only the renderer does.
 let online = true;
-if (typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean') {
-  online = navigator.onLine;
+let lastReported = true;
+let timer: NodeJS.Timeout | null = null;
+
+function probeDns(): Promise<boolean> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      resolve(ok);
+    };
+    dns.lookup(PROBE_HOSTS[0]!, { family: 4 }, (err) => finish(!err));
+    setTimeout(() => finish(false), PROBE_TIMEOUT_MS).unref?.();
+  });
 }
 
-function update(): void {
-  const nowOnline =
-    typeof navigator !== 'undefined' && navigator.onLine === true;
-  if (nowOnline !== online) {
-    online = nowOnline;
-    if (online) {
-      emitter.emit('online');
-    } else {
-      emitter.emit('offline');
-    }
+async function tick(): Promise<void> {
+  // DNS alone is the right signal for "do I have an upstream path?".
+  // The loopback HTTP probe was redundant — port 80 is rarely open on
+  // modern desktops and adds nothing the DNS check doesn't already cover.
+  const dnsOk = await probeDns();
+  online = dnsOk;
+  if (online !== lastReported) {
+    lastReported = online;
+    log(online ? 'INFO' : 'WARN', 'connectivity changed →', online ? 'online' : 'offline');
+    emitter.emit(online ? 'online' : 'offline');
   }
 }
 
-// Set up a bidirectional channel: the renderer listens to OS network changes
-// (the `window` event), and the main process pushes on the same emitter so
-// both sides of the contextBridge stay in sync.
-function addBrowserListeners(): void {
-  if (typeof window === 'undefined') return;
-  window.addEventListener('online', update);
-  window.addEventListener('offline', update);
+function start(): void {
+  if (timer) return;
+  // First tick after a short delay so the app has time to settle.
+  timer = setTimeout(function loop() {
+    void tick();
+    timer = setTimeout(loop, PROBE_INTERVAL_MS);
+  }, 1_500);
+  timer.unref?.();
 }
 
-addBrowserListeners();
+function stop(): void {
+  if (timer) {
+    clearTimeout(timer);
+    timer = null;
+  }
+}
 
 export const connection = {
-  online,
-  onOnline(listener: () => void): void {
-    emitter.on('online', listener);
+  get online(): boolean {
+    return online;
   },
-  onOffline(listener: () => void): void {
+  start,
+  stop,
+  onOnline(listener: () => void): () => void {
+    emitter.on('online', listener);
+    return () => emitter.off('online', listener);
+  },
+  onOffline(listener: () => void): () => void {
     emitter.on('offline', listener);
+    return () => emitter.off('offline', listener);
   },
 };

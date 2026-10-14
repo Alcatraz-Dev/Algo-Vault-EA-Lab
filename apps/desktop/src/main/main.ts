@@ -131,6 +131,7 @@ function wireIpc(): void {
 function wireConnection(): void {
   if (!mainWindow) return;
   const win = mainWindow;
+  connection.start();
   connection.onOnline(() => {
     if (!win.isDestroyed()) win.webContents.send('connection:online');
   });

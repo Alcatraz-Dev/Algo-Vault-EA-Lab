@@ -1,29 +1,38 @@
 # AlgoVault Desktop shell
 
 A thin Electron shell on top of the **existing** production Next.js web app. It adds
-window chrome, native menus, a tray, an auto-updater, and feed-connection overlay — it
-does not re-implement the trading UI. The web app is built by the root workspace
-(`next build` -> `http://127.0.0.1:3000`) and served into a `BrowserWindow`.
+a native window chrome, native menus, a tray, an auto-updater, and feed-connection
+overlay — it does not re-implement the trading UI. The web app is built by the root
+workspace (`next build` → `http://127.0.0.1:3000`) and loaded into a `BrowserWindow`
+that uses the platform's native window controls.
 
 ## Files
 
 | Path | Purpose |
 | --- | --- |
 | `src/main/main.ts` | Bootstraps the app, spawns the Next production server, creates the window, wires menus/tray/updates/connection |
-| `src/main/window.ts` | `BrowserWindow` creation + restore/size bounds (min 1280x780) |
-| `src/main/menus.ts` | Native application menu (File/Window/Edit/View/Help) + global shortcuts |
+| `src/main/window.ts` | `BrowserWindow` creation + restore/size bounds (min 1280x780), macOS vibrancy, Windows Mica, dark-mode aware title-bar overlay |
+| `src/main/menus.ts` | Native application menu (File/Edit/View/Navigate/Window/Help) + macOS app menu + global menu accelerators |
 | `src/main/tray.ts` | Tray icon, tooltip (App name + version), context menu (Open/Hide/Quit) |
-| `src/main/auto-updater.ts` | `autoUpdater` wrapper; `check()` + `onUpdate` event (inert until a release is published) |
-| `src/main/connection.ts` | `online`/`offline` events wired from the OS `network-status` event |
-| `src/preload/index.ts` | `contextBridge` IPC surface (`window`, `app`, `connection`, `updater`, `openExternal`) |
-| `src/renderer/main.tsx` | Renderer entry; bootstraps `App` |
-| `src/renderer/App.tsx` | Shell renders the production Next.js app inside an `<iframe>` |
-| `src/components/DesktopChrome.tsx` | Custom title bar (min/max/close) over the native title bar |
-| `src/components/ConnectionOverlay.tsx` | Disconnected/recovered overlay over the embedded web app |
-| `src/components/ExternalLink.tsx` | Allowlist-gated `openExternal` button |
-| `tsconfig.json` | Electron + renderer TypeScript config |
-| `shared/electron-types.d.ts` | Ambient Electron declarations |
-| `shared/links.ts` | External-link allowlist |
+| `src/main/auto-updater.ts` | `autoUpdater` wrapper; `check()` + event bridge (inert until a release is published) |
+| `src/main/connection.ts` | OS-level connectivity probe (DNS + loopback HTTP) emitting `online`/`offline` events |
+| `src/main/next-server.ts` | Spawns the Next.js standalone server, waits for it to respond, terminates cleanly on quit |
+| `src/preload/index.cts` | `contextBridge` IPC surface (`window`, `app`, `dialog`, `clipboard`, `notification`, `connection`, `updater`, `navigation`, `openExternal`) |
+| `src/shared/links.ts` | External-link allowlist (HTTPS-only, exact-origin + limited subdomain) |
+| `src/shared/session.ts` | Pure-data session state predicates (no Electron / Firebase imports) |
+
+## Window chrome per platform
+
+| Platform | Chrome |
+| --- | --- |
+| macOS   | `hiddenInset` title bar + traffic-light position aligned to the 16-px grid + vibrancy (`under-window` on dark, `sidebar` on light) + Ember-tinted title-bar overlay that re-tints on `nativeTheme` updates |
+| Windows | Standard OS frame + Mica background material on Win 11 for the native tinted surface |
+| Linux   | Standard OS frame; system menu bar respected via `autoHideMenuBar` |
+
+All platforms use the design-system background `#0b0c0e` and the Ember accent
+`#f97316` so the window integrates with the in-app surface even before the
+Next.js content paints (no white flash on launch — `show: false` until
+`ready-to-show`).
 
 ## Prerequisites
 
@@ -34,39 +43,38 @@ does not re-implement the trading UI. The web app is built by the root workspace
 ## Development
 
 ```bash
-npm run dev        # start main process (tsx) -> window opens
+npm run dev        # start main process (tsx) → window opens
 ```
 
 The embedded web app must be built first (from the repo root):
 
 ```bash
-npm run build      # next build
-npm run dev        # in a separate terminal, next start
+NEXT_OUTPUT_STANDALONE=1 npm run build      # produce .next/standalone
+npm run start                                # next start (or use the desktop launcher)
 ```
 
 ## Packaging
 
-`apps/desktop/package.json` is a plain Electron app; `apps/desktop` is a workspace
-member of the root npm workspaces so `electron` is shared. To build a release:
+`apps/desktop/package.json` is an Electron-builder app; `electron-builder` lives in
+`devDependencies` and is shared via the workspace.
 
 ```bash
 npm install
-npm run build
-./node_modules/.bin/electron-builder   # add electron-builder to devDeps when ready
+npm run build:next                # standalone Next build
+npm run build                     # tsc → compiled/
+npm run dist                      # electron-builder --mac --dir → apps/desktop/dist/desktop-build
+npm run package:mac               # full .dmg + .zip
 ```
 
-Apps are branded **AlgoVault**; the icon comes from `public/logos/logo.png`
-(DESIGN.md §21.3) and the version from this `package.json`.
+Apps are branded **AlgoVault**; the icon comes from `public/icons/icon-512x512.png`
+and the version from this `package.json`.
 
 ## Acceptance checklist
 
-- [ ] Window minimum 1280x780, resizable, native title bar (`hiddenInset`).
-- [ ] Native menu bar (File/Window/Edit/View/Help) + global shortcuts (`Ctrl+W`,
-      `Ctrl+R`, `Cmd+Shift+F`, `Cmd+,`).
+- [ ] Window minimum 1280x780, resizable, native title bar per platform.
+- [ ] Native menu bar (App/File/Edit/View/Navigate/Window/Help) + macOS app menu + global accelerators.
 - [ ] Tray with tooltip = App name + version; right-click menu Open/Hide/Quit.
-- [ ] Real disconnected/recovered overlay over the embedded app (no invented chrome).
-- [ ] `openExternal` allows only `tradingview.com`, `telegram.org`, `*.algovault.com`;
-      blocked origins fail locally and harmlessly.
-- [ ] `ConnectionOverlay` mirrors the app's real feed-state (never fabricates data).
-- [ ] Auto-updater wired (`check` inert until a release channel ships).
-- [ ] No secrets/`.env`/Firebase private keys/Stripe secrets in the bundle.
+- [ ] Real feed-connection status from OS DNS + loopback HTTP probes (never fabricated).
+- [ ] `openExternal` allows only allowlisted HTTPS origins; blocked origins fail locally and harmlessly.
+- [ ] Auto-updater wired (`check` inert until a release channel ships; no `feedURL` → no network call).
+- [ ] No secrets / `.env` / Firebase private keys / Stripe secrets in the bundle.

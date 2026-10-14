@@ -62,14 +62,29 @@ const notificationBridge = {
     ipcRenderer.invoke('notification:show', options),
 };
 
-const connectionState = {
-  online: true,
-  offline: false,
-};
-
 const updaterBridge = {
   check: () => ipcRenderer.invoke('updater:check'),
-  onUpdate: (_callback: () => void) => {},
+  onUpdateAvailable: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('updater:update-available', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-available', handler);
+    };
+  },
+  onUpdateDownloaded: (callback: () => void) => {
+    const handler = () => callback();
+    ipcRenderer.on('updater:update-downloaded', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:update-downloaded', handler);
+    };
+  },
+  onError: (callback: (message: string) => void) => {
+    const handler = (_event: IpcRendererEvent, message: string) => callback(message);
+    ipcRenderer.on('updater:error', handler);
+    return () => {
+      ipcRenderer.removeListener('updater:error', handler);
+    };
+  },
 };
 
 const navigationBridge = {
@@ -92,6 +107,20 @@ const navigationBridge = {
 const openExternal = (url: string): Promise<boolean> =>
   ipcRenderer.invoke('app:openExternally', url);
 
+const connectionBridge = {
+  getStatus: () => ipcRenderer.invoke('connection:getStatus') as Promise<{ online: boolean }>,
+  onStatusChange: (callback: (status: { online: boolean }) => void) => {
+    const onOnline = () => callback({ online: true });
+    const onOffline = () => callback({ online: false });
+    ipcRenderer.on('connection:online', onOnline);
+    ipcRenderer.on('connection:offline', onOffline);
+    return () => {
+      ipcRenderer.removeListener('connection:online', onOnline);
+      ipcRenderer.removeListener('connection:offline', onOffline);
+    };
+  },
+};
+
 const algovaultApi = {
   isDesktop: true as const,
   platform: process.platform,
@@ -101,52 +130,18 @@ const algovaultApi = {
   dialog: dialogBridge,
   clipboard: clipboardBridge,
   notification: notificationBridge,
-  connection: {
-    getStatus: () => ipcRenderer.invoke('connection:getStatus'),
-    onStatusChange: (callback: (status: { online: boolean }) => void) => {
-      const onOnline = () => callback({ online: true });
-      const onOffline = () => callback({ online: false });
-      ipcRenderer.on('connection:online', onOnline);
-      ipcRenderer.on('connection:offline', onOffline);
-      return () => {
-        ipcRenderer.removeListener('connection:online', onOnline);
-        ipcRenderer.removeListener('connection:offline', onOffline);
-      };
-    },
-  },
-  updater: {
-    check: () => ipcRenderer.invoke('updater:check'),
-    onUpdate: (callback: () => void) => {
-      const handler = () => callback();
-      ipcRenderer.on('updater:update-available', handler);
-      return () => {
-        ipcRenderer.removeListener('updater:update-available', handler);
-      };
-    },
-  },
+  connection: connectionBridge,
+  updater: updaterBridge,
   navigation: navigationBridge,
 };
 
 try {
   contextBridge.exposeInMainWorld('__ALGOVAULT_DESKTOP__', true);
   contextBridge.exposeInMainWorld('algovault', algovaultApi);
-  // Backwards compatibility wrappers
+  // Backwards compatibility wrappers for the old surface used by ad-hoc scripts.
   contextBridge.exposeInMainWorld('app', appBridge);
   contextBridge.exposeInMainWorld('windowControls', windowControls);
   contextBridge.exposeInMainWorld('openExternal', openExternal);
 } catch (err) {
   console.error('[desktop] preload bridge setup failed', err);
 }
-
-// Internal listeners to sync state
-ipcRenderer.on('connection:online', () => {
-  connectionState.online = true;
-  connectionState.offline = false;
-});
-ipcRenderer.on('connection:offline', () => {
-  connectionState.offline = true;
-  connectionState.online = false;
-});
-ipcRenderer.on('updater:error', (_event: IpcRendererEvent, message: string) => {
-  console.warn('[desktop] updater error:', message);
-});

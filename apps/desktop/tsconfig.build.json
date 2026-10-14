@@ -5,10 +5,9 @@
     "allowImportingTsExtensions": false,
     "outDir": "compiled",
     "declaration": false,
-    "jsx": "preserve",
-    "rootDir": "src",
     "module": "NodeNext",
     "moduleResolution": "NodeNext"
   },
-  "include": ["src"]
+  "include": ["src/main", "src/shared", "src/preload"],
+  "exclude": ["src/components", "src/renderer", "**/*.test.ts", "**/*.test.tsx"]
 }
