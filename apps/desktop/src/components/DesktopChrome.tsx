@@ -8,44 +8,46 @@ import { Minus, Square, X } from "lucide-react";
 export default function DesktopChrome() {
   return (
     <div
-      className="flex h-10 w-full items-center justify-between select-none bg-[#0b0c0e] px-3 text-xs text-[#9a9fa6] border-b border-[#2b2e32]"
+      className="flex h-10 w-full items-center justify-between select-none bg-gradient-to-b from-[#0b0c0e] to-[#121316] px-4 text-sm text-[#a1a1aa] border-b border-[#27272a] backdrop-blur-sm"
       data-slot="desktop-chrome"
       style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
     >
-      <div className="flex items-center gap-2 font-medium tracking-tight text-[#f4f5f6]">
-        <span className="inline-flex h-4 w-4 items-center justify-center rounded-sm bg-[#de661c] text-[0.55rem] font-extrabold text-[#1d1406]">
+      <div className="flex items-center gap-3 font-medium tracking-tight text-white">
+        <span className="inline-flex h-5 w-5 items-center justify-center rounded-sm bg-gradient-to-r from-[#f97316] to-[#ea580c] text-[0.6rem] font-bold text-white">
           AV
         </span>
-        <span>AlgoVault</span>
-        <span className="text-[0.55rem] text-[#9a9fa6]">v1.0.0</span>
+        <div className="flex flex-col items-start">
+          <span className="text-[0.875rem] font-semibold tracking-tight">AlgoVault</span>
+          <span className="text-[0.625rem] tracking-tighter text-[#9ca3af]">v{process.env.NEXT_PUBLIC_VERSION || '0.1.0'}</span>
+        </div>
       </div>
       <div
-        className="flex items-center gap-1"
+        className="flex items-center gap-2"
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
       >
         <button
           onClick={() => ((window as any).desktop?.minimize?.() ?? (window as any).windowControls?.minimize?.() ?? (window as any).electron?.window?.minimize?.())}
-          className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors"
+          className="relative flex h-7 w-7 items-center justify-center rounded-md bg-[#1f2937/50] text-[0.875rem] font-medium text-[#a1a1aa] hover:bg-[#1f2937/75] hover:text-white transition-all duration-200"
           aria-label="Minimize"
           title="Minimize"
         >
-          <Minus size={12} />
+          <Minus size={14} className="absolute -left-[2px] -top-[2px] w-10 h-10" />
         </button>
         <button
           onClick={() => ((window as any).desktop?.maximize?.() ?? (window as any).windowControls?.maximize?.() ?? (window as any).electron?.window?.maximize?.())}
-          className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors"
+          className="relative flex h-7 w-7 items-center justify-center rounded-md bg-[#1f2937/50] text-[0.875rem] font-medium text-[#a1a1aa] hover:bg-[#1f2937/75] hover:text-white transition-all duration-200"
           aria-label="Maximize"
           title="Maximize"
         >
-          <Square size={10} />
+          <Square size={12} className="absolute -left-[2px] -top-[2px] w-10 h-10" />
         </button>
         <button
           onClick={() => ((window as any).desktop?.close?.() ?? (window as any).windowControls?.close?.() ?? (window as any).electron?.window?.close?.())}
-          className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#ff645f] hover:text-[#f4f5f6] transition-colors"
+          className="relative flex h-7 w-7 items-center justify-center rounded-md bg-[#1f2937/50] text-[0.875rem] font-medium text-[#a1a1aa] hover:bg-[#ef4444] hover:text-white transition-all duration-200"
           aria-label="Close"
           title="Close"
         >
-          <X size={12} />
+          <X size={14} className="absolute -left-[2px] -top-[2px] w-10 h-10" />
         </button>
       </div>
     </div>
