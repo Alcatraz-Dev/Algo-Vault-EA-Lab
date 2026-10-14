@@ -12,7 +12,7 @@ export const ALLOWED_ORIGINS = [
 export function isOriginAllowlisted(url) {
     try {
         const parsed = new URL(url);
-        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')
+        if (parsed.protocol !== 'https:' || parsed.username || parsed.password)
             return false;
         if (ALLOWED_ORIGINS.some((rule) => rule.origin === parsed.origin))
             return true;
@@ -20,9 +20,9 @@ export function isOriginAllowlisted(url) {
             return true;
         if (parsed.hostname.endsWith('.algovault.app'))
             return true;
-        if (parsed.hostname.endsWith('tradingview.com'))
+        if (parsed.hostname === 'tradingview.com' || parsed.hostname.endsWith('.tradingview.com'))
             return true;
-        if (parsed.hostname.endsWith('github.com'))
+        if (parsed.hostname === 'github.com' || parsed.hostname.endsWith('.github.com'))
             return true;
         if (parsed.hostname === 'telegram.org')
             return true;
