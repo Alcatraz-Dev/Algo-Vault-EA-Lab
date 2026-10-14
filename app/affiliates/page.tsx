@@ -201,7 +201,7 @@ export default function AffiliatesPage() {
                     featuredOffers.length > 0 && (
                         <section className="mt-12">
                             <div className="mb-5 flex items-center gap-2">
-                                <Star className="h-4 w-4 fill-current text-warning" />
+                                <Star className="h-4 w-4 fill-current text-yellow-400" />
 
                                 <h2 className="text-lg font-semibold">
                                     Featured Partners
@@ -249,7 +249,7 @@ export default function AffiliatesPage() {
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground/50" />
 
                         <div>
-                            <h3 className="text-sm font-medium text-amber-700 font-extrabold">
+                            <h3 className="text-sm font-medium text-primary font-bold">
                                 Affiliate Disclosure
                             </h3>
 
@@ -298,7 +298,7 @@ function AffiliateCard({
     return (
         <article
             className={`group relative overflow-hidden rounded-2xl border shadow-[0_1px_3px_rgb(0_0_0/0.05)] transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md ${featured
-                ? "border-amber-400/40 bg-gradient-to-br from-amber-500/[0.06] to-card"
+                ? "border-primary/30 bg-gradient-to-br from-primary/[0.07] to-card"
                 : "border-border/30"
                 } hover:bg-foreground/10`}
         >
@@ -359,9 +359,9 @@ function AffiliateCard({
                 </p>
 
                 {commission && (
-                    <div className="mt-5 rounded-lg border border-border/30 bg-gradient-to-r from-amber-500/10 to-primary/5 border border-amber-400/20 px-3 py-2 text-xs font-medium text-foreground">
+                    <div className="mt-5 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-medium text-foreground shadow-sm">
                         Partnership:{" "}
-                        <span className="text-amber-700 font-extrabold">
+                        <span className="font-extrabold text-white">
                             {commission}
                         </span>
                     </div>
@@ -371,7 +371,7 @@ function AffiliateCard({
                     href={`/api/affiliate/click?offerId=${encodeURIComponent(
                         offer.id
                     )}`}
-                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-primary to-amber-500 px-4 text-sm font-extrabold text-white shadow-md transition hover:brightness-110"
+                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-extrabold text-white shadow-md transition hover:brightness-110"
                 >
                     Visit Offer
                     <ArrowUpRight className="h-4 w-4" />

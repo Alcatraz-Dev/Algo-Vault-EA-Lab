@@ -36,8 +36,8 @@
      mark and key CTAs. It is NEVER profit/buy/success (those are semantic).
      Solid fills carry near-black ink (--primary-foreground).
      As text on dark surfaces use --primary-text (#fb923c) for AA. */
-  --primary: #f97316;
-  --primary-foreground: #1c0e02;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
   --primary-text: #fb923c;
 
   --destructive: #f87171;
@@ -114,8 +114,8 @@
   --popover: #ffffff;
   --popover-foreground: #1c2024;
   /* Solid ember fill stays the exact accent; warm-white ink sits on top. */
-  --primary: #ea580c;
-  --primary-foreground: #fff7ed;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
   /* Deeper ember for text/links on light surfaces: ~4.6:1 on #f7f8fa — AA.
      `--primary` stays exact for solid fills and borders. See the
      `html.light .text-primary` override below. */
@@ -914,7 +914,7 @@ body {
    (`hover:text-primary`, `text-primary/70`) and other `text-primary-*` tokens
    are intentionally untouched. */
 html.light .text-primary {
-  color: var(--primary-text);
+  color: var(--primary);
 }
 
 /* ── Selection ── */
