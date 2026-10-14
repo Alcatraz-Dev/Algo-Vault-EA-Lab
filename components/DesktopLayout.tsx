@@ -1,5 +1,5 @@
 import React from "react";
-import DesktopChrome from "./DesktopChrome.js";
+import DesktopChrome from "./DesktopChrome";
 
 export default function DesktopLayout({ children }: { children: React.ReactNode }) {
   return (
