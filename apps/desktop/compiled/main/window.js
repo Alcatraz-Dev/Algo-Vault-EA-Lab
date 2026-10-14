@@ -121,7 +121,7 @@ export function createWindow() {
         minHeight: MIN_HEIGHT,
         frame: true,
         titleBarStyle: 'hiddenInset',
-        trafficLightPosition: { x: 12, y: 12 },
+        trafficLightPosition: { x: 14, y: 16 },
         titleBarOverlay: { color: '#0b0c0e', symbolColor: '#f97316', height: 36 },
         autoHideMenuBar: process.platform !== 'darwin',
         show: false,

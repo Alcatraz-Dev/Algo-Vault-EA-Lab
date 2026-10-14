@@ -1,6 +1,6 @@
 import React from "react";
-import DesktopChrome from "./DesktopChrome";
-import DesktopNav from "./DesktopNav";
+import DesktopChrome from "./DesktopChrome.js";
+import DesktopNav from "./DesktopNav.js";
 
 /**
  * DesktopLayout — Premium macOS desktop shell for AlgoVault.
