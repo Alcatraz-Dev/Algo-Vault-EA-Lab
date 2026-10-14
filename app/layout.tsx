@@ -7,6 +7,7 @@ import GuideHost from "@/components/guides/GuideHost";
 import PwaRegister from "@/components/pwa/PwaRegister";
 import ExtensionInstallBinding from "@/components/extension/ExtensionInstallBinding";
 import ProductAnalyticsProvider from "@/components/product-analytics/ProductAnalyticsProvider";
+import { DesktopShell } from "@/components/DesktopShell";
 import {
   StructuredData,
   ALGOVAULT_ORGANIZATION_SCHEMA,
@@ -142,7 +143,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <StructuredData type="SoftwareApplication" data={ALGOVAULT_SOFTWARE_SCHEMA} id="jsonld-app" />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <DesktopShell>
+          {children}
+        </DesktopShell>
         <GuideHost />
         <PwaRegister />
         <ExtensionInstallBinding />
