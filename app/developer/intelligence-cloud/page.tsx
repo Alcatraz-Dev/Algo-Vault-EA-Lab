@@ -1,17 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Shield, Key, Activity, Terminal, BookOpen, Code2, Zap, CheckCircle2, AlertCircle, BarChart3 } from "lucide-react";
-import Link from "next/link";
+import { Shield, Key, Activity, Terminal, BookOpen, Code2, Zap, CheckCircle2, BarChart3 } from "lucide-react";
 
 export default function IntelligenceCloudOverview() {
-  const [expanded, setExpanded] = useState<string | null>("overview");
-
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10 min-w-0">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Intelligence Cloud</h1>
-        <p className="text-muted-foreground">AlgoVault's deterministic intelligence layer — market, indicators, smart money, strategy validation, and research — exposed through versioned APIs.</p>
+        <p className="text-muted-foreground">AlgoVault&apos;s deterministic intelligence layer — market, indicators, smart money, strategy validation, and research — exposed through versioned APIs.</p>
       </header>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -66,10 +62,10 @@ console.log(market.smartMoney, market.indicators, market.engineVersions);`}
 
 function Card({ title, icon, desc, endpoint }: { title: string; icon: React.ReactNode; desc: string; endpoint: string }) {
   return (
-    <Link href="#" className="block min-h-[44px] rounded-xl border border-border p-5 bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] hover:border-primary/30 transition-colors space-y-2">
+    <article className="block min-h-[44px] space-y-2 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
       <div className="flex items-center gap-2 text-lg font-semibold">{icon} {title}</div>
       <p className="text-sm text-muted-foreground">{desc}</p>
       <code className="text-xs text-positive font-numeric">{endpoint}</code>
-    </Link>
+    </article>
   );
 }

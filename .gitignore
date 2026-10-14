@@ -82,3 +82,6 @@ blob-report/
 .worktrees/
 
 
+# desktop build artifacts (generated, not source)
+apps/desktop/compiled/
+apps/desktop/dist/

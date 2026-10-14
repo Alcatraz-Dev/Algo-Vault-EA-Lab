@@ -2,11 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LayoutDashboard, TrendingUp, Brain, ScanSearch, BarChart3, Lightbulb, Settings } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, route: "/dashboard", shortcut: "⌘1" },
-  { label: "Trading", icon: TrendingUp, route: "/trading", shortcut: "⌘2" },
+  { label: "Trading", icon: TrendingUp, route: "/account/terminal", shortcut: "⌘2" },
   { label: "Signals", icon: Brain, route: "/signals", shortcut: "⌘3" },
   { label: "Scanner", icon: ScanSearch, route: "/scanner", shortcut: "⌘4" },
   { label: "Strategy", icon: BarChart3, route: "/strategy-lab", shortcut: "⌘5" },
@@ -15,7 +16,7 @@ const navItems = [
 ];
 
 export default function DesktopNav() {
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const pathname = usePathname() ?? "";
   return (
     <nav
       className="flex w-16 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none"
@@ -30,12 +31,14 @@ export default function DesktopNav() {
         AV
       </Link>
       <div className="h-px w-6 bg-[#27272a] mb-2" />
-      {navItems.map((item) => (
+      {navItems.map((item) => {
+        const active = pathname === item.route || pathname.startsWith(`${item.route}/`);
+        return (
         <Link
           key={item.label}
           href={item.route}
-          aria-current={pathname === item.route ? "page" : undefined}
-          className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 active:scale-[0.95] ${(pathname === item.route || pathname.startsWith(`${item.route}/`)) ? "bg-[#27272a]/60 text-[#f97316]" : "text-[#9ca3af]"}`}
+          aria-current={active ? "page" : undefined}
+          className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 active:scale-[0.95] ${active ? "bg-[#27272a]/60 text-[#f97316]" : "text-[#9ca3af]"}`}
           aria-label={item.label}
           title={`${item.label} (${item.shortcut})`}
         >
@@ -44,13 +47,14 @@ export default function DesktopNav() {
             {item.label}
           </span>
         </Link>
-      ))}
+        );
+      })}
       <div className="mt-auto flex flex-col gap-1">
         <div className="h-px w-6 bg-[#27272a] mb-1" />
         <Link
           href="/account/settings"
-          aria-current={pathname === "/account/settings" ? "page" : undefined}
-          className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 ${(pathname === "/account/settings") ? "bg-[#27272a]/60 text-white" : "text-[#9ca3af]"}`}
+          aria-current={pathname === "/account/settings" || pathname.startsWith("/account/settings/") ? "page" : undefined}
+          className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 ${pathname === "/account/settings" || pathname.startsWith("/account/settings/") ? "bg-[#27272a]/60 text-white" : "text-[#9ca3af]"}`}
           aria-label="Account settings"
           title="Account settings"
         >

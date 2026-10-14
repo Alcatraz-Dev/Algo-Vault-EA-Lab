@@ -197,11 +197,19 @@ export function createWindow() {
         return { action: 'deny' };
     });
     win.webContents.on('will-navigate', (event, url) => {
-        const activeUrl = getActiveUrl();
-        if (!url.startsWith(activeUrl)) {
+        let isInternal = false;
+        try {
+            isInternal = new URL(url).origin === new URL(getActiveUrl()).origin;
+        }
+        catch {
+            // Invalid navigation targets are never trusted.
+        }
+        if (!isInternal) {
             event.preventDefault();
             if (isOriginAllowlisted(url)) {
-                shell.openExternal(url);
+                void shell.openExternal(url).catch((error) => {
+                    log('WARN', 'Could not open external navigation:', String(error));
+                });
             }
             else {
                 log('WARN', 'Blocked external navigation:', url);

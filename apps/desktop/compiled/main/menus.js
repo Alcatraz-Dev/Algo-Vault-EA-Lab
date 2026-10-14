@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu, shell } from 'electron';
+import { BrowserWindow, Menu, dialog, shell } from 'electron';
 import pkg from '../../package.json' with { type: 'json' };
 const APP_NAME = 'AlgoVault';
 const APP_VERSION = pkg.version;
@@ -38,14 +38,14 @@ export function createApplicationMenu(actionsOrGetter) {
     };
     const showAbout = () => {
         const win = getTargetWindow();
-        const { dialog } = require('electron');
-        dialog.showMessageBox(win ?? null, {
+        const options = {
             type: 'info',
             title: `About ${APP_NAME}`,
             message: `${APP_NAME} v${APP_VERSION}`,
             detail: 'Institutional AI-Powered Trading Platform & Quantitative Strategy Terminal for macOS.',
             buttons: ['OK'],
-        });
+        };
+        void (win ? dialog.showMessageBox(win, options) : dialog.showMessageBox(options));
     };
     const template = [
         // macOS Application Menu
