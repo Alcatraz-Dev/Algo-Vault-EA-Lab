@@ -28,12 +28,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // Enable standalone output only for the desktop (Electron) build.
-  // Vercel's own build adapter requires the default output and breaks with
-  // 'standalone' (it can't find .next/next-server.js.nft.json).
-  // Set NEXT_OUTPUT_STANDALONE=1 when building for Electron:
-  //   NEXT_OUTPUT_STANDALONE=1 next build
-  output: 'standalone',
+  // `standalone` breaks Vercel's adapter (missing `.next/next-server.js.nft.json`).
+  // Only use for Electron desktop builds via NEXT_OUTPUT_STANDALONE=1.
+  output: process.env.NEXT_OUTPUT_STANDALONE === '1' ? 'standalone' : undefined,
   // `playwright` is an OPTIONAL runtime dependency of the browser-capture
   // provider (lib/marketing-agent/browser/providers.ts): the code probes for
   // it inside try/catch and degrades to NOT_CONFIGURED when absent. Marking it
