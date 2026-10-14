@@ -24,7 +24,7 @@ export default function DesktopChrome() {
         style={{ WebkitAppRegion: "no-drag" } as React.CSSProperties}
       >
         <button
-          onClick={() => (window as any).window?.minimize()}  
+          onClick={() => ((window as any).desktop?.minimize?.() ?? (window as any).windowControls?.minimize?.() ?? (window as any).electron?.window?.minimize?.())}
           className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors"
           aria-label="Minimize"
           title="Minimize"
@@ -32,7 +32,7 @@ export default function DesktopChrome() {
           <Minus size={12} />
         </button>
         <button
-          onClick={() => (window as any).window?.maximize()}  
+          onClick={() => ((window as any).desktop?.maximize?.() ?? (window as any).windowControls?.maximize?.() ?? (window as any).electron?.window?.maximize?.())}
           className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors"
           aria-label="Maximize"
           title="Maximize"
@@ -40,7 +40,7 @@ export default function DesktopChrome() {
           <Square size={10} />
         </button>
         <button
-          onClick={() => (window as any).window?.close()}  
+          onClick={() => ((window as any).desktop?.close?.() ?? (window as any).windowControls?.close?.() ?? (window as any).electron?.window?.close?.())}
           className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#ff645f] hover:text-[#f4f5f6] transition-colors"
           aria-label="Close"
           title="Close"

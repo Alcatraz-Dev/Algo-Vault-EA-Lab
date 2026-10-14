@@ -14,13 +14,13 @@ export default function DesktopChrome() {
         <span className="text-[0.55rem] text-[#9a9fa6]">v1.0.0</span>
       </div>
       <div className="flex items-center gap-1" style={{ WebkitAppRegion: "no-drag" }}>
-        <button onClick={() => window.window?.minimize()} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors" aria-label="Minimize" title="Minimize">
+        <button onClick={() => (window.desktop?.minimize?.() ?? window.windowControls?.minimize?.() ?? window.electron?.window?.minimize?.())} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors" aria-label="Minimize" title="Minimize">
           <Minus size={12}/>
         </button>
-        <button onClick={() => window.window?.maximize()} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors" aria-label="Maximize" title="Maximize">
+        <button onClick={() => (window.desktop?.maximize?.() ?? window.windowControls?.maximize?.() ?? window.electron?.window?.maximize?.())} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#2b2e32] hover:text-[#de661c] transition-colors" aria-label="Maximize" title="Maximize">
           <Square size={10}/>
         </button>
-        <button onClick={() => window.window?.close()} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#ff645f] hover:text-[#f4f5f6] transition-colors" aria-label="Close" title="Close">
+        <button onClick={() => (window.desktop?.close?.() ?? window.windowControls?.close?.() ?? window.electron?.window?.close?.())} className="flex h-6 w-6 items-center justify-center rounded-md text-[#9a9fa6] hover:bg-[#ff645f] hover:text-[#f4f5f6] transition-colors" aria-label="Close" title="Close">
           <X size={12}/>
         </button>
       </div>

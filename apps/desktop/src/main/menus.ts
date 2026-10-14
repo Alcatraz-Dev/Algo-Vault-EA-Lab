@@ -1,22 +1,8 @@
-import { app, BrowserWindow, Menu, globalShortcut, MenuItemConstructorOptions } from 'electron';
+import { app, BrowserWindow, Menu, MenuItemConstructorOptions, shell } from 'electron';
 import pkg from '../../package.json' with { type: 'json' };
 
-const APP_NAME = (pkg as { name: string }).name;
+const APP_NAME = 'AlgoVault';
 const APP_VERSION = (pkg as { version: string }).version;
-
-/** Show the native "About" dialog. */
-function showAbout(): void {
-  const win = BrowserWindow.getFocusedWindow();
-  const dialog = require('electron').dialog;
-  dialog.showMessageBox(win ?? null, {
-    type: 'info',
-    title: `About ${APP_NAME}`,
-    message: `${APP_NAME} v${APP_VERSION}`,
-    detail:
-      'Desktop shell for AlgoVault: window chrome, native menus, tray, auto-updater and feed-connection overlay on top of the existing production Next.js web app.',
-    buttons: ['OK'],
-  });
-}
 
 export interface WindowActions {
   minimize: () => void;
@@ -25,19 +11,10 @@ export interface WindowActions {
   isMaximized: () => boolean;
 }
 
-/**
- * Build a thin, single source of truth for window actions. The menus and the
- * connection/updater IPC handlers read from this object so every caller looks
- * at the same window and never creates a second BrowserWindow.
- *
- * Takes a getter (not the window itself) so the actions always resolve the
- * *current* window at call time. Capturing a `const ... = null` here would
- * narrow to `never` under `strict` and leave every action permanently dead.
- */
 export function createWindowActions(
   getWindow: () => BrowserWindow | null,
 ): WindowActions {
-  const actions: WindowActions = {
+  return {
     minimize: () => {
       getWindow()?.minimize();
     },
@@ -52,91 +29,216 @@ export function createWindowActions(
     },
     isMaximized: () => getWindow()?.isMaximized() ?? false,
   };
-
-  return actions;
 }
 
-export function createApplicationMenu(actions: WindowActions): void {
-  const menuTemplate: MenuItemConstructorOptions[] = [
+export function createApplicationMenu(
+  actionsOrGetter: WindowActions | (() => BrowserWindow | null),
+): void {
+  const isMac = process.platform === 'darwin';
+
+  const getTargetWindow = (): BrowserWindow | null => {
+    if (typeof actionsOrGetter === 'function') {
+      return actionsOrGetter();
+    }
+    return BrowserWindow.getFocusedWindow();
+  };
+
+  const sendNavigation = (route: string) => {
+    const win = getTargetWindow();
+    if (win && !win.isDestroyed()) {
+      win.webContents.send('navigation:go', route);
+    }
+  };
+
+  const showAbout = () => {
+    const win = getTargetWindow();
+    const { dialog } = require('electron');
+    dialog.showMessageBox(win ?? null, {
+      type: 'info',
+      title: `About ${APP_NAME}`,
+      message: `${APP_NAME} v${APP_VERSION}`,
+      detail:
+        'Institutional AI-Powered Trading Platform & Quantitative Strategy Terminal for macOS.',
+      buttons: ['OK'],
+    });
+  };
+
+  const template: MenuItemConstructorOptions[] = [
+    // macOS Application Menu
+    ...(isMac
+      ? [
+          {
+            label: APP_NAME,
+            submenu: [
+              { label: `About ${APP_NAME}`, click: showAbout },
+              { type: 'separator' as const },
+              {
+                label: 'Preferences...',
+                accelerator: 'Command+,',
+                click: () => sendNavigation('/account/settings'),
+              },
+              { type: 'separator' as const },
+              { role: 'services' as const },
+              { type: 'separator' as const },
+              { role: 'hide' as const },
+              { role: 'hideOthers' as const },
+              { role: 'unhide' as const },
+              { type: 'separator' as const },
+              { role: 'quit' as const },
+            ],
+          },
+        ]
+      : []),
+
+    // File
     {
       label: 'File',
       submenu: [
-        { label: 'Undo', accelerator: 'CommandOrControl+Z', role: 'undo' },
-        { label: 'Redo', accelerator: 'Shift+CommandOrControl+Z', role: 'redo' },
-        { type: 'separator' },
         {
-          label: 'Restart',
-          accelerator: 'CommandOrControl+R',
-          click: () => {
-            app.relaunch();
-            app.quit();
-          },
+          label: 'Close Window',
+          accelerator: isMac ? 'Command+W' : 'Ctrl+W',
+          role: 'close',
         },
         { type: 'separator' },
-        { label: 'Quit', accelerator: 'CommandOrControl+Q', role: 'quit' },
+        {
+          label: 'Export Report / Workspace...',
+          accelerator: isMac ? 'Command+E' : 'Ctrl+E',
+          click: () => {
+            getTargetWindow()?.webContents.send('menu:export');
+          },
+        },
+        ...(!isMac
+          ? [
+              { type: 'separator' as const },
+              { label: 'Quit', accelerator: 'Ctrl+Q', role: 'quit' as const },
+            ]
+          : []),
       ],
     },
-    {
-      label: 'Window',
-      submenu: [
-        { label: 'Minimize', accelerator: 'CommandOrControl+M', role: 'minimize' },
-        { label: 'Maximize', accelerator: 'CommandOrControl+Return', role: 'zoom' },
-        { type: 'separator' },
-        { label: 'Frontmost', role: 'front' },
-      ],
-    },
+
+    // Edit
     {
       label: 'Edit',
       submenu: [
-        { label: 'Undo', accelerator: 'CommandOrControl+Z', role: 'undo' },
-        { label: 'Redo', accelerator: 'Shift+CommandOrControl+Z', role: 'redo' },
+        { role: 'undo' },
+        { role: 'redo' },
         { type: 'separator' },
-        { label: 'Cut', accelerator: 'CommandOrControl+X', role: 'cut' },
-        { label: 'Copy', accelerator: 'CommandOrControl+C', role: 'copy' },
-        { label: 'Paste', accelerator: 'CommandOrControl+V', role: 'paste' },
-        { label: 'Select All', accelerator: 'CommandOrControl+A', role: 'selectAll' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' },
       ],
     },
+
+    // View
     {
       label: 'View',
       submenu: [
-        {
-          label: 'Reload',
-          accelerator: 'CommandOrControl+R',
-          click: () => BrowserWindow.getFocusedWindow()?.webContents.reload(),
-        },
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { type: 'separator' },
+        { role: 'resetZoom' },
+        { role: 'zoomIn' },
+        { role: 'zoomOut' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+        { type: 'separator' },
         {
           label: 'Toggle Developer Tools',
-          accelerator: 'Alt+CommandOrControl+I',
-          click: () => BrowserWindow.getFocusedWindow()?.webContents.toggleDevTools(),
+          accelerator: isMac ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          click: () => getTargetWindow()?.webContents.toggleDevTools(),
         },
       ],
     },
+
+    // Navigate
+    {
+      label: 'Navigate',
+      submenu: [
+        {
+          label: 'Dashboard',
+          accelerator: isMac ? 'Command+1' : 'Ctrl+1',
+          click: () => sendNavigation('/dashboard'),
+        },
+        {
+          label: 'Trading Terminal',
+          accelerator: isMac ? 'Command+2' : 'Ctrl+2',
+          click: () => sendNavigation('/account/terminal'),
+        },
+        {
+          label: 'AI Signals',
+          accelerator: isMac ? 'Command+3' : 'Ctrl+3',
+          click: () => sendNavigation('/signals'),
+        },
+        {
+          label: 'Market Scanner',
+          accelerator: isMac ? 'Command+4' : 'Ctrl+4',
+          click: () => sendNavigation('/scanner'),
+        },
+        {
+          label: 'Strategy Lab',
+          accelerator: isMac ? 'Command+5' : 'Ctrl+5',
+          click: () => sendNavigation('/strategy-lab'),
+        },
+        {
+          label: 'Portfolio',
+          accelerator: isMac ? 'Command+6' : 'Ctrl+6',
+          click: () => sendNavigation('/portfolio'),
+        },
+        {
+          label: 'AI Copilot',
+          accelerator: isMac ? 'Command+7' : 'Ctrl+7',
+          click: () => sendNavigation('/ai-copilot'),
+        },
+        { type: 'separator' },
+        {
+          label: 'Account Settings',
+          click: () => sendNavigation('/account/settings'),
+        },
+      ],
+    },
+
+    // Window
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+      ],
+    },
+
+    // Help
     {
       label: 'Help',
       submenu: [
+        {
+          label: 'AlgoVault Documentation',
+          click: () => shell.openExternal('https://algovault.app/docs'),
+        },
+        {
+          label: 'Release Notes',
+          click: () =>
+            shell.openExternal(
+              'https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases',
+            ),
+        },
+        { type: 'separator' },
         { label: 'About AlgoVault', click: showAbout },
       ],
     },
   ];
 
-  const menu = Menu.buildFromTemplate(menuTemplate);
+  const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
 }
 
-export function registerGlobalShortcuts(actions: WindowActions): void {
-  const performClose = () => BrowserWindow.getFocusedWindow()?.close();
-  const performReload = () => BrowserWindow.getFocusedWindow()?.webContents.reload();
-  const performToggleFullscreen = () => {
-    const win = BrowserWindow.getFocusedWindow();
-    if (win) win.setFullScreen(!win.isFullScreen());
-  };
-
-  globalShortcut.register('CommandOrControl+R', performReload);
-  globalShortcut.register('CommandOrControl+W', performClose);
-  globalShortcut.register('CommandOrControl+Shift+F', performToggleFullscreen);
-  // `Cmd+,` is reserved for the (future) settings panel.
-  globalShortcut.register('CommandOrControl+,', () => {
-    // no-op — settings panel not implemented yet.
-  });
+/**
+ * Global shortcuts are deliberately avoided for standard window commands
+ * to respect macOS guidelines and prevent hijacking keystrokes across other apps.
+ * Standard menu item accelerators handle all shortcuts automatically when focused.
+ */
+export function registerGlobalShortcuts(_actions: WindowActions): void {
+  // Intentional no-op: accelerators in application menu are active when the app is focused.
 }

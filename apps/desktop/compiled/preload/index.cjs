@@ -8,7 +8,7 @@ const electron_1 = require("electron");
  * touch Node or Electron directly. Everything it needs passes through here.
  * The surface is deliberately narrow.
  */
-const window = {
+const windowControls = {
     minimize: () => electron_1.ipcRenderer.invoke('window:minimize'),
     maximize: () => electron_1.ipcRenderer.invoke('window:maximize'),
     close: () => electron_1.ipcRenderer.invoke('window:close'),
@@ -32,7 +32,9 @@ const updater = {
 /** Safe openExternal: allowlisted origins only (see `shared/links.ts`). */
 const openExternal = (url) => electron_1.ipcRenderer.invoke('app:openExternally', url);
 try {
-    electron_1.contextBridge.exposeInMainWorld('window', window);
+    electron_1.contextBridge.exposeInMainWorld('windowControls', windowControls);
+    electron_1.contextBridge.exposeInMainWorld('desktop', { ...windowControls, app, connection, updater, openExternal });
+    electron_1.contextBridge.exposeInMainWorld('electron', { window: windowControls, app, connection, updater, openExternal });
     electron_1.contextBridge.exposeInMainWorld('app', app);
     electron_1.contextBridge.exposeInMainWorld('connection', connection);
     electron_1.contextBridge.exposeInMainWorld('updater', updater);
