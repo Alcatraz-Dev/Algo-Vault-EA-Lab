@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { LayoutDashboard, TrendingUp, Brain, ScanSearch, BarChart3, Lightbulb, Settings } from "lucide-react";
 
@@ -13,6 +15,7 @@ const navItems = [
 
 export default function DesktopNav() {
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const navigate = (route: string) => window.history.pushState(null, "", route);
   return (
     <nav
       className="flex w-16 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none"
@@ -20,7 +23,7 @@ export default function DesktopNav() {
     >
       <button
         type="button"
-        onClick={() => window.location.assign("/")}
+        onClick={() => navigate("/")}
         className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#f97316] to-[#ea580c] text-sm font-extrabold text-white shadow-lg shadow-[#f97316]/20 ring-1 ring-[#f97316]/30 transition-transform hover:scale-[1.05] hover:shadow-[#f97316]/30 active:scale-[0.98]"
         aria-label="AlgoVault home"
         title="AlgoVault"
@@ -32,7 +35,7 @@ export default function DesktopNav() {
         <button
           key={item.label}
           type="button"
-          onClick={() => window.location.assign(item.route)}
+          onClick={() => navigate(item.route)}
           aria-current={pathname === item.route ? "page" : undefined}
           className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 active:scale-[0.95] ${(pathname === item.route || pathname.startsWith(`${item.route}/`)) ? "bg-[#27272a]/60 text-[#f97316]" : "text-[#9ca3af]"}`}
           aria-label={item.label}
@@ -48,7 +51,7 @@ export default function DesktopNav() {
         <div className="h-px w-6 bg-[#27272a] mb-1" />
         <button
           type="button"
-          onClick={() => window.location.assign("/account/settings")}
+          onClick={() => navigate("/account/settings")}
           aria-current={pathname === "/account/settings" ? "page" : undefined}
           className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 ${(pathname === "/account/settings") ? "bg-[#27272a]/60 text-white" : "text-[#9ca3af]"}`}
           aria-label="Account settings"

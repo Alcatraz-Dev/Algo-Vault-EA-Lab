@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
  * Sticky sub-headers (market header, workspace rails) used to guess a fixed offset
  * (`top-14` = the old 56px topbar) and end up tucked behind the real header once it
  * changes size at another breakpoint. They can instead use
- * `top-[var(--shell-header-h,3.5rem)]`, which is correct in every shell.
+ * `top-[var(--shell-header-h)]` (default `3.5rem` via `:root` CSS), which is correct in every shell.
  */
 export function useShellHeaderHeight(ref: React.RefObject<HTMLElement | null>) {
   const [height, setHeight] = useState(0);
