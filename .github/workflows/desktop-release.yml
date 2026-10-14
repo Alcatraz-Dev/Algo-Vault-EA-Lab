@@ -31,7 +31,6 @@ permissions:
 
 jobs:
   build-desktop:
-    if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -61,6 +60,7 @@ jobs:
         run: npm ci
 
       - name: Resolve package version
+        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         shell: bash
         env:
           INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
@@ -74,6 +74,7 @@ jobs:
           echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Build web app for Electron
+        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         run: npm run build
         env:
           NEXT_OUTPUT_STANDALONE: '1'
@@ -90,6 +91,7 @@ jobs:
           FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
 
       - name: Build desktop package
+        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         shell: bash
         run: |
           npm run build --workspace=algovault-desktop
@@ -104,6 +106,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Prepare artifacts and manifest
+        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         shell: bash
         env:
           RELEASE_VERSION: ${{ github.event.inputs.version || github.ref_name }}
@@ -139,6 +142,7 @@ jobs:
           NODE
 
       - name: Upload artifacts
+        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         uses: actions/upload-artifact@v4
         with:
           name: desktop-artifacts-${{ matrix.os }}-${{ github.event.inputs.version || github.ref_name }}
@@ -146,5 +150,5 @@ jobs:
           retention-days: 30
 
       - name: Release status
-        if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+        if: (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux')
         run: echo "Desktop artifacts and their built manifest are attached to this workflow run. GitHub Release publication, signing, and notarization are not configured."

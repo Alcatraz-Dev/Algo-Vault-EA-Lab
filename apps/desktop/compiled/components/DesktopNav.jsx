@@ -13,10 +13,7 @@ const navItems = [
 export default function DesktopNav() {
     const pathname = typeof window !== "undefined" ? window.location.pathname : "";
     const navigate = (route) => window.history.pushState(null, "", route);
-    return (<nav className="flex w-16 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none" aria-label="Desktop navigation rail">
-      <button type="button" onClick={() => navigate("/")} className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-r from-[#f97316] to-[#ea580c] text-sm font-extrabold text-white shadow-lg shadow-[#f97316]/20 ring-1 ring-[#f97316]/30 transition-transform hover:scale-[1.05] hover:shadow-[#f97316]/30 active:scale-[0.98]" aria-label="AlgoVault home" title="AlgoVault">
-        AV
-      </button>
+    return (<nav className="flex w-20 flex-col items-center gap-1 bg-[#0b0c0e]/80 backdrop-blur-md border-r border-[#27272a] py-3 select-none" aria-label="Desktop navigation rail">
       <div className="h-px w-6 bg-[#27272a] mb-2"/>
       {navItems.map((item) => (<button key={item.label} type="button" onClick={() => navigate(item.route)} aria-current={pathname === item.route ? "page" : undefined} className={`group relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200 hover:bg-[#27272a]/60 hover:text-[#f97316] focus:outline-none focus:ring-2 focus:ring-[#f97316]/40 active:scale-[0.95] ${(pathname === item.route || pathname.startsWith(`${item.route}/`)) ? "bg-[#27272a]/60 text-[#f97316]" : "text-[#9ca3af]"}`} aria-label={item.label} title={`${item.label} (${item.shortcut})`}>
           <item.icon size={18} strokeWidth={1.75}/>
