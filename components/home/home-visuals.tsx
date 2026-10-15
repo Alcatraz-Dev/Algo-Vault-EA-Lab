@@ -66,7 +66,7 @@ export function EngineBars() {
             </CardHeader>
             <CardContent className="flex-1 pb-0">
                 <ChartContainer
-                    config={{ score: { label: "Score", color: "#3b82f6" } } }
+                    config={{ score: { label: "Score", color: "#fbbf24" } } }
                     className="mx-auto aspect-square max-h-[240px]"
                 >
                     <RadialBarChart data={ENGINE_SCORES} innerRadius={30} outerRadius={90} startAngle={0} endAngle={270}>
@@ -100,7 +100,7 @@ export function ReturnsHistogram() {
     const chartConfig = {
         desktop: {
             label: "Return %",
-            color: "#3b82f6",
+            color: "#fbbf24",
         },
     } satisfies ChartConfig
     return (
@@ -115,7 +115,7 @@ export function ReturnsHistogram() {
                         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
                         <PolarAngleAxis dataKey="month" tick={{ fontSize: 10 }} />
                         <PolarGrid />
-                        <Radar dataKey="desktop" fill="#3b82f6" fillOpacity={0.6} dot={{ r: 3, fillOpacity: 1 }} />
+                        <Radar dataKey="desktop" fill="#fbbf24" fillOpacity={0.6} dot={{ r: 3, fillOpacity: 1 }} />
                     </RadarChart>
                 </ChartContainer>
             </CardContent>

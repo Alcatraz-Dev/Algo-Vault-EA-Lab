@@ -10,7 +10,7 @@
       "arch": ["x64"],
       "min_version": "Windows 10",
       "status": "preview",
-      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
       "download_url": "",
       "file_size_bytes": 0,
       "file_size_human": "Not available — installer has not been produced.",

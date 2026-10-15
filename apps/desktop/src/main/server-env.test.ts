@@ -12,6 +12,7 @@ test('desktop child server receives no Firebase Admin credentials by default', (
     FIREBASE_DATABASE_URL: 'https://project.example.invalid',
     STRIPE_SECRET_KEY: 'must-not-cross',
     OTHER_SECRET: 'must-not-cross',
+    NODE_OPTIONS: '--require=/tmp/untrusted-preload.js',
   });
 
   assert.equal(env.NEXT_PUBLIC_FIREBASE_API_KEY, undefined);
@@ -21,6 +22,7 @@ test('desktop child server receives no Firebase Admin credentials by default', (
   assert.equal(env.FIREBASE_DATABASE_URL, undefined);
   assert.equal(env.STRIPE_SECRET_KEY, undefined);
   assert.equal(env.OTHER_SECRET, undefined);
+  assert.equal(env.NODE_OPTIONS, undefined);
 });
 
 test('self-hosted mode forwards only Firebase Admin values explicitly allowlisted', () => {

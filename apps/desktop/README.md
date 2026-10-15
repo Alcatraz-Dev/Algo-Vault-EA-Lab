@@ -58,7 +58,8 @@ npm run start                                # next start (or use the desktop la
 The embedded Next.js server runs as a child of Electron. Its environment is inherited
 from the launching process, but Firebase Admin credentials are removed by default.
 They are forwarded only when `ALGOVAULT_SELF_HOSTED=1` is explicitly set, and only
-for an operator-managed self-hosted/development instance. Provide `FIREBASE_PROJECT_ID`,
+for an operator-managed self-hosted/development instance. `NODE_OPTIONS` and arbitrary
+shell variables are not inherited by the child. Provide `FIREBASE_PROJECT_ID`,
 `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`; `FIREBASE_DATABASE_URL` may be
 provided explicitly or derived by the existing Admin initializer from the project ID.
 The private key must be the rotated replacement credential and must remain in the

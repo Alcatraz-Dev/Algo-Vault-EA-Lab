@@ -1,5 +1,6 @@
 import { app } from 'electron';
 import { join } from 'node:path';
+import { buildNextServerEnv } from './server-env.js';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import http from 'node:http';
@@ -135,14 +136,7 @@ export async function spawnNextServer() {
         readyReject?.(new Error(msg));
         return;
     }
-    const env = {
-        ...process.env,
-        PORT: String(activePort),
-        HOSTNAME: '127.0.0.1',
-        NODE_ENV: 'production',
-        ELECTRON_RUN_AS_NODE: '1',
-        NEXT_TELEMETRY_DISABLED: '1',
-    };
+    const env = buildNextServerEnv(process.env, activePort);
     log('INFO', `Spawning: ${process.execPath} server.js in ${standaloneDir} on port ${activePort}`);
     serverProc = spawn(process.execPath, ['server.js'], {
         cwd: standaloneDir,
@@ -200,8 +194,9 @@ export async function spawnNextServer() {
             const trimmed = line.trim();
             if (!trimmed)
                 continue;
-            log('INFO', '[server]', trimmed);
             const isError = trimmed.includes('Error') || trimmed.includes('Failed') || trimmed.includes('EADDRINUSE');
+            if (isError)
+                log('ERROR', '[server] child emitted an error; details withheld');
             if (!serverReady && !isError && (trimmed.includes('started server on') ||
                 trimmed.includes('Listening on') ||
                 trimmed.includes('Ready in') ||

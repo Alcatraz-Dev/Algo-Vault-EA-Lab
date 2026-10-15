@@ -128,7 +128,7 @@ export default function DesktopDownloadSection() {
               specs={[
                 { label: "Architecture", value: "x64" },
                 { label: "Minimum", value: "Windows 10+" },
-                { label: "Package", value: "NSIS installer (~85 MB)" },
+                { label: "Package", value: "Not available for download" },
               ]}
               ciNote="Build is prepared by the desktop-release CI workflow on a Windows runner. Final artifact publishes to GitHub Releases once verified."
             />

@@ -26,7 +26,7 @@ export function buildNextServerEnv(
   for (const key of [
     'PATH', 'HOME', 'USER', 'USERPROFILE', 'TMPDIR', 'TEMP', 'TMP',
     'SYSTEMROOT', 'WINDIR', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMDATA',
-    'LANG', 'LC_ALL', 'LC_CTYPE', 'NODE_OPTIONS',
+    'LANG', 'LC_ALL', 'LC_CTYPE',
   ]) {
     if (source[key]) env[key] = source[key];
   }

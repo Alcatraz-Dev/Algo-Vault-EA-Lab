@@ -208,8 +208,9 @@ export async function spawnNextServer(): Promise<void> {
   pollInterval = setInterval(checkHttpReady, 250);
   pollInterval.unref?.();
 
-  const onData = (chunk: Buffer) => {      const text = chunk.toString('utf8');
-      for (const line of text.split('\n')) {
+  const onData = (chunk: Buffer) => {
+    const text = chunk.toString('utf8');
+    for (const line of text.split('\n')) {
       const trimmed = line.trim();
       if (!trimmed) continue;
       const isError = trimmed.includes('Error') || trimmed.includes('Failed') || trimmed.includes('EADDRINUSE');
