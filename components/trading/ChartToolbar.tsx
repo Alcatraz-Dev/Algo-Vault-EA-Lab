@@ -619,7 +619,7 @@ function ChartToolbar({
                     {/* Theme presets */}
                     <div className="flex flex-col gap-2">
                         <SectionTitle>Theme preset</SectionTitle>
-                        <div className="flex gap-1">
+                        <div className="flex gap-1.5">
                             {PRESETS.map((p) => (
                                 <button
                                     key={p.id}
@@ -627,7 +627,7 @@ function ChartToolbar({
                                     title={p.title}
                                     onClick={() => update((prev) => withPreset(prev, p.id))}
                                     className={cn(
-                                        "rounded-md border px-2 py-1 font-numeric text-micro font-semibold transition",
+                                        "rounded-lg border px-2.5 py-1 font-numeric text-xs font-medium transition",
                                         settings.preset === p.id
                                             ? "border-primary bg-primary/10 text-primary"
                                             : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -643,7 +643,7 @@ function ChartToolbar({
                             {DISPLAY_ROWS.map((row) => (
                                 <label
                                     key={row.key}
-                                    className="flex cursor-pointer items-center justify-between gap-2 text-micro text-muted-foreground"
+                                    className="flex cursor-pointer items-center justify-between gap-2 text-xs font-normal text-muted-foreground"
                                     title={row.hint}
                                 >
                                     <span>{row.label}</span>
@@ -665,7 +665,7 @@ function ChartToolbar({
                             {COLOR_ROWS.map((row) => (
                                 <label
                                     key={row.key}
-                                    className="flex cursor-pointer items-center justify-between gap-2 text-micro text-muted-foreground"
+                                    className="flex cursor-pointer items-center justify-between gap-2 text-xs font-normal text-muted-foreground"
                                 >
                                     <span>{row.label}</span>
                                     <input
