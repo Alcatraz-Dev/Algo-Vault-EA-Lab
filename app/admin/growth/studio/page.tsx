@@ -125,7 +125,7 @@ export default function MarketingStudioPage() {
             </div>
             <div className="grid md:grid-cols-2 gap-3">
               {(concepts || []).map((c: any) => (
-                <Card key={c.id} className="relative rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
+                <Card key={c.id} className="relative rounded-xl shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                   <CardContent className="p-4 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div>

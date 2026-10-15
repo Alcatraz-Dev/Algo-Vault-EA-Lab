@@ -31,7 +31,7 @@ import { useLivePrices } from "@/hooks/useLivePrices";
 type Params = { id: string };
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-    SCANNING: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
+    SCANNING: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/40" },
     FORMING: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
     WATCH: { bg: "bg-warning/10", text: "text-warning-foreground", border: "border-warning/30" },
     READY: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
@@ -41,13 +41,13 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; border: string }
     TP3_HIT: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
     RUNNER: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
     CANCELLED: { bg: "bg-negative/10", text: "text-negative", border: "border-negative/30" },
-    EXPIRED: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
+    EXPIRED: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/40" },
     STOPPED: { bg: "bg-negative/10", text: "text-negative", border: "border-negative/30" },
     COMPLETED: { bg: "bg-positive/10", text: "text-positive", border: "border-positive/30" },
 };
 
 const STRENGTH_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-    WEAK: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/30" },
+    WEAK: { bg: "bg-muted/10", text: "text-muted-foreground", border: "border-border/40" },
     MODERATE: { bg: "bg-warning/10", text: "text-warning-foreground", border: "border-warning/30" },
     GOOD: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
     STRONG: { bg: "bg-info/10", text: "text-info-foreground", border: "border-info/30" },
@@ -122,7 +122,7 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
                     )}
                     {displayPrice == null && <span className="text-xs text-muted-foreground">Connecting…</span>}
                     {!isLive && displayPrice != null && (
-                        <span className="rounded-md border border-border/30 bg-muted/10 px-1.5 py-0.5 text-micro font-semibold uppercase text-muted-foreground">
+                        <span className="rounded-md border border-border/40 bg-muted/10 px-1.5 py-0.5 text-micro font-semibold uppercase text-muted-foreground">
                             at signal creation
                         </span>
                     )}
@@ -166,7 +166,7 @@ function LivePricePanel({ signal, lastUpdatedAt, onRefresh }: {
                     />
                     {/* cursor dot */}
                     <div
-                        className="absolute top-0 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-background bg-foreground shadow-md transition-all duration-500"
+                        className="absolute top-0 h-2 w-2 -translate-x-1/2 rounded-full border-2 border-background bg-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all duration-500"
                         style={{ left: `${progress}%` }}
                     />
                 </div>
@@ -415,7 +415,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                         <p className="text-sm text-muted-foreground">{error || "This signal may have been removed."}</p>
                         <Link
                             href="/signals"
-                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="mt-4 inline-flex items-center gap-2 rounded-md border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             <ArrowLeft size={16} />
                             Back to Signals
@@ -471,7 +471,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                             <span className={`rounded-full border px-2 py-1 text-micro font-bold uppercase tracking-wider ${
                                 signal.tier === "PRO"
                                     ? "bg-primary/10 text-primary border-primary/30"
-                                    : "bg-muted/40 text-muted-foreground border-border/30"
+                                    : "bg-muted/40 text-muted-foreground border-border/40"
                             }`}>
                                 {signal.tier || "FREE"}
                             </span>
@@ -482,7 +482,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                                         ? "bg-positive/10 text-positive border-positive/30"
                                         : signal.result === "LOSS"
                                         ? "bg-negative/10 text-negative border-negative/30"
-                                        : "bg-muted/10 text-muted-foreground border-border/30"
+                                        : "bg-muted/10 text-muted-foreground border-border/40"
                                 }`}>
                                     {signal.result} <span className="font-numeric">{signal.resultR > 0 ? "+" : ""}{Number(signal.resultR || 0).toFixed(2)}R</span>
                                 </span>
@@ -522,7 +522,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                                 className={`inline-flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-colors ${
                                     following
                                         ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                        : "border-border/30 bg-muted/5 text-foreground hover:bg-muted/10"
+                                        : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
                                 }`}
                             >
                                 {followLoading ? (
@@ -535,7 +535,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                         )}
                         <Link
                             href="/signals"
-                            className="inline-flex items-center gap-2 rounded-md border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex items-center gap-2 rounded-md border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             <Eye size={16} />
                             All Signals
@@ -763,7 +763,7 @@ export default function SignalDetailPage({ params }: { params: Promise<Params> }
                                         className={`flex w-full items-center justify-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-colors ${
                                             following
                                                 ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                                : "border-border/30 bg-muted/5 text-foreground hover:bg-muted/10"
+                                                : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
                                         }`}
                                     >
                                         {followLoading ? (

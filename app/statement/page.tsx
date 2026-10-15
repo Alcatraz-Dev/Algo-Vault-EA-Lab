@@ -87,7 +87,7 @@ export default function StatementPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     const s = data?.summary;
@@ -205,7 +205,7 @@ export default function StatementPage() {
                         </div>
 
                         {/* Trades Table */}
-                        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden">
+                        <div className="rounded-lg border border-border/40 bg-muted/50 overflow-hidden">
                             <div className="border-b border-border/20 px-5 py-3">
                                 <h3 className="text-sm font-semibold text-foreground">Trade History ({data.trades.length})</h3>
                             </div>

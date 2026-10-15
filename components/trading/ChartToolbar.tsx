@@ -47,6 +47,9 @@ import {
     Scan,
     Undo2,
     Magnet,
+    MoveUpRight,
+    MoveDownRight,
+    History,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -57,6 +60,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ChartType, DrawingTool } from "@/components/pro-scalping-terminal/ProTerminalChart";
 import {
     TOOL_COLOR_SWATCHES,
@@ -91,6 +95,9 @@ export interface ChartToolbarProps {
     /** Magnet: snap drawing prices to the nearest candle open/high/low/close. */
     magnet?: boolean;
     onToggleMagnet?: () => void;
+    /** Bar replay: step through historical candles with a transport bar. */
+    replayActive?: boolean;
+    onToggleReplay?: () => void;
     /** AI Draw (Pro): draw entry/SL/TP plan levels from the chart's candles. */
     aiDraw?: boolean;
     onToggleAiDraw?: () => void;
@@ -108,19 +115,21 @@ const CHART_TYPES: Array<{ id: ChartType; label: string; icon: LucideIcon }> = [
     { id: "baseline", label: "Baseline", icon: Activity },
 ];
 
-const DRAWING_TOOLS: Array<{ id: DrawingTool; label: string; icon: LucideIcon }> = [
-    { id: "select", label: "Pointer / Select", icon: MousePointer },
-    { id: "hand", label: "Drag / Move", icon: Move },
-    { id: "trendline", label: "Trendline", icon: TrendlineIcon },
-    { id: "arrow", label: "Arrow", icon: ArrowUpRight },
-    { id: "horizontal", label: "Horizontal Line", icon: Minus },
-    { id: "vertical", label: "Vertical Line", icon: Split },
-    { id: "ray", label: "Ray", icon: GitPullRequest },
-    { id: "fibo", label: "Fibonacci Retracement", icon: Activity },
-    { id: "rectangle", label: "Rectangle / Box", icon: Box },
-    { id: "triangle", label: "Triangle", icon: Triangle },
-    { id: "text", label: "Text Label", icon: Type },
-    { id: "ruler", label: "Measure / Ruler", icon: Ruler },
+const DRAWING_TOOLS: Array<{ id: DrawingTool; label: string; hint: string; icon: LucideIcon }> = [
+    { id: "select", label: "Pointer / Select", hint: "Click an object to select · Del removes it", icon: MousePointer },
+    { id: "hand", label: "Drag / Move", hint: "Drag to pan the chart — never creates drawings", icon: Move },
+    { id: "trendline", label: "Trendline", hint: "Drag between two points", icon: TrendlineIcon },
+    { id: "arrow", label: "Arrow", hint: "Drag from origin to target", icon: ArrowUpRight },
+    { id: "horizontal", label: "Horizontal Line", hint: "Click to place a price level", icon: Minus },
+    { id: "vertical", label: "Vertical Line", hint: "Click to place a time marker", icon: Split },
+    { id: "ray", label: "Ray", hint: "Drag from an origin through a target", icon: GitPullRequest },
+    { id: "fibo", label: "Fibonacci Retracement", hint: "Drag from swing start to swing end", icon: Activity },
+    { id: "rectangle", label: "Rectangle / Box", hint: "Drag to mark a zone", icon: Box },
+    { id: "triangle", label: "Triangle", hint: "Drag to draw a triangle", icon: Triangle },
+    { id: "long", label: "Enter Long", hint: "Drag from entry to target — stop-loss & take-profit plan", icon: MoveUpRight },
+    { id: "short", label: "Enter Short", hint: "Drag from entry to target — stop-loss & take-profit plan", icon: MoveDownRight },
+    { id: "text", label: "Text Label", hint: "Click, type a label, Enter saves", icon: Type },
+    { id: "ruler", label: "Measure / Ruler", hint: "Drag to measure price / time", icon: Ruler },
 ];
 
 const PRESETS: Array<{ id: ChartPresetId; label: string; title: string }> = [
@@ -241,6 +250,8 @@ function ChartToolbar({
     onUndoDrawing,
     magnet = false,
     onToggleMagnet,
+    replayActive = false,
+    onToggleReplay,
     aiDraw = false,
     onToggleAiDraw,
     aiDrawLocked = false,
@@ -301,20 +312,30 @@ function ChartToolbar({
                             const Icon = t.icon;
                             const isActive = activeDrawingTool === t.id;
                             return (
-                                <button
-                                    key={t.id}
-                                    type="button"
-                                    title={t.label}
-                                    onClick={() => onDrawingToolChange(t.id)}
-                                    className={cn(
-                                        "flex size-7 items-center justify-center rounded-md text-xs transition-colors",
-                                        isActive
-                                            ? "bg-primary text-primary-foreground font-bold shadow-sm"
-                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                    )}
-                                >
-                                    <Icon className="size-3.5" />
-                                </button>
+                                <Tooltip key={t.id}>
+                                    <TooltipTrigger
+                                        render={
+                                            <button
+                                                type="button"
+                                                aria-label={t.label}
+                                                aria-pressed={isActive}
+                                                onClick={() => onDrawingToolChange(t.id)}
+                                                className={cn(
+                                                    "flex size-7 items-center justify-center rounded-md text-xs transition-colors",
+                                                    isActive
+                                                        ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                )}
+                                            >
+                                                <Icon className="size-3.5" />
+                                            </button>
+                                        }
+                                    />
+                                    <TooltipContent side="bottom">
+                                        <span className="font-semibold">{t.label}</span>
+                                        <span className="text-background/70">· {t.hint}</span>
+                                    </TooltipContent>
+                                </Tooltip>
                             );
                         })}
                     </div>
@@ -369,8 +390,31 @@ function ChartToolbar({
                     )}
                 </div>
 
-                {/* Right: AI draw / fit / grid / theme / settings / fullscreen */}
+                {/* Right: replay / AI draw / fit / grid / theme / settings / fullscreen */}
                 <div className="flex items-center gap-1">
+                    {onToggleReplay ? (
+                        <Button
+                            size="sm"
+                            variant={replayActive ? "default" : "ghost"}
+                            onClick={onToggleReplay}
+                            aria-pressed={replayActive}
+                            className={cn(
+                                "h-8 gap-1 px-2 text-micro",
+                                replayActive
+                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "text-muted-foreground hover:text-foreground"
+                            )}
+                            title={
+                                replayActive
+                                    ? "Bar replay on — step through history with the transport bar"
+                                    : "Bar replay — rewind the chart and step through candles"
+                            }
+                        >
+                            <History className="size-3.5" />
+                            <span className="hidden sm:inline">Replay</span>
+                        </Button>
+                    ) : null}
+
                     {onToggleAiDraw ? (
                         <Button
                             size="sm"

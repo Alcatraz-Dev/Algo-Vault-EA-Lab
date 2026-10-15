@@ -31,7 +31,7 @@ export default function MarketIntelligenceResearchPage() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-dashed border-border/30 p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border/40 p-6 text-center text-sm text-muted-foreground">
           Phase 6.1 — Deterministic parameter research completed. Trading Studio integration and result preview/apply flow ready. Phase 6.2 (validation / out-of-sample) not implemented.
         </div>
       </div>

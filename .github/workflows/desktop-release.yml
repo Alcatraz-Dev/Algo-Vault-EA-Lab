@@ -114,9 +114,36 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
+      - name: Verify macOS signing secrets
+        if: matrix.target == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.macos)
+        shell: bash
+        run: |
+          missing=()
+          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [[ -z "${!name}" ]]; then missing+=("$name"); fi
+          done
+          if ((${#missing[@]})); then
+            printf 'Missing macOS signing/notarization secrets: %s\n' "${missing[*]}" >&2
+            printf 'Configure a Developer ID Application certificate (base64 .p12 in CSC_LINK) and Apple notarization credentials as GitHub Actions secrets.\n' >&2
+            exit 1
+          fi
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
       - name: Build desktop package
         if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
         shell: bash
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           npm run build --workspace=algovault-desktop
           case "${{ matrix.target }}" in
@@ -126,8 +153,6 @@ jobs:
             *) echo "Unsupported desktop target: ${{ matrix.target }}" >&2; exit 1 ;;
           esac
         working-directory: apps/desktop
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
 
       - name: Prepare artifacts and manifest
         if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
@@ -175,4 +200,4 @@ jobs:
 
       - name: Release status
         if: (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux')
-        run: echo "Desktop artifacts and their built manifest are attached to this workflow run. GitHub Release publication, signing, and notarization are not configured."
+        run: echo "Desktop artifacts and their built manifest are attached to this workflow run. macOS artifacts are Developer ID signed and notarized when the CSC_* / APPLE_* secrets are configured. GitHub Release publication is not configured."

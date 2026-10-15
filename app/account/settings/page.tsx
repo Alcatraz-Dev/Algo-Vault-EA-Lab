@@ -811,7 +811,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("profile")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "profile"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -824,7 +824,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("mt5")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "mt5"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -842,7 +842,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("security")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "security"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -855,7 +855,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("risk")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "risk"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -868,7 +868,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("notifications")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "notifications"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -881,7 +881,7 @@ export default function AccountSettingsPage() {
                             onClick={() => setActiveTab("integrations")}
                             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                                 activeTab === "integrations"
-                                    ? "border-primary text-foreground"
+                                    ? "border-black text-foreground"
                                     : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                         >
@@ -1026,7 +1026,7 @@ export default function AccountSettingsPage() {
                                                     onClick={() => setExperience(lvl)}
                                                     className={`rounded-md border px-3 py-2 text-xs font-medium transition-colors ${
                                                         experience === lvl
-                                                            ? "border-primary bg-primary/10 text-foreground"
+                                                            ? "border-primary bg-black/10 text-foreground"
                                                             : "border-border bg-muted/30 text-muted-foreground hover:bg-muted/70"
                                                     }`}
                                                 >
@@ -1053,7 +1053,7 @@ export default function AccountSettingsPage() {
                                         <button
                                             type="submit"
                                             disabled={savingProfile}
-                                            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                            className="inline-flex items-center gap-2 rounded-md bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                         >
                                             {savingProfile ? (
                                                 <Loader2 size={16} className="animate-spin" />
@@ -1121,7 +1121,7 @@ export default function AccountSettingsPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowAddMt5Modal(true)}
-                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
+                                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-black/80"
                             >
                                 <Plus size={15} />
                                 <span>Add MT5 Account</span>
@@ -1319,7 +1319,7 @@ export default function AccountSettingsPage() {
                                             <button
                                                 type="submit"
                                                 disabled={addingMt5}
-                                                className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                                className="inline-flex items-center gap-2 rounded-md bg-black px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                             >
                                                 {addingMt5 && <Loader2 size={14} className="animate-spin" />}
                                                 <span>Save MT5 Account</span>
@@ -1391,7 +1391,7 @@ export default function AccountSettingsPage() {
                                     <button
                                         type="submit"
                                         disabled={updatingPasswordState}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                     >
                                         {updatingPasswordState ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1531,7 +1531,7 @@ export default function AccountSettingsPage() {
                                     <button
                                         type="submit"
                                         disabled={savingRisk}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                     >
                                         {savingRisk ? (
                                             <Loader2 size={16} className="animate-spin" />
@@ -1788,7 +1788,7 @@ export default function AccountSettingsPage() {
                                     <button
                                         type="submit"
                                         disabled={savingNotifications}
-                                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                        className="inline-flex items-center gap-2 rounded-md bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                     >
                                         {savingNotifications ? (
                                             <Loader2 size={16} className="animate-spin" />

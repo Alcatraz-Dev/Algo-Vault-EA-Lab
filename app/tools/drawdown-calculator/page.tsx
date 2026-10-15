@@ -104,11 +104,11 @@ export default function DrawdownCalculator() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Final Balance</p>
-                                        <p className="mt-1 font-numeric text-xl font-bold text-foreground">${calc.finalBalance.toLocaleString()}</p>
+                                        <p className="mt-1 font-numeric text-sm font-semibold font-bold text-foreground">${calc.finalBalance.toLocaleString()}</p>
                                     </div>
                                     <div>
                                         <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Total Drawdown</p>
-                                        <p className="mt-1 font-numeric text-xl font-bold text-negative">-{calc.drawdownPct}%</p>
+                                        <p className="mt-1 font-numeric text-sm font-semibold font-bold text-negative">-{calc.drawdownPct}%</p>
                                     </div>
                                     <div>
                                         <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Amount Lost</p>

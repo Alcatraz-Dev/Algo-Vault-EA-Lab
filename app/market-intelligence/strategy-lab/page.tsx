@@ -51,7 +51,7 @@ export default function MarketIntelligenceStrategyLabPage() {
           <strong>Trading Studio preserved.</strong> React Flow canvas, Strategy Lab, Workflow Automation, and existing chart components remain intact. The adapter connects them rather than replacing them.
         </div>
 
-        <div className="rounded-lg border border-dashed border-border/30 p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border/40 p-6 text-center text-sm text-muted-foreground">
           Phase 5.5 — Professional trading research terminal. All engines (Market Data · Indicators · Smart Money · Sessions · Backtest · Replay · AI) feed into one coherent workspace.
         </div>
       </div>

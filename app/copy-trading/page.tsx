@@ -420,7 +420,7 @@ export default function CopyTradingPage() {
                             <button
                                 type="button"
                                 onClick={() => { if (masterAccounts.length > 0) openSetupModal(masterAccounts[0]); }}
-                                className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                                className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                             >
                                 <Plus size={16} />
                                 Add Follower
@@ -603,7 +603,7 @@ export default function CopyTradingPage() {
                                 return (
                                     <div
                                         key={master.id}
-                                        className="group rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md"
+                                        className="group rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                                     >
                                         {/* Header */}
                                         <div className="flex items-start justify-between gap-3">
@@ -683,7 +683,7 @@ export default function CopyTradingPage() {
                                             onClick={() => openSetupModal(master)}
                                             className={`mt-4 w-full flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${alreadyFollowing
                                                 ? "border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                                : "bg-primary text-primary-foreground hover:bg-primary/90"}`}
+                                                : "bg-primary text-white hover:bg-primary/90"}`}
                                         >
                                             {alreadyFollowing ? (
                                                 <>
@@ -1011,7 +1011,7 @@ export default function CopyTradingPage() {
                                 type="button"
                                 onClick={saveFollowerConfig}
                                 disabled={savingSetup}
-                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                                className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
                             >
                                 {savingSetup ? (
                                     <>

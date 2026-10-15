@@ -113,19 +113,19 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                             <span
                                 key={state}
                                 className={cn(
-                                    "rounded px-1.5 py-0.5 text-micro font-semibold",
+                                    "rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide",
                                     state === "RISK_OFF" || state === "HIGH_VOLATILITY"
-                                        ? "bg-negative/20 text-negative"
+                                        ? "border-negative/40 bg-negative/10 text-negative"
                                         : state === "RISK_ON" || state === "LOW_VOLATILITY"
-                                          ? "bg-positive/20 text-positive"
-                                          : "bg-info/20 text-info"
+                                          ? "border-positive/40 bg-positive/10 text-positive"
+                                          : "border-info/40 bg-info/10 text-info"
                                 )}
                             >
                                 {state.replace(/_/g, " ")}
                             </span>
                         ))}
                         {!ctx.regime || ctx.regime.activeStates.length === 0 ? (
-                            <span className="rounded bg-muted/20 px-1.5 py-0.5 text-micro font-semibold text-muted-foreground">
+                            <span className="rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-muted text-muted-foreground">
                                 REGIME UNKNOWN
                             </span>
                         ) : null}
@@ -152,14 +152,14 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                         </span>
                                         <span
                                             className={cn(
-                                                "rounded px-1 py-0.5 text-[8px] font-semibold",
+                                                "rounded-full border border-border/40 px-1 py-0.5 text-[9px] font-medium uppercase tracking-wide",
                                                 r.stability === "BREAKING" || r.stability === "FLIPPING"
-                                                    ? "bg-negative/20 text-negative"
+                                                    ? "border-negative/40 bg-negative/10 text-negative"
                                                     : r.stability === "WEAKENING"
-                                                      ? "bg-warning/20 text-warning"
+                                                      ? "border-warning/40 bg-warning/10 text-warning"
                                                       : r.stability === "STRENGTHENING"
-                                                        ? "bg-info/20 text-info"
-                                                        : "bg-muted/20 text-muted-foreground"
+                                                        ? "border-info/40 bg-info/10 text-info"
+                                                        : "border-border/40 bg-muted/40 text-muted-foreground"
                                             )}
                                         >
                                             {r.stability.replace("_", " ")}

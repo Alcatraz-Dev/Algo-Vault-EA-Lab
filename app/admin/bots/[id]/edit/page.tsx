@@ -2184,7 +2184,7 @@ export default function EditBotPage() {
                                 uploadingBranding !==
                                 null
                             }
-                            className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="flex items-center gap-2 rounded-lg bg-black px-6 py-3 text-sm font-semibold text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                         >
 
                             <Save

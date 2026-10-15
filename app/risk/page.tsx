@@ -94,7 +94,7 @@ export default function RiskPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</a>
                 </div>
             </div>
         );
@@ -157,7 +157,7 @@ export default function RiskPage() {
 
                         {/* Per-Position Risk */}
                         {risk.riskPerPosition.length > 0 && (
-                            <div className="rounded-lg border border-border/30 bg-muted/50">
+                            <div className="rounded-lg border border-border/40 bg-muted/50">
                                 <div className="border-b border-border/20 px-4 py-3">
                                     <h2 className="text-sm font-semibold text-foreground">Position Risk Breakdown</h2>
                                 </div>

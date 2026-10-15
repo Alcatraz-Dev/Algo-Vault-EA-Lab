@@ -210,7 +210,7 @@ function SuccessContent() {
                                         setLoading(true);
                                         setTries((t) => t + 1);
                                     }}
-                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     <RefreshCw size={14} />
                                     Check Again
@@ -271,7 +271,7 @@ function SuccessContent() {
 
                         {/* Rewards */}
                         {rewardIds.length > 0 && user ? (
-                            <div className="mt-10 rounded-lg border border-border/30 bg-muted p-6 text-left">
+                            <div className="mt-10 rounded-lg border border-border/40 bg-muted p-6 text-left">
                                 <div className="flex items-center gap-2 mb-5">
                                     <Gift size={16} className="text-primary" />
                                     <h2 className="font-bold text-foreground">Your Free Rewards</h2>
@@ -342,7 +342,7 @@ function SuccessContent() {
                                 </Link>
                             </div>
                         ) : (
-                            <div className="mt-10 rounded-lg border border-border/30 bg-muted p-6 text-center">
+                            <div className="mt-10 rounded-lg border border-border/40 bg-muted p-6 text-center">
                                 <p className="text-muted-foreground text-sm">
                                     Thank you for your kind donation! Every contribution helps.
                                 </p>
@@ -353,7 +353,7 @@ function SuccessContent() {
                         <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                                 <Link
                                     href="/marketplace"
-                                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-5 py-2.5 text-sm font-medium text-muted-foreground transition hover:bg-muted/10 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 >
                                     <Bot size={16} />
                                     Browse All EAs

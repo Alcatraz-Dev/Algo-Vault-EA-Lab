@@ -907,7 +907,7 @@ function Metric({
                 {label}
             </p>
 
-            <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums">
+            <p className="mt-1 font-numeric text-base font-semibold font-semibold tabular-nums">
                 {value}
             </p>
 

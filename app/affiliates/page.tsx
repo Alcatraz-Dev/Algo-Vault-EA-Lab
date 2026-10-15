@@ -183,7 +183,7 @@ export default function AffiliatesPage() {
                 {/* Empty */}
                 {!loading &&
                     filteredOffers.length === 0 && (
-                        <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 px-6 py-16 text-center">
+                        <div className="mt-10 rounded-lg border border-border/40 bg-muted/50 px-6 py-16 text-center">
                             <RefreshCw className="mx-auto h-8 w-8 text-foreground/40" />
 
                             <h2 className="mt-4 text-lg font-medium">
@@ -244,7 +244,7 @@ export default function AffiliatesPage() {
                     )}
 
                 {/* Disclosure */}
-                <div className="mt-16 rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="mt-16 rounded-lg border border-border/40 bg-muted/50 p-5">
                     <div className="flex gap-3">
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground/50" />
 
@@ -295,13 +295,13 @@ function AffiliateCard({
 
     return (
         <article
-            className={`group relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md ${featured
+            className={`group relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)] ${featured
                 ? "border-border/40 bg-black"
                 : "border-border/40 hover:border-border/60 dark:border-border/40 dark:hover:border-border/60"
             }`}
         >
             {featured && (
-                <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black px-2.5 py-1 text-[11px] font-extrabold text-white shadow-md">
+                <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black px-2.5 py-1 text-[11px] font-extrabold text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Star className="h-3 w-3 fill-current" />
                     Featured
                 </div>

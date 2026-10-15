@@ -50,11 +50,11 @@ function SectionCard({
     return (
         <div className="rounded-lg bg-muted/40 p-2.5">
             <div className="flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1.5 text-micro font-semibold text-foreground">
+                <span className="flex items-center gap-1.5 text-micro font-medium text-foreground">
                     {icon}
                     {title}
                 </span>
-                <span className={cn("rounded px-1.5 py-0.5 text-micro font-medium", stateStyle)}>{section.state}</span>
+                <span className={cn("rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide", stateStyle)}>{section.state}</span>
             </div>
             {section.available ? (
                 <ul className="mt-1.5 space-y-1">
@@ -79,7 +79,7 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
                 <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
                     <Zap size={14} className="text-muted-foreground" />
                     <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                    <span className="ml-auto rounded bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">OFF</span>
+                    <span className="ml-auto rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-muted text-muted-foreground">OFF</span>
                 </div>
                 <p className="px-3 py-3 text-micro text-muted-foreground">
                     Not loaded. Connect TradingView in Account → Settings → Integrations to add external context here.
@@ -95,7 +95,7 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
             <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
                 <Zap size={14} className="text-info" />
                 <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                <span className="rounded bg-info/10 px-1.5 py-0.5 text-micro font-medium text-info">BETA</span>
+                <span className="rounded-full border border-info/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-info/10 text-info">BETA</span>
                 <span className="ml-auto text-micro text-muted-foreground">external · may be delayed</span>
             </div>
 

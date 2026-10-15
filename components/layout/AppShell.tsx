@@ -598,10 +598,14 @@ export function AppShell({
           ref={headerRef}
           data-guide="page-header"
           className={cn(
-            "sticky top-0 z-40 bg-background/85 backdrop-blur-xl",
+            "sticky top-0 z-40 bg-background/85 backdrop-blur-xl overflow-hidden",
             compactHeader ? "px-3 py-2.5 sm:px-4" : "px-4 py-3 sm:px-6 sm:py-4"
           )}
         >
+          {/* Modern header glow */}
+          <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
+          <div className="relative z-10">
           <div
             className={cn(
               "flex items-center gap-2",
@@ -655,7 +659,7 @@ export function AppShell({
                 {title ? (
                   <h1
                     className={cn(
-                      "truncate font-semibold tracking-tight text-foreground",
+                      "truncate text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl",
                       compactHeader ? "text-base sm:text-lg" : "text-xl sm:text-2xl"
                     )}
                   >
@@ -677,6 +681,7 @@ export function AppShell({
 
             <div className="ml-auto flex items-center gap-1.5">{headerRight}</div>
           </div>
+        </div>
         </header>
 
         {/* Page content */}

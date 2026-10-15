@@ -24,20 +24,19 @@ export default function TacticalCard({
     delay = 0,
 }: TacticalCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
-    const [inView, setInView] = useState(() => {
-        if (typeof window !== "undefined") {
-            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        }
-        return false;
-    });
+    // Initialize to false on both server and client so initial markup matches.
+    // Reduced-motion preference is applied in an effect after hydration.
+    const [inView, setInView] = useState(false);
 
     useEffect(() => {
-        const el = cardRef.current;
-        if (!el) return;
-
         // Check reduced motion
         const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReducedMotion) return;
+        if (prefersReducedMotion) {
+            setInView(true);
+            return;
+        }
+        const el = cardRef.current;
+        if (!el) return;
 
         // Viewport observation matching Algory's line threshold
         const io = new IntersectionObserver(

@@ -253,7 +253,7 @@ export default function BotDeploymentMonitorPage() {
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Signals Produced</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">{deployment.signalCount || 0}</span>
+                            <span className="font-numeric text-base font-semibold font-bold">{deployment.signalCount || 0}</span>
                             <span className="text-xs text-muted-foreground">
                                 Last: {deployment.lastSignalAt ? new Date(deployment.lastSignalAt).toLocaleTimeString() : "Never"}
                             </span>
@@ -262,14 +262,14 @@ export default function BotDeploymentMonitorPage() {
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gateway Orders</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">{deployment.executionCount || 0}</span>
+                            <span className="font-numeric text-base font-semibold font-bold">{deployment.executionCount || 0}</span>
                             <span className="text-xs text-emerald-500 font-medium">ACKed by MT5</span>
                         </div>
                     </div>
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gate Rejections</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">{deployment.rejectionCount || 0}</span>
+                            <span className="font-numeric text-base font-semibold font-bold">{deployment.rejectionCount || 0}</span>
                             <span className="text-xs text-rose-500 font-medium">Fail-closed guards</span>
                         </div>
                     </div>
@@ -336,7 +336,7 @@ export default function BotDeploymentMonitorPage() {
                                             {new Date(log.timestamp).toLocaleTimeString()}
                                         </span>
                                         <span
-                                            className={`uppercase font-bold text-[10px] px-1.5 py-0.5 rounded ${
+                                            className={`uppercase font-bold text-[8px] px-1.5 py-0.5 rounded ${
                                                 log.level === "error"
                                                     ? "bg-rose-500/10 text-rose-500"
                                                     : log.level === "warn"

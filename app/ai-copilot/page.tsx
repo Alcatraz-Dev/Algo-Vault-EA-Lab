@@ -88,7 +88,7 @@ export default function AICopilotPage() {
                         <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <div className="flex gap-3">
                                 <input type="text" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Ask about market regime, account risk, trade performance, strategy recommendations..." className="flex-1 rounded-md border border-border bg-muted px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-ring focus:outline-none" onKeyDown={(e) => e.key === "Enter" && handleAsk()} />
-                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-md bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                                <button type="button" onClick={handleAsk} disabled={loading || !question.trim()} className="rounded-md bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                                     {loading ? <Loader2 size={16} className="animate-spin" /> : <MessageSquare size={16} />}
                                 </button>
                             </div>

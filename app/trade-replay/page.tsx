@@ -5,7 +5,7 @@ import Link from "next/link";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
-import MarketReplay from "@/components/tradingview/MarketReplay";
+import SignalChart from "@/components/signals/SignalChart";
 import type { AISignal } from "@/lib/ai-signals/types";
 import { cn } from "@/lib/utils";
 import {
@@ -38,7 +38,7 @@ type SortOrder = "oldest" | "newest";
 const OUTCOME_STYLES: Record<Outcome, { bar: string; badge: string; label: string; text: string }> = {
     WIN: { bar: "bg-positive", badge: "bg-positive/15 text-positive border-positive/30", label: "WIN", text: "text-positive" },
     LOSS: { bar: "bg-negative", badge: "bg-negative/15 text-negative border-negative/30", label: "LOSS", text: "text-negative" },
-    BREAKEVEN: { bar: "bg-muted", badge: "bg-muted/15 text-muted-foreground border-border/30", label: "BE", text: "text-muted-foreground" },
+    BREAKEVEN: { bar: "bg-muted", badge: "bg-muted/15 text-muted-foreground border-border/40", label: "BE", text: "text-muted-foreground" },
     OTHER: { bar: "bg-warning/70", badge: "bg-warning/15 text-warning border-warning/30", label: "VOID", text: "text-warning" },
 };
 
@@ -201,7 +201,7 @@ export default function TradeReplayPage() {
                         </div>
                         <Link
                             href="/login"
-                            className="rounded-lg bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                            className="rounded-lg bg-black px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-primary/90"
                         >
                             Sign in
                         </Link>
@@ -226,7 +226,7 @@ export default function TradeReplayPage() {
                             className={cn(
                               "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-colors",
                                 activeTab === "terminal"
-                                    ? "bg-primary text-primary-foreground "
+                                    ? "bg-primary text-white "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -238,7 +238,7 @@ export default function TradeReplayPage() {
                             className={cn(
                               "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold shadow-sm transition-colors",
                                 activeTab === "signals"
-                                    ? "bg-primary text-primary-foreground "
+                                    ? "bg-primary text-white "
                                     : "bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
@@ -259,10 +259,21 @@ export default function TradeReplayPage() {
                         other page; the historical replay cursor is wired
                         inside the chart engine. */}
                     {activeTab === "terminal" && (
-                        <MarketReplay
-                            studies={["MASimple@tv-basicstudies", "MAExp@tv-basicstudies", "BB@tv-basicstudies", "RSI@tv-basicstudies"]}
-                            strategyType="strategy"
-                        />
+                        currentSignal ? (
+                            <SignalChart
+                                signal={currentSignal}
+                                height={400}
+                                replayStart={currentSignal.createdAt}
+                                replayEnd={(currentSignal.completedAt ?? currentSignal.closedAt ?? Date.now())}
+                                initialCursor={currentSignal.createdAt}
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center gap-3 rounded-lg border border-border/60 bg-card/40 p-10 text-center">
+                                <p className="font-numeric text-xs text-muted-foreground">
+                                    No completed historical signals yet — resolved signals will appear here once the engine closes them out.
+                                </p>
+                            </div>
+                        )
                     )}
 
                     {/* Tab 2: Historical AI Signal Replay Timeline */}
@@ -302,22 +313,24 @@ export default function TradeReplayPage() {
                                 ].map((card) => (
                                     <div
                                         key={card.label}
-                                        className="rounded-lg border border-border/80 bg-card/80 p-4"
+                                        className="group rounded-xl border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-border"
                                     >
                                         <div className="flex items-center justify-between">
-                                            <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">
+                                            <span className="text-[8px] font-extrabold uppercase tracking-widest text-muted-foreground">
                                                 {card.label}
                                             </span>
-                                            <card.icon size={14} className={card.tone} />
+                                            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-muted">
+                                                <card.icon size={12} className={card.tone} />
+                                            </span>
                                         </div>
-                                        <div className={cn("mt-2 font-numeric text-xl font-extrabold", card.tone)}>{card.value}</div>
-                                        <div className="mt-0.5 text-micro text-muted-foreground">{card.sub}</div>
+                                        <div className={cn("mt-2.5 font-numeric text-base font-bold tracking-tight", card.tone)}>{card.value}</div>
+                                        <div className="mt-1 text-[8px] text-muted-foreground/70">{card.sub}</div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Filters Bar */}
-                            <div className="flex flex-col gap-3 rounded-lg border border-border/80 bg-card/80 p-3.5 lg:flex-row lg:items-center">
+                            <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:flex-row lg:items-center">
                                 <div className="relative flex flex-1 items-center">
                                     <Search size={15} className="absolute left-3 text-muted-foreground" />
                                     <input
@@ -437,7 +450,7 @@ export default function TradeReplayPage() {
                                                 </div>
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="font-numeric text-2xl font-extrabold text-foreground">
+                                                        <span className="font-numeric text-base font-semibold font-extrabold text-foreground">
                                                             {currentSignal.symbol}
                                                         </span>
                                                         <span
@@ -499,35 +512,40 @@ export default function TradeReplayPage() {
                                                         key: "entry",
                                                         label: "Entry",
                                                         value: currentSignal.entry,
-                                                        tone: "border-primary/20 bg-primary/5",
+                                                        tone: "border-info/40 bg-info/10",
+                                                        dot: "bg-info",
                                                         hit: null as boolean | null,
                                                     },
                                                     {
                                                         key: "sl",
                                                         label: "Stop Loss",
                                                         value: currentSignal.stopLoss,
-                                                        tone: "border-negative/20 bg-negative/5",
+                                                        tone: "border-negative/40 bg-negative/10",
+                                                        dot: "bg-negative",
                                                         hit: currentOutcome === "LOSS" ? true : null,
                                                     },
                                                     {
                                                         key: "tp1",
                                                         label: "TP1",
                                                         value: currentSignal.tp1,
-                                                        tone: "border-positive/20 bg-positive/5",
+                                                        tone: "border-positive/40 bg-positive/10",
+                                                        dot: "bg-positive",
                                                         hit: currentSignal.tp1Hit ? true : null,
                                                     },
                                                     {
                                                         key: "tp2",
                                                         label: "TP2",
                                                         value: currentSignal.tp2,
-                                                        tone: "border-positive/20 bg-positive/5",
+                                                        tone: "border-positive/40 bg-positive/10",
+                                                        dot: "bg-positive",
                                                         hit: currentSignal.tp2Hit ? true : null,
                                                     },
                                                     {
                                                         key: "tp3",
                                                         label: "TP3",
                                                         value: currentSignal.tp3,
-                                                        tone: "border-positive/20 bg-positive/5",
+                                                        tone: "border-positive/40 bg-positive/10",
+                                                        dot: "bg-positive",
                                                         hit: currentSignal.tp3Hit ? true : null,
                                                     },
                                                 ]
@@ -536,34 +554,34 @@ export default function TradeReplayPage() {
                                                         <div
                                                             key={level.key}
                                                             className={cn(
-                                                              "flex items-center justify-between rounded-lg border px-3 py-2 font-numeric text-xs",
+                                                              "flex items-center justify-between rounded-xl border px-3.5 py-2.5 font-numeric text-xs shadow-[0_1px_2px_rgb(0_0_0/0.04)]",
                                                                 level.tone
                                                             )}
                                                         >
-                                                            <span className="flex items-center gap-2 text-muted-foreground">
+                                                            <span className="flex items-center gap-2 font-bold uppercase tracking-wide text-foreground/80">
                                                                 {level.hit === true ? (
                                                                     <CheckCircle2 size={13} className="text-positive" />
                                                                 ) : level.hit === false ? (
                                                                     <XCircle size={13} className="text-muted-foreground/40" />
                                                                 ) : (
-                                                                    <span className="inline-block h-3 w-[1px] bg-current opacity-40" />
+                                                                    <span className={cn("inline-block h-2 w-2 rounded-full", level.dot)} />
                                                                 )}
                                                                 {level.label}
                                                             </span>
-                                                            <span className="font-semibold text-foreground">{formatPrice(level.value)}</span>
+                                                            <span className="font-bold text-foreground">{formatPrice(level.value)}</span>
                                                         </div>
                                                     ))}
-                                                <div className="flex flex-wrap gap-2 pt-1 text-micro font-bold uppercase tracking-wider">
-                                                    <span className="rounded-md bg-muted px-2 py-1 text-muted-foreground">
+                                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                                    <span className="rounded-full bg-foreground px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-widest text-background">
                                                         R:R 1:{(Number(currentSignal.riskReward) || 0).toFixed(1)}
                                                     </span>
                                                     {currentSignal.strength && (
-                                                        <span className="rounded-md bg-muted px-2 py-1 text-muted-foreground">
+                                                        <span className="rounded-full border border-border/60 bg-muted px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-widest text-muted-foreground">
                                                             {currentSignal.strength.replace("_", " ")}
                                                         </span>
                                                     )}
                                                     {currentSignal.marketRegime && (
-                                                        <span className="rounded-md bg-muted px-2 py-1 text-muted-foreground">
+                                                        <span className="rounded-full border border-border/60 bg-muted px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-widest text-muted-foreground">
                                                             {currentSignal.marketRegime}
                                                         </span>
                                                     )}
@@ -596,70 +614,16 @@ export default function TradeReplayPage() {
                                             </div>
                                         </div>
 
-                                        {/* Timeline scrubber */}
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between font-numeric text-xs text-muted-foreground">
-                                                <span className="flex items-center gap-3">
-                                                    Signal timeline
-                                                    <span className="flex items-center gap-2 text-micro">
-                                                        {(["WIN", "LOSS", "BREAKEVEN", "OTHER"] as Outcome[]).map((o) => (
-                                                            <span key={o} className="flex items-center gap-1">
-                                                                <span className={cn("inline-block h-2 w-2 rounded-full", OUTCOME_STYLES[o].bar)} />
-                                                                {OUTCOME_STYLES[o].label}
-                                                            </span>
-                                                        ))}
-                                                    </span>
-                                                </span>
-                                                <span>Select a bar to load its replay context</span>
-                                            </div>
-                                            <div className="flex h-5 items-center gap-[3px] overflow-x-auto rounded-lg bg-muted/60 p-1">
-                                                {filteredSignals.map((s, i) => {
-                                                    const outcome = outcomeOf(s);
-                                                    const active = i === Math.min(currentIndex, filteredSignals.length - 1);
-                                                    return (
-                                                        <button
-                                                            key={s.id ?? i}
-                                                            type="button"
-                                                            className={cn(
-                                                                "h-full min-w-[5px] flex-1 cursor-pointer rounded-md transition-all",
-                                                                OUTCOME_STYLES[outcome].bar,
-                                                                active ? "z-10 scale-110 ring-2 ring-primary" : "opacity-80 hover:opacity-100"
-                                                            )}
-                                                            style={{ flex: 1 }}
-                                                            onClick={() => setCurrentIndex(i)}
-                                                            title={`${s.symbol} ${s.direction} · ${s.timeframe} · ${OUTCOME_STYLES[outcome].label} ${formatSignedR(s.resultR)} · ${formatDateTime(s.createdAt)}`}
-                                                        />
-                                                    );
-                                                })}
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <button
-                                                    type="button"
-                                                    disabled={currentIndex <= 0}
-                                                    onClick={() => setCurrentIndex((i) => Math.max(0, i - 1))}
-                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-                                                >
-                                                    <ChevronLeft size={13} /> Prev
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    disabled={currentIndex >= filteredSignals.length - 1}
-                                                    onClick={() => setCurrentIndex((i) => Math.min(filteredSignals.length - 1, i + 1))}
-                                                    className="flex items-center gap-1 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
-                                                >
-                                                    Next <ChevronRight size={13} />
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
 
                                     {/* Chart replaying the selected signal's market */}
-                                    <MarketReplay
+                                    <SignalChart
                                         key={currentSignal.id}
-                                        symbol={currentSignal.symbol}
-                                        interval={currentSignal.timeframe}
-                                        studies={["MASimple@tv-basicstudies", "BB@tv-basicstudies"]}
-                                        strategyType="indicator"
+                                        signal={currentSignal}
+                                        height={400}
+                                        replayStart={currentSignal.createdAt}
+                                        replayEnd={(currentSignal.completedAt ?? currentSignal.closedAt ?? Date.now())}
+                                        initialCursor={currentSignal.createdAt}
                                     />
                                 </>
                             ) : (

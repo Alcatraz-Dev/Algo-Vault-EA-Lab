@@ -134,7 +134,7 @@ export default function AlertsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Bell size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</a>
                 </div>
             </div>
         );
@@ -159,7 +159,7 @@ export default function AlertsPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alerts</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Price, structure, and zone alerts with Discord/Telegram notifications</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
                         <Plus size={14} /> New Alert
                     </button>
                 </div>
@@ -201,7 +201,7 @@ export default function AlertsPage() {
                                         {ALERT_TYPES.map((at) => {
                                             const Icon = at.icon;
                                             return (
-                                                <button key={at.value} type="button" onClick={() => setNewType(at.value)} className={cn("flex items-center gap-2 rounded-lg border p-2.5 text-left text-xs transition-colors", newType === at.value ? "border-primary/40 bg-primary/10 text-primary" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted")}>
+                                                <button key={at.value} type="button" onClick={() => setNewType(at.value)} className={cn("flex items-center gap-2 rounded-lg border p-2.5 text-left text-xs transition-colors", newType === at.value ? "border-primary/40 bg-primary/10 text-primary" : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted")}>
                                                     <Icon size={14} />
                                                     <span>{at.label}</span>
                                                 </button>
@@ -233,7 +233,7 @@ export default function AlertsPage() {
                                         <input type="checkbox" checked={newTelegram} onChange={(e) => setNewTelegram(e.target.checked)} className="rounded border-border/50 bg-muted/10 text-primary" /> Telegram
                                     </label>
                                 </div>
-                                <button type="button" onClick={createAlert} disabled={creating || (newType.startsWith("price") && !newPrice)} className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                                <button type="button" onClick={createAlert} disabled={creating || (newType.startsWith("price") && !newPrice)} className="flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                                     {creating ? <Loader2 size={15} className="animate-spin" /> : <BellRing size={15} />} Create Alert
                                 </button>
                             </div>
@@ -247,10 +247,10 @@ export default function AlertsPage() {
                     {loading ? (
                         <div className="flex h-32 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
                     ) : activeAlerts.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-border/30 p-8 text-center">
+                        <div className="rounded-lg border border-dashed border-border/40 p-8 text-center">
                             <Bell size={24} className="mx-auto text-muted-foreground" />
                             <p className="mt-2 text-sm text-muted-foreground">No active alerts</p>
-                            <button type="button" onClick={() => setShowCreate(true)} className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                            <button type="button" onClick={() => setShowCreate(true)} className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90">
                                 <Plus size={13} /> Create Alert
                             </button>
                         </div>
@@ -260,7 +260,7 @@ export default function AlertsPage() {
                                 const typeInfo = ALERT_TYPES.find((t) => t.value === alert.type);
                                 const Icon = typeInfo?.icon || Bell;
                                 return (
-                                    <div key={alert.id} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/50 px-4 py-3">
+                                    <div key={alert.id} className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/50 px-4 py-3">
                                         <Icon size={16} className="text-primary" />
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">

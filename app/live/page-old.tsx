@@ -264,7 +264,7 @@ function StatCard({
     description?: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+        <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
             <div className="flex items-start justify-between">
                 <div>
                     <p className="text-sm text-muted-foreground">
@@ -282,7 +282,7 @@ function StatCard({
                     )}
                 </div>
 
-                <div className="rounded-lg border border-border/30 bg-muted/5 p-2.5">
+                <div className="rounded-lg border border-border/40 bg-muted/5 p-2.5">
                     <Icon className="h-5 w-5 text-muted-foreground" />
                 </div>
             </div>
@@ -835,7 +835,7 @@ export default function LivePerformancePage() {
 
                         <Link
                             href="/marketplace"
-                            className="rounded-md border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted/5"
+                            className="rounded-md border border-border/40 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted/5"
                         >
                             Marketplace
                         </Link>
@@ -850,7 +850,7 @@ export default function LivePerformancePage() {
                                 refreshing ||
                                 !selectedLicense
                             }
-                            className="inline-flex items-center gap-2 rounded-md border border-border/30 px-4 py-2.5 text-sm text-foreground hover:bg-muted/5 disabled:opacity-50"
+                            className="inline-flex items-center gap-2 rounded-md border border-border/40 px-4 py-2.5 text-sm text-foreground hover:bg-muted/5 disabled:opacity-50"
                         >
                             <RefreshCw
                                 className={`h-4 w-4 ${refreshing
@@ -868,7 +868,7 @@ export default function LivePerformancePage() {
 
                 {activeLicenses.length >
                     0 && (
-                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-4" data-guide="account-selector">
+                        <div className="mt-8 rounded-lg border border-border/40 bg-foreground/8 p-4" data-guide="account-selector">
                             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                 <div>
                                     <p className="text-sm font-medium text-foreground">
@@ -898,7 +898,7 @@ export default function LivePerformancePage() {
                                             )
                                         )
                                     }
-                                    className="rounded-md border border-border/30 bg-background px-4 py-2.5 text-sm text-foreground outline-none"
+                                    className="rounded-md border border-border/40 bg-background px-4 py-2.5 text-sm text-foreground outline-none"
                                 >
                                     {activeLicenses.map(
                                         (
@@ -940,7 +940,7 @@ export default function LivePerformancePage() {
 
                 {activeLicenses.length ===
                     0 && (
-                        <div className="mt-10 rounded-lg border border-border/30 bg-foreground/8 p-10 text-center">
+                        <div className="mt-10 rounded-lg border border-border/40 bg-foreground/8 p-10 text-center">
                             <ShieldCheck className="mx-auto h-12 w-12 text-muted-foreground" />
 
                             <h2 className="mt-5 text-xl font-semibold">
@@ -974,7 +974,7 @@ export default function LivePerformancePage() {
                                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
                                     <div className="flex items-center gap-4">
-                                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-muted/5">
+                                        <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-muted/5">
                                             {botLogo ? (
                                                 <img
                                                     src={botLogo}
@@ -1055,7 +1055,7 @@ export default function LivePerformancePage() {
                             {/* LOADING */}
 
                             {loading && (
-                                <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-12 text-center">
+                                <div className="mt-8 rounded-lg border border-border/40 bg-foreground/8 p-12 text-center">
                                     <RefreshCw className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
 
                                     <p className="mt-4 text-sm text-muted-foreground">
@@ -1218,7 +1218,7 @@ export default function LivePerformancePage() {
 
                                         {/* EQUITY CHART */}
 
-                                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8 p-5 mb-10" data-guide="equity-chart">
+                                        <div className="mt-8 rounded-lg border border-border/40 bg-foreground/8 p-5 mb-10" data-guide="equity-chart">
                                             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                                 <div>
                                                     <h3 className="text-lg font-semibold">
@@ -1368,7 +1368,7 @@ export default function LivePerformancePage() {
                                                         </AreaChart>
                                                     </ResponsiveContainer>
                                                 ) : (
-                                                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/30">
+                                                    <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/40">
                                                         <div className="text-center">
                                                             <Activity className="mx-auto h-8 w-8 text-muted-foreground" />
 
@@ -1388,7 +1388,7 @@ export default function LivePerformancePage() {
                                         <ProGate>
                                             <div className="grid gap-4 md:grid-cols-2">
                                                 {/* Win/Loss Pie Chart */}
-                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">Win / Loss Ratio</h3>
                                                     <div className="mt-4 h-[280px] w-full">
                                                         {stats.winningTrades + stats.losingTrades > 0 ? (
@@ -1430,7 +1430,7 @@ export default function LivePerformancePage() {
                                                                 </PieChart>
                                                             </ResponsiveContainer>
                                                         ) : (
-                                                            <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/30">
+                                                            <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-border/40">
                                                                 <div className="text-center">
                                                                     <Trophy className="mx-auto h-8 w-8 text-muted-foreground" />
                                                                     <p className="mt-3 text-sm text-muted-foreground">No trades yet</p>
@@ -1441,7 +1441,7 @@ export default function LivePerformancePage() {
                                                 </div>
 
                                                 {/* Trade Distribution */}
-                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">Trade Distribution</h3>
                                                     <div className="mt-4 grid gap-3">
                                                         {[
@@ -1464,7 +1464,7 @@ export default function LivePerformancePage() {
                                             {/* SECONDARY STATISTICS & BOT BACKTEST */}
 
                                             <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">
                                                         Performance
                                                         Statistics
@@ -1569,7 +1569,7 @@ export default function LivePerformancePage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
                                                     <h3 className="font-semibold">
                                                         Account
                                                         Information
@@ -1651,7 +1651,7 @@ export default function LivePerformancePage() {
                                                 </div>
 
                                                 {/* BOT BACKTEST BENCHMARK */}
-                                                <div className="rounded-lg border border-border/30 bg-foreground/8 p-5">
+                                                <div className="rounded-lg border border-border/40 bg-foreground/8 p-5">
                                                     <div className="flex items-center justify-between">
                                                         <h3 className="font-semibold text-foreground">
                                                             Bot Backtest Benchmark
@@ -1909,8 +1909,8 @@ export default function LivePerformancePage() {
 
                                         {/* TRADE HISTORY */}
 
-                                        <div className="mt-8 rounded-lg border border-border/30 bg-foreground/8">
-                                            <div className="flex items-center justify-between border-b border-border/30 p-5">
+                                        <div className="mt-8 rounded-lg border border-border/40 bg-foreground/8">
+                                            <div className="flex items-center justify-between border-b border-border/40 p-5">
                                                 <div>
                                                     <h3 className="font-semibold">
                                                         Trade
@@ -1922,7 +1922,7 @@ export default function LivePerformancePage() {
                                                     </p>
                                                 </div>
 
-                                                <span className="rounded-full border border-border/30 px-3 py-1 text-xs text-muted-foreground">
+                                                <span className="rounded-full border border-border/40 px-3 py-1 text-xs text-muted-foreground">
                                                     {
                                                         stats.totalTrades
                                                     }{" "}
@@ -1933,7 +1933,7 @@ export default function LivePerformancePage() {
                                             <div className="overflow-x-auto">
                                                 <table className="w-full min-w-[950px] text-left text-sm">
                                                     <thead>
-                                                        <tr className="border-b border-border/30 text-xs uppercase tracking-wider text-muted-foreground">
+                                                        <tr className="border-b border-border/40 text-xs uppercase tracking-wider text-muted-foreground">
                                                             <th className="px-5 py-4">
                                                                 Ticket
                                                             </th>

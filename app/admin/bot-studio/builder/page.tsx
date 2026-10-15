@@ -49,7 +49,7 @@ import type { Strategy } from "@/lib/strategy-lab/types";
 function MarketDataNodeComponent({ id, data }: NodeProps) {
     const d = (data || {}) as { symbol?: string; timeframe?: string; priceField?: string };
     return (
-        <div className="p-3 rounded-xl border border-sky-500/30 bg-card/95 shadow-md min-w-[180px] text-xs">
+        <div className="p-3 rounded-xl border border-sky-500/30 bg-card/95 shadow-[0_1px_2px_rgb(0_0_0/0.05)] min-w-[180px] text-xs">
             <div className="flex items-center gap-1.5 font-bold text-sky-400 mb-2">
                 <TrendingUp className="h-4 w-4" />
                 <span>Market Data Feed</span>
@@ -68,7 +68,7 @@ function IndicatorNodeComponent({ id, data }: NodeProps) {
     const d = (data || {}) as { kind?: string; period?: number; timeframe?: string };
     const kind = d.kind || "ema";
     return (
-        <div className="p-3 rounded-xl border border-amber-500/30 bg-card/95 shadow-md min-w-[180px] text-xs">
+        <div className="p-3 rounded-xl border border-amber-500/30 bg-card/95 shadow-[0_1px_2px_rgb(0_0_0/0.05)] min-w-[180px] text-xs">
             <Handle type="target" position={Position.Left} className="!bg-amber-500 !w-3 !h-3" />
             <div className="flex items-center gap-1.5 font-bold text-amber-400 mb-2">
                 <Sliders className="h-4 w-4" />
@@ -86,7 +86,7 @@ function IndicatorNodeComponent({ id, data }: NodeProps) {
 function ConditionNodeComponent({ id, data }: NodeProps) {
     const d = (data || {}) as { kind?: string; label?: string; threshold?: number };
     return (
-        <div className="p-3 rounded-xl border border-indigo-500/30 bg-card/95 shadow-md min-w-[190px] text-xs">
+        <div className="p-3 rounded-xl border border-indigo-500/30 bg-card/95 shadow-[0_1px_2px_rgb(0_0_0/0.05)] min-w-[190px] text-xs">
             <Handle type="target" position={Position.Left} className="!bg-indigo-500 !w-3 !h-3" />
             <div className="flex items-center gap-1.5 font-bold text-indigo-400 mb-2">
                 <Zap className="h-4 w-4" />
@@ -105,7 +105,7 @@ function ActionNodeComponent({ id, data }: NodeProps) {
     const d = (data || {}) as { kind?: string; riskPercent?: number; slMultiplier?: number; tpRatio?: number };
     const isLong = d.kind === "action_enter_long";
     return (
-        <div className={`p-3 rounded-xl border bg-card/95 shadow-md min-w-[210px] text-xs ${
+        <div className={`p-3 rounded-xl border bg-card/95 shadow-[0_1px_2px_rgb(0_0_0/0.05)] min-w-[210px] text-xs ${
             isLong ? "border-emerald-500/40" : "border-rose-500/40"
         }`}>
             <Handle type="target" position={Position.Left} className={isLong ? "!bg-emerald-500 !w-3 !h-3" : "!bg-rose-500 !w-3 !h-3"} />
@@ -454,7 +454,7 @@ export default function VisualBuilderPage() {
                             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition ${
                                 saveSuccess
                                     ? "bg-emerald-600 text-white"
-                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "bg-primary text-white hover:bg-primary/90"
                             }`}
                         >
                             {saveSuccess ? (
@@ -665,7 +665,7 @@ export default function VisualBuilderPage() {
                                         }`}>
                                             ${backtestResult.metrics.netProfit.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Return: {backtestResult.metrics.returnPct?.toFixed(2)}%
                                         </span>
                                     </div>
@@ -675,7 +675,7 @@ export default function VisualBuilderPage() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.winRate?.toFixed(1)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             {backtestResult.metrics.longTrades + backtestResult.metrics.shortTrades} total trades
                                         </span>
                                     </div>
@@ -685,7 +685,7 @@ export default function VisualBuilderPage() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.profitFactor?.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Exp: {backtestResult.metrics.expectancy?.toFixed(2)}
                                         </span>
                                     </div>
@@ -695,7 +695,7 @@ export default function VisualBuilderPage() {
                                         <div className="text-xl font-bold mt-1 text-rose-400">
                                             {backtestResult.metrics.maxDrawdownPct?.toFixed(2)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             ${backtestResult.metrics.maxDrawdownAbs?.toFixed(2)}
                                         </span>
                                     </div>
@@ -755,7 +755,7 @@ export default function VisualBuilderPage() {
                                                     {backtestResult.trades.slice(0, 8).map((t: any, idx: number) => (
                                                         <tr key={idx} className="hover:bg-muted/20">
                                                             <td className="p-2.5">
-                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-semibold ${
                                                                     t.direction === "long" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                                                                 }`}>
                                                                     {t.direction.toUpperCase()}
@@ -767,7 +767,7 @@ export default function VisualBuilderPage() {
                                                                 ${t.pnl?.toFixed(2)}
                                                             </td>
                                                             <td className="p-2.5">{t.rMultiple ? `${t.rMultiple.toFixed(2)}R` : "-"}</td>
-                                                            <td className="p-2.5 text-muted-foreground font-sans text-[10px]">{t.exitReason || "manual"}</td>
+                                                            <td className="p-2.5 text-muted-foreground font-sans text-[8px]">{t.exitReason || "manual"}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -780,7 +780,7 @@ export default function VisualBuilderPage() {
                             <div className="pt-3 border-t border-border flex items-center justify-end">
                                 <button
                                     onClick={() => setBacktestModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold transition-colors hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold transition-colors hover:bg-primary/90"
                                 >
                                     Close Report
                                 </button>

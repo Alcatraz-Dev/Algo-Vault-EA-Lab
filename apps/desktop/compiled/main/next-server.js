@@ -136,7 +136,11 @@ export async function spawnNextServer() {
         readyReject?.(new Error(msg));
         return;
     }
-    const env = buildNextServerEnv(process.env, activePort);
+    const env = buildNextServerEnv({
+        source: process.env,
+        port: activePort,
+        isPackaged: app.isPackaged,
+    });
     log('INFO', `Spawning: ${process.execPath} server.js in ${standaloneDir} on port ${activePort}`);
     serverProc = spawn(process.execPath, ['server.js'], {
         cwd: standaloneDir,

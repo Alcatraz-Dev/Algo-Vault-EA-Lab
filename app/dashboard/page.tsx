@@ -17,6 +17,7 @@ import {
     Trash2,
     X,
 } from "lucide-react";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import AccountShell from "@/components/account/AccountShell";
 import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import { DashboardNativeAd } from "@/components/growth/DashboardNativeAd";
@@ -419,7 +420,8 @@ export default function DashboardBuilderPage() {
 
     if (authLoading) {
         return (
-            <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
+            <AccountShell
+            title="Dashboard" onBack={() => router.push("/account")}>
                 <div className="flex h-[50vh] items-center justify-center">
                     <span className="loading loading-spinner loading-lg text-primary" aria-label="Loading" />
                 </div>
@@ -429,7 +431,8 @@ export default function DashboardBuilderPage() {
 
     if (!user) {
         return (
-            <AccountShell title="Dashboard" onBack={() => router.push("/account")}>
+            <AccountShell
+            title="Dashboard" onBack={() => router.push("/account")}>
                 <div className="flex h-[50vh] flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card px-6 py-14 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <Shield size={32} className="text-muted-foreground" />
                     <h1 className="text-lg font-semibold text-foreground">Sign in required</h1>
@@ -441,6 +444,7 @@ export default function DashboardBuilderPage() {
 
     return (
         <AccountShell
+           
             title="Custom Dashboard"
             subtitle="Build a workspace from your live accounts, positions and signals"
             onBack={() => router.push("/account")}
@@ -809,7 +813,7 @@ export default function DashboardBuilderPage() {
                 {/* Catalogue reference, doubles as discovery while editing */}
                 {editMode && (
                     <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                        <h3 className="text-xs font-semibold text-foreground">
+                        <h3 className="text-[10px] font-semibold text-foreground">
                             Available widgets ({WIDGET_CATALOG.length})
                         </h3>
                         <ul className="mt-2.5 grid gap-x-6 gap-y-1.5 sm:grid-cols-2">

@@ -50,7 +50,7 @@ export default function ToolsLandingPage() {
                     <div className="mt-5 flex flex-wrap items-center gap-3">
                         <Link
                             href="/pricing"
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                            className="inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                         >
                             <Crown className="size-4" />
                             Compare Pro plans
@@ -108,7 +108,7 @@ export default function ToolsLandingPage() {
                         </div>
                         <Link
                             href="/pricing"
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
                         >
                             See pricing <ArrowRight className="size-3.5" />
                         </Link>
@@ -127,7 +127,7 @@ function ToolCard({ tool }: { tool: ToolCatalogEntry }) {
         <Link
             href={tool.href}
             className={cn(
-                "group relative flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-px hover:shadow-md",
+                "group relative flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-px hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]",
                 isPro
                     ? "border-primary/15 hover:border-primary/30 hover:bg-card/80"
                     : "border-border hover:border-primary/20 hover:bg-card/80",

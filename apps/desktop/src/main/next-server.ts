@@ -152,7 +152,11 @@ export async function spawnNextServer(): Promise<void> {
     return;
   }
 
-  const env = buildNextServerEnv(process.env, activePort);
+  const env = buildNextServerEnv({
+    source: process.env,
+    port: activePort,
+    isPackaged: app.isPackaged,
+  });
 
   log('INFO', `Spawning: ${process.execPath} server.js in ${standaloneDir} on port ${activePort}`);
 

@@ -82,7 +82,7 @@ export default function AgentDetailPage() {
     if (loading) {
         return (
             <AdminShell title="Agent Registry" subtitle="Loading agent details...">
-                <div className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                <div className="h-40 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
             </AdminShell>
         );
     }
@@ -90,7 +90,7 @@ export default function AgentDetailPage() {
     if (!agent) {
         return (
             <AdminShell title="Agent Registry" subtitle="Agent not found">
-                <div className="rounded-lg border border-border/30 bg-muted/50 px-6 py-12 text-center">
+                <div className="rounded-lg border border-border/40 bg-muted/50 px-6 py-12 text-center">
                     <Bot size={28} className="mx-auto text-muted-foreground mb-3" />
                     <h3 className="text-sm font-medium">Agent not found</h3>
                     <p className="mt-1 text-micro text-muted-foreground">No contract or execution record matches <code className="text-micro bg-muted px-1 rounded">{agentId}</code>.</p>
@@ -111,7 +111,7 @@ export default function AgentDetailPage() {
 
                 <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                             <Bot size={24} className="text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -155,14 +155,14 @@ export default function AgentDetailPage() {
                     <div className="flex flex-wrap gap-2">
                         <button
                             onClick={() => alert(`Sandbox test for agent: ${agent.id}`)}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <ShieldCheck size={12} /> Sandbox Test
                         </button>
-                        <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                        <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                             <Edit size={12} /> Edit Plugin
                         </Link>
-                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                             <Terminal size={12} /> View API
                         </Link>
                     </div>

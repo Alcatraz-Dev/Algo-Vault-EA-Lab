@@ -106,7 +106,7 @@ export default function WorkflowsPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {workflows.map((w) => (
-              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-0.5 hover:shadow-md">
+              <Link key={w.id} href={`/workflows/${w.id}`} className="group block rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <h3 className="font-semibold leading-snug text-foreground transition-colors group-hover:text-warning">{w.name}</h3>
                    <StatusBadge label={w.status} tone={w.status === "active" ? "positive" : w.status === "paused" ? "warning" : w.status === "disabled" ? "negative" : "neutral"} />

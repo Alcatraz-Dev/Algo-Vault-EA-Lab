@@ -495,7 +495,7 @@ export default function DevWidgetPreviewPage() {
                 <p className="text-sm text-muted-foreground">
                     Every panel on this page reads authenticated market data. No fixtures are bundled.
                 </p>
-                <a href="/login?redirect=/dev-widget-preview" className="rounded-xl bg-primary px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-primary-foreground">
+                <a href="/login?redirect=/dev-widget-preview" className="rounded-xl bg-black px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-white">
                     Sign in
                 </a>
             </main>
@@ -511,7 +511,7 @@ export default function DevWidgetPreviewPage() {
                     This QA surface renders the Pro command-centre widgets and spends live AI budget, so it is gated on your
                     server-verified subscription.
                 </p>
-                <a href="/pricing" className="rounded-xl bg-primary px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-primary-foreground">
+                <a href="/pricing" className="rounded-xl bg-black px-3 py-2 min-h-[44px] inline-flex items-center text-sm font-medium text-white">
                     View plans
                 </a>
             </main>

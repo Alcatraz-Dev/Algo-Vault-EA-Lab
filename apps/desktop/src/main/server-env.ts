@@ -5,14 +5,23 @@ const FIREBASE_ADMIN_ENV_KEYS = [
   'FIREBASE_DATABASE_URL',
 ] as const;
 
+export interface NextServerEnvOptions {
+  /** Set only from Electron's trusted app.isPackaged runtime property. */
+  isPackaged?: boolean;
+  source?: NodeJS.ProcessEnv;
+  port?: number;
+}
+
 /**
- * Build the embedded Next.js process environment. Admin credentials are removed
- * by default and are passed only in explicit, operator-managed self-hosted mode.
+ * Build the embedded Next.js process environment. Packaged applications never
+ * receive Firebase Admin credentials. Unpackaged operator runs must explicitly
+ * opt in with ALGOVAULT_SELF_HOSTED=1; development mode alone grants nothing.
  */
-export function buildNextServerEnv(
-  source: NodeJS.ProcessEnv = process.env,
+export function buildNextServerEnv({
+  source = process.env,
   port = 3000,
-): NodeJS.ProcessEnv {
+  isPackaged,
+}: NextServerEnvOptions): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = {
     PORT: String(port),
     HOSTNAME: '127.0.0.1',
@@ -31,7 +40,9 @@ export function buildNextServerEnv(
     if (source[key]) env[key] = source[key];
   }
 
-  const selfHosted = source.ALGOVAULT_SELF_HOSTED === '1';
+  // app.isPackaged comes from Electron, not process.env. An inherited flag (or
+  // any other ordinary environment variable) cannot override this boundary.
+  const selfHosted = isPackaged === false && source.ALGOVAULT_SELF_HOSTED === '1';
   if (!selfHosted) return env;
 
   env.ALGOVAULT_SELF_HOSTED = '1';

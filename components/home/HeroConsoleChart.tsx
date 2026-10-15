@@ -29,12 +29,13 @@ function formatUsd(value: number): string {
 
 export default function HeroConsoleChart() {
     const [progress, setProgress] = useState(TOTAL);
+    // Server and initial client render use `false` so markup matches.
+    // The real preference is applied after hydration.
+    const [reduceMotion, setReduceMotion] = useState(false);
 
     useEffect(() => {
-        if (
-            typeof window !== "undefined" &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ) {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setReduceMotion(true);
             return;
         }
         const id = setInterval(() => {
@@ -42,10 +43,6 @@ export default function HeroConsoleChart() {
         }, 240);
         return () => clearInterval(id);
     }, []);
-
-    const reduceMotion =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const data = useMemo(() => SERIES.slice(0, progress), [progress]);
 

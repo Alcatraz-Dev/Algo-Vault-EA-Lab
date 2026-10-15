@@ -276,7 +276,7 @@ export default function AdminPluginDetailPage() {
             <AdminShell title="Plugin" subtitle="Administration">
                 <div className="grid gap-4">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             </AdminShell>
@@ -323,10 +323,10 @@ export default function AdminPluginDetailPage() {
             )}
 
             {/* Header */}
-            <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
+            <div className="mb-5 rounded-lg border border-border/40 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                             {isExtension ? <Plug size={22} className="text-positive" /> : <Sparkles size={22} className="text-primary" />}
                         </div>
                         <div>
@@ -389,7 +389,7 @@ export default function AdminPluginDetailPage() {
                         type="button"
                         onClick={() => setTab(key)}
                         className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
-                            tab === key ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
+                            tab === key ? "border-border/50 bg-background text-foreground" : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
                         <Icon size={14} />
@@ -401,7 +401,7 @@ export default function AdminPluginDetailPage() {
             {tab === "overview" && (
                 <div className="grid gap-6 lg:grid-cols-2">
                     {/* Lifecycle */}
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Activity size={14} /> Lifecycle status
                         </h3>
@@ -418,7 +418,7 @@ export default function AdminPluginDetailPage() {
                                     className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
                                         status === record.status
                                             ? "border-border/50 bg-background text-foreground"
-                                            : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                            : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                     }`}
                                 >
                                     {busy === `status:${status}` ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
@@ -426,7 +426,7 @@ export default function AdminPluginDetailPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
+                        <div className="mt-5 rounded-lg border border-border/40 bg-muted/20 p-4">
                             <p className="text-xs leading-6 text-muted-foreground">
                                 {record.status === "published"
                                     ? "Published — visible in the marketplace. Users can install and activate it; the scheduler runs active installations server-side."
@@ -442,7 +442,7 @@ export default function AdminPluginDetailPage() {
                                 <input
                                     value={version}
                                     onChange={(e) => setVersion(e.target.value)}
-                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                             <Field label="Changelog note">
@@ -450,7 +450,7 @@ export default function AdminPluginDetailPage() {
                                     value={changelog}
                                     onChange={(e) => setChangelog(e.target.value)}
                                     rows={2}
-                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                 />
                             </Field>
                             <button
@@ -466,7 +466,7 @@ export default function AdminPluginDetailPage() {
                     </div>
 
                     {/* Manifest summary */}
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Shield size={14} /> Manifest contract
                         </h3>
@@ -498,9 +498,9 @@ export default function AdminPluginDetailPage() {
                             )}
                         </div>
 
-                        <div className="mt-6 flex flex-wrap gap-2 border-t border-border/30 pt-4">
+                        <div className="mt-6 flex flex-wrap gap-2 border-t border-border/40 pt-4">
                             {(record.capabilities || []).slice(0, 8).map((cap) => (
-                                <span key={cap} className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1 text-micro text-muted-foreground">
+                                <span key={cap} className="rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1 text-micro text-muted-foreground">
                                     {cap}
                                 </span>
                             ))}
@@ -510,7 +510,7 @@ export default function AdminPluginDetailPage() {
             )}
 
             {tab === "edit" && (
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                     <h3 className="flex items-center gap-2 text-sm font-semibold">
                         <Settings2 size={14} /> Metadata & pricing
                     </h3>
@@ -520,16 +520,16 @@ export default function AdminPluginDetailPage() {
 
                     <div className="mt-6 grid gap-6 lg:grid-cols-2">
                         <Field label="Display name">
-                            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                         <div className="lg:col-span-2">
                             <Field label="Description">
-                                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                             </Field>
                         </div>
                         <div className="lg:col-span-2">
                             <Field label="Documentation (markdown-ish)">
-                                <textarea value={documentation} onChange={(e) => setDocumentation(e.target.value)} rows={6} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 font-numeric text-xs outline-none focus:border-border/50" />
+                                <textarea value={documentation} onChange={(e) => setDocumentation(e.target.value)} rows={6} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 font-numeric text-xs outline-none focus:border-border/50" />
                             </Field>
                         </div>
                         <Field label="Pricing type">
@@ -540,7 +540,7 @@ export default function AdminPluginDetailPage() {
                                         type="button"
                                         onClick={() => setPricingType(t.value)}
                                         className={`rounded-lg border px-3 py-1.5 text-xs transition ${
-                                            pricingType === t.value ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                            pricingType === t.value ? "border-border/50 bg-background text-foreground" : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
                                         {t.label}
@@ -551,18 +551,18 @@ export default function AdminPluginDetailPage() {
                         {pricingType !== "free" && (
                             <div className="grid grid-cols-2 gap-3">
                                 <Field label="Price">
-                                    <input type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                    <input type="number" min={0} value={price} onChange={(e) => setPrice(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                                 </Field>
                                 <Field label="Currency">
-                                    <input value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                                    <input value={currency} onChange={(e) => setCurrency(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                                 </Field>
                             </div>
                         )}
                         <Field label="Capabilities (comma separated)">
-                            <input value={capabilities} onChange={(e) => setCapabilities(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={capabilities} onChange={(e) => setCapabilities(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                         <Field label="Supported markets (comma separated)">
-                            <input value={supportedMarkets} onChange={(e) => setSupportedMarkets(e.target.value)} className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
+                            <input value={supportedMarkets} onChange={(e) => setSupportedMarkets(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50" />
                         </Field>
                     </div>
 
@@ -577,7 +577,7 @@ export default function AdminPluginDetailPage() {
                                     type="button"
                                     onClick={() => togglePermission(permission)}
                                     className={`rounded-lg border p-4 text-left transition ${
-                                        enabled ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/20 hover:border-border/50"
+                                        enabled ? "border-primary/40 bg-primary/10" : "border-border/40 bg-muted/20 hover:border-border/50"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between gap-2">
@@ -594,7 +594,7 @@ export default function AdminPluginDetailPage() {
                         <button
                             type="button"
                             onClick={load}
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <RefreshCw size={13} />
                             Discard changes
@@ -614,7 +614,7 @@ export default function AdminPluginDetailPage() {
 
             {tab === "sandbox" && (
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <FlaskConical size={14} /> Sandbox test
                         </h3>
@@ -626,7 +626,7 @@ export default function AdminPluginDetailPage() {
                                 value={testSymbols}
                                 onChange={(e) => setTestSymbols(e.target.value)}
                                 placeholder="EURUSD, XAUUSD"
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
                         <button
@@ -639,7 +639,7 @@ export default function AdminPluginDetailPage() {
                             Run sandbox test
                         </button>
                         {testResult && (
-                            <div className="mt-5 border-t border-border/30 pt-4">
+                            <div className="mt-5 border-t border-border/40 pt-4">
                                 <h4 className="text-xs font-medium">Latest result</h4>
                                 <div className="mt-3 flex items-center gap-2">
                                     <StatusBadge tone={testResult.status === "success" ? "positive" : "error"} label={testResult.status} dot />
@@ -650,7 +650,7 @@ export default function AdminPluginDetailPage() {
                                 {testResult.findings && testResult.findings.length > 0 && (
                                     <div className="mt-3 space-y-2">
                                         {testResult.findings.map((f, i) => (
-                                            <div key={i} className="rounded-lg border border-border/30 bg-muted/20 p-3">
+                                            <div key={i} className="rounded-lg border border-border/40 bg-muted/20 p-3">
                                                 <p className="text-xs font-medium text-foreground">{f.title}</p>
                                                 <p className="mt-0.5 text-micro text-muted-foreground">{f.detail}</p>
                                             </div>
@@ -661,7 +661,7 @@ export default function AdminPluginDetailPage() {
                         )}
                     </div>
 
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <FlaskConical size={14} /> What a test checks
                         </h3>
@@ -676,7 +676,7 @@ export default function AdminPluginDetailPage() {
             )}
 
             {tab === "audit" && (
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                     <div className="flex items-center justify-between">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <ScrollText size={14} /> Audit log
@@ -689,9 +689,9 @@ export default function AdminPluginDetailPage() {
                     {audit.length === 0 ? (
                         <EmptyState compact icon={<Terminal size={18} />} title="No audit events yet" description="Status changes, version bumps, edits, sandbox tests and publishes are recorded here." />
                     ) : (
-                        <div className="mt-4 overflow-hidden rounded-lg border border-border/30 bg-muted/20">
+                        <div className="mt-4 overflow-hidden rounded-lg border border-border/40 bg-muted/20">
                             {audit.map((entry) => (
-                                <div key={entry.id} className="flex flex-col gap-1 border-b border-border/30 p-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+                                <div key={entry.id} className="flex flex-col gap-1 border-b border-border/40 p-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <p className="text-xs font-medium text-foreground">{entry.action}</p>
                                         <p className="mt-0.5 text-micro text-muted-foreground">
@@ -728,7 +728,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function MiniInfo({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/20 p-2.5">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2.5">
             <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 truncate text-xs font-medium text-foreground">{value}</p>
         </div>

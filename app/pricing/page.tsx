@@ -203,7 +203,7 @@ export default function PricingPage() {
                             <Card
                                 key={tier.id}
                                 className={`relative gap-0 overflow-visible rounded-xl bg-card p-6 shadow-sm transition-colors motion-reduce:transition-none ${
-                                    tier.highlighted ? "border-primary/40 bg-primary/5 shadow-md" : ""
+                                    tier.highlighted ? "border-primary/40 bg-primary/5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" : ""
                                 }`}
                             >
                                 {tier.highlighted && (
@@ -219,7 +219,7 @@ export default function PricingPage() {
                                 )}
 
                                 <div className="flex items-center gap-3">
-                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${tier.highlighted ? "bg-primary text-white" : "bg-muted"}`}>
                                         <Icon size={20} />
                                     </div>
                                     <div>

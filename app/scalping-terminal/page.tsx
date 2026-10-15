@@ -36,7 +36,7 @@ export default function ScalpingTerminalPage() {
             }
             maxWidth="max-w-[1800px]"
         >
-            <div className="mb-4 rounded-lg border border-border/30 bg-card/70 p-4">
+            <div className="mb-4 rounded-lg border border-border/40 bg-card/70 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -58,7 +58,7 @@ export default function ScalpingTerminalPage() {
                     </div>
                     <Link
                         href="/account/scalping-terminal"
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
+                        className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-black px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-primary/90"
                     >
                         Open Pro Terminal <ArrowRight className="size-3" />
                     </Link>

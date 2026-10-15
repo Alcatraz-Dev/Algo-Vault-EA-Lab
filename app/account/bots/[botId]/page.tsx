@@ -410,7 +410,7 @@ function StatCard({
             <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider opacity-80">
                 {icon} {label}
             </div>
-            <p className="mt-2 font-numeric text-xl font-bold">{value}</p>
+            <p className="mt-2 font-numeric text-sm font-semibold font-bold">{value}</p>
         </div>
     );
 }

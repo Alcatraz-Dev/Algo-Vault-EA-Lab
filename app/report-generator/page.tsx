@@ -70,17 +70,17 @@ export default function ReportGeneratorPage() {
         <AccountShell title="Report Generator" subtitle="Generate AI-powered trading performance reports" onBack={() => router.push("/account")}>
             <div className="space-y-6" data-guide="page-header">
                 <div className="flex flex-wrap gap-3">
-                    <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="rounded-md border border-border/30 bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
+                    <select value={symbol} onChange={(e) => setSymbol(e.target.value)} className="rounded-md border border-border/40 bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
                         <option value="XAUUSD">XAUUSD</option>
                         <option value="EURUSD">EURUSD</option>
                         <option value="BTCUSD">BTCUSD</option>
                     </select>
-                    <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="rounded-md border border-border/30 bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
+                    <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)} className="rounded-md border border-border/40 bg-muted px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none">
                         <option value="H1">H1</option>
                         <option value="H4">H4</option>
                         <option value="D1">D1</option>
                     </select>
-                    <button type="button" onClick={generateReport} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                    <button type="button" onClick={generateReport} disabled={loading} className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Generate Report"}
                     </button>
                 </div>

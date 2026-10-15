@@ -139,7 +139,7 @@ export default async function StorePage({
                             return (
                                 <div
                                     key={product.id}
-                                    className="flex flex-col rounded-lg border border-border/30 bg-muted/50 p-5 transition-all hover:bg-muted"
+                                    className="flex flex-col rounded-lg border border-border/40 bg-muted/50 p-5 transition-all hover:bg-muted"
                                 >
                                     <h3 className="text-sm font-semibold text-foreground">
                                         {product.name}

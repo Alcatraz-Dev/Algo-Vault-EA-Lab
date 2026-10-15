@@ -70,7 +70,7 @@ export default function EconomicCalendarPage() {
             </div>
 
             {/* Header Section */}
-            <section className="border-b border-border/30" data-guide="page-header">
+            <section className="border-b border-border/40" data-guide="page-header">
                 <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                     
                     {/* Back Button matching Purchases page style */}
@@ -84,7 +84,7 @@ export default function EconomicCalendarPage() {
 
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-border/30 bg-muted/5 px-3 py-1.5 text-xs text-muted-foreground">
+                            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-muted/5 px-3 py-1.5 text-xs text-muted-foreground">
                                 <Calendar size={13} />
                                 Economic Impact & News Telemetry
                             </div>
@@ -104,7 +104,7 @@ export default function EconomicCalendarPage() {
                                 type="button"
                                 onClick={() => loadCalendar(true)}
                                 disabled={refreshing}
-                                className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
+                                className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted/10 hover:text-foreground disabled:opacity-50"
                             >
                                 <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
                                 <span>{refreshing ? "Updating..." : "Refresh Calendar"}</span>
@@ -113,7 +113,7 @@ export default function EconomicCalendarPage() {
                     </div>
 
                     {/* Controls Bar */}
-                    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border/30 pt-6">
+                    <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border/40 pt-6">
                         <div className="flex flex-wrap items-center gap-3">
                             <span className="text-xs text-muted-foreground font-medium">Impact Filter:</span>
                             {(["All", "High", "Medium"] as const).map((imp) => (
@@ -123,8 +123,8 @@ export default function EconomicCalendarPage() {
                                     onClick={() => setSelectedImpact(imp)}
                                     className={`rounded-lg border px-3.5 py-1.5 text-xs font-medium transition-colors ${
                                         selectedImpact === imp
-                                            ? "border-border bg-muted/10 text-foreground font-semibold shadow-md"
-                                            : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
+                                            ? "border-border bg-muted/10 text-foreground font-semibold shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                                            : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                                     }`}
                                 >
                                     {imp === "High" ? "🔴 High Impact Only" : imp}
@@ -137,7 +137,7 @@ export default function EconomicCalendarPage() {
                             <select
                                 value={selectedCurrency}
                                 onChange={(e) => setSelectedCurrency(e.target.value)}
-                                className="rounded-lg border border-border/30 bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none"
+                                className="rounded-lg border border-border/40 bg-card px-3 py-1.5 text-xs text-foreground focus:outline-none"
                             >
                                 <option value="All">All Currencies</option>
                                 <option value="USD">USD (US Dollar)</option>
@@ -154,7 +154,7 @@ export default function EconomicCalendarPage() {
 
             {/* Main Table Content */}
             <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <section className="mb-8 border border-border/30 bg-muted/50 p-4">
+                <section className="mb-8 border border-border/40 bg-muted/50 p-4">
                     <div className="mb-4 flex items-center justify-between gap-4">
                         <div>
                             <p className="text-sm font-semibold text-foreground">Live TradingView economic calendar</p>
@@ -172,7 +172,7 @@ export default function EconomicCalendarPage() {
                 ) : (
                     <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <table className="w-full text-left text-xs text-muted-foreground">
-                            <thead className="border-b border-border/30 bg-muted/5 font-semibold text-foreground">
+                            <thead className="border-b border-border/40 bg-muted/5 font-semibold text-foreground">
                                 <tr>
                                     <th className="p-4">Time (UTC)</th>
                                     <th className="p-4">Currency</th>

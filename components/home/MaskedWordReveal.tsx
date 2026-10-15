@@ -22,16 +22,16 @@ export default function MaskedWordReveal({
     delay = 100,
     scrambleAccent = true,
 }: MaskedWordRevealProps) {
-    const [isInView, setIsInView] = useState(() => {
-        if (typeof window !== "undefined") {
-            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        }
-        return false;
-    });
+    // Initialize to false on both server and client so initial markup matches.
+    // Reduced-motion preference is applied in an effect after hydration.
+    const [isInView, setIsInView] = useState(false);
     const [scrambledAccent, setScrambledAccent] = useState(accentWord || "");
     const containerRef = useRef<HTMLHeadingElement>(null);
 
     useEffect(() => {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setIsInView(true);
+        }
         const el = containerRef.current;
         if (!el) return;
 

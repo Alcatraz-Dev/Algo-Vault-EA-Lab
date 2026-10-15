@@ -54,7 +54,7 @@ export default function MonteCarloPage() {
             <AccountShell title="Monte Carlo Analysis" subtitle="Statistical simulation of your trading outcomes">
                 <div className="space-y-6" data-guide="page-header">
                     <div className="flex items-center gap-4">
-                        <button type="button" onClick={runSimulation} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                        <button type="button" onClick={runSimulation} disabled={loading} className="flex items-center gap-2 rounded-md bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <Dices size={14} />} Run Simulation ({numSims.toLocaleString()} iterations)
                         </button>
                         <select value={numSims} onChange={(e) => setNumSims(Number(e.target.value))} className="rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-foreground focus:border-ring focus:outline-none">

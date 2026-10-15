@@ -152,7 +152,7 @@ export default function VerifiedPerformancePage() {
                     <div className="flex flex-wrap items-center gap-2">
                         <Link
                             href="/live-performance"
-                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             <Radio className="h-4 w-4 text-muted-foreground" />
                             Live Performance
@@ -161,7 +161,7 @@ export default function VerifiedPerformancePage() {
                             type="button"
                             onClick={() => void fetchPerformance()}
                             disabled={loading}
-                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 disabled:opacity-60"
+                            className="inline-flex shrink-0 items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10 disabled:opacity-60"
                         >
                             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                             {loading ? "Refreshing…" : "Refresh"}
@@ -236,7 +236,7 @@ export default function VerifiedPerformancePage() {
                         </div>
 
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <TrendingUp className="h-4 w-4" />Sharpe (R-distribution)
                                 </div>
@@ -248,7 +248,7 @@ export default function VerifiedPerformancePage() {
                                 </p>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                                 <div className="flex items-center gap-2 text-foreground">
                                     <Shield className="h-5 w-5" />
                                     <span className="text-sm font-semibold">Risk Assessment</span>
@@ -273,7 +273,7 @@ export default function VerifiedPerformancePage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                                 <div className="flex items-center gap-2 text-foreground">
                                     <Target className="h-5 w-5" />
                                     <span className="text-sm font-semibold">Consistency</span>
@@ -298,7 +298,7 @@ export default function VerifiedPerformancePage() {
                                 </div>
                             </div>
 
-                            <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                                 <div className="flex items-center gap-2 text-foreground">
                                     <Crown className="h-5 w-5" />
                                     <span className="text-sm font-semibold">Signal Stats</span>
@@ -359,7 +359,7 @@ export default function VerifiedPerformancePage() {
                             />
                         </div>
 
-                        <div className="rounded-lg border border-border/30 bg-card/40 p-4 text-xs text-muted-foreground">
+                        <div className="rounded-lg border border-border/40 bg-card/40 p-4 text-xs text-muted-foreground">
                             Verified at {new Date(data.verifiedAt).toLocaleString()} · source: <code className="text-foreground">tradeJournal/{`{uid}`}</code> · {data.totalTrades} trade{data.totalTrades === 1 ? "" : "s"} aggregated
                         </div>
                     </>
@@ -381,7 +381,7 @@ function StatCard({
     sub?: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+        <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {icon}
                 <span>{label}</span>

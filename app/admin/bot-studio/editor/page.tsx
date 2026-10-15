@@ -274,7 +274,7 @@ export default function AvScriptEditorPage() {
                             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition ${
                                 saveSuccess
                                     ? "bg-emerald-600 text-white"
-                                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "bg-primary text-white hover:bg-primary/90"
                             }`}
                         >
                             {saveSuccess ? (
@@ -445,7 +445,7 @@ export default function AvScriptEditorPage() {
                                         }`}>
                                             ${backtestResult.metrics.netProfit.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Return: {backtestResult.metrics.returnPct?.toFixed(2)}%
                                         </span>
                                     </div>
@@ -455,7 +455,7 @@ export default function AvScriptEditorPage() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.winRate?.toFixed(1)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             {backtestResult.metrics.longTrades + backtestResult.metrics.shortTrades} total trades
                                         </span>
                                     </div>
@@ -465,7 +465,7 @@ export default function AvScriptEditorPage() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.profitFactor?.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Exp: {backtestResult.metrics.expectancy?.toFixed(2)}
                                         </span>
                                     </div>
@@ -475,7 +475,7 @@ export default function AvScriptEditorPage() {
                                         <div className="text-xl font-bold mt-1 text-rose-400">
                                             {backtestResult.metrics.maxDrawdownPct?.toFixed(2)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             ${backtestResult.metrics.maxDrawdownAbs?.toFixed(2)}
                                         </span>
                                     </div>
@@ -535,7 +535,7 @@ export default function AvScriptEditorPage() {
                                                     {backtestResult.trades.slice(0, 8).map((t: any, idx: number) => (
                                                         <tr key={idx} className="hover:bg-muted/20">
                                                             <td className="p-2.5">
-                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-semibold ${
                                                                     t.direction === "long" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                                                                 }`}>
                                                                     {t.direction.toUpperCase()}
@@ -547,7 +547,7 @@ export default function AvScriptEditorPage() {
                                                                 ${t.pnl?.toFixed(2)}
                                                             </td>
                                                             <td className="p-2.5">{t.rMultiple ? `${t.rMultiple.toFixed(2)}R` : "-"}</td>
-                                                            <td className="p-2.5 text-muted-foreground font-sans text-[10px]">{t.exitReason || "manual"}</td>
+                                                            <td className="p-2.5 text-muted-foreground font-sans text-[8px]">{t.exitReason || "manual"}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -560,7 +560,7 @@ export default function AvScriptEditorPage() {
                             <div className="pt-3 border-t border-border flex items-center justify-end">
                                 <button
                                     onClick={() => setBacktestModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold transition-colors hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold transition-colors hover:bg-primary/90"
                                 >
                                     Close Report
                                 </button>

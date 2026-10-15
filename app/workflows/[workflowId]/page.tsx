@@ -159,7 +159,7 @@ function CanvasArea({ nodes, edges }: { nodes: WorkflowNode[]; edges: WorkflowEd
       {nodes.map((node) => (
         <div
           key={node.id}
-          className="absolute rounded-lg border bg-card shadow-sm px-4 py-3 w-40 text-xs transition hover:shadow-md hover:-translate-y-0.5"
+          className="absolute rounded-lg border bg-card shadow-sm px-4 py-3 w-40 text-xs transition hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)] hover:-translate-y-0.5"
           style={{ top: (node.position?.y ?? 0) + 60, left: (node.position?.x ?? 0) + 20 }}
         >
           <div className="font-semibold truncate">{node.label || node.id}</div>

@@ -25,7 +25,7 @@ import DesktopDownloadSection from "./DesktopDownloadSection";
  * closing CTA. Every figure comes from `getHomeData`; every sample is
  * labeled; every link targets an existing route.
  */
-export default function HomePage({ data }: { data: HomeData }) {
+export default function HomePage({ data, dataNotice }: { data: HomeData; dataNotice?: string | null }) {
     const [siteName, setSiteName] = useState("AlgoVault");
 
     useEffect(() => {
@@ -39,6 +39,11 @@ export default function HomePage({ data }: { data: HomeData }) {
     return (
         <div data-home-page="" className="min-h-screen overflow-x-clip bg-background font-sans text-foreground selection:bg-primary selection:text-primary-foreground">
             <SiteHeader />
+            {dataNotice ? (
+                <div data-home-data-notice="" role="status" className="border-b border-border bg-card/80">
+                    <p className="mx-auto max-w-7xl px-6 py-2.5 text-center text-xs text-muted-foreground">{dataNotice}</p>
+                </div>
+            ) : null}
             <main>
                 <TickerStrip />
                 <AceternityHero data={data} siteName={siteName} />

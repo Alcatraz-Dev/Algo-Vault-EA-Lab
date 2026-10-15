@@ -29,7 +29,7 @@ export default function HowItWorksPage() {
               AlgoVault is an AI-powered trading platform and strategy marketplace. It connects research, validation, execution, and intelligence into one workspace — available on the web and desktop.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 hover:bg-primary/90 transition">Explore Marketplace</Link>
+              <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/20 hover:bg-primary/90 transition">Explore Marketplace</Link>
               <Link href="/pricing" className="inline-flex items-center gap-2 rounded-lg bg-card border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/30 transition">View Pricing</Link>
               <Link href="/how-it-works#desktop" className="inline-flex items-center gap-2 rounded-lg bg-card border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/30 transition">Desktop Apps</Link>
             </div>
@@ -175,7 +175,7 @@ export default function HowItWorksPage() {
             ))}
           </ol>
           <div className="mt-6">
-            <Link href="/" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Back to Homepage</Link>
+            <Link href="/" className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Back to Homepage</Link>
           </div>
         </section>
 
@@ -203,7 +203,7 @@ export default function HowItWorksPage() {
           <h2 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">Ready to start?</h2>
           <p className="mt-3 text-muted-foreground">Explore the marketplace, open the terminal, or download the desktop app when preview builds complete verification.</p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/" className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Explore Marketplace</Link>
+            <Link href="/" className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Explore Marketplace</Link>
             <Link href="/live" className="inline-flex items-center gap-2 rounded-lg bg-card border border-border px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/30 transition">Open Pro Terminal</Link>
           </div>
         </section>

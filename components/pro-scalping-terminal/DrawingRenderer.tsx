@@ -81,6 +81,8 @@ import type { ChartSettings } from "./chart-settings";
 import { fmtPrice } from "./terminal-utils";
 import {
     extendRayToBounds,
+    POSITION_RISK_REWARD,
+    positionLevels,
     resolveMarketPointToPixel,
     resolvePriceY,
     resolveTimeX,
@@ -88,6 +90,7 @@ import {
     triangleVertices,
     type MarketPriceTransform,
     type MarketTimeTransform,
+    type PositionSide,
 } from "./drawing-utils";
 
 // ── inputs ────────────────────────────────────────────────────────────────
@@ -245,6 +248,26 @@ export type DrawingVisual =
           text: string;
           color: string;
           fontSize: number;
+      }
+    | {
+          kind: "position";
+          id: string;
+          side: PositionSide;
+          /** Box span along the time axis (entry time → sizing time). */
+          left: number;
+          right: number;
+          entryY: number;
+          stopY: number;
+          targetY: number;
+          /** Pre-formatted prices for the entry / stop / target labels. */
+          entryLabel: string;
+          stopLabel: string;
+          targetLabel: string;
+          /** Reward:risk ratio label, e.g. "1:2". */
+          rrLabel: string;
+          color: string;
+          strokeWidth: number;
+          fontSize: number;
       };
 
 /** The selection outline + endpoint handles of the parent's selected drawing. */
@@ -284,7 +307,23 @@ export type DrawingPreviewVisual =
     | { kind: "arrow"; x1: number; y1: number; x2: number; y2: number; color: string; strokeWidth: number }
     | { kind: "triangle"; points: Array<[number, number]>; color: string; strokeWidth: number }
     | { kind: "ray"; x1: number; y1: number; endX: number; endY: number; color: string; strokeWidth: number }
-    | { kind: "trendline"; x1: number; y1: number; x2: number; y2: number; color: string; strokeWidth: number };
+    | { kind: "trendline"; x1: number; y1: number; x2: number; y2: number; color: string; strokeWidth: number }
+    | {
+          kind: "position";
+          side: PositionSide;
+          left: number;
+          right: number;
+          entryY: number;
+          stopY: number;
+          targetY: number;
+          entryLabel: string;
+          stopLabel: string;
+          targetLabel: string;
+          rrLabel: string;
+          color: string;
+          strokeWidth: number;
+          fontSize: number;
+      };
 
 /** One projection pass: everything the SVG surface paints, already in pixels. */
 export type DrawingScene = {
@@ -308,6 +347,57 @@ const EMPTY_SCENE: DrawingScene = {
     selection: null,
     preview: null,
 };
+
+// ── position-plan resolution (long / short tools) ──────────────────────────
+
+/**
+ * Resolve a position plan's three PIXEL levels from its two stored market
+ * points. The prices come from the same `positionLevels` derivation the
+ * hit-test uses, so the painted boxes and the clickable area share one source
+ * of truth. Returns null when any level cannot resolve — never a fake pixel.
+ */
+function positionPixelLevels(
+    entryPrice: number,
+    sizingPrice: number,
+    side: PositionSide,
+    series: DrawingSeriesTransform | null,
+): { entryY: number; stopY: number; targetY: number } | null {
+    if (!series) return null;
+    const lv = positionLevels(entryPrice, sizingPrice, side);
+    const entryY = resolvePriceY(lv.entry, series);
+    const stopY = resolvePriceY(lv.stop, series);
+    const targetY = resolvePriceY(lv.target, series);
+    if (entryY === null || stopY === null || targetY === null) return null;
+    return { entryY, stopY, targetY };
+}
+
+/** The resolved position geometry plus its pre-formatted labels. */
+function resolvePositionPixels(
+    entryPrice: number,
+    sizingPrice: number,
+    side: PositionSide,
+    series: DrawingSeriesTransform | null,
+    symbol: string,
+): {
+    entryY: number;
+    stopY: number;
+    targetY: number;
+    entryLabel: string;
+    stopLabel: string;
+    targetLabel: string;
+    rrLabel: string;
+} | null {
+    const px = positionPixelLevels(entryPrice, sizingPrice, side, series);
+    if (!px) return null;
+    const lv = positionLevels(entryPrice, sizingPrice, side);
+    return {
+        ...px,
+        entryLabel: fmtPrice(lv.entry, symbol),
+        stopLabel: fmtPrice(lv.stop, symbol),
+        targetLabel: fmtPrice(lv.target, symbol),
+        rrLabel: POSITION_RISK_REWARD > 0 ? `1:${POSITION_RISK_REWARD}` : "—",
+    };
+}
 
 // ── renderer ──────────────────────────────────────────────────────────────
 
@@ -407,7 +497,7 @@ export class DrawingRenderer {
             visible: width > 0,
             drawings: visuals,
             selection: selected ? this.projectSelection(selected, width, height) : null,
-            preview: context.preview ? this.projectPreview(context.preview, cfg, width, height) : null,
+            preview: context.preview ? this.projectPreview(context.preview, cfg, width, height, symbol) : null,
         };
         return this.lastScene;
     }
@@ -512,6 +602,28 @@ export class DrawingRenderer {
                 strokeWidth,
             };
         }
+        if (d.type === "long" || d.type === "short") {
+            const side: PositionSide = d.type === "long" ? "long" : "short";
+            const px = resolvePositionPixels(p1.price, p2.price, side, this.series, symbol);
+            if (!px) return null;
+            return {
+                kind: "position",
+                id: d.id,
+                side,
+                left: Math.min(x1, x2),
+                right: Math.max(x1, x2),
+                entryY: px.entryY,
+                stopY: px.stopY,
+                targetY: px.targetY,
+                entryLabel: px.entryLabel,
+                stopLabel: px.stopLabel,
+                targetLabel: px.targetLabel,
+                rrLabel: px.rrLabel,
+                color,
+                strokeWidth,
+                fontSize: cfg.tools.fontSize,
+            };
+        }
         if (d.type === "triangle") {
             // Deterministic third vertex from the two stored market points
             // (same time as p1, same price as p2): a real closed polygon, not a
@@ -584,6 +696,21 @@ export class DrawingRenderer {
             box = { x: 0, y: pos.y1 - 7, w: width, h: 14 };
         } else if (d.type === "vertical") {
             box = { x: pos.x1 - 7, y: 0, w: 14, h: height };
+        } else if (d.type === "long" || d.type === "short") {
+            // Frame both boxes, not just the entry→sizing diagonal.
+            const side: PositionSide = d.type === "long" ? "long" : "short";
+            const px = positionPixelLevels(d.points[0].price, d.points[1].price, side, this.series);
+            const ys = px ? [pos.y1, px.stopY, px.targetY] : [pos.y1, pos.y2];
+            const minX = Math.min(pos.x1, pos.x2);
+            const maxX = Math.max(pos.x1, pos.x2);
+            const minY = Math.min(...ys);
+            const maxY = Math.max(...ys);
+            box = {
+                x: minX - 7,
+                y: minY - 7,
+                w: Math.max(14, maxX - minX + 14),
+                h: Math.max(14, maxY - minY + 14),
+            };
         } else {
             const minX = Math.min(pos.x1, pos.x2);
             const maxX = Math.max(pos.x1, pos.x2);
@@ -614,7 +741,8 @@ export class DrawingRenderer {
         dp: DrawingPreviewState,
         cfg: ChartSettings,
         width: number,
-        height: number
+        height: number,
+        symbol: string
     ): DrawingPreviewVisual | null {
         const color = cfg.tools.color;
         const strokeWidth = cfg.tools.lineWidth;
@@ -702,6 +830,39 @@ export class DrawingRenderer {
             const end = extendRayToBounds(dp.startX, dp.startY, dp.curX, dp.curY, width, height);
             if (!end) return null;
             return { kind: "ray", x1: dp.startX, y1: dp.startY, endX: end.x, endY: end.y, color, strokeWidth };
+        }
+        if (dp.tool === "long" || dp.tool === "short") {
+            const side: PositionSide = dp.tool === "long" ? "long" : "short";
+            const cs = this.series;
+            if (!cs) return null;
+            // The sizing price comes from the cursor's y; when the price scale
+            // is not ready it collapses to the entry (a degenerate preview, not
+            // a fabricated level).
+            const sizingP = (() => {
+                try {
+                    return cs.coordinateToPrice?.(dp.curY) ?? dp.startPrice;
+                } catch {
+                    return dp.startPrice;
+                }
+            })();
+            const px = resolvePositionPixels(dp.startPrice, sizingP, side, cs, symbol);
+            if (!px) return null;
+            return {
+                kind: "position",
+                side,
+                left: Math.min(dp.startX, dp.curX),
+                right: Math.max(dp.startX, dp.curX),
+                entryY: px.entryY,
+                stopY: px.stopY,
+                targetY: px.targetY,
+                entryLabel: px.entryLabel,
+                stopLabel: px.stopLabel,
+                targetLabel: px.targetLabel,
+                rrLabel: px.rrLabel,
+                color,
+                strokeWidth,
+                fontSize: cfg.tools.fontSize,
+            };
         }
         // Default: trendline.
         return { kind: "trendline", x1: dp.startX, y1: dp.startY, x2: dp.curX, y2: dp.curY, color, strokeWidth };
@@ -796,6 +957,68 @@ function drawingElement(v: DrawingVisual): ReactElement {
             );
         case "text":
             return el("text", { key: v.id, x: v.x, y: v.y, fill: v.color, fontSize: v.fontSize, fontFamily: "monospace", fontWeight: "bold" }, v.text);
+        case "position": {
+            // TradingView-style position plan: a red stop box and a green
+            // take-profit box on either side of the entry line, each labelled
+            // with its price, plus a direction tag carrying the R:R.
+            const long = v.side === "long";
+            const stopColor = "#ef4444";
+            const targetColor = "#22c55e";
+            const labelSize = Math.max(8, v.fontSize - 1);
+            const boxW = Math.max(1, v.right - v.left);
+            const tagY = (long ? Math.min(v.entryY, v.targetY) : Math.min(v.entryY, v.stopY)) - 5;
+            return el(
+              "g",
+                { key: v.id },
+                el("rect", {
+                    x: v.left,
+                    y: Math.min(v.entryY, v.stopY),
+                    width: boxW,
+                    height: Math.max(1, Math.abs(v.stopY - v.entryY)),
+                    fill: "rgba(239,68,68,0.16)",
+                    stroke: "rgba(239,68,68,0.7)",
+                    strokeWidth: 1,
+                }),
+                el("rect", {
+                    x: v.left,
+                    y: Math.min(v.entryY, v.targetY),
+                    width: boxW,
+                    height: Math.max(1, Math.abs(v.targetY - v.entryY)),
+                    fill: "rgba(34,197,94,0.16)",
+                    stroke: "rgba(34,197,94,0.7)",
+                    strokeWidth: 1,
+                }),
+                el("line", {
+                    x1: v.left,
+                    y1: v.entryY,
+                    x2: v.right,
+                    y2: v.entryY,
+                    stroke: v.color,
+                    strokeWidth: v.strokeWidth,
+                    strokeDasharray: "4,3",
+                }),
+                el(
+                    "text",
+                    { x: v.left + 4, y: tagY, fill: long ? targetColor : stopColor, fontSize: v.fontSize, fontFamily: "monospace", fontWeight: "bold" },
+                    `${long ? "\u25B2 LONG" : "\u25BC SHORT"} \u00B7 ${v.rrLabel}`
+                ),
+                el(
+                    "text",
+                    { x: v.left + 4, y: v.targetY + (long ? -4 : 12), fill: targetColor, fontSize: labelSize, fontFamily: "monospace" },
+                    `TP  ${v.targetLabel}`
+                ),
+                el(
+                    "text",
+                    { x: v.left + 4, y: v.stopY + (long ? 12 : -4), fill: stopColor, fontSize: labelSize, fontFamily: "monospace" },
+                    `SL  ${v.stopLabel}`
+                ),
+                el(
+                    "text",
+                    { x: v.left + 4, y: v.entryY - 4, fill: v.color, fontSize: labelSize, fontFamily: "monospace" },
+                    `Entry  ${v.entryLabel}`
+                )
+            );
+        }
     }
 }
 
@@ -812,8 +1035,8 @@ function selectionElement(selection: DrawingSelectionVisual | null): ReactElemen
             ? el(
               "g",
                   null,
-                  el("circle", { cx: handles[0].x, cy: handles[0].y, r: 3.5, fill: "#38bdf8" }),
-                  el("circle", { cx: handles[1].x, cy: handles[1].y, r: 3.5, fill: "#38bdf8" })
+                  el("circle", { cx: handles[0].x, cy: handles[0].y, r: 5, fill: "#38bdf8" }),
+                  el("circle", { cx: handles[1].x, cy: handles[1].y, r: 5, fill: "#38bdf8" })
               )
             : null
     );
@@ -873,6 +1096,43 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
             return el("line", { x1: pv.x1, y1: pv.y1, x2: pv.endX, y2: pv.endY, stroke: pv.color, strokeWidth: pv.strokeWidth, markerEnd: "url(#arrow)", opacity: 0.85 });
         case "trendline":
             return el("line", { x1: pv.x1, y1: pv.y1, x2: pv.x2, y2: pv.y2, stroke: pv.color, strokeWidth: pv.strokeWidth, opacity: 0.85 });
+        case "position": {
+            const long = pv.side === "long";
+            const stopColor = "#ef4444";
+            const targetColor = "#22c55e";
+            const labelSize = Math.max(8, pv.fontSize - 1);
+            const boxW = Math.max(1, pv.right - pv.left);
+            return el(
+              "g",
+                { opacity: 0.85 },
+                el("rect", {
+                    x: pv.left,
+                    y: Math.min(pv.entryY, pv.stopY),
+                    width: boxW,
+                    height: Math.max(1, Math.abs(pv.stopY - pv.entryY)),
+                    fill: "rgba(239,68,68,0.16)",
+                    stroke: "rgba(239,68,68,0.7)",
+                    strokeWidth: 1,
+                }),
+                el("rect", {
+                    x: pv.left,
+                    y: Math.min(pv.entryY, pv.targetY),
+                    width: boxW,
+                    height: Math.max(1, Math.abs(pv.targetY - pv.entryY)),
+                    fill: "rgba(34,197,94,0.16)",
+                    stroke: "rgba(34,197,94,0.7)",
+                    strokeWidth: 1,
+                }),
+                el("line", { x1: pv.left, y1: pv.entryY, x2: pv.right, y2: pv.entryY, stroke: pv.color, strokeWidth: pv.strokeWidth, strokeDasharray: "4,3" }),
+                el(
+                    "text",
+                    { x: pv.left + 4, y: (long ? Math.min(pv.entryY, pv.targetY) : Math.min(pv.entryY, pv.stopY)) - 5, fill: long ? targetColor : stopColor, fontSize: pv.fontSize, fontFamily: "monospace", fontWeight: "bold" },
+                    `${long ? "\u25B2 LONG" : "\u25BC SHORT"} \u00B7 ${pv.rrLabel}`
+                ),
+                el("text", { x: pv.left + 4, y: pv.targetY + (long ? -4 : 12), fill: targetColor, fontSize: labelSize, fontFamily: "monospace" }, `TP  ${pv.targetLabel}`),
+                el("text", { x: pv.left + 4, y: pv.stopY + (long ? 12 : -4), fill: stopColor, fontSize: labelSize, fontFamily: "monospace" }, `SL  ${pv.stopLabel}`)
+            );
+        }
     }
 }
 

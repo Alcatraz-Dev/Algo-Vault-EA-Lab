@@ -59,7 +59,13 @@ const SOURCE_LABELS: Record<string, string> = {
 function StateChip({ state }: { state: string }) {
     const tone = STATE_TONES[state] ?? STATE_TONES.AI_UNAVAILABLE;
     return (
-        <span className={cn("rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wide", tone)}>
+        <span
+            className={cn(
+                "inline-flex items-center rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide",
+                tone,
+            )}
+            title={state}
+        >
             {state.replace("_", " ")}
         </span>
     );

@@ -220,7 +220,7 @@ export default function LivePage() {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/market-intelligence"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/80 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-black/80 transition-colors"
             >
               Market Intelligence
             </Link>

@@ -68,18 +68,18 @@ export default function AdminAIHealthPage() {
     return (
         <AdminShell title="AI Provider Health" subtitle="Credential, policy and budget state per provider account — no provider contacted.">
             <div className="mb-6 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5">
+                <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-4 py-2.5">
                     <HeartPulse size={14} className="text-muted-foreground" />
                     <span className="text-xs font-medium">{report?.month ?? "—"}</span>
                     <span className="text-xs text-muted-foreground">month</span>
                 </div>
                 <button onClick={() => void load()} disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50">
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50">
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>
             </div>
             {error && <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive-muted p-4 text-xs text-destructive-foreground">{error}</div>}
-            {!report && loading && <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">Loading health…</div>}
+            {!report && loading && <div className="rounded-lg border border-border/40 bg-muted/50 p-8 text-center text-xs text-muted-foreground">Loading health…</div>}
             {report && (
                 <>
                     <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -112,7 +112,7 @@ export default function AdminAIHealthPage() {
                             </div>
                         ))}
                     </div>
-                    <div className="mt-6 rounded-lg border border-border/30 bg-muted/50 p-4 text-micro text-muted-foreground leading-5">No provider contacted by this page. Credentials shown as configured / missing only (value never shown). Cost / token figures are this month's aggregates. Unknown pricing reads as "Cost unavailable"; budget-refused calls count toward blocked requests, not failures.</div>
+                    <div className="mt-6 rounded-lg border border-border/40 bg-muted/50 p-4 text-micro text-muted-foreground leading-5">No provider contacted by this page. Credentials shown as configured / missing only (value never shown). Cost / token figures are this month's aggregates. Unknown pricing reads as "Cost unavailable"; budget-refused calls count toward blocked requests, not failures.</div>
                 </>
             )}
         </AdminShell>

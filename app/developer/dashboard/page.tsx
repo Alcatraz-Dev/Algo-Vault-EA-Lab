@@ -94,7 +94,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </Link>
 
  <div className="mx-auto max-w-lg mt-8">
- <div className="rounded-xl border border-border/30 bg-muted/50 p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="rounded-xl border border-border/40 bg-muted/50 p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-lg bg-primary/10">
  <Shield size={24} className="text-primary" />
  </div>
@@ -123,7 +123,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={submitRequest}
  disabled={submitting}
-        className="w-full flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
+        className="w-full flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition disabled:opacity-50"
  >
  {submitting ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
  {submitting ? "Submitting..." : "Request Developer Access"}
@@ -177,7 +177,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button
  type="button"
  onClick={() => setRequestState("none")}
-                  className="mt-4 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/10 transition"
+                  className="mt-4 rounded-lg border border-border/40 bg-muted px-4 py-2 text-xs font-semibold text-muted-foreground bg-muted/10 transition"
  >
  Submit New Request
  </button>
@@ -327,7 +327,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
                           }
 
  if (!user) {
-                            return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+                            return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Sign In</Link></div></div>);
                               }
 
  if (role && role !== "developer" && role !== "admin") {
@@ -509,7 +509,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  {/* Developer Subscription Banner */}
  {devSub && (
- <div className="mb-6 rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="mb-6 rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                                           <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
@@ -538,7 +538,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {/* Tabs */}
-                                                              <div className="mb-6 flex gap-2 rounded-xl border border-border/30 bg-muted/50 p-1">
+                                                              <div className="mb-6 flex gap-2 rounded-xl border border-border/40 bg-muted/50 p-1">
  {(["overview", "products", "create"] as const).map((t) => (
  <button
  key={t}
@@ -546,7 +546,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  onClick={() => setTab(t)}
  className={cn(
  "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all",
- tab === t ? "bg-primary text-primary-foreground " : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
+ tab === t ? "bg-primary text-white " : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
  )}
  >
  {t === "overview" && <TrendingUp size={15} />}
@@ -564,22 +564,22 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  {tab === "overview" && (
  <div className="space-y-6">
  <div className="grid grid-cols-3 gap-4">
- <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><DollarSign size={13} className="text-positive" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Revenue</span></div>
  <p className="text-2xl font-bold font-numeric text-positive">${earnings?.stats.totalRevenue || 0}</p>
  </div>
- <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><Package size={13} className="text-primary" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Products</span></div>
  <p className="text-2xl font-bold font-numeric text-foreground">{products.length}</p>
  </div>
- <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center gap-2 mb-1"><TrendingUp size={13} className="text-warning" /><span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Sales</span></div>
  <p className="text-2xl font-bold font-numeric text-foreground">{earnings?.stats.totalSales || 0}</p>
  </div>
  </div>
 
  {earnings?.recentSales && earnings.recentSales.length > 0 && (
- <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h3 className="mb-4 text-sm font-semibold text-foreground">Recent Sales</h3>
  <div className="space-y-2">
  {earnings.recentSales.map((sale) => (
@@ -609,7 +609,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <button type="button" onClick={() => setTab("create")} className="mt-3 text-xs text-primary hover:underline">Create your first product</button>
  </div>
  ) : products.map((p) => (
- <div key={p.id} className="group rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all hover:bg-muted">
+ <div key={p.id} className="group rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all hover:bg-muted">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                                                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-sm font-bold text-primary">
@@ -645,7 +645,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {tab === "create" && (
- <div className="mx-auto max-w-xl rounded-xl border border-border/30 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="mx-auto max-w-xl rounded-xl border border-border/40 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h2 className="mb-4 text-lg font-semibold text-foreground">Create Product</h2>
  <div className="space-y-4">
  <div>
@@ -703,7 +703,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={createProduct}
  disabled={!formName.trim() || creating}
-                                                                                  className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
+                                                                                  className="flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition disabled:opacity-50"
  >
  {creating ? <Loader2 size={15} className="animate-spin" /> : <Plus size={15} />} Create Product
  </button>

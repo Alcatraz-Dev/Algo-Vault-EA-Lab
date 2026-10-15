@@ -62,7 +62,7 @@ export default function TradingSessionsPage() {
                         </div>
                         <div>
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Current UTC Time</p>
-                            <p className="font-numeric text-xl font-bold text-foreground">
+                            <p className="font-numeric text-sm font-semibold font-bold text-foreground">
                                 {String(Math.floor(currentUTC)).padStart(2, "0")}:{String(Math.floor((currentUTC % 1) * 60)).padStart(2, "0")}
                             </p>
                         </div>

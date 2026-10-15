@@ -83,8 +83,8 @@ export default function ExtensionDetailsPage() {
  <div className="mx-auto max-w-7xl px-6 py-12">
  <div className="h-8 w-32 animate-pulse rounded-lg bg-muted/5" />
  <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
- <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
- <div className="h-[320px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+ <div className="h-[400px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
+ <div className="h-[320px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
  </div>
  </div>
  </main>
@@ -120,7 +120,7 @@ export default function ExtensionDetailsPage() {
 
  return (
  <main className="min-h-screen bg-background text-foreground">
- <div className="border-b border-border/30">
+ <div className="border-b border-border/40">
  <div className="mx-auto max-w-7xl px-6 py-5">
  <div className="flex items-center gap-3">
  <Link href="/marketplace/extensions" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
@@ -136,7 +136,7 @@ export default function ExtensionDetailsPage() {
  </div>
 
  <div className="mx-auto max-w-7xl px-6 py-10">
- <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+ <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
  <div className="relative h-52 overflow-hidden bg-positive-muted md:h-60">
  <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 hidden" />
  <div className="absolute right-20 bottom-0 h-56 w-56 rounded-full hidden bg-positive/10" />
@@ -144,15 +144,15 @@ export default function ExtensionDetailsPage() {
  <div className="absolute inset-x-0 bottom-0">
  <div className="p-6 md:p-9">
  <div className="flex items-end gap-5">
- <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card ">
+ <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card ">
  <Zap size={32} className="text-positive" />
  </div>
  <div>
  <div className="flex flex-wrap items-center gap-2">
- <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
+ <span className="rounded-lg border border-border/40 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
  {EXTENSION_TYPE_LABELS[extType]}
  </span>
- <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
+ <span className="rounded-lg border border-border/40 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
  {CATEGORY_LABELS[extension.category]}
  </span>
  </div>
@@ -183,7 +183,7 @@ export default function ExtensionDetailsPage() {
  <h2 className="text-sm font-medium">Capabilities</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2">
  {(extension.capabilities || []).map((cap) => (
-              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
+              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/20 p-3">
  <CheckCircle2 size={15} className="shrink-0 text-positive" />
  <span className="text-sm text-muted-foreground">{cap}</span>
  </div>
@@ -197,7 +197,7 @@ export default function ExtensionDetailsPage() {
  <h2 className="text-sm font-medium">Permissions</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
  {perms.map((permission) => (
-                <div key={permission} className="rounded-lg border border-border/30 bg-muted/20 p-4">
+                <div key={permission} className="rounded-lg border border-border/40 bg-muted/20 p-4">
  <p className="text-sm font-medium">{permissionLabel(permission)}</p>
  <p className="mt-1 text-xs leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
  </div>
@@ -209,7 +209,7 @@ export default function ExtensionDetailsPage() {
  {extension.documentation && (
  <div className="mt-8">
  <h2 className="text-sm font-medium">Setup documentation</h2>
- <div className="mt-3 max-w-3xl rounded-lg border border-border/30 bg-muted/20 p-5">
+ <div className="mt-3 max-w-3xl rounded-lg border border-border/40 bg-muted/20 p-5">
  {extension.documentation.split("\n").map((line, i) => {
  if (line.startsWith("## ")) {
  return (
@@ -239,9 +239,9 @@ export default function ExtensionDetailsPage() {
  </div>
 
  <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
- <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
+ <section className="rounded-lg border border-border/40 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
  <Settings2 size={18} />
  </div>
  <div>
@@ -273,7 +273,7 @@ export default function ExtensionDetailsPage() {
  </section>
 
  <aside className="lg:sticky lg:top-6 lg:self-start">
- <div className="rounded-lg border border-border/30 bg-muted p-6">
+ <div className="rounded-lg border border-border/40 bg-muted p-6">
  <p className="text-xs text-muted-foreground">Access</p>
  <div className="mt-2 flex items-end justify-between">
  <span className="text-3xl font-semibold">
@@ -301,7 +301,7 @@ export default function ExtensionDetailsPage() {
  Installs instantly and can be removed at any time from My Plugins.
  </p>
  </div>
- <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="mt-4 rounded-lg border border-border/40 bg-muted/50 p-5">
  <div className="flex gap-3">
  <Shield size={17} className="mt-0.5 shrink-0 text-muted-foreground" />
  <p className="text-micro leading-5 text-muted-foreground">
@@ -320,7 +320,7 @@ export default function ExtensionDetailsPage() {
 function SetupStep({ n, text }: { n: number; text: string }) {
  return (
  <div className="flex items-start gap-4">
- <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/30 bg-muted/20 text-xs font-semibold text-muted-foreground">
+ <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border/40 bg-muted/20 text-xs font-semibold text-muted-foreground">
  {n}
  </div>
  <p className="pt-1 text-sm leading-6 text-muted-foreground">{text}</p>

@@ -23,6 +23,7 @@ import {
     TrendingUp,
     Zap,
 } from "lucide-react";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import { equalTo, onValue, orderByChild, query, ref } from "firebase/database";
@@ -376,7 +377,7 @@ export default function AiSignalsPage() {
                             className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
                                 limitReached
                                     ? "border-border/20 bg-muted/5 text-muted-foreground cursor-not-allowed opacity-50"
-                                    : "border-border/30 bg-muted/5 text-foreground hover:bg-muted/10"
+                                    : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
                             }`}
                         >
                             {scanning ? (
@@ -483,7 +484,7 @@ export default function AiSignalsPage() {
                                 </div>
                                 <Link
                                     href="/pricing"
-                                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                                    className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md bg-black px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-primary/90"
                                 >
                                     <Zap className="h-3.5 w-3.5 fill-primary-foreground" />
                                     Upgrade to Pro
@@ -524,9 +525,9 @@ export default function AiSignalsPage() {
                             {topSignals.map((signal, idx) => (
                                 <div
                                     key={signal.id}
-                                    className="relative rounded-xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-border hover:shadow-md"
+                                    className="relative rounded-xl border border-border bg-card p-5 shadow-sm transition-colors hover:border-border hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                                 >
-                                    <div className="absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-micro font-black text-primary-foreground">
+                                    <div className="absolute -top-3 -left-3 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-micro font-black text-white">
                                         #{idx + 1}
                                     </div>
 
@@ -569,7 +570,7 @@ export default function AiSignalsPage() {
                                         const livePrice = topPrices[signal.symbol];
                                         if (livePrice == null || !Number.isFinite(livePrice) || livePrice <= 0) {
                                             return (
-                                                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5 text-micro text-muted-foreground">
+                                                <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/10 px-3 py-1.5 text-micro text-muted-foreground">
                                                     <Activity className="h-3 w-3" />
                                                     <span>Live price connecting…</span>
                                                 </div>
@@ -579,7 +580,7 @@ export default function AiSignalsPage() {
                                         const deltaPct = signal.entry !== 0 ? (delta / signal.entry) * 100 : 0;
                                         const favorable = signal.direction === "BUY" ? delta >= 0 : delta < 0;
                                         return (
-                                            <div className="mt-3 flex items-center justify-between rounded-lg border border-border/30 bg-muted/10 px-3 py-1.5">
+                                            <div className="mt-3 flex items-center justify-between rounded-lg border border-border/40 bg-muted/10 px-3 py-1.5">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-positive" />
                                                     <span className="font-numeric text-sm font-black text-foreground">{formatPrice(livePrice, signal.symbol)}</span>
@@ -591,7 +592,7 @@ export default function AiSignalsPage() {
                                         );
                                     })()}
 
-                                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border border-border/30 p-3 text-xs">
+                                    <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg border border-border/40 p-3 text-xs">
                                         <div>
                                             <span className="text-muted-foreground block text-micro">Entry</span>
                                             <span className="font-numeric font-bold text-foreground">{signal.entry}</span>
@@ -700,7 +701,7 @@ export default function AiSignalsPage() {
                                         </p>
                                         <Link
                                             href="/pricing"
-                                            className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground transition-colors hover:bg-primary/90"
+                                            className="mt-4 inline-flex items-center gap-2 rounded-md bg-black px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-primary/90"
                                         >
                                             <Zap className="h-3.5 w-3.5 fill-primary-foreground" />
                                             Upgrade to Pro
@@ -733,7 +734,7 @@ export default function AiSignalsPage() {
                                     <span>Total Signals</span>
                                     <Target className="h-4 w-4 text-primary" />
                                 </div>
-                                <div className="mt-2 font-numeric text-2xl font-bold text-foreground">{analytics.totalSignals}</div>
+                                <div className="mt-2 font-numeric text-base font-semibold font-bold text-foreground">{analytics.totalSignals}</div>
                                 <div className="mt-1 font-numeric text-micro text-muted-foreground">
                                     {analytics.activeSignals} active right now
                                 </div>
@@ -744,7 +745,7 @@ export default function AiSignalsPage() {
                                     <span>Win Rate</span>
                                     <CheckCircle2 className="h-4 w-4 text-positive" />
                                 </div>
-                                <div className="mt-2 font-numeric text-2xl font-bold text-positive">{analytics.winRate}%</div>
+                                <div className="mt-2 font-numeric text-base font-semibold font-bold text-positive">{analytics.winRate}%</div>
                                 <div className="mt-1 font-numeric text-micro text-muted-foreground">
                                     {analytics.winningSignals}W / {analytics.losingSignals}L
                                 </div>
@@ -755,7 +756,7 @@ export default function AiSignalsPage() {
                                     <span>Avg R:R</span>
                                     <Layers className="h-4 w-4 text-info" />
                                 </div>
-                                <div className="mt-2 font-numeric text-2xl font-bold text-foreground">{analytics.averageRR.toFixed(1)}</div>
+                                <div className="mt-2 font-numeric text-base font-semibold font-bold text-foreground">{analytics.averageRR.toFixed(1)}</div>
                                 <div className="mt-1 font-numeric text-micro text-muted-foreground">
                                     Avg confidence: {analytics.averageConfidence.toFixed(0)}%
                                 </div>

@@ -36,6 +36,7 @@ import {
     XCircle,
     Brain,
 } from "lucide-react";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import AccountShell from "@/components/account/AccountShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import MiniSparkline from "@/components/charts/MiniSparkline";
@@ -200,7 +201,8 @@ export default function AccountPage() {
 
     if (loading) {
         return (
-            <AccountShell title="Dashboard">
+            <AccountShell
+            title="Dashboard">
                 <div className="flex h-[50vh] items-center justify-center">
                     <div className="loading loading-spinner h-8 w-8 text-foreground" />
                 </div>
@@ -219,6 +221,7 @@ export default function AccountPage() {
 
     return (
         <AccountShell
+           
             title="Account Dashboard"
             subtitle={
                 <>
@@ -229,40 +232,40 @@ export default function AccountPage() {
             <div className="space-y-8 px-1">
                 {/* Stats */}
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Orders</p>
                                 <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{paidOrders.length}</p>
+                            <p className="mt-1 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">{paidOrders.length}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Spent</p>
                                 <CreditCard className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}</p>
+                            <p className="mt-1 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">{formatMoney(totalSpent, paidCurrencies[0] || currencyCode)}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Active Licenses</p>
                                 <ShieldCheck className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{activeCount}</p>
+                            <p className="mt-1 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">{activeCount}</p>
                         </div>
                     </Card>
-                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-md">
+                    <Card className="gap-0 overflow-hidden rounded-xl bg-card py-0 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <div className="border-b border-border px-5 py-4">
                             <div className="flex items-center justify-between">
                                 <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">Total Licenses</p>
                                 <TrendingUp className="h-5 w-5 text-muted-foreground" />
                             </div>
-                            <p className="mt-1 font-numeric text-2xl font-semibold tracking-tight text-foreground">{licenseState?.total ?? 0}</p>
+                            <p className="mt-1 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">{licenseState?.total ?? 0}</p>
                         </div>
                     </Card>
                 </div>
@@ -596,7 +599,7 @@ function StatCard({
                     {icon}
                 </div>
             </div>
-            <p className="mt-4 font-numeric text-2xl font-semibold tracking-tight">{value}</p>
+            <p className="mt-4 font-numeric text-base font-semibold font-semibold tracking-tight">{value}</p>
             <p className="mt-1 text-sm text-muted-foreground">{label}</p>
             {spark.length >= 2 ? (
                 <div className="mt-3 opacity-90">

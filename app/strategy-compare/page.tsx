@@ -66,12 +66,12 @@ export default function StrategyComparePage() {
                                 { id: "strat_4", name: "Scalping M1" },
                                 { id: "strat_5", name: "Swing D1" },
                             ].map((s) => (
-                                <button key={s.id} type="button" onClick={() => toggleStrategy(s.id)} className={cn("rounded-md border px-3 py-1.5 text-xs font-medium transition-colors", selectedIds.includes(s.id) ? "border-primary/40 bg-primary/10 text-primary" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/30")}>{s.name}</button>
+                                <button key={s.id} type="button" onClick={() => toggleStrategy(s.id)} className={cn("rounded-md border px-3 py-1.5 text-xs font-medium transition-colors", selectedIds.includes(s.id) ? "border-primary/40 bg-primary/10 text-primary" : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted/30")}>{s.name}</button>
                             ))}
                         </div>
                     </div>
 
-                    <button type="button" onClick={fetchData} disabled={loading || selectedIds.length < 2} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading || selectedIds.length < 2} className="flex items-center gap-2 rounded-md bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Compare
                     </button>
 

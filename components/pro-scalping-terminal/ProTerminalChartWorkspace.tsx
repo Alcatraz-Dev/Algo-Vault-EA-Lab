@@ -54,6 +54,8 @@ import {
     Minus,
     AlertTriangle,
     X,
+    MoveUpRight,
+    MoveDownRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Watchlist from "@/components/trading/Watchlist";
@@ -257,6 +259,9 @@ export function ProTerminalChartWorkspace({
     const aiGate = useAiDrawGate({ token, canUseAiDraw });
     // Viewport reset counter — each increment makes the chart refit.
     const [fitSignal, setFitSignal] = useState(0);
+    // Bar replay (TradingView-style): the toolbar toggles it, the chart owns
+    // the cursor/transport while it is on.
+    const [replayActive, setReplayActive] = useState(false);
     // Real-time bid/ask for the chart's BID/ASK lines (best-effort poll).
     const [quote, setQuote] = useState<{
         bid?: number | null;
@@ -555,6 +560,8 @@ export function ProTerminalChartWorkspace({
                 onToggleMagnet={() =>
                     updateSettings((prev) => ({ ...prev, display: { ...prev.display, magnet: !prev.display.magnet } }))
                 }
+                replayActive={replayActive}
+                onToggleReplay={() => setReplayActive((r) => !r)}
                 aiDraw={aiGate.enabled}
                 onToggleAiDraw={() => void handleToggleAiDraw()}
                 aiDrawLocked={aiGate.locked}
@@ -647,6 +654,7 @@ export function ProTerminalChartWorkspace({
                         quote={settings.display.bidAsk ? quote : null}
                         aiDraw={aiGate.enabled}
                         fitSignal={fitSignal}
+                        replayActive={replayActive}
                         focusRequest={focusRequest}
                         onAiPlanChange={onAiPlanChange}
                         onClosePosition={onClosePosition}
@@ -819,4 +827,6 @@ export const PRO_TERMINAL_DRAWING_ICONS = {
     rectangle: Box,
     text: Type,
     ruler: Ruler,
+    long: MoveUpRight,
+    short: MoveDownRight,
 } as const;

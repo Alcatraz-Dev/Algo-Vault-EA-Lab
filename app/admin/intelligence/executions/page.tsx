@@ -87,7 +87,7 @@ export default function AdminExecutionsPage() {
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Statuses</option>
                         {(["running", "success", "failed", "aborted", "partial"] as ExecutionOutcome[]).map((s) => (
@@ -100,11 +100,11 @@ export default function AdminExecutionsPage() {
             {loading ? (
                 <div className="space-y-4">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-24 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-24 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                <div className="rounded-lg border border-dashed border-border/40 bg-muted/50 px-6 py-20 text-center">
                     <Play size={40} className="mx-auto text-muted-foreground" />
                     <h3 className="mt-3 text-lg font-medium">No executions found</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters or search query.</p>
@@ -142,7 +142,7 @@ function ExecutionRow({
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4 flex-1">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                             <Play size={20} className={execution.status === "success" ? "text-positive" : execution.status === "failed" ? "text-negative" : "text-primary"} />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -175,7 +175,7 @@ function ExecutionRow({
                     </div>
                     <button
                         onClick={onToggle}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5 transition hover:bg-muted/10"
                     >
                         {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                     </button>
@@ -215,7 +215,7 @@ function ExecutionRow({
                                     </pre>
                                     <button
                                         onClick={() => navigator.clipboard.writeText(JSON.stringify(execution.finalOutput, null, 2))}
-                                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5 transition hover:bg-muted/10"
                                         title="Copy JSON"
                                     >
                                         <Copy size={12} className="text-muted-foreground" />
@@ -251,7 +251,7 @@ function DetailRow({ label, value, copyable = false }: { label: string; value: s
                 {copyable && (
                     <button
                         onClick={() => navigator.clipboard.writeText(value)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5 transition hover:bg-muted/10"
                         title="Copy"
                     >
                         <Copy size={12} className="text-muted-foreground" />

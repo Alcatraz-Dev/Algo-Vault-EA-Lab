@@ -68,7 +68,7 @@ export default function TerminalPage() {
                     <p className="text-sm font-medium text-foreground">Sign in to open the AlgoVault Terminal</p>
                     <a
                         href="/login?redirect=/account/terminal"
-                        className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:opacity-90"
+                        className="rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:opacity-90"
                     >
                         Sign In
                     </a>

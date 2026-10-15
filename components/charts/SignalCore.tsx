@@ -82,6 +82,10 @@ export default function SignalCore({
                     "[animation-delay:1.2s]"
                 )}
             />
+            {/* Eyebrow label — moved outside the circle per design */}
+            <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] font-extrabold uppercase tracking-[0.2em] text-muted-foreground whitespace-nowrap">
+                {eyebrow}
+            </span>
             <span
                 className={cn(
                     "relative flex flex-col items-center justify-center gap-0.5 rounded-full border-2",
@@ -90,10 +94,7 @@ export default function SignalCore({
                 )}
                 style={{ width: coreSize, height: coreSize }}
             >
-                <span className="text-micro uppercase tracking-[0.18em] text-muted-foreground">
-                    {eyebrow}
-                </span>
-                <span className={cn("font-numeric text-xl font-semibold uppercase tracking-wider", tone.text)}>
+                <span className={cn("font-numeric text-sm font-bold uppercase tracking-wider", tone.text)}>
                     {VERDICT_LABEL[verdict]}
                 </span>
                 {caption ? (

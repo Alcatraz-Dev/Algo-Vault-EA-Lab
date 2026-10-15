@@ -56,7 +56,7 @@ export default function AdminIntelligencePage() {
                         className={`flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
                             activeTab === tab.id
                                 ? "border-border/50 bg-background text-foreground"
-                                : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
+                                : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
                         <tab.icon size={14} />
@@ -100,8 +100,8 @@ export default function AdminIntelligencePage() {
                         <h3 className="text-sm font-semibold mb-2">Sandbox Tests</h3>
                         <p className="text-xs text-muted-foreground mb-3">Validate agent outputs and plugin specs in isolated environments before publishing.</p>
                         <div className="flex gap-2">
-                            <Link href="/admin/plugins/ai-studio" className="rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium">Plugin Sandbox</Link>
-                            <Link href="/api/agents" className="rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium">Agents API</Link>
+                            <Link href="/admin/plugins/ai-studio" className="rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium">Plugin Sandbox</Link>
+                            <Link href="/api/agents" className="rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium">Agents API</Link>
                         </div>
                     </div>
                     <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -109,7 +109,7 @@ export default function AdminIntelligencePage() {
                           { icon: GitBranch, label: "Workflows", v: "3", d: "Opportunity / Anomaly / Risk" },
                           { icon: Plug, label: "Plugins", v: "10", d: "Strategy / Correlation / Setup" },
                           { icon: Puzzle, label: "Extensions", v: "5", d: "Webhook / Telegram / Discord" }].map((c) => (
-                            <div key={c.label} className="rounded-lg border border-border/30 bg-muted/50 p-4">
+                            <div key={c.label} className="rounded-lg border border-border/40 bg-muted/50 p-4">
                                 <c.icon size={18} className="text-primary mb-2" />
                                 <p className="text-xl font-semibold">{c.v}</p>
                                 <p className="text-xs text-muted-foreground">{c.label}</p>
@@ -121,7 +121,7 @@ export default function AdminIntelligencePage() {
             )}
 
             {activeTab !== "overview" && activeTab !== "sandbox" && (
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center">
+                <div className="rounded-lg border border-border/40 bg-muted/50 p-8 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
                         <LayoutDashboard size={32} className="text-muted-foreground" />
                     </div>
@@ -133,13 +133,13 @@ export default function AdminIntelligencePage() {
                     <div className="mt-6 flex items-center justify-center gap-3">
                         <Link
                             href="/api/agents"
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             View API
                         </Link>
                         <Link
                             href="/admin/plugins"
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             Plugin API
                         </Link>
@@ -164,11 +164,11 @@ function StatCard({
     return (
         <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                     {icon}
                 </div>
                 <div>
-                    <p className="font-numeric text-3xl font-semibold tabular-nums">{value}</p>
+                    <p className="font-numeric text-lg font-semibold font-semibold tabular-nums">{value}</p>
                     <p className="text-xs text-muted-foreground">{label}</p>
                 </div>
             </div>

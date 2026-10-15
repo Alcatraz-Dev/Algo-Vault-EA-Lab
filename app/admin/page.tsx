@@ -258,7 +258,7 @@ export default function AdminPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex h-8 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/80"
+                    className="flex h-8 items-center gap-2 rounded-lg bg-black px-4 text-xs font-extrabold text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-100"
                 >
                     <Plus size={17} />
                     Add Bot
@@ -324,7 +324,7 @@ export default function AdminPage() {
                                                 }
                                             </p>
 
-                                            <p className="mt-1 font-numeric text-2xl font-semibold text-foreground">
+                                            <p className="mt-1 font-numeric text-base font-semibold font-semibold text-foreground">
 
                                                 {loading
                                                     ? "—"
@@ -379,7 +379,7 @@ export default function AdminPage() {
                                             Revenue
                                         </p>
 
-                                        <p className="mt-2 font-numeric text-3xl font-semibold text-foreground">
+                                        <p className="mt-2 font-numeric text-lg font-semibold font-semibold text-foreground">
                                             {loading
                                                 ? "—"
                                                 : formatCurrency(
@@ -449,7 +449,7 @@ export default function AdminPage() {
                                             Licenses
                                         </p>
 
-                                        <p className="mt-2 font-numeric text-3xl font-semibold text-foreground">
+                                        <p className="mt-2 font-numeric text-lg font-semibold font-semibold text-foreground">
                                             {loading
                                                 ? "—"
                                                 : stats?.activeLicenses ??
@@ -620,7 +620,7 @@ export default function AdminPage() {
                                         <p className="text-sm text-muted-foreground">No bots found.</p>
                                         <Link
                                             href="/admin/bots/new"
-                                            className="mt-3 inline-flex h-8 items-center gap-2 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
+                                            className="mt-3 inline-flex h-8 items-center gap-2 rounded-lg bg-black px-4 text-xs font-semibold text-white transition-colors hover:bg-black/80"
                                         >
                                             <Plus size={14} />
                                             Add Bot

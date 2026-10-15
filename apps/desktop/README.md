@@ -55,17 +55,21 @@ npm run start                                # next start (or use the desktop la
 
 ## Runtime configuration and credentials
 
-The embedded Next.js server runs as a child of Electron. Its environment is inherited
-from the launching process, but Firebase Admin credentials are removed by default.
-They are forwarded only when `ALGOVAULT_SELF_HOSTED=1` is explicitly set, and only
-for an operator-managed self-hosted/development instance. `NODE_OPTIONS` and arbitrary
-shell variables are not inherited by the child. Provide `FIREBASE_PROJECT_ID`,
-`FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`; `FIREBASE_DATABASE_URL` may be
-provided explicitly or derived by the existing Admin initializer from the project ID.
-The private key must be the rotated replacement credential and must remain in the
-operator's secret store/process environment—not in `.env.local` committed to source,
-installer resources, renderer code, static assets, or build artifacts. Never set it as
-`NEXT_PUBLIC_*`.
+The embedded Next.js server runs as a child of Electron with an OS-runtime allowlist.
+Firebase Admin credentials are never forwarded by a packaged Electron application,
+even if its launching environment sets `ALGOVAULT_SELF_HOSTED=1` or supplies every
+Admin variable. The packaged boundary is based on Electron's `app.isPackaged` runtime
+property, not an environment variable.
+
+Privileged self-hosting is supported only for an unpackaged, operator-controlled
+server process: explicitly set `ALGOVAULT_SELF_HOSTED=1` in that trusted launch
+environment and provide `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and
+`FIREBASE_PRIVATE_KEY`; `FIREBASE_DATABASE_URL` may be provided explicitly or derived
+by the existing Admin initializer from the project ID. Development mode by itself does
+not enable credential forwarding. Do not use this mode for normal end-user installs.
+`NODE_OPTIONS` and arbitrary shell variables are not inherited by the child. The app
+cannot distinguish a trusted operator launch from an untrusted local process when
+unpackaged, so the operator must control that process environment and host.
 
 The `NEXT_PUBLIC_FIREBASE_*` client configuration (`API_KEY`, `AUTH_DOMAIN`,
 `DATABASE_URL`, `PROJECT_ID`, `STORAGE_BUCKET`, `MESSAGING_SENDER_ID`, `APP_ID`) is
@@ -85,14 +89,17 @@ for privileged operations. The current desktop shell embeds the Next.js API serv
 has no supported remote-API origin/proxy mode; therefore it is not safe to ship a
 normal installer that depends on a Firebase Admin service account on the end user's
 machine. Until a remote backend boundary is implemented, Firebase Admin-backed desktop
-routes are supported only in explicit operator-managed self-hosted mode above. Missing
-Admin configuration fails closed; it is not replaced by weaker client-side access.
+routes are supported only in the explicit unpackaged operator-managed mode above.
+Missing Admin configuration continues to produce an explicit server-side error; it is
+not replaced by weaker client-side access. Firebase Admin errors are not hidden; if
+required settings are missing, the server returns the existing explicit configuration
+error.
 
 Before any backend test, revoke the previously exposed service-account key in Google
 Cloud IAM, create a replacement with only required Firebase permissions, update the
-server secret store and CI secrets, and verify the old key is disabled. Do not paste
-credentials into chat or logs. This repository does not confirm whether rotation has
-occurred.
+trusted server secret store, and verify the old key is disabled. Admin credentials are
+not required by either downloadable desktop build workflow. Do not paste credentials
+into chat or logs. This repository does not confirm whether rotation has occurred.
 
 ## Packaging
 
@@ -109,6 +116,35 @@ npm run package:mac               # full .dmg + .zip
 
 Apps are branded **AlgoVault**; the icon comes from `public/icons/icon-512x512.png`
 and the version from this `package.json`.
+
+## macOS release signing and notarization
+
+The mac build (`apps/desktop/package.json` → `build.mac`) enforces Hardened
+Runtime with `entitlements/entitlements.mac.plist` (app),
+`entitlements/entitlements.mac.inherit.plist` (helpers/frameworks), and
+`entitlements/entitlements.mac.login-helper.plist`. The app id
+(`com.algovault.desktop`) and product name are unchanged; the only supported
+mac arch is `arm64` (no Intel `x64` target yet). electron-builder notarizes
+automatically when Apple credentials are present — no extra dependency.
+
+Release builds require these GitHub Actions **secrets** (never commit them;
+never ship them in the bundle):
+
+- `CSC_LINK` — base64-encoded Developer ID Application `.p12` certificate.
+- `CSC_KEY_PASSWORD` — the `.p12` password.
+- `APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID` — notarization
+  credentials (or `APPLE_API_KEY` / `APPLE_API_KEY_ID` / `APPLE_API_ISSUER`).
+
+The `desktop-release` workflow fails the mac job early if any are missing.
+Local builds without these secrets skip signing/notarization gracefully.
+Verify a distributable with:
+
+```bash
+codesign --verify --deep --strict "AlgoVault.app"
+codesign -dvv "AlgoVault.app"            # check Authority=Developer ID Application + runtime flag
+xcrun stapler validate "AlgoVault-*.dmg"
+spctl --assess --type open --context context:primary-signature "AlgoVault.app"
+```
 
 ## Acceptance checklist
 

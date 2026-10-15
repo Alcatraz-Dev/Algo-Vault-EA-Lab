@@ -176,19 +176,19 @@ export default function MobileAccountPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Total Balance</p>
-              <p className="font-numeric text-xl font-bold mt-1 truncate">{formatCurrency(totalBalance)}</p>
+              <p className="font-numeric text-sm font-semibold font-bold mt-1 truncate">{formatCurrency(totalBalance)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Equity</p>
-              <p className={cn("font-numeric text-xl font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
+              <p className={cn("font-numeric text-sm font-semibold font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{formatCurrency(totalEquity)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Floating P&L</p>
-              <p className={cn("font-numeric text-xl font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
+              <p className={cn("font-numeric text-sm font-semibold font-bold mt-1 truncate", floatingPnl >= 0 ? "text-positive" : "text-negative")}>{floatingPnl >= 0 ? "+" : ""}{formatCurrency(floatingPnl)}</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3 min-w-0">
               <p className="text-micro font-medium uppercase text-muted-foreground">Online</p>
-              <p className="font-numeric text-xl font-bold mt-1 text-positive truncate">{onlineAccounts} / {accounts.length}</p>
+              <p className="font-numeric text-sm font-semibold font-bold mt-1 text-positive truncate">{onlineAccounts} / {accounts.length}</p>
             </div>
           </div>
           {accounts.length > 0 && (
@@ -395,7 +395,7 @@ export default function MobileAccountPage() {
                 className={cn(
                   "whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors touch-target flex items-center gap-1.5",
                   activeTab === id
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-white"
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >

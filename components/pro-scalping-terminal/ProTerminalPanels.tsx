@@ -57,20 +57,72 @@ export function PanelHeader({
     right?: React.ReactNode;
 }) {
     return (
-        <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
-            <span className="shrink-0 text-muted-foreground">{icon}</span>
-            <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h2>
-            {meta ? <span className="truncate text-xs text-muted-foreground">{meta}</span> : null}
+        <div className="flex min-w-0 items-center gap-2.5 border-b border-border/70 px-3 py-2.5">
+            <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-border/70 bg-muted/50 text-muted-foreground [&_svg]:size-3.5">
+                {icon}
+            </span>
+            <h2 className="truncate text-[13px] font-semibold tracking-tight text-foreground">{title}</h2>
+            {meta ? (
+                <span className="truncate rounded-full border border-border/60 bg-muted/40 px-1.5 py-0.5 text-micro text-muted-foreground">
+                    {meta}
+                </span>
+            ) : null}
             {right ? <div className="ml-auto flex shrink-0 items-center gap-1.5">{right}</div> : null}
         </div>
     );
 }
 
-function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
+/** Shared panel container — one solid surface + the canonical radius. */
+export function Panel({ children, className }: { children: React.ReactNode; className?: string }) {
     return (
-        <section className={cn("flex min-w-0 flex-col rounded-lg border border-border bg-card", className)}>
+        <section
+            className={cn(
+                "flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]",
+                className,
+            )}
+        >
             {children}
         </section>
+    );
+}
+
+export type ChipTone = "neutral" | "positive" | "negative" | "warning" | "info" | "primary";
+
+const CHIP_TONES: Record<ChipTone, string> = {
+    neutral: "border-border bg-muted/60 text-muted-foreground",
+    positive: "border-positive/30 bg-positive-muted text-positive",
+    negative: "border-negative/30 bg-negative-muted text-negative",
+    warning: "border-warning/30 bg-warning-muted text-warning",
+    info: "border-info/30 bg-info-muted text-info",
+    primary: "border-primary/30 bg-primary/10 text-primary",
+};
+
+/**
+ * Chip — the terminal's one pill for statuses, tags and counts. A single
+ * shape + tone vocabulary keeps every badge across the workspace aligned.
+ */
+export function Chip({
+    tone = "neutral",
+    className,
+    children,
+    title,
+}: {
+    tone?: ChipTone;
+    className?: string;
+    children: React.ReactNode;
+    title?: string;
+}) {
+    return (
+        <span
+            className={cn(
+                "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-micro font-medium",
+                CHIP_TONES[tone],
+                className,
+            )}
+            title={title}
+        >
+            {children}
+        </span>
     );
 }
 
@@ -104,16 +156,12 @@ function Val({
 
 function BiasChip({ bias }: { bias: string | null | undefined }) {
     if (!bias) return <span className="text-xs italic text-muted-foreground">—</span>;
-    const tone =
-        bias === "bullish"
-            ? "border-positive/40 bg-positive/10 text-positive"
-            : bias === "bearish"
-              ? "border-negative/40 bg-negative/10 text-negative"
-              : "border-border bg-muted text-muted-foreground";
+    const tone: ChipTone =
+        bias === "bullish" ? "positive" : bias === "bearish" ? "negative" : "neutral";
     return (
-        <span className={cn("rounded-full border px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide", tone)}>
+        <Chip tone={tone} className="uppercase tracking-wide" title={`${bias} bias`}>
             {bias}
-        </span>
+        </Chip>
     );
 }
 
@@ -326,9 +374,9 @@ export const SessionsPanel = memo(function SessionsPanel({ now }: { now: number 
                 meta={st.activeLabel}
                 right={
                     st.nextEventLabel ? (
-                        <span className="rounded-full border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
+                        <Chip className="font-numeric">
                             {st.nextEventLabel} in {fmtCountdown(st.nextEventInMin)}
-                        </span>
+                        </Chip>
                     ) : null
                 }
             />
@@ -448,18 +496,19 @@ export const MtfPanel = memo(function MtfPanel({
                                         />
                                     </td>
                                     <td className="px-3 py-1.5 text-right">
-                                        <span
-                                            className={cn(
-                                                "text-micro font-medium uppercase",
+                                        <Chip
+                                            tone={
                                                 r.alignment.value === "aligned"
-                                                    ? "text-positive"
+                                                    ? "positive"
                                                     : r.alignment.value === "conflicting"
-                                                      ? "text-warning"
-                                                      : "text-muted-foreground"
-                                            )}
+                                                      ? "warning"
+                                                      : "neutral"
+                                            }
+                                            className="uppercase tracking-wide"
+                                            title={`Alignment: ${r.available ? (r.alignment.value ?? "—") : "n/a"}`}
                                         >
                                             {r.available ? (r.alignment.value ?? "—") : "n/a"}
-                                        </span>
+                                        </Chip>
                                     </td>
                                 </tr>
                             ))}
@@ -541,13 +590,13 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                     </div>
 
                     {nearest && nearest.length > 0 ? (
-                        <div className="rounded-md border border-border/70">
-                            <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
+                        <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/20">
+                            <div className="border-b border-border/60 px-2.5 py-1.5 text-micro font-medium uppercase tracking-wide text-muted-foreground">
                                 Nearest liquidity levels
                             </div>
                             <ul className="divide-y divide-border/50">
                                 {nearest.map((l) => (
-                                    <li key={l.id} className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
+                                    <li key={l.id} className="flex items-center justify-between gap-2 px-2.5 py-1.5 text-xs">
                                         <span className="min-w-0 truncate text-muted-foreground">
                                             {humaniseKey(l.type)}
                                             <span className="ml-1 font-numeric text-micro text-muted-foreground/60">
@@ -566,8 +615,8 @@ export const LiquidityPanel = memo(function LiquidityPanel({
                     )}
 
                     {a.scoredZones.length > 0 ? (
-                        <div className="rounded-md border border-border/70">
-                            <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
+                        <div className="overflow-hidden rounded-lg border border-border/60 bg-muted/20">
+                            <div className="border-b border-border/60 px-2.5 py-1.5 text-micro uppercase tracking-wide text-muted-foreground">
                                 Top zones by score
                             </div>
                             <ul className="divide-y divide-border/50">
@@ -602,9 +651,9 @@ export const LiquidityPanel = memo(function LiquidityPanel({
 
 function Stat({ label, value, title }: { label: string; value: string | null; title?: string }) {
     return (
-        <div className="rounded-md border border-border/70 bg-background px-2 py-1.5" title={title}>
+        <div className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2" title={title}>
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
-            <div className="text-xs font-medium text-foreground">
+            <div className="font-numeric text-xs font-semibold text-foreground">
                 {value ?? <span className="italic text-muted-foreground">—</span>}
             </div>
         </div>

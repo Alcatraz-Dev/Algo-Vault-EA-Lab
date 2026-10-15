@@ -112,7 +112,7 @@ export default function PortfolioPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Wallet size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Sign In</a>
+                    <a href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90">Sign In</a>
                 </div>
             </div>
         );

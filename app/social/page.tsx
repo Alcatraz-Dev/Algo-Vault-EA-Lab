@@ -100,7 +100,7 @@ export default function SocialPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
     }
 
     return (
@@ -112,7 +112,7 @@ export default function SocialPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Social Feed</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Share ideas, analysis, and trade setups</p>
                     </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
                         <Plus size={14} /> New Post
                     </button>
                 </div>
@@ -126,7 +126,7 @@ export default function SocialPage() {
                                     {(Object.entries(TYPE_CONFIG) as [Post["type"], typeof TYPE_CONFIG.idea][]).map(([key, cfg]) => {
                                         const Icon = cfg.icon;
                                         return (
-                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors", formType === key ? `border-primary/40 ${cfg.bg} ${cfg.color}` : "border-border/30 bg-muted/50 text-muted-foreground")}>
+                                            <button key={key} type="button" onClick={() => setFormType(key)} className={cn("flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs transition-colors", formType === key ? `border-primary/40 ${cfg.bg} ${cfg.color}` : "border-border/40 bg-muted/50 text-muted-foreground")}>
                                                 <Icon size={13} /> {cfg.label}
                                             </button>
                                         );
@@ -149,8 +149,8 @@ export default function SocialPage() {
                                 <textarea value={formContent} onChange={(e) => setFormContent(e.target.value)} placeholder="Share your analysis..." rows={4} className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none resize-none" />
                                 <input type="text" value={formTags} onChange={(e) => setFormTags(e.target.value)} placeholder="Tags (comma-separated)" className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none" />
                                 <div className="flex gap-3">
-                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border/30 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted">Cancel</button>
-                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                                    <button type="button" onClick={() => setShowCreate(false)} className="flex-1 rounded-lg border border-border/40 px-4 py-2.5 text-sm text-muted-foreground hover:bg-muted">Cancel</button>
+                                    <button type="button" onClick={createPost} disabled={creating || !formTitle || !formContent} className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                                         {creating ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />} Post
                                     </button>
                                 </div>
@@ -162,7 +162,7 @@ export default function SocialPage() {
                 {loading ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : posts.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <MessageCircle size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No posts yet. Be the first to share!</p>
                     </div>

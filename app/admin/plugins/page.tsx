@@ -171,7 +171,7 @@ export default function AdminPluginsPage() {
                     type="button"
                     onClick={seedCatalog}
                     disabled={seeding}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     {seeding ? <Loader2 size={14} className="animate-spin" /> : <Database size={14} />}
                     {seeding ? "Seeding..." : "Seed built-in catalog"}
@@ -181,7 +181,7 @@ export default function AdminPluginsPage() {
             {loading ? (
                 <div className="grid gap-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             ) : records.length === 0 ? (
@@ -191,11 +191,11 @@ export default function AdminPluginsPage() {
                     description="Seed the built-in catalog below to load the 10 plugins and 5 extensions, then manage their lifecycle from here."
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+                <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
+                                <tr className="border-b border-border/40 text-micro uppercase tracking-wide text-muted-foreground">
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Record</th>
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
@@ -238,7 +238,7 @@ export default function AdminPluginsPage() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {record.status === "published" && (
-                                                        <Link href={marketplaceUrl(record)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 px-2.5 py-2 text-xs text-muted-foreground transition hover:text-foreground">
+                                                        <Link href={marketplaceUrl(record)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 px-2.5 py-2 text-xs text-muted-foreground transition hover:text-foreground">
                                                             View <ExternalLink size={11} />
                                                         </Link>
                                                     )}
@@ -270,7 +270,7 @@ export default function AdminPluginsPage() {
 
 function MetricCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/50 p-4">
+        <div className="rounded-lg border border-border/40 bg-muted/50 p-4">
             <div className="flex items-center gap-2 text-muted-foreground">
                 {icon}
                 <span className="text-micro">{label}</span>

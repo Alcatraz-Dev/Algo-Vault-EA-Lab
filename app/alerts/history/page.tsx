@@ -145,7 +145,7 @@ export default function AlertHistoryPage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</Link></div></div>);
     }
 
     const filtered = getFiltered();
@@ -180,7 +180,7 @@ export default function AlertHistoryPage() {
                                 Delete ({selected.size})
                             </button>
                         )}
-                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
                             <BellRing size={13} /> New Alert
                         </Link>
                     </div>
@@ -210,7 +210,7 @@ export default function AlertHistoryPage() {
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-wrap gap-2">
                         {/* Status filter */}
-                        <div className="flex gap-1.5 rounded-lg border border-border/30 bg-muted/30 p-1">
+                        <div className="flex gap-1.5 rounded-lg border border-border/40 bg-muted/30 p-1">
                             {(["all", "triggered", "active"] as const).map((f) => (
                                 <button
                                     key={f}
@@ -228,7 +228,7 @@ export default function AlertHistoryPage() {
                             ))}
                         </div>
                         {/* Source filter */}
-                        <div className="flex gap-1.5 rounded-lg border border-border/30 bg-muted/30 p-1">
+                        <div className="flex gap-1.5 rounded-lg border border-border/40 bg-muted/30 p-1">
                             {(["all", "manual", "tool"] as const).map((s) => (
                                 <button
                                     key={s}
@@ -284,7 +284,7 @@ export default function AlertHistoryPage() {
                                             ? "border-primary/30 bg-primary/5"
                                             : alert.triggered
                                                 ? "border-positive/10 bg-positive/[0.02] hover:bg-positive/[0.04]"
-                                                : "border-border/30 bg-muted/50 hover:bg-muted"
+                                                : "border-border/40 bg-muted/50 hover:bg-muted"
                                     )}
                                 >
                                     {/* Checkbox */}

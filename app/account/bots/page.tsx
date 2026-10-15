@@ -382,7 +382,7 @@ export default function MyBotsPage() {
                                 setShowAdd((v) => !v);
                                 setError("");
                             }}
-                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80"
+                            className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/80"
                         >
                             <Plus size={15} />
                             Add Custom Bot
@@ -471,7 +471,7 @@ export default function MyBotsPage() {
                                 type="button"
                                 onClick={handleCreateBot}
                                 disabled={saving}
-                                className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/80 disabled:opacity-50"
                             >
                                 {saving && <Loader2 size={15} className="animate-spin" />}
                                 Register Bot
@@ -543,7 +543,7 @@ export default function MyBotsPage() {
                                         type="button"
                                         onClick={handleConnectMarketplace}
                                         disabled={connectSaving || !connectLicenseId}
-                                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                        className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/80 disabled:opacity-50"
                                     >
                                         {connectSaving && <Loader2 size={15} className="animate-spin" />}
                                         Connect
@@ -677,7 +677,7 @@ export default function MyBotsPage() {
                                     type="button"
                                     onClick={() => handleSaveMapping(mappingBotId)}
                                     disabled={mappingSaving || !mapping.mt5Account}
-                                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/80 disabled:opacity-50"
+                                    className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/80 disabled:opacity-50"
                                 >
                                     {mappingSaving && <Loader2 size={15} className="animate-spin" />}
                                     Save Mapping
@@ -795,7 +795,7 @@ function BotCard({
                 <button
                     type="button"
                     onClick={onOpen}
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/80"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-black px-3 py-2 text-xs font-semibold text-white transition hover:bg-black/80"
                 >
                     Details <ChevronRight size={13} />
                 </button>

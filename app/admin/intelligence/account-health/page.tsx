@@ -169,7 +169,7 @@ export default function AdminAccountHealthPage() {
 
                 {/* Search + refresh */}
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-3 py-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-3 py-2">
                         <Search size={13} className="shrink-0 text-muted-foreground" />
                         <input
                             value={query}
@@ -182,7 +182,7 @@ export default function AdminAccountHealthPage() {
                     <button
                         onClick={() => void loadDirectory()}
                         disabled={listLoading}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-2 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/50 px-3 py-2 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                     >
                         <RefreshCw size={12} className={listLoading ? "animate-spin" : ""} /> Refresh
                     </button>
@@ -228,7 +228,7 @@ export default function AdminAccountHealthPage() {
                     {/* Detail */}
                     <div>
                         {detailLoading && (
-                            <div className="rounded-lg border border-border/30 bg-muted/50 px-3.5 py-12 text-center text-micro text-muted-foreground">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 px-3.5 py-12 text-center text-micro text-muted-foreground">
                                 Loading account…
                             </div>
                         )}
@@ -238,7 +238,7 @@ export default function AdminAccountHealthPage() {
                                 health={detail.health}
                                 compact
                                 header={
-                                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-3.5 py-2.5">
+                                    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-3.5 py-2.5">
                                         <span className="text-[12px] font-medium text-foreground">
                                             {detail.displayName || detail.email || "Unnamed account"}
                                         </span>
@@ -252,7 +252,7 @@ export default function AdminAccountHealthPage() {
                         )}
 
                         {!detailLoading && !detail && (
-                            <div className="rounded-lg border border-border/30 bg-muted/50 px-3.5 py-12 text-center">
+                            <div className="rounded-lg border border-border/40 bg-muted/50 px-3.5 py-12 text-center">
                                 <Shield size={24} className="mx-auto mb-2 text-muted-foreground" />
                                 <p className="text-micro font-medium text-foreground">Select an account</p>
                                 <p className="mt-1 text-micro text-muted-foreground">

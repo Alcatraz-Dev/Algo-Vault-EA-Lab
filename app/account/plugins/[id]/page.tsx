@@ -232,7 +232,7 @@ export default function AccountPluginDetailPage() {
             <AccountShell title="Plugin" onBack={() => router.push("/account/plugins")}>
                 <div className="grid gap-4">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-32 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             </AccountShell>
@@ -276,10 +276,10 @@ export default function AccountPluginDetailPage() {
     return (
         <AccountShell title={plugin.displayName} subtitle={`${plugin.capabilities?.length || 0} capabilities · v${installation.installedVersion || plugin.version}`} onBack={() => router.push("/account/plugins")}>
             {/* Status header */}
-            <div className="mb-5 rounded-lg border border-border/30 bg-muted/50 p-5">
+            <div className="mb-5 rounded-lg border border-border/40 bg-muted/50 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                             <Plug size={22} className="text-primary" />
                         </div>
                         <div>
@@ -300,7 +300,7 @@ export default function AccountPluginDetailPage() {
                     </div>
                 </div>
 
-                <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border/30 pt-4">
+                <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border/40 pt-4">
                     {isActive ? (
                         <ActionButton onClick={() => runAction("pause")} busy={busy === "pause"} icon={<Pause size={14} />} label="Pause" />
                     ) : (
@@ -345,7 +345,7 @@ export default function AccountPluginDetailPage() {
                         type="button"
                         onClick={() => setTab(key)}
                         className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium transition ${
-                            tab === key ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted/5"
+                            tab === key ? "border-border/50 bg-background text-foreground" : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted/5"
                         }`}
                     >
                         <Icon size={14} />
@@ -355,7 +355,7 @@ export default function AccountPluginDetailPage() {
             </div>
 
             {tab === "config" && (
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                     <h3 className="text-sm font-semibold">Configuration</h3>
                     <p className="mt-1 text-xs text-muted-foreground">
                         Saving configuration moves the plugin to <span className="text-foreground">configured</span>, then you can activate it.
@@ -373,7 +373,7 @@ export default function AccountPluginDetailPage() {
                                 value={symbols}
                                 onChange={(e) => setSymbols(e.target.value)}
                                 placeholder="EURUSD, XAUUSD, US30"
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
 
@@ -381,7 +381,7 @@ export default function AccountPluginDetailPage() {
                             <select
                                 value={interval}
                                 onChange={(e) => setInterval(e.target.value)}
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             >
                                 {usableIntervals.map((i) => (
                                     <option key={i} value={i}>
@@ -401,7 +401,7 @@ export default function AccountPluginDetailPage() {
                                         className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                                             timeframes.includes(tf)
                                                 ? "border-positive/40 bg-positive/10 text-positive"
-                                                : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                                : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
                                         {tf}
@@ -420,7 +420,7 @@ export default function AccountPluginDetailPage() {
                                         className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                                             channels.includes(ch)
                                                 ? "border-primary/40 bg-primary/10 text-primary"
-                                                : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                                : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
                                         {ch}
@@ -437,7 +437,7 @@ export default function AccountPluginDetailPage() {
                                 value={quietStart}
                                 onChange={(e) => setQuietStart(e.target.value)}
                                 placeholder="e.g. 22:00"
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
                         <Field label="Quiet hours end (HH:MM)">
@@ -445,7 +445,7 @@ export default function AccountPluginDetailPage() {
                                 value={quietEnd}
                                 onChange={(e) => setQuietEnd(e.target.value)}
                                 placeholder="e.g. 07:00"
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                             />
                         </Field>
 
@@ -456,7 +456,7 @@ export default function AccountPluginDetailPage() {
                                 max={1440}
                                 value={cooldown}
                                 onChange={(e) => setCooldown(e.target.value)}
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             />
                         </Field>
                         <Field label={`Max alerts per day — currently ${maxAlerts}`}>
@@ -466,7 +466,7 @@ export default function AccountPluginDetailPage() {
                                 max={200}
                                 value={maxAlerts}
                                 onChange={(e) => setMaxAlerts(e.target.value)}
-                                className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                             />
                         </Field>
 
@@ -480,7 +480,7 @@ export default function AccountPluginDetailPage() {
                                         className={`rounded-lg border px-3 py-1.5 text-xs capitalize transition ${
                                             severity === s
                                                 ? "border-border/50 bg-background text-foreground"
-                                                : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                                : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                         }`}
                                     >
                                         {severityLabel(s)}
@@ -494,7 +494,7 @@ export default function AccountPluginDetailPage() {
                         <button
                             type="button"
                             onClick={() => load()}
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                         >
                             <RefreshCw size={13} />
                             Reset form
@@ -514,7 +514,7 @@ export default function AccountPluginDetailPage() {
 
             {tab === "run" && (
                 <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="text-sm font-semibold">Lifecycle</h3>
                         <p className="mt-1 text-xs text-muted-foreground">Current state and scheduling details.</p>
                         <dl className="mt-5 space-y-3 text-sm">
@@ -527,7 +527,7 @@ export default function AccountPluginDetailPage() {
                             <Row label="Installed" value={installation.installedAt ? formatDate(installation.installedAt) : "—"} />
                             <Row label="Version" value={installation.installedVersion || plugin.version} />
                         </dl>
-                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
+                        <div className="mt-5 rounded-lg border border-border/40 bg-muted/20 p-4">
                             <p className="text-xs leading-6 text-muted-foreground">
                                 {isActive
                                     ? "This plugin is active — the server-side scheduler runs it on the configured interval. Runs happen server-side; nothing executes in your browser."
@@ -536,7 +536,7 @@ export default function AccountPluginDetailPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="text-sm font-semibold">Run now</h3>
                         <p className="mt-1 text-xs text-muted-foreground">
                             Executes immediately with your saved configuration. Manual runs do not require an active schedule.
@@ -550,7 +550,7 @@ export default function AccountPluginDetailPage() {
                             {busy === "execute" ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
                             Run plugin now
                         </button>
-                        <div className="mt-6 border-t border-border/30 pt-4">
+                        <div className="mt-6 border-t border-border/40 pt-4">
                             <h4 className="text-xs font-medium">Permission scope</h4>
                             <p className="mt-1 text-xs leading-5 text-muted-foreground">
                                 This plugin is restricted to its declared permissions and the market data / history sources listed in its manifest.
@@ -573,9 +573,9 @@ export default function AccountPluginDetailPage() {
                     {executions.length === 0 ? (
                         <EmptyState compact icon={<Clock size={18} />} title="No executions yet" description="Run the plugin manually or wait for its scheduled run to see results here." />
                     ) : (
-                        <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+                        <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
                             {executions.slice(0, 20).map((exec) => (
-                                <div key={exec.id} className="flex flex-col gap-1 border-b border-border/30 p-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+                                <div key={exec.id} className="flex flex-col gap-1 border-b border-border/40 p-4 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <StatusBadge tone={exec.status === "success" ? "positive" : "error"} label={exec.status} dot />
@@ -602,9 +602,9 @@ export default function AccountPluginDetailPage() {
                         {logs.length === 0 ? (
                             <EmptyState compact icon={<Terminal size={18} />} title="No runtime logs" description="Logs appear after the plugin first executes." />
                         ) : (
-                            <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+                            <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
                                 {logs.map((log) => (
-                                    <div key={log.id} className="flex items-start justify-between gap-3 border-b border-border/30 p-3 last:border-0">
+                                    <div key={log.id} className="flex items-start justify-between gap-3 border-b border-border/40 p-3 last:border-0">
                                         <div className="flex items-center gap-2 min-w-0">
                                             <span className={`h-2 w-2 shrink-0 rounded-full ${log.level === "error" ? "bg-negative" : log.level === "warning" ? "bg-warning" : "bg-positive"}`} />
                                             <p className="truncate text-xs text-muted-foreground">{log.message}</p>
@@ -621,9 +621,9 @@ export default function AccountPluginDetailPage() {
                         {notifications.length === 0 ? (
                             <EmptyState compact icon={<AlertCircle size={18} />} title="No notifications" description="Alerts generated by this plugin appear here once delivered." />
                         ) : (
-                            <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+                            <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
                                 {notifications.map((notif) => (
-                                    <div key={notif.id} className="flex items-start justify-between gap-3 border-b border-border/30 p-3 last:border-0">
+                                    <div key={notif.id} className="flex items-start justify-between gap-3 border-b border-border/40 p-3 last:border-0">
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-2">
                                                 <StatusBadge tone={severityTone(notif.severity)} label={severityLabel(notif.severity)} />
@@ -682,7 +682,7 @@ function ActionButton({
         ? "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20"
         : primary
           ? "border-positive/30 bg-positive/10 text-positive hover:bg-positive/20"
-          : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground";
+          : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground";
     return (
         <button
             type="button"
@@ -698,7 +698,7 @@ function ActionButton({
 
 function MiniInfo({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/20 p-2.5">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-2.5">
             <p className="text-micro uppercase tracking-wide text-muted-foreground">{label}</p>
             <p className="mt-0.5 truncate text-xs font-medium text-foreground">{value}</p>
         </div>

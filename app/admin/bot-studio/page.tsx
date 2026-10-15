@@ -257,7 +257,7 @@ export default function BotStudioDashboard() {
                                     alert("Please create a strategy first before deploying.");
                                 }
                             }}
-                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold shadow-sm transition-colors"
+                            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 text-sm font-semibold shadow-sm transition-colors"
                         >
                             <Zap className="h-4 w-4" />
                             Deploy Bot
@@ -277,7 +277,7 @@ export default function BotStudioDashboard() {
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Active Deployments</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">
+                            <span className="font-numeric text-base font-semibold font-bold">
                                 {deployments.filter((d) => d.runtimeState === "running").length}
                             </span>
                             <span className="text-xs text-muted-foreground">of {deployments.length} bots</span>
@@ -286,14 +286,14 @@ export default function BotStudioDashboard() {
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Saved Strategies</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">{strategies.length}</span>
+                            <span className="font-numeric text-base font-semibold font-bold">{strategies.length}</span>
                             <span className="text-xs text-emerald-500 font-medium">Production ready</span>
                         </div>
                     </div>
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Signals Generated</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">
+                            <span className="font-numeric text-base font-semibold font-bold">
                                 {deployments.reduce((acc, d) => acc + (d.signalCount || 0), 0)}
                             </span>
                             <span className="text-xs text-muted-foreground">across sessions</span>
@@ -302,7 +302,7 @@ export default function BotStudioDashboard() {
                     <div className="p-4 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <span className="text-xs font-medium text-muted-foreground">Gateway Executions</span>
                         <div className="mt-1 flex items-baseline justify-between">
-                            <span className="font-numeric text-2xl font-bold">
+                            <span className="font-numeric text-base font-semibold font-bold">
                                 {deployments.reduce((acc, d) => acc + (d.executionCount || 0), 0)}
                             </span>
                             <span className="text-xs text-primary font-medium">MT5 ACKed</span>
@@ -353,7 +353,7 @@ export default function BotStudioDashboard() {
                                             router.push("/admin/bot-studio/builder");
                                         }
                                     }}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+                                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium"
                                 >
                                     <Plus className="h-4 w-4" />
                                     {strategies.length > 0 ? "Deploy Strategy" : "Create First Strategy"}
@@ -474,7 +474,7 @@ export default function BotStudioDashboard() {
                                 <div className="flex justify-center gap-3">
                                     <Link
                                         href="/admin/bot-studio/builder"
-                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium"
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium"
                                     >
                                         <Layers className="h-4 w-4" />
                                         Visual Builder
@@ -549,7 +549,7 @@ export default function BotStudioDashboard() {
                                                             {(strat.lastBacktestNetPnl ?? 0) >= 0 ? "+" : ""}${(strat.lastBacktestNetPnl ?? 0).toFixed(2)} ({strat.lastBacktestWinRate?.toFixed(0)}% WR · {strat.lastBacktestTrades} trades)
                                                         </span>
                                                     ) : (
-                                                        <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground px-2 py-0.5 rounded bg-muted/40 border border-border/40">
+                                                        <span className="inline-flex items-center gap-1 text-[8px] text-muted-foreground px-2 py-0.5 rounded bg-muted/40 border border-border/40">
                                                             <BarChart3 className="h-3 w-3 opacity-60" />
                                                             Not Backtested
                                                         </span>
@@ -691,7 +691,7 @@ export default function BotStudioDashboard() {
                                     type="button"
                                     onClick={handleDeploy}
                                     disabled={actionLoading === "deploying"}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:bg-primary/90"
                                 >
                                     {actionLoading === "deploying" ? "Deploying..." : "Confirm Deployment"}
                                 </button>
@@ -732,7 +732,7 @@ export default function BotStudioDashboard() {
                                         }`}>
                                             ${backtestResult.metrics.netProfit.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Return: {backtestResult.metrics.returnPct?.toFixed(2)}%
                                         </span>
                                     </div>
@@ -742,7 +742,7 @@ export default function BotStudioDashboard() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.winRate?.toFixed(1)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             {backtestResult.metrics.longTrades + backtestResult.metrics.shortTrades} total trades
                                         </span>
                                     </div>
@@ -752,7 +752,7 @@ export default function BotStudioDashboard() {
                                         <div className="text-xl font-bold mt-1 text-foreground">
                                             {backtestResult.metrics.profitFactor?.toFixed(2)}
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             Exp: {backtestResult.metrics.expectancy?.toFixed(2)}
                                         </span>
                                     </div>
@@ -762,7 +762,7 @@ export default function BotStudioDashboard() {
                                         <div className="text-xl font-bold mt-1 text-rose-400">
                                             {backtestResult.metrics.maxDrawdownPct?.toFixed(2)}%
                                         </div>
-                                        <span className="text-[10px] text-muted-foreground">
+                                        <span className="text-[8px] text-muted-foreground">
                                             ${backtestResult.metrics.maxDrawdownAbs?.toFixed(2)}
                                         </span>
                                     </div>
@@ -822,7 +822,7 @@ export default function BotStudioDashboard() {
                                                     {backtestResult.trades.slice(0, 8).map((t: any, idx: number) => (
                                                         <tr key={idx} className="hover:bg-muted/20">
                                                             <td className="p-2.5">
-                                                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                                                <span className={`px-1.5 py-0.5 rounded text-[8px] font-semibold ${
                                                                     t.direction === "long" ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"
                                                                 }`}>
                                                                     {t.direction.toUpperCase()}
@@ -834,7 +834,7 @@ export default function BotStudioDashboard() {
                                                                 ${t.pnl?.toFixed(2)}
                                                             </td>
                                                             <td className="p-2.5">{t.rMultiple ? `${t.rMultiple.toFixed(2)}R` : "-"}</td>
-                                                            <td className="p-2.5 text-muted-foreground font-sans text-[10px]">{t.exitReason || "manual"}</td>
+                                                            <td className="p-2.5 text-muted-foreground font-sans text-[8px]">{t.exitReason || "manual"}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -847,7 +847,7 @@ export default function BotStudioDashboard() {
                             <div className="pt-3 border-t border-border flex justify-end">
                                 <button
                                     onClick={() => setBacktestModalOpen(false)}
-                                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
+                                    className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90"
                                 >
                                     Close Report
                                 </button>

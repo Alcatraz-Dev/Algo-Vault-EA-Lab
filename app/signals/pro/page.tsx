@@ -352,7 +352,7 @@ export default function ProSignalsPage() {
                             type="button"
                             onClick={handleScan}
                             disabled={scanning}
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             {scanning ? (
                                 <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
@@ -364,7 +364,7 @@ export default function ProSignalsPage() {
 
                         <Link
                             href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
                             <span>History</span>
@@ -405,7 +405,7 @@ export default function ProSignalsPage() {
                     <ConflictBanner conflicts={conflicts} />
                 </div>
 
-                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/30 bg-background p-1 scrollbar-none">
+                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/40 bg-background p-1 scrollbar-none">
                     <button
                         type="button"
                         onClick={() => setActiveTab("live")}

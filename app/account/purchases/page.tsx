@@ -696,7 +696,7 @@ function PurchasesContent() {
 
                         <Link
                             href="/login?redirect=/account/purchases"
-                            className="mt-6 inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                            className="mt-6 inline-flex items-center rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/80"
                         >
                             Sign In
                         </Link>
@@ -820,7 +820,7 @@ function PurchasesContent() {
 
                             <Link
                                 href="/marketplace"
-                                className="mt-6 inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+                                className="mt-6 inline-flex items-center rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/80"
                             >
                                 Explore Marketplace
                             </Link>
@@ -1082,7 +1082,7 @@ function PurchasesContent() {
                                                             );
                                                         }
                                                     }}
-                                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-40"
+                                                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-black px-5 py-3 text-sm font-medium text-white transition hover:bg-black/80 disabled:cursor-not-allowed disabled:opacity-40"
                                                 >
                                                     {downloading ===
                                                         order.productId ? (

@@ -104,7 +104,7 @@ export default function ComparePage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
                         Sign In
                     </Link>
                 </div>
@@ -141,7 +141,7 @@ export default function ComparePage() {
                             type="button"
                             onClick={fetchData}
                             disabled={loading}
-                            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
+                            className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-50 shadow-sm"
                         >
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
@@ -159,7 +159,7 @@ export default function ComparePage() {
                         </div>
                         <h3 className="mt-4 text-base font-semibold text-foreground">No accounts to compare</h3>
                         <p className="mt-1.5 text-sm text-muted-foreground">Connect your MT5 accounts to see a side-by-side comparison.</p>
-                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                        <Link href="/admin/trading-accounts" className="mt-5 inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
                             Connect Account
                         </Link>
                     </div>
@@ -223,7 +223,7 @@ export default function ComparePage() {
                         )}
 
                         {/* Comparison Table */}
-                        <div className="rounded-lg border border-border/30 bg-muted/50 overflow-hidden">
+                        <div className="rounded-lg border border-border/40 bg-muted/50 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-xs">
                                     <thead>

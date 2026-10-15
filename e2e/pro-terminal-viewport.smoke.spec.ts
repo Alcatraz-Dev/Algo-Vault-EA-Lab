@@ -105,7 +105,12 @@ const PROBE = () => {
           let hook = cur.memoizedState;
           while (hook) {
             const s = hook.memoizedState;
-            const o = s && typeof s === "object" && "current" in s ? s.current : null;
+            // A hook holds its value either directly (`useState`) or behind a ref
+            // (`useRef` → `{ current }`). The ViewportController is created with
+            // `useState(() => new ViewportController())`, so reading only
+            // `{ current }` never found a controller and every probe bailed with
+            // "chart not mounted" before a single assertion ran.
+            const o = s && typeof s === "object" ? ("current" in s ? s.current : s) : null;
             if (o && typeof o === "object") {
               if (typeof o.getPhase === "function" && typeof o.isFollowingLive === "function") {
                 if (!seenControllers.has(o)) {
@@ -724,7 +729,9 @@ test("Pro Terminal drawings — the drawing surface paints, follows the viewport
   };
 
   // ── place a trendline with a real, central pointer drag ──
-  await page.getByTitle("Trendline").first().click();
+  // Tools are named by their accessible label (the toolbar drives a shadcn
+  // Tooltip off `aria-label`, not a native `title` attribute).
+  await page.getByRole("button", { name: "Trendline", exact: true }).first().click();
   const box = await mainPaneBox(page);
   const x0 = box.x + box.width * 0.45;
   const y0 = box.y + box.height * 0.4;
@@ -755,7 +762,7 @@ test("Pro Terminal drawings — the drawing surface paints, follows the viewport
   // ── undo through the toolbar removes its visual representation ──
   await page.getByTitle("Undo last drawing (Ctrl+Z)").first().click();
   await expect(surface.locator("line"), "the undone drawing left the surface").toHaveCount(0);
-  await page.getByTitle("Pointer / Select").first().click();
+  await page.getByRole("button", { name: "Pointer / Select", exact: true }).first().click();
 
   expect(pageErrors, "no unhandled exceptions in the drawing scenario").toEqual([]);
 });

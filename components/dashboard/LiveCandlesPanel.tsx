@@ -358,7 +358,7 @@ export default function LiveCandlesPanel({
 
                 <div className="flex items-baseline gap-2">
                     <CountUp
-                        className="font-numeric text-xl font-semibold text-foreground"
+                        className="font-numeric text-sm font-semibold text-foreground"
                         value={price}
                         decimals={priceDigits(price)}
                         durationMs={500}

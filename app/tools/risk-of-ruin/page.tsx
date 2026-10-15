@@ -130,13 +130,13 @@ export default function RiskOfRuinCalculator() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="rounded-lg bg-muted p-4">
                                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Trades to Double</p>
-                                    <p className="mt-1 font-numeric text-xl font-bold text-foreground">
+                                    <p className="mt-1 font-numeric text-sm font-semibold font-bold text-foreground">
                                         {calc.tradesToDouble === Infinity ? "∞" : calc.tradesToDouble}
                                     </p>
                                 </div>
                                 <div className="rounded-lg bg-muted p-4">
                                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Max Consec Losses</p>
-                                    <p className="mt-1 font-numeric text-xl font-bold text-foreground">{calc.maxConsecLosses}</p>
+                                    <p className="mt-1 font-numeric text-sm font-semibold font-bold text-foreground">{calc.maxConsecLosses}</p>
                                 </div>
                             </div>
 

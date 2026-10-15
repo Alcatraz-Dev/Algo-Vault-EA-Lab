@@ -71,8 +71,8 @@ export default function AdvancedAnalysisPage() {
             <span className="font-numeric text-foreground">M5</span>
           </div>
           <div className="flex gap-1 text-xs">
-            <span className="rounded-md border border-border/30 px-2 py-0.5">Market Structure: <strong>Unknown</strong></span>
-            <span className="rounded-md border border-border/30 px-2 py-0.5">Session: <strong>Unknown</strong></span>
+            <span className="rounded-md border border-border/40 px-2 py-0.5">Market Structure: <strong>Unknown</strong></span>
+            <span className="rounded-md border border-border/40 px-2 py-0.5">Session: <strong>Unknown</strong></span>
           </div>
         </div>
 
@@ -110,9 +110,9 @@ export default function AdvancedAnalysisPage() {
                 <div><strong>Limitations</strong> — OHLC only; replay excludes future data</div>
               </div>
               <div className="mt-3 flex gap-2 text-micro">
-                <span className="rounded border border-border/30 px-1.5 py-0.5">No confidence scores</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Evidence-cited</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">No confidence scores</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">Evidence-cited</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">Replay-safe</span>
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function AdvancedAnalysisPage() {
           <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold text-sm">Historical Replay</h3>
-              <span className="rounded-md border border-border/30 px-1.5 py-0.5 text-micro text-muted-foreground">Replay Engine</span>
+              <span className="rounded-md border border-border/40 px-1.5 py-0.5 text-micro text-muted-foreground">Replay Engine</span>
             </div>
             <div className="rounded-lg border border-border/20 bg-background/20 p-4 min-h-[120px] flex items-center justify-center text-xs text-muted-foreground">
               Replay workspace — future candles hidden · Smart Money events incrementally calculated · no future leakage (existing ReplayEngine reused)
@@ -150,7 +150,7 @@ export default function AdvancedAnalysisPage() {
           <h2 className="text-base font-semibold mb-3">Trade Journal</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
-              <thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/30">
+              <thead className="text-micro uppercase tracking-wider text-muted-foreground border-b border-border/40">
                 <tr>
                   <th className="py-2 px-2">#</th>
                   <th className="py-2 px-2">Time</th>
@@ -174,9 +174,9 @@ export default function AdvancedAnalysisPage() {
         </div>
 
         <div className="mt-2 flex gap-2 text-xs">
-          <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Backtest Current Setup</a>
-          <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Continue Research</a>
-          <a href="/strategy-lab" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20">Trading Studio</a>
+          <a href="/market-intelligence/backtest" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20">Backtest Current Setup</a>
+          <a href="/market-intelligence/research" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20">Continue Research</a>
+          <a href="/strategy-lab" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20">Trading Studio</a>
         </div>
       </div>
     </AppShell>

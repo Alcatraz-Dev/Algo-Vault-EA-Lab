@@ -778,7 +778,7 @@ export default function AccountTradingPage() {
                             onClick={() =>
                                 router.push("/account/trading-access")
                             }
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                            className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
                             Get Trading Access License
                         </Button>
@@ -816,7 +816,7 @@ export default function AccountTradingPage() {
                             onClick={() =>
                                 router.push("/account/trading-access")
                             }
-                            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+                            className="bg-primary text-white hover:bg-primary/90 font-semibold"
                         >
                             Connect Trading Account
                         </Button>

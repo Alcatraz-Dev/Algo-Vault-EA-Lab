@@ -47,10 +47,10 @@ function EvidenceList({ title, items }: { title: string; items: OrderFlowEvidenc
     if (items.length === 0) return null;
     return (
         <div>
-            <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
+            <p className="text-meta font-semibold uppercase tracking-wider text-muted-foreground">{title}</p>
             <ul className="mt-0.5 space-y-0.5">
                 {items.slice(-4).map((e, i) => (
-                    <li key={i} className="text-micro leading-4 text-foreground/80">
+                    <li key={i} className="text-meta leading-4 text-foreground/80">
                         · {e.text}
                     </li>
                 ))}
@@ -75,12 +75,11 @@ function GexBlock({ gex, symbol }: { gex: GexResult | null; symbol: string }) {
             </div>
         );
     }
-    return (
-        <div className="mt-2 rounded-md border border-border/60 bg-background/50 p-2">
-            <div className="flex items-center justify-between gap-2">
-                <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">GEX · real chain</p>
-                <span className="rounded border border-positive/40 bg-positive/10 px-1 py-0.5 text-micro font-bold text-positive">HIGH</span>
-            </div>
+    return (            <div className="mt-2 rounded-md border border-border/60 bg-background/50 p-2">
+                <div className="flex items-center justify-between gap-2">
+                    <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">GEX · real chain</p>
+                    <span className="inline-flex items-center rounded-full border border-positive/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-positive/10 text-positive">HIGH</span>
+                </div>
             <Row label="Net GEX" value={`${gex.netGex >= 0 ? "+" : ""}${(gex.netGex / 1e9).toFixed(2)}B$/1%`} tone={gex.netGex > 0 ? "bull" : gex.netGex < 0 ? "bear" : "muted"} />
             {gex.callWalls.slice(0, 3).map((w) => (
                 <Row key={`cw_${w.strike}`} label="Call wall" value={fmtStrike(w.strike)} tone="bear" />
@@ -130,7 +129,7 @@ export function OrderFlowPanel({ orderFlow, symbol }: { orderFlow: UseOrderFlowR
                 {ctx ? (
                     <span
                         className={cn(
-                            "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
+                            "inline-flex items-center rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide",
                             QUALITY_STYLES[ctx.dataQuality] ?? QUALITY_STYLES.UNAVAILABLE,
                         )}
                         title={`Calculation basis: ${ctx.volumeProfile.method ?? ctx.delta.method ?? "capability-gated"}`}

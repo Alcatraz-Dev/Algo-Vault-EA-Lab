@@ -12,13 +12,36 @@ import {
     ColorType,
     CrosshairMode,
 } from "lightweight-charts";
+import {
+    Pause,
+    Play,
+    RotateCcw,
+    SkipBack,
+    SkipForward,
+    StepBack,
+    StepForward,
+} from "lucide-react";
 import type { AISignal } from "@/lib/ai-signals/types";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
+import { cn } from "@/lib/utils";
 
 interface SignalChartProps {
     signal: AISignal;
     height?: number;
+    replayStart?: number; // timestamp ms
+    replayEnd?: number;   // timestamp ms
+    initialCursor?: number;
+    replaySpeed?: number; // ms per candle, default 300
 }
+
+type MarketCandleLike = {
+    timestamp: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume?: number;
+};
 
 interface PriceLine {
     price: number;
@@ -84,23 +107,120 @@ function buildPriceLines(signal: AISignal): PriceLine[] {
     return lines;
 }
 
-export default function SignalChart({ signal, height = 400 }: SignalChartProps) {
+/** Theme palette — chart follows the app's light/dark theme. */
+const THEME = {
+    dark: {
+        bg: "#0b0c0e",
+        text: "#9a9fa6",
+        grid: "rgba(148,163,184,0.05)",
+        border: "rgba(148,163,184,0.2)",
+        crosshair: "rgba(218,186,107,0.4)",
+    },
+    light: {
+        bg: "#ffffff",
+        text: "#5b616b",
+        grid: "rgba(100,116,139,0.08)",
+        border: "rgba(100,116,139,0.25)",
+        crosshair: "rgba(249,115,22,0.35)",
+    },
+} as const;
+
+type ThemeName = keyof typeof THEME;
+
+/** Track the app theme via the `dark` class on <html>. */
+function useAppTheme(): ThemeName {
+    const [theme, setTheme] = useState<ThemeName>("dark");
+    useEffect(() => {
+        const read = () =>
+            setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+        read();
+        const mo = new MutationObserver(read);
+        mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        return () => mo.disconnect();
+    }, []);
+    return theme;
+}
+
+const SPEEDS = [600, 300, 150, 75] as const; // 0.5x, 1x, 2x, 4x at base 300
+const SPEED_LABEL: Record<number, string> = { 600: "0.5×", 300: "1×", 150: "2×", 75: "4×" };
+
+export default function SignalChart({
+    signal,
+    height = 400,
+    replayStart,
+    replayEnd,
+    initialCursor,
+    replaySpeed = 300,
+}: SignalChartProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef     = useRef<IChartApi | null>(null);
     const seriesRef    = useRef<ISeriesApi<"Candlestick"> | null>(null);
     const volSeriesRef = useRef<ISeriesApi<"Histogram"> | null>(null);
     const priceLineRefs = useRef<IPriceLine[]>([]);
     const seededRef    = useRef(false);
+    const userScrolledRef = useRef(false);
+    const totalBarsRef = useRef(0);
     const [noData, setNoData] = useState(false);
 
-    const symbol    = normaliseSymbol(signal.symbol);
-    const timeframe = timeframeParam(signal.timeframe);
+    const theme = useAppTheme();
+    const palette = THEME[theme];
 
-    const { candles: liveCandles, error: marketError, isLoading: loading } = useLiveCandles(
+    const symbol = normaliseSymbol(signal.symbol);
+    const [tfOverride, setTfOverride] = useState<string | null>(null);
+    const timeframe = timeframeParam(tfOverride ?? signal.timeframe);
+
+    const {
+        candles: liveCandles,
+        error: marketError,
+        isLoading: loading,
+        loadOlder,
+        hasMoreHistory,
+        loadingOlder,
+    } = useLiveCandles(
         symbol,
         timeframe,
-        { limit: 150 }
+        { limit: 300 }
     );
+
+    // Timeframe switch resets chart seed + replay cursor for the new series.
+    useEffect(() => { seededRef.current = false; }, [tfOverride]);
+
+    const isReplay = Boolean(replayStart && replayEnd);
+
+    // ── replay history: fetch the exact window (live feed only holds the tail) ──
+    const [replayHistory, setReplayHistory] = useState<MarketCandleLike[]>([]);
+
+    useEffect(() => {
+        if (!isReplay || !replayStart || !replayEnd) return;
+        let cancelled = false;
+        const tfMs = timeframeToSeconds(timeframe) * 1000;
+        const contextMs = tfMs * 180;          // ~180 bars of lead-in context
+        const padMs = tfMs * 40;               // tail so the resolution is visible
+        const from = Math.max(0, replayStart - contextMs);
+        const to = replayEnd + padMs;
+        setReplayHistory([]);
+        (async () => {
+            try {
+                const res = await fetch(
+                    `/api/analytics/ohlc?symbol=${encodeURIComponent(symbol)}&timeframe=${timeframe}&from=${from}&to=${to}&limit=500`,
+                    { cache: "no-store" }
+                );
+                const body = (await res.json().catch(() => null)) as
+                    | { candles?: MarketCandleLike[] }
+                    | null;
+                if (cancelled || !body?.candles?.length) return;
+                setReplayHistory(
+                    [...body.candles].sort((a, b) => a.timestamp - b.timestamp)
+                );
+            } catch {
+                /* fall back to the live tail below */
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [isReplay, symbol, timeframe, replayStart, replayEnd]);
+
+    /** Source series for replay: exact range when available, else the live tail. */
+    const sourceCandles = replayHistory.length > 0 ? replayHistory : liveCandles;
 
     /** Price line descriptors — only rebuild when levels change. */
     const priceLines   = useMemo(() => buildPriceLines(signal), [signal]);
@@ -109,14 +229,107 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         [priceLines]
     );
 
+    // ── replay state (TradingView bar-replay style) ─────────────────────
+    const replayBars = useMemo(() => {
+        if (!replayStart || !replayEnd) return [];
+        return sourceCandles
+            .filter((c) => Math.floor(c.timestamp) >= replayStart && Math.floor(c.timestamp) <= replayEnd)
+            .sort((a, b) => Math.floor(a.timestamp) - Math.floor(b.timestamp))
+            .map((c) => ({
+                time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+                vol: c.volume ?? 0,
+                ts: c.timestamp,
+            }));
+    }, [sourceCandles, replayStart, replayEnd]);
+
+    /** Historical context — everything BEFORE the replay window, always visible. */
+    const preBars = useMemo(() => {
+        if (!replayStart) return [];
+        return sourceCandles
+            .filter((c) => Math.floor(c.timestamp) < replayStart)
+            .sort((a, b) => Math.floor(a.timestamp) - Math.floor(b.timestamp))
+            .map((c) => ({
+                time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+                vol: c.volume ?? 0,
+                ts: c.timestamp,
+            }));
+    }, [sourceCandles, replayStart]);
+
+    const [cursor, setCursor] = useState(0);          // number of visible bars
+    const [playing, setPlaying] = useState(false);
+    const [speed, setSpeed] = useState(replaySpeed);
+
+    /** Whole available series — used when the trade window can't be served. */
+    const fallbackBars = useMemo(
+        () => sourceCandles
+            .slice()
+            .sort((a, b) => a.timestamp - b.timestamp)
+            .map((c) => ({
+                time: Math.floor(c.timestamp / 1000) as UTCTimestamp,
+                open: c.open,
+                high: c.high,
+                low: c.low,
+                close: c.close,
+                vol: c.volume ?? 0,
+                ts: c.timestamp,
+            })),
+        [sourceCandles]
+    );
+
+    /** True when the provider couldn't serve the trade window — replay runs over the tail. */
+    const usingFallback = preBars.length + replayBars.length === 0 && fallbackBars.length > 0;
+
+    /** Total bars the replay cursor steps through. */
+    const totalReplayBars = usingFallback ? fallbackBars.length : replayBars.length;
+
+    // Seed cursor once bars load: honour initialCursor, else start at first bar.
+    useEffect(() => {
+        if (totalReplayBars === 0) return;
+        if (usingFallback) {
+            // Degraded mode (no trade window): begin mid-series so there is
+            // history to step forward through.
+            setCursor((c) => (c === 0 ? Math.max(1, Math.floor(totalReplayBars * 0.5)) : c));
+            return;
+        }
+        if (initialCursor) {
+            const idx = replayBars.findIndex((b) => b.ts >= initialCursor);
+            setCursor(idx >= 0 ? idx : 1);
+        } else {
+            setCursor((c) => (c === 0 ? 1 : c));
+        }
+    }, [replayBars, initialCursor, totalReplayBars, usingFallback]);
+
+    // Auto-play when entering replay mode.
+    useEffect(() => {
+        if (isReplay && totalReplayBars > 0 && !usingFallback) setPlaying(true);
+        return () => setPlaying(false);
+    }, [isReplay, totalReplayBars, usingFallback]);
+
+    // Play timer — advance one bar per tick (TradingView bar replay logic).
+    useEffect(() => {
+        if (!playing || !isReplay) return;
+        const t = setInterval(() => {
+            setCursor((c) => {
+                if (c >= totalReplayBars) { setPlaying(false); return c; }
+                return c + 1;
+            });
+        }, speed);
+        return () => clearInterval(t);
+    }, [playing, isReplay, speed, totalReplayBars]);
+
     // ── chart lifecycle: create once per height change ───────────────────
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
 
-        // Read the container's rendered dimensions synchronously so the chart
-        // gets a real size at creation time (avoids the 0×0 blank-canvas bug
-        // that occurs when autoSize is the only sizing mechanism).
         const w = container.clientWidth  || 600;
         const h = container.clientHeight || height;
 
@@ -124,21 +337,21 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             width: w,
             height: h,
             layout: {
-                background: { type: ColorType.Solid, color: "#0b0c0e" },
-                textColor: "#9a9fa6",
+                background: { type: ColorType.Solid, color: palette.bg },
+                textColor: palette.text,
                 fontFamily: "Inter, -apple-system, sans-serif",
                 attributionLogo: false,
             },
             grid: {
-                vertLines: { color: "rgba(148,163,184,0.05)" },
-                horzLines: { color: "rgba(148,163,184,0.05)" },
+                vertLines: { color: palette.grid },
+                horzLines: { color: palette.grid },
             },
             rightPriceScale: {
-                borderColor: "rgba(148,163,184,0.2)",
+                borderColor: palette.border,
                 scaleMargins: { top: 0.1, bottom: 0.2 },
             },
             timeScale: {
-                borderColor: "rgba(148,163,184,0.2)",
+                borderColor: palette.border,
                 timeVisible: true,
                 secondsVisible: false,
                 rightOffset: 3,
@@ -146,8 +359,8 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             },
             crosshair: {
                 mode: CrosshairMode.Normal,
-                vertLine: { color: "rgba(218,186,107,0.4)", width: 1, style: 1 },
-                horzLine: { color: "rgba(218,186,107,0.4)", width: 1, style: 1 },
+                vertLine: { color: palette.crosshair, width: 1, style: 1 },
+                horzLine: { color: palette.crosshair, width: 1, style: 1 },
             },
         });
         chartRef.current = chart;
@@ -170,7 +383,6 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
             scaleMargins: { top: 0.85, bottom: 0 },
         });
 
-        // Keep the chart width in sync with its container via ResizeObserver.
         const ro = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const newW = Math.round(entry.contentRect.width);
@@ -190,19 +402,40 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         };
     }, [height]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // ── theme change → restyle chart in place ────────────────────────────
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart) return;
+        chart.applyOptions({
+            layout: {
+                background: { type: ColorType.Solid, color: palette.bg },
+                textColor: palette.text,
+            },
+            grid: {
+                vertLines: { color: palette.grid },
+                horzLines: { color: palette.grid },
+            },
+            rightPriceScale: { borderColor: palette.border },
+            timeScale: { borderColor: palette.border },
+            crosshair: {
+                vertLine: { color: palette.crosshair },
+                horzLine: { color: palette.crosshair },
+            },
+        });
+    }, [palette]);
+
     // ── detect "loaded but no data" state ───────────────────────────────
     useEffect(() => {
         if (!loading && !marketError && liveCandles.length === 0) {
-            // Give a short grace period before declaring "no data" so slow
-            // connections don't flash the empty state prematurely.
             const t = setTimeout(() => setNoData(true), 4000);
             return () => clearTimeout(t);
         }
         setNoData(false);
     }, [loading, marketError, liveCandles.length]);
 
-    // ── data feed: seed once, then incremental tail updates ──────────────
+    // ── data feed (live mode only) ──────────────────────────────────────
     useEffect(() => {
+        if (isReplay) return;
         const series    = seriesRef.current;
         const volSeries = volSeriesRef.current;
         if (!series || !volSeries || liveCandles.length === 0) return;
@@ -223,24 +456,100 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         if (!seededRef.current) {
             series.setData(bars);
             volSeries.setData(volumes);
+            totalBarsRef.current = bars.length;
             chartRef.current?.timeScale().fitContent();
             chartRef.current?.timeScale().scrollToRealTime();
             seededRef.current = true;
             return;
         }
 
-        // Tail update: only the last (forming) bar changes between renders.
+        // Deep-history page prepended → keep the user's time viewport stable.
+        if (bars.length > totalBarsRef.current) {
+            const chart = chartRef.current;
+            const savedRange = userScrolledRef.current ? chart?.timeScale().getVisibleRange() : null;
+            series.setData(bars);
+            volSeries.setData(volumes);
+            totalBarsRef.current = bars.length;
+            if (savedRange) {
+                try { chart?.timeScale().setVisibleRange(savedRange); } catch { /* ignore */ }
+            }
+            return;
+        }
+
         const last = bars[bars.length - 1];
         try {
             series.update(last);
             volSeries.update(volumes[volumes.length - 1]);
         } catch {
-            // Ordering violation after a history replace — full reseed.
             series.setData(bars);
             volSeries.setData(volumes);
             chartRef.current?.timeScale().fitContent();
         }
-    }, [liveCandles]);
+        totalBarsRef.current = bars.length;
+    }, [liveCandles, isReplay]);
+
+    // ── scroll-back: load deeper history when the left edge is reached ────
+    const scrollGuardRef = useRef(false);
+    useEffect(() => {
+        const chart = chartRef.current;
+        if (!chart) return;
+        const ts = chart.timeScale();
+        const handler = (range: { from: number; to: number } | null) => {
+            if (!range) return;
+            // User scrolled away from the live edge → remember so feed updates
+            // preserve their viewport instead of snapping back to the right.
+            userScrolledRef.current = range.to < totalBarsRef.current - 3;
+            if (
+                range.from < 8 &&
+                hasMoreHistory &&
+                !loadingOlder &&
+                !scrollGuardRef.current
+            ) {
+                scrollGuardRef.current = true;
+                void loadOlder().finally(() => {
+                    setTimeout(() => { scrollGuardRef.current = false; }, 400);
+                });
+            }
+        };
+        ts.subscribeVisibleLogicalRangeChange(handler);
+        return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
+    }, [height, hasMoreHistory, loadingOlder, loadOlder]);
+
+    // ── replay data feed: render bars[0..cursor] (TradingView bar replay) ─
+    useEffect(() => {
+        if (!isReplay) return;
+        const series    = seriesRef.current;
+        const volSeries = volSeriesRef.current;
+        if (!series || !volSeries) return;
+
+        // Prefer the trade window; when the provider can't serve that window
+        // (older than its history boundary), fall back to the available series
+        // so the chart is never blank and the replay controls still work.
+        const bars = usingFallback
+            ? fallbackBars.slice(0, Math.max(1, cursor))
+            : [...preBars, ...replayBars.slice(0, Math.max(1, cursor))];
+
+        if (bars.length === 0) return;
+
+        // Preserve the user's viewport when they've scrolled back to browse
+        // history; otherwise keep the replay cursor pinned to the right edge.
+        const chart = chartRef.current;
+        const savedRange = userScrolledRef.current ? chart?.timeScale().getVisibleRange() : null;
+
+        series.setData(bars.map((b) => ({
+            time: b.time, open: b.open, high: b.high, low: b.low, close: b.close,
+        })));
+        volSeries.setData(bars.map((b) => ({
+            time: b.time, value: b.vol,
+            color: b.close >= b.open ? "rgba(48,214,151,0.4)" : "rgba(255,100,95,0.4)",
+        })));
+        totalBarsRef.current = bars.length;
+        if (savedRange) {
+            try { chart?.timeScale().setVisibleRange(savedRange); } catch { /* ignore */ }
+        } else {
+            chart?.timeScale().scrollToRealTime();
+        }
+    }, [isReplay, usingFallback, fallbackBars, preBars, replayBars, cursor]);
 
     // ── entry / SL / TP price lines ──────────────────────────────────────
     useEffect(() => {
@@ -261,20 +570,47 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
         );
     }, [priceLines, priceLineKey, liveCandles]);
 
-    const tfLabel = timeframeToSeconds(signal.timeframe) >= 86400 ? "D1" : signal.timeframe;
+    const tfLabel = timeframeToSeconds(timeframe) >= 86400 ? "D1" : timeframe;
+    const replayPct = totalReplayBars > 0 ? Math.round((cursor / totalReplayBars) * 100) : 0;
+    const cursorBar = (usingFallback ? fallbackBars : replayBars)[Math.max(0, cursor - 1)];
+    const cursorTime = cursorBar
+        ? new Date(cursorBar.ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })
+        : "";
+
+    // The provider could not serve the trade's historical window.
+    const replayWindowMissing = isReplay && preBars.length + replayBars.length === 0 && sourceCandles.length > 0;
+
+    const btn = "flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-40";
 
     return (
-        <div className="rounded-lg border border-border bg-card p-5">
-            <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-5">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-[8px] font-extrabold uppercase tracking-widest text-muted-foreground">
                     Price Chart
                     {symbol !== signal.symbol && (
-                        <span className="ml-2 text-micro normal-case font-normal text-muted-foreground/60">
+                        <span className="ml-2 normal-case font-normal text-muted-foreground/60">
                             ({symbol})
                         </span>
                     )}
                 </h3>
-                <div className="flex items-center gap-3 text-micro">
+                <div className="flex flex-wrap items-center gap-3 text-[8px]">
+                    <div className="flex items-center gap-0.5 rounded-full border border-border/60 bg-muted/40 p-0.5">
+                        {([["M1", "1m"], ["M5", "5m"], ["M15", "15m"], ["M30", "30m"], ["H1", "1h"], ["H4", "4h"]] as const).map(([t, lbl]) => (
+                            <button
+                                key={t}
+                                type="button"
+                                onClick={() => setTfOverride((prev) => ((prev ?? signal.timeframe) === t ? null : t))}
+                                className={cn(
+                                    "rounded-full px-2 py-0.5 text-[8px] font-extrabold uppercase tracking-widest transition-colors",
+                                    timeframe === t
+                                        ? "bg-foreground text-background"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                {lbl}
+                            </button>
+                        ))}
+                    </div>
                     <span className="flex items-center gap-1">
                         <span className="inline-block h-0.5 w-3 bg-info" />
                         <span className="text-foreground/70">Entry</span>
@@ -301,7 +637,7 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                             <p className="text-xs font-medium text-muted-foreground">
                                 Real-time chart unavailable
                             </p>
-                            <p className="mt-1 text-micro leading-5 text-muted-foreground/60">
+                            <p className="mt-1 text-[8px] leading-5 text-muted-foreground/60">
                                 {marketError} — no candles returned for {signal.symbol} {tfLabel}.
                             </p>
                         </div>
@@ -309,7 +645,7 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                 )}
 
                 {/* Loading overlay */}
-                {!marketError && loading && liveCandles.length === 0 && (
+                {!isReplay && !marketError && loading && liveCandles.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <span className="text-xs text-muted-foreground animate-pulse">
                             Loading market data…
@@ -318,27 +654,120 @@ export default function SignalChart({ signal, height = 400 }: SignalChartProps) 
                 )}
 
                 {/* No-data overlay (loaded but empty) */}
-                {!marketError && !loading && noData && liveCandles.length === 0 && (
+                {!isReplay && !marketError && !loading && noData && liveCandles.length === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center rounded-lg border border-dashed border-border/40 bg-background/60 backdrop-blur-sm">
                         <div className="max-w-xs text-center px-4">
                             <p className="text-xs font-medium text-muted-foreground">
                                 No chart data available
                             </p>
-                            <p className="mt-1 text-micro text-muted-foreground/60">
+                            <p className="mt-1 text-[8px] text-muted-foreground/60">
                                 Market data for {symbol} {tfLabel} is currently unavailable.
                             </p>
                         </div>
                     </div>
                 )}
 
-                {/* Live badge */}
-                {liveCandles.length > 0 && (
-                    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-micro text-muted-foreground backdrop-blur-sm">
+                {/* Honest notice: historical window not served by the provider */}
+                {replayWindowMissing && (
+                    <div className="absolute bottom-2 left-2 rounded-full border border-border/40 bg-background/85 px-2.5 py-1 text-[8px] font-medium text-muted-foreground backdrop-blur-sm">
+                        Trade window unavailable from provider — showing latest {timeframe} series
+                    </div>
+                )}
+
+                {/* Replay timestamp badge (replay mode) */}
+                {isReplay && totalReplayBars > 0 && (
+                    <div className="absolute left-2 top-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/85 px-2 py-0.5 font-numeric text-[8px] text-muted-foreground backdrop-blur-sm">
+                        <span className={cn("inline-block h-1.5 w-1.5 rounded-full", playing ? "bg-info animate-pulse" : "bg-muted-foreground/50")} aria-hidden />
+                        {cursorTime}
+                    </div>
+                )}
+
+                {/* Deeper-history loading hint */}
+                {loadingOlder && (
+                    <div className="absolute bottom-2 right-2 rounded-full border border-border/40 bg-background/85 px-2 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
+                        Loading earlier candles…
+                    </div>
+                )}
+
+                {/* Live badge (live mode only) */}
+                {!isReplay && liveCandles.length > 0 && (
+                    <div className="absolute bottom-2 right-2 flex items-center gap-1.5 rounded-full border border-border/40 bg-background/80 px-2 py-0.5 text-[8px] text-muted-foreground backdrop-blur-sm">
                         <span className="inline-block h-1.5 w-1.5 rounded-full bg-positive animate-pulse" aria-hidden />
                         Live
                     </div>
                 )}
             </div>
+
+            {/* Replay controls — TradingView bar-replay style */}
+            {isReplay && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+                    <button type="button" className={btn} title="Restart replay" aria-label="Restart replay"
+                        onClick={() => { setCursor(1); setPlaying(true); }}>
+                        <RotateCcw size={13} />
+                    </button>
+                    <button type="button" className={btn} title="Jump to start" aria-label="Jump to start"
+                        disabled={cursor <= 1}
+                        onClick={() => { setPlaying(false); setCursor(1); }}>
+                        <SkipBack size={13} />
+                    </button>
+                    <button type="button" className={btn} title="Step back" aria-label="Step back one bar"
+                        disabled={cursor <= 1}
+                        onClick={() => { setPlaying(false); setCursor((c) => Math.max(1, c - 1)); }}>
+                        <StepBack size={13} />
+                    </button>
+                    <button
+                        type="button"
+                        className="flex h-7 items-center gap-1.5 rounded-md bg-black px-3 text-[8px] font-extrabold uppercase tracking-widest text-white transition-colors hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+                        title={playing ? "Pause replay" : "Play replay"}
+                        onClick={() => setPlaying((p) => !p)}
+                    >
+                        {playing ? <Pause size={12} /> : <Play size={12} />}
+                        {playing ? "Pause" : "Play"}
+                    </button>
+                    <button type="button" className={btn} title="Step forward" aria-label="Step forward one bar"
+                        disabled={cursor >= totalReplayBars}
+                        onClick={() => { setPlaying(false); setCursor((c) => Math.min(totalReplayBars, c + 1)); }}>
+                        <StepForward size={13} />
+                    </button>
+                    <button type="button" className={btn} title="Jump to end" aria-label="Jump to end"
+                        disabled={cursor >= totalReplayBars}
+                        onClick={() => { setPlaying(false); setCursor(totalReplayBars); }}>
+                        <SkipForward size={13} />
+                    </button>
+
+                    {/* Speed selector */}
+                    <div className="ml-1 flex items-center gap-1">
+                        {SPEEDS.map((s) => (
+                            <button
+                                key={s}
+                                type="button"
+                                onClick={() => setSpeed(s)}
+                                className={cn(
+                                    "h-6 rounded-md px-1.5 font-numeric text-[8px] font-bold transition-colors",
+                                    speed === s
+                                        ? "bg-foreground text-background"
+                                        : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                {SPEED_LABEL[s]}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Progress */}
+                    <div className="ml-auto flex min-w-40 flex-1 items-center gap-2 sm:flex-none">
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted sm:w-32 sm:flex-none">
+                            <div
+                                className="h-full rounded-full bg-foreground transition-[width] duration-150"
+                                style={{ width: `${replayPct}%` }}
+                            />
+                        </div>
+                        <span className="font-numeric text-[8px] text-muted-foreground tabular-nums">
+                            {cursor}/{totalReplayBars}
+                        </span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -46,7 +46,7 @@ export default function BrokerComparePage() {
     }
 
     if (!user) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><a href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</a></div></div>);
     }
 
     const bestBroker = brokers.reduce((best, b) => b.netPnl > (best?.netPnl || -Infinity) ? b : best, brokers[0]);
@@ -64,7 +64,7 @@ export default function BrokerComparePage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Broker Comparison</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Compare trading costs, swaps, and net performance across brokers</p>
                     </div>
-                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
+                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                         <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                     </button>
                 </div>
@@ -72,7 +72,7 @@ export default function BrokerComparePage() {
                 {loading && brokers.length === 0 ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                 ) : brokers.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                         <BarChart3 size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm text-muted-foreground">No broker data available</p>
                         <a href="/admin/trading-accounts" className="mt-3 inline-block text-xs text-primary hover:underline">Connect an account</a>
@@ -148,7 +148,7 @@ export default function BrokerComparePage() {
                                             <p className="mb-2 text-micro font-semibold uppercase text-muted-foreground">Traded Symbols</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {bp.symbols.slice(0, 8).map((s) => (
-                                                    <span key={s.symbol} className="rounded-lg border border-border/30 bg-muted px-2.5 py-1 font-numeric text-micro text-muted-foreground">
+                                                    <span key={s.symbol} className="rounded-lg border border-border/40 bg-muted px-2.5 py-1 font-numeric text-micro text-muted-foreground">
                                                         {s.symbol} <span className="text-muted-foreground">×{s.positions}</span>
                                                     </span>
                                                 ))}

@@ -1,50 +1,60 @@
 "use client";
 
 /**
- * Market Replay — real historical candles, scrubbed and played back.
+ * Market Replay — a real chart, replayed bar by bar.
  *
  * The candle set comes from `/api/replay-data`, which serves whatever the
- * market-data provider has for the requested symbol/timeframe. Playback only
- * walks the candles that were actually returned, so the replay is honest by
- * construction: what you see is the data, and the HUD reports exactly which
- * window was loaded.
+ * market-data provider has for the requested symbol/timeframe. That exact
+ * series is handed to the same `ProTerminalChart` the rest of the app uses, in
+ * replay mode: the chart draws only the bars up to its playhead and carries the
+ * transport (rewind / step / play-pause / jump / speed / scrubber), so the
+ * replay is honest by construction — what you see is the data, and the chart
+ * never reveals a bar to the right of the playhead.
+ *
+ * Because the historical window is the input, the chart's live feed is switched
+ * off for this instance (`candles` override ⇒ `enabled: false`): one window,
+ * one subscription, no live/market-hours noise on a surface that is replaying
+ * the past.
  */
 
 import { useEffect, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, Gauge, History, Pause, Play, RotateCcw } from "lucide-react";
+import { History, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
-import { TERMINAL_TIMEFRAMES } from "./chart-layers";
-import { fmtPrice, fmtSigned } from "./terminal-utils";
-
-type ReplayCandle = {
-    timestamp: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume?: number;
-};
+import { ProTerminalChart, type Candle } from "./ProTerminalChart";
+import { TERMINAL_TIMEFRAMES, defaultLayerState } from "./chart-layers";
+import { useChartSettings } from "@/hooks/use-chart-settings";
 
 type ReplayState = {
     /** Request key the current payload belongs to ("" = none yet). */
     key: string;
-    candles: ReplayCandle[];
+    candles: Candle[];
     from: number | null;
     to: number | null;
     error: string | null;
 };
 
-const SPEEDS = [1, 2, 4, 8, 16] as const;
+const REPLAY_SYMBOLS: SupportedSymbol[] = [
+    "XAUUSD",
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "US30",
+    "NAS100",
+    "BTCUSD",
+    "ETHUSD",
+];
+
+const WINDOW_OPTIONS = [100, 300, 500, 1000] as const;
 
 export function ProTerminalReplay({ token }: { token: string | null }) {
     const [symbol, setSymbol] = useState<SupportedSymbol>("XAUUSD");
     const [timeframe, setTimeframe] = useState<Timeframe>("M5");
     const [bars, setBars] = useState(300);
-    const [playhead, setPlayhead] = useState(0);
-    const [playing, setPlaying] = useState(false);
-    const [speed, setSpeed] = useState<number>(4);
     const [reload, setReload] = useState(0);
+
+    const { settings } = useChartSettings();
+    const layers = useMemo(() => defaultLayerState(), []);
 
     const [state, setState] = useState<ReplayState>({
         key: "",
@@ -75,7 +85,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 const body = (await res.json().catch(() => null)) as
-                    | { candles?: ReplayCandle[]; error?: string }
+                    | { candles?: Candle[]; error?: string }
                     | null;
                 if (cancelled) return;
                 if (!res.ok || !body?.candles?.length) {
@@ -102,7 +112,6 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     to: candles[candles.length - 1]?.timestamp ?? null,
                     error: null,
                 });
-                setPlayhead(candles.length - 1);
             } catch {
                 if (cancelled) return;
                 setState({ key: requestKey, candles: [], from: null, to: null, error: "Failed to load replay data." });
@@ -113,60 +122,45 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
         };
     }, [symbol, timeframe, bars, token, reload, requestKey]);
 
-    // Playback loop.
-    useEffect(() => {
-        if (!playing) return;
-        const id = setInterval(() => {
-            setPlayhead((p) => {
-                const next = p + 1;
-                if (next >= state.candles.length) {
-                    setPlaying(false);
-                    return state.candles.length - 1;
-                }
-                return next;
-            });
-        }, 1000 / speed);
-        return () => clearInterval(id);
-    }, [playing, speed, state.candles.length]);
-
-    const current = state.candles[playhead] ?? null;
-    const prev = playhead > 0 ? state.candles[playhead - 1] : null;
-
-    const visibleWindow = useMemo(() => state.candles.slice(0, playhead + 1), [state.candles, playhead]);
-    const sessionHi = useMemo(() => (visibleWindow.length ? Math.max(...visibleWindow.map((c) => c.high)) : null), [visibleWindow]);
-    const sessionLo = useMemo(() => (visibleWindow.length ? Math.min(...visibleWindow.map((c) => c.low)) : null), [visibleWindow]);
-    const rangePct = useMemo(() => {
-        if (sessionHi === null || sessionLo === null || sessionLo === 0) return null;
-        return ((sessionHi - sessionLo) / sessionLo) * 100;
-    }, [sessionHi, sessionLo]);
-
     if (!token) {
         return (
-            <section className="rounded-lg border border-border bg-card p-3">
-                <ReplayHeader bars={bars} setBars={setBars} onReload={() => setReload((r) => r + 1)} disabled={loading} />
-                <p className="py-4 text-center text-xs italic text-muted-foreground">
+            <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card">
+                <div className="border-b border-border p-3">
+                    <ReplayHeader
+                        bars={bars}
+                        setBars={setBars}
+                        onReload={() => setReload((r) => r + 1)}
+                        disabled
+                    />
+                </div>
+                <p className="py-8 text-center text-xs italic text-muted-foreground">
                     Sign in to replay historical candles.
                 </p>
             </section>
         );
     }
 
+    const range =
+        state.from !== null && state.to !== null
+            ? `${new Date(state.from).toISOString().slice(0, 10)} → ${new Date(state.to).toISOString().slice(0, 10)}`
+            : "—";
+
     return (
-        <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
+        <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card">
             <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
                 <History className="size-3.5 shrink-0 text-muted-foreground" />
                 <h2 className="text-xs font-semibold uppercase tracking-wide text-foreground">Market Replay</h2>
+                <span className="rounded-full border border-border/60 bg-muted px-1.5 py-0.5 font-numeric text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Bar-by-bar
+                </span>
                 <div className="ml-auto flex flex-wrap items-center gap-1.5">
                     <select
                         value={symbol}
-                        onChange={(e) => {
-                            setSymbol(e.target.value as SupportedSymbol);
-                            setPlaying(false);
-                        }}
+                        onChange={(e) => setSymbol(e.target.value as SupportedSymbol)}
                         className="rounded-md border border-border bg-background px-1.5 py-0.5 font-numeric text-xs outline-none focus:border-primary/50"
                         aria-label="Replay symbol"
                     >
-                        {["XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "US30", "NAS100", "BTCUSD", "ETHUSD"].map((s) => (
+                        {REPLAY_SYMBOLS.map((s) => (
                             <option key={s} value={s}>
                                 {s}
                             </option>
@@ -174,10 +168,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     </select>
                     <select
                         value={timeframe}
-                        onChange={(e) => {
-                            setTimeframe(e.target.value as Timeframe);
-                            setPlaying(false);
-                        }}
+                        onChange={(e) => setTimeframe(e.target.value as Timeframe)}
                         className="rounded-md border border-border bg-background px-1.5 py-0.5 font-numeric text-xs outline-none focus:border-primary/50"
                         aria-label="Replay timeframe"
                     >
@@ -199,146 +190,45 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                 />
 
                 {state.error ? (
-                    <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center">
+                    <div className="mt-3 flex flex-col items-center gap-1 rounded-lg border border-dashed border-border px-3 py-6 text-center">
+                        <TriangleAlert className="size-4 text-warning" />
                         <p className="text-xs font-medium text-muted-foreground">Replay unavailable</p>
-                        <p className="mt-1 text-micro text-muted-foreground/80">{state.error}</p>
+                        <p className="text-[8px] text-muted-foreground/80">{state.error}</p>
                     </div>
                 ) : loading ? (
-                    <div className="mt-2 flex h-40 items-center justify-center rounded-md border border-dashed border-border">
+                    <div className="mt-3 flex h-[400px] items-center justify-center rounded-lg border border-dashed border-border">
                         <span className="text-xs text-muted-foreground">Loading candles…</span>
                     </div>
                 ) : state.candles.length === 0 ? (
-                    <div className="mt-2 rounded-md border border-dashed border-border px-3 py-4 text-center">
+                    <div className="mt-3 rounded-lg border border-dashed border-border px-3 py-6 text-center">
                         <p className="text-xs text-muted-foreground">No candles returned for this window.</p>
                     </div>
                 ) : (
                     <>
-                        {/* OHLC HUD */}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-border/70 bg-background px-2.5 py-1.5">
-                            <span className="font-numeric text-micro tabular-nums text-muted-foreground">
-                                {current ? new Date(current.timestamp).toISOString().replace("T", " ").slice(0, 16) : "—"} UTC
-                            </span>
-                            {current ? (
-                                <>
-                                    <span className="font-numeric text-micro tabular-nums">
-                                        <span className="text-muted-foreground">O </span>
-                                        <span className="text-foreground">{fmtPrice(current.open, symbol)}</span>
-                                    </span>
-                                    <span className="font-numeric text-micro tabular-nums">
-                                        <span className="text-muted-foreground">H </span>
-                                        <span className="text-positive">{fmtPrice(current.high, symbol)}</span>
-                                    </span>
-                                    <span className="font-numeric text-micro tabular-nums">
-                                        <span className="text-muted-foreground">L </span>
-                                        <span className="text-negative">{fmtPrice(current.low, symbol)}</span>
-                                    </span>
-                                    <span className="font-numeric text-micro tabular-nums">
-                                        <span className="text-muted-foreground">C </span>
-                                        <span className={cn(current.close >= current.open ? "text-positive" : "text-negative")}>
-                                            {fmtPrice(current.close, symbol)}
-                                        </span>
-                                    </span>
-                                    <span
-                                        className={cn(
-                                            "font-numeric text-micro tabular-nums",
-                                            (current.close - (prev?.close ?? current.open)) >= 0 ? "text-positive" : "text-negative"
-                                        )}
-                                    >
-                                        {fmtSigned(current.close - (prev?.close ?? current.open), current.close < 10 ? 5 : 2)}
-                                    </span>
-                                    {current.volume !== undefined ? (
-                                        <span className="font-numeric text-micro tabular-nums text-muted-foreground">
-                                            V {current.volume.toLocaleString()}
-                                        </span>
-                                    ) : null}
-                                </>
-                            ) : null}
-                            <span className="ml-auto font-numeric text-micro tabular-nums text-muted-foreground">
-                                Hi {fmtPrice(sessionHi, symbol)} · Lo {fmtPrice(sessionLo, symbol)}
-                                {rangePct !== null ? ` · range ${rangePct.toFixed(2)}%` : ""}
+                        {/* Meta strip: the loaded window only — no future bar is
+                            summarised, so replay practice stays honest. */}
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-numeric text-[8px] text-muted-foreground">
+                            <span>{state.candles.length} bars loaded</span>
+                            <span>{range}</span>
+                            <span className="ml-auto">
+                                Replay with the transport bar on the chart · nothing right of the playhead is drawn
                             </span>
                         </div>
 
-                        {/* Playhead scrubber */}
-                        <div className="mt-3">
-                            <input
-                                type="range"
-                                min={0}
-                                max={Math.max(0, state.candles.length - 1)}
-                                value={playhead}
-                                onChange={(e) => {
-                                    setPlaying(false);
-                                    setPlayhead(Number(e.target.value));
-                                }}
-                                className="w-full accent-[var(--primary,--theme(--color-primary))]"
-                                aria-label="Replay playhead"
+                        <div className="mt-2 overflow-hidden rounded-lg border border-border">
+                            <ProTerminalChart
+                                symbol={symbol}
+                                timeframe={timeframe}
+                                layers={layers}
+                                analysis={null}
+                                height={400}
+                                token={token}
+                                theme={settings.preset === "light" ? "light" : "dark"}
+                                settings={settings}
+                                gridVisible={settings.display.grid}
+                                candles={state.candles}
+                                replayActive
                             />
-                            <div className="mt-0.5 flex justify-between font-numeric text-micro text-muted-foreground">
-                                <span>{state.from ? new Date(state.from).toISOString().slice(0, 10) : ""}</span>
-                                <span>
-                                    bar {playhead + 1}/{state.candles.length}
-                                </span>
-                                <span>{state.to ? new Date(state.to).toISOString().slice(0, 10) : ""}</span>
-                            </div>
-                        </div>
-
-                        {/* Transport controls */}
-                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setPlayhead(0);
-                                    setPlaying(false);
-                                }}
-                                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                                aria-label="Reset to first bar"
-                            >
-                                <RotateCcw className="size-3" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setPlaying(false);
-                                    setPlayhead((p) => Math.max(0, p - 1));
-                                }}
-                                className="inline-flex items-center rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                                aria-label="Step back one bar"
-                            >
-                                <ChevronLeft className="size-3" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setPlaying((p) => !p)}
-                                disabled={playhead >= state.candles.length - 1}
-                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-                            >
-                                {playing ? <Pause className="size-3" /> : <Play className="size-3" />}
-                                {playing ? "Pause" : "Play"}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setPlaying(false);
-                                    setPlayhead((p) => Math.min(state.candles.length - 1, p + 1));
-                                }}
-                                className="inline-flex items-center rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
-                                aria-label="Step forward one bar"
-                            >
-                                <ChevronRight className="size-3" />
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setSpeed((s) => SPEEDS[(SPEEDS.indexOf(s as 1) + 1) % SPEEDS.length])}
-                                className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 font-numeric text-xs transition hover:bg-muted"
-                                aria-label="Cycle playback speed"
-                                title="Playback speed"
-                            >
-                                <Gauge className="size-3" />
-                                {speed}×
-                            </button>
-                            <span className="ml-auto text-micro text-muted-foreground">
-                                {state.candles.length} real candles loaded — replay walks exactly this set
-                            </span>
                         </div>
                     </>
                 )}
@@ -359,9 +249,9 @@ function ReplayHeader({
     disabled?: boolean;
 }) {
     return (
-        <div className="flex items-center gap-2 text-micro text-muted-foreground">
+        <div className={cn("flex items-center gap-2 text-[8px] text-muted-foreground", disabled && "opacity-70")}>
             <span>Window</span>
-            {[100, 300, 500, 1000].map((n) => (
+            {WINDOW_OPTIONS.map((n) => (
                 <button
                     key={n}
                     type="button"

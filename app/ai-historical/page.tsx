@@ -75,7 +75,7 @@ export default function AIHistoricalPage() {
                         <option value="H4">H4</option>
                         <option value="D1">D1</option>
                     </select>
-                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                    <button type="button" onClick={fetchAnalysis} disabled={loading} className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : "Analyze"}
                     </button>
                 </div>

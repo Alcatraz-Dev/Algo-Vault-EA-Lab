@@ -3,6 +3,7 @@ import "server-only";
 import type { App } from "firebase-admin/app";
 import type { Auth } from "firebase-admin/auth";
 import type { Database } from "firebase-admin/database";
+import { getFirebaseAdminConfig } from "./firebase-admin-config";
 
 function getAdminApp(): App {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -12,27 +13,9 @@ function getAdminApp(): App {
         return getApps()[0];
     }
 
-    const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const rawKey = process.env.FIREBASE_PRIVATE_KEY;
-    const databaseURL =
-        process.env.FIREBASE_DATABASE_URL ||
-        process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||
-        (projectId ? `https://${projectId}-default-rtdb.firebaseio.com` : undefined);
+    const { projectId, clientEmail, rawPrivateKey, databaseURL } = getFirebaseAdminConfig();
 
-    const missing: string[] = [];
-    if (!projectId) missing.push("FIREBASE_PROJECT_ID");
-    if (!clientEmail) missing.push("FIREBASE_CLIENT_EMAIL");
-    if (!rawKey) missing.push("FIREBASE_PRIVATE_KEY");
-    if (!databaseURL) missing.push("NEXT_PUBLIC_FIREBASE_DATABASE_URL");
-
-    if (missing.length > 0) {
-        throw new Error(
-            `Missing Firebase Admin environment variables: ${missing.join(", ")}. Please configure them in your server environment.`
-        );
-    }
-
-    let privateKey = rawKey!.trim();
+    let privateKey = rawPrivateKey.trim();
     if (
         (privateKey.startsWith('"') && privateKey.endsWith('"')) ||
         (privateKey.startsWith("'") && privateKey.endsWith("'"))
@@ -43,8 +26,8 @@ function getAdminApp(): App {
 
     return initializeApp({
         credential: cert({
-            projectId: projectId!,
-            clientEmail: clientEmail!,
+            projectId,
+            clientEmail,
             privateKey,
         }),
         databaseURL,

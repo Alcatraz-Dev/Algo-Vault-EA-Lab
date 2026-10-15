@@ -373,7 +373,7 @@ export default function AdminWorkflowsPage() {
                 onClick={() => setStatusFilter(st)}
                 className={`text-xs px-3 py-1 rounded-full border capitalize whitespace-nowrap transition-colors ${
                   statusFilter === st
-                    ? "bg-primary text-primary-foreground border-primary font-medium"
+                    ? "bg-primary text-white border-primary font-medium"
                     : "border-border bg-background hover:bg-muted text-foreground"
                 }`}
               >

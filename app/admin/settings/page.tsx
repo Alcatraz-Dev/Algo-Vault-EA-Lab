@@ -110,7 +110,7 @@ export default function AdminSettingsPage() {
                 <button
                     onClick={save}
                     disabled={saving}
-                    className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                    className="flex shrink-0 items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                 >
                     {saving ? <RefreshCw size={15} className="animate-spin" /> : <Save size={15} />}
                     {saved ? "Saved!" : "Save Changes"}
@@ -277,7 +277,7 @@ export default function AdminSettingsPage() {
                             <button
                                 onClick={save}
                                 disabled={saving}
-                                className="flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                className="flex items-center gap-2 rounded-lg bg-black px-6 py-3 font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                             >
                                 {saving ? <RefreshCw size={15} className="animate-spin" /> : <Save size={15} />}
                                 {saved ? "✓ Saved!" : "Save All Settings"}

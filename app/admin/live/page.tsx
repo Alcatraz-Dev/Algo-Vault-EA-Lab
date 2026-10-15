@@ -127,7 +127,7 @@ export default function AdminLivePage() {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm text-muted-foreground">{label}</p>
-                                <p className={`mt-2 font-numeric text-2xl font-bold ${tone ?? ""}`}>{value}</p>
+                                <p className={`mt-2 font-numeric text-base font-semibold font-bold ${tone ?? ""}`}>{value}</p>
                             </div>
                             <div className="rounded-lg border border-border bg-muted/50 p-2.5">
                                 <Icon className="h-5 w-5 text-foreground" />

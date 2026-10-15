@@ -21,16 +21,26 @@ import { Card } from "@/components/ui/card";
 import { FormError, FormSuccess } from "@/components/ui/form-field";
 
 export default function LoginPage() {
-    return (
-        <Suspense fallback={null}>
-            <LoginForm />
-        </Suspense>
-    );
+    return <LoginForm />;
+}
+
+/**
+ * Reads the `redirect` query param in isolation so the surrounding login
+ * form can still server-render. `useSearchParams` suspends during
+ * prerender; keeping it here (under its own Suspense with a null fallback)
+ * prevents the entire form from bailing out to an empty shell.
+ */
+function RedirectReader({ onRedirect }: { onRedirect: (value: string) => void }) {
+    const searchParams = useSearchParams();
+    useEffect(() => {
+        const redirect = (searchParams.get("redirect") || "").trim();
+        onRedirect(redirect.startsWith("/") ? redirect : "/account");
+    }, [searchParams, onRedirect]);
+    return null;
 }
 
 function LoginForm() {
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -42,6 +52,7 @@ function LoginForm() {
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [siteName, setSiteName] = useState("AlgoVault");
+    const [redirectTarget, setRedirectTarget] = useState("/account");
 
     useEffect(() => {
         return onValue(dbRef(database, "settings/siteName"), (snap) => {
@@ -79,8 +90,7 @@ function LoginForm() {
 
             // Firebase now keeps the session according to the
             // persistence selected above.
-            const redirect = (searchParams.get("redirect") || "").trim();
-            router.replace(redirect.startsWith("/") ? redirect : "/account");
+            router.replace(redirectTarget);
         } catch (err: unknown) {
             console.error("LOGIN ERROR:", err);
             const code =
@@ -190,6 +200,9 @@ function LoginForm() {
 
     return (
         <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
+            <Suspense fallback={null}>
+                <RedirectReader onRedirect={setRedirectTarget} />
+            </Suspense>
             <div aria-hidden="true" className="pointer-events-none absolute inset-0">
                 <div className="av-aurora av-aurora-a left-1/2 top-[-12rem] h-[28rem] w-[42rem] -translate-x-1/2" />
                 <div className="av-aurora av-aurora-b left-1/2 top-[6rem] h-[22rem] w-[32rem] -translate-x-1/2" />

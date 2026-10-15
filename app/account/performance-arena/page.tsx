@@ -176,7 +176,7 @@ export default function AccountPerformanceArenaPage() {
               <Link
                 key={attempt.id}
                 href={`/account/performance-arena/attempts/${attempt.id}`}
-                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/50 hover:shadow-md"
+                className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:border-primary/50 hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-numeric text-sm font-medium">{attempt.definitionKey}</span>

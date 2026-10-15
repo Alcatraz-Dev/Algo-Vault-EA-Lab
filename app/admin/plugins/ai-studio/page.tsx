@@ -182,7 +182,7 @@ export default function AdminAiStudioPage() {
             <div className="grid gap-6 lg:grid-cols-5">
                 {/* Generator */}
                 <div className="lg:col-span-3">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Sparkles size={14} /> Describe the plugin
                         </h3>
@@ -198,7 +198,7 @@ export default function AdminAiStudioPage() {
                                     onChange={(e) => setPrompt(e.target.value)}
                                     rows={5}
                                     placeholder="e.g. A plugin that alerts me when EURUSD intraday volatility spikes above 2.5x its 14-day ATR during the New York session, plus flags correlated exposure over 30%."
-                                    className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                    className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                                 />
                             </Field>
                             <div className="grid gap-4 sm:grid-cols-2">
@@ -210,7 +210,7 @@ export default function AdminAiStudioPage() {
                                                 type="button"
                                                 onClick={() => setTarget(t)}
                                                 className={`rounded-lg border px-3 py-1.5 text-xs capitalize transition ${
-                                                    target === t ? "border-border/50 bg-background text-foreground" : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                                    target === t ? "border-border/50 bg-background text-foreground" : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                                 }`}
                                             >
                                                 {t}
@@ -222,7 +222,7 @@ export default function AdminAiStudioPage() {
                                     <select
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value as PluginCategory)}
-                                        className="w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
+                                        className="w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none focus:border-border/50"
                                     >
                                         {CATEGORIES.map((c) => (
                                             <option key={c.id} value={c.id}>
@@ -243,7 +243,7 @@ export default function AdminAiStudioPage() {
                                                 className={`rounded-lg border px-3 py-1.5 text-xs transition ${
                                                     extensionType === t
                                                         ? "border-border/50 bg-background text-foreground"
-                                                        : "border-border/30 bg-muted/5 text-muted-foreground hover:text-foreground"
+                                                        : "border-border/40 bg-muted/5 text-muted-foreground hover:text-foreground"
                                                 }`}
                                             >
                                                 {EXTENSION_TYPE_LABELS[t] || t}
@@ -266,7 +266,7 @@ export default function AdminAiStudioPage() {
 
                     {/* Result */}
                     {draft && (
-                        <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
+                        <div className="mt-5 rounded-lg border border-border/40 bg-muted/50 p-6">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <div>
                                     <h3 className="flex items-center gap-2 text-sm font-semibold">
@@ -299,7 +299,7 @@ export default function AdminAiStudioPage() {
                             </div>
 
                             {messages.length > 0 && (
-                                <div className="mt-5 rounded-lg border border-border/30 bg-muted/20 p-4">
+                                <div className="mt-5 rounded-lg border border-border/40 bg-muted/20 p-4">
                                     <h4 className="text-xs font-medium">Validation messages</h4>
                                     <ul className="mt-2 space-y-1.5">
                                         {messages.map((m, i) => (
@@ -351,14 +351,14 @@ export default function AdminAiStudioPage() {
                                 </div>
                             </div>
 
-                            <div className="mt-5 border-t border-border/30 pt-4">
+                            <div className="mt-5 border-t border-border/40 pt-4">
                                 <button type="button" onClick={() => setExpanded((v) => !v)} className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
                                     {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
                                     Show runtime condition & test cases
                                 </button>
                                 {expanded && (
                                     <div className="mt-3 space-y-4">
-                                        <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
+                                        <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
                                             <h4 className="text-xs font-medium">Declarative condition</h4>
                                             <pre className="mt-2 overflow-x-auto rounded-lg bg-background p-3 font-numeric text-micro leading-5 text-muted-foreground">
                                                 {JSON.stringify(draft.spec?.runtime?.condition || draft.spec?.manifest?.runtime?.condition, null, 2)}
@@ -382,13 +382,13 @@ export default function AdminAiStudioPage() {
                             </div>
 
                             {/* Publish actions */}
-                            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border/30 pt-4">
+                            <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-border/40 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => publish(draft.id, true)}
                                     disabled={!passed || publishing === "now"}
                                     className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${
-                                        passed ? "bg-positive/15 text-positive hover:bg-positive/25" : "border-border/30 bg-muted/5 text-muted-foreground"
+                                        passed ? "bg-positive/15 text-positive hover:bg-positive/25" : "border-border/40 bg-muted/5 text-muted-foreground"
                                     }`}
                                     title={passed ? "Publish to the marketplace immediately" : "Fix the validation failures before publishing"}
                                 >
@@ -413,7 +413,7 @@ export default function AdminAiStudioPage() {
 
                     {/* No result */}
                     {!draft && !generating && !error && (
-                        <div className="mt-5 rounded-lg border border-dashed border-border/30 bg-muted/50 p-8 text-center">
+                        <div className="mt-5 rounded-lg border border-dashed border-border/40 bg-muted/50 p-8 text-center">
                             <Bot size={28} className="mx-auto text-muted-foreground" />
                             <p className="mt-3 text-sm font-medium">No plugin generated yet</p>
                             <p className="mx-auto mt-1 max-w-md text-xs leading-5 text-muted-foreground">
@@ -425,7 +425,7 @@ export default function AdminAiStudioPage() {
 
                 {/* Supported APIs + jobs */}
                 <div className="lg:col-span-2">
-                    <div className="rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="rounded-lg border border-border/40 bg-muted/50 p-6">
                         <h3 className="flex items-center gap-2 text-sm font-semibold">
                             <Shield size={14} /> Sandbox API surface
                         </h3>
@@ -436,7 +436,7 @@ export default function AdminAiStudioPage() {
                             {SUPPORTED_API_KEYS.map((key) => {
                                 const api = supportedApis[key];
                                 return (
-                                    <div key={key} className="rounded-lg border border-border/30 bg-muted/20 p-3">
+                                    <div key={key} className="rounded-lg border border-border/40 bg-muted/20 p-3">
                                         <p className="text-xs font-medium text-foreground">{api?.label || key}</p>
                                         <p className="mt-0.5 text-micro leading-5 text-muted-foreground">{api?.description || "Declarative sandbox API."}</p>
                                     </div>
@@ -449,7 +449,7 @@ export default function AdminAiStudioPage() {
                         </div>
                     </div>
 
-                    <div className="mt-5 rounded-lg border border-border/30 bg-muted/50 p-6">
+                    <div className="mt-5 rounded-lg border border-border/40 bg-muted/50 p-6">
                         <div className="flex items-center justify-between">
                             <h3 className="flex items-center gap-2 text-sm font-semibold">
                                 <Terminal size={14} /> Generation jobs
@@ -462,7 +462,7 @@ export default function AdminAiStudioPage() {
                         {jobsLoading ? (
                             <div className="mt-4 space-y-2">
                                 {[1, 2].map((n) => (
-                                    <div key={n} className="h-14 animate-pulse rounded-lg border border-border/30 bg-muted/20" />
+                                    <div key={n} className="h-14 animate-pulse rounded-lg border border-border/40 bg-muted/20" />
                                 ))}
                             </div>
                         ) : jobs.length === 0 ? (
@@ -470,7 +470,7 @@ export default function AdminAiStudioPage() {
                         ) : (
                             <div className="mt-4 space-y-2">
                                 {jobs.slice(0, 10).map((job) => (
-                                    <div key={job.id} className="rounded-lg border border-border/30 bg-muted/20 p-3">
+                                    <div key={job.id} className="rounded-lg border border-border/40 bg-muted/20 p-3">
                                         <div className="flex items-center justify-between gap-2">
                                             <StatusBadge tone={job.status === "done" ? "positive" : job.status === "failed" ? "error" : "pending"} label={job.status} dot />
                                             <span className="shrink-0 text-micro text-muted-foreground">{timeAgo(job.createdAt)}</span>

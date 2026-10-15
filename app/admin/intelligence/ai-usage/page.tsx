@@ -161,7 +161,7 @@ export default function AdminAIUsagePage() {
             subtitle="Token and cost accounting for the multi-provider AI gateway, with pre-flight budget enforcement."
         >
             <div className="mb-6 flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5">
+                <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-4 py-2.5">
                     <Gauge size={14} className="text-muted-foreground" />
                     <span className="text-xs font-medium">
                         {usage?.month ?? budgets?.month ?? "—"}
@@ -171,7 +171,7 @@ export default function AdminAIUsagePage() {
                 <button
                     onClick={() => void load()}
                     disabled={loading}
-                    className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
                     Refresh
@@ -188,7 +188,7 @@ export default function AdminAIUsagePage() {
             )}
 
             {loading && !usage && (
-                <div className="rounded-lg border border-border/30 bg-muted/50 p-8 text-center text-xs text-muted-foreground">
+                <div className="rounded-lg border border-border/40 bg-muted/50 p-8 text-center text-xs text-muted-foreground">
                     Loading AI usage…
                 </div>
             )}
@@ -235,7 +235,7 @@ export default function AdminAIUsagePage() {
                     )}
 
                     {usage.totals.costUnknownRequests > 0 && (
-                        <div className="mb-6 flex items-start gap-3 rounded-lg border border-border/30 bg-muted/50 p-4">
+                        <div className="mb-6 flex items-start gap-3 rounded-lg border border-border/40 bg-muted/50 p-4">
                             <AlertTriangle size={16} className="mt-0.5 shrink-0 text-muted-foreground" />
                             <div>
                                 <p className="text-xs font-medium">
@@ -537,12 +537,12 @@ function LimitInput({
                         setDraft(e.target.value);
                         setDirty(true);
                     }}
-                    className="w-full rounded-lg border border-border/30 bg-background px-3 py-2 text-xs outline-none focus:border-border/60"
+                    className="w-full rounded-lg border border-border/40 bg-background px-3 py-2 text-xs outline-none focus:border-border/60"
                 />
                 <button
                     onClick={() => onSave?.(draft)}
                     disabled={disabled || !dirty}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-40"
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/40 bg-muted px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-40"
                 >
                     <Save size={12} />
                     Save
@@ -554,7 +554,7 @@ function LimitInput({
 
 function Empty({ children }: { children: React.ReactNode }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/5 p-6 text-center text-xs text-muted-foreground">
+        <div className="rounded-lg border border-border/40 bg-muted/5 p-6 text-center text-xs text-muted-foreground">
             {children}
         </div>
     );

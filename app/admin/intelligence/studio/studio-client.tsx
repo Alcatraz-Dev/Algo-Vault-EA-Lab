@@ -56,13 +56,13 @@ const CAT_STYLES: Record<string, { dot: string; header: string; badge: string; i
   logic: { dot: "#6366f1", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <FlaskConical size={11} /> },
   risk: { dot: "#ef4444", header: "bg-negative/10 border-b border-negative/30", badge: "bg-negative text-negative dark:bg-negative/70 dark:text-negative font-extrabold border border-negative/50 shadow-xs", icon: <Shield size={11} /> },
   integration: { dot: "#8b5cf6", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <GitBranch size={11} /> },
-  storage: { dot: "#64748b", header: "bg-muted/10 border-b border-border/30", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <Boxes size={11} /> },
+  storage: { dot: "#64748b", header: "bg-muted/10 border-b border-border/40", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <Boxes size={11} /> },
   http: { dot: "#0284c7", header: "bg-info/10 border-b border-info/30", badge: "bg-info text-info dark:bg-info/70 dark:text-info font-extrabold border border-info/50 shadow-xs", icon: <Globe size={11} /> },
   transform: { dot: "#d97706", header: "bg-warning/10 border-b border-warning/30", badge: "bg-warning text-warning dark:bg-warning/70 dark:text-warning font-extrabold border border-warning/50 shadow-xs", icon: <SlidersHorizontal size={11} /> },
   simulation: { dot: "#059669", header: "bg-positive/10 border-b border-positive/30", badge: "bg-positive text-positive dark:bg-positive/70 dark:text-positive font-extrabold border border-positive/50 shadow-xs", icon: <Layers size={11} /> },
   reports: { dot: "#4f46e5", header: "bg-primary/10 border-b border-primary/30", badge: "bg-primary text-primary dark:bg-primary/70 dark:text-primary font-extrabold border border-primary/50 shadow-xs", icon: <FileText size={11} /> },
 };
-const DEF_CAT = { dot: "#64748b", header: "bg-muted/10 border-b border-border/30", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <GitBranch size={11} /> };
+const DEF_CAT = { dot: "#64748b", header: "bg-muted/10 border-b border-border/40", badge: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground font-extrabold border border-border/50 shadow-xs", icon: <GitBranch size={11} /> };
 const getCat = (c?: string) => CAT_STYLES[c ?? ""] ?? DEF_CAT;
 
 // ─── Custom Node (type="wfNode" avoids ReactFlow's .react-flow__node-default styles) ──
@@ -91,7 +91,7 @@ function WfNode({ data, selected }: { data: any; selected?: boolean }) {
           : hasErrors ? "ring-1 ring-negative/40" : "";
 
   return (
-    <div className={`relative rounded-lg border-2 ${selected ? "border-primary shadow-md" : "border-border"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
+    <div className={`relative rounded-lg border-2 ${selected ? "border-primary shadow-[0_1px_2px_rgb(0_0_0/0.05)]" : "border-border"} bg-card text-card-foreground shadow-sm min-w-[168px] max-w-[208px] select-none transition-all duration-150 ${ring}`}>
       {/* target port — clearly visible input */}
       <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex flex-col items-center z-20">
         <Handle type="target" id="in" position={Position.Top}
@@ -545,7 +545,7 @@ export default function StudioClient() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {workflows.map(wf => (
-                <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-5 shadow-xs transition hover:shadow-md hover:-translate-y-0.5">
+                <div key={wf.id} className="group flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-5 shadow-xs transition hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)] hover:-translate-y-0.5">
                   <div className="space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="font-semibold text-sm truncate text-foreground group-hover:text-warning dark:group-hover:text-warning transition-colors">{wf.name}</h3>

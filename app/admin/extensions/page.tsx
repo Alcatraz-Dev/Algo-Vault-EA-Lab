@@ -73,7 +73,7 @@ export default function AdminExtensionsPage() {
                     <Link href="/admin/plugins/create?type=extension" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                         <Puzzle size={14} /> New Extension
                     </Link>
-                    <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                    <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                         <Sparkles size={14} /> AI Generate
                     </Link>
                 </div>
@@ -91,7 +91,7 @@ export default function AdminExtensionsPage() {
             {loading ? (
                 <div className="grid gap-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-20 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             ) : extensions.length === 0 ? (
@@ -104,18 +104,18 @@ export default function AdminExtensionsPage() {
                             <Link href="/admin/plugins" className="inline-flex items-center gap-2 rounded-lg bg-background px-4 py-2.5 text-xs font-medium text-foreground transition hover:bg-muted">
                                 Go to Plugins
                             </Link>
-                            <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
+                            <Link href="/admin/plugins/ai-studio" className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2.5 text-xs font-medium text-muted-foreground transition hover:text-foreground">
                                 AI Plugin Studio
                             </Link>
                         </div>
                     }
                 />
             ) : (
-                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+                <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b border-border/30 text-micro uppercase tracking-wide text-muted-foreground">
+                                <tr className="border-b border-border/40 text-micro uppercase tracking-wide text-muted-foreground">
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Extension</th>
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Type</th>
                                     <th className="px-4 py-3 text-micro font-semibold uppercase tracking-wider text-muted-foreground">Status</th>
@@ -146,7 +146,7 @@ export default function AdminExtensionsPage() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center justify-end gap-2">
                                                     {ext.status === "published" && (
-                                                        <Link href={`/marketplace/extensions/${ext.slug || ext.id}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 px-2.5 py-2 text-xs text-muted-foreground transition hover:text-foreground">
+                                                        <Link href={`/marketplace/extensions/${ext.slug || ext.id}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 px-2.5 py-2 text-xs text-muted-foreground transition hover:text-foreground">
                                                             View <ExternalLink size={11} />
                                                         </Link>
                                                     )}

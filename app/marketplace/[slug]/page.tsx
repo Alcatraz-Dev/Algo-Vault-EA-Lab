@@ -131,13 +131,13 @@ function MediaGallery({ imageUrl, images, videoUrl }: { imageUrl?: string; image
     if (allImages.length === 0 && !video) return null;
 
     return (
-        <div className="mt-8 rounded-lg border border-border/30 bg-muted/50 p-6 space-y-6">
+        <div className="mt-8 rounded-lg border border-border/40 bg-muted/50 p-6 space-y-6">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
                 <Video size={16} className="text-primary" /> Media Demonstration & Previews
             </h3>
 
             {video && (
-                <div className="overflow-hidden rounded-lg border border-border/30 bg-black aspect-video relative">
+                <div className="overflow-hidden rounded-lg border border-border/40 bg-black aspect-video relative">
                     {video.isEmbed ? (
                         <iframe
                             src={video.src}
@@ -413,9 +413,9 @@ export default function ProductDetailsPage() {
 
                     <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_380px]">
 
-                        <div className="h-[600px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div className="h-[600px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
 
-                        <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div className="h-[400px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
 
                     </div>
 
@@ -484,7 +484,7 @@ export default function ProductDetailsPage() {
         <main className="min-h-screen bg-background text-foreground">
 
             {/* Header */}
-            <div className="border-b border-border/30">
+            <div className="border-b border-border/40">
 
                 <div className="mx-auto max-w-7xl px-6 py-5">
 
@@ -512,7 +512,7 @@ export default function ProductDetailsPage() {
             <div className="mx-auto max-w-7xl px-6 py-10">
 
                 {/* Product Hero */}
-                <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50" data-guide="page-header">
+                <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50" data-guide="page-header">
 
                     {/* Banner */}
                     <div className="relative h-64 overflow-hidden bg-muted md:h-80">
@@ -559,7 +559,7 @@ export default function ProductDetailsPage() {
                                             className="shrink-0 border-border/50 bg-card"
                                         />
                                     ) : (
-                                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card">
+                                        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card">
 
                                             {isIndicator || isPineStrategy ? (
                                                 <LineChart
@@ -724,11 +724,11 @@ export default function ProductDetailsPage() {
                     <div>
 
                         {/* Performance */}
-                        <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
+                        <section className="rounded-lg border border-border/40 bg-muted/50 p-7 md:p-9">
 
                             <div className="flex items-center gap-3">
 
-                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
 
                                     <BarChart3
                                         size={18}
@@ -858,7 +858,7 @@ export default function ProductDetailsPage() {
 
                             </div>
 
-                            <div className="mt-6 rounded-lg border border-border/30 bg-muted/20 p-4">
+                            <div className="mt-6 rounded-lg border border-border/40 bg-muted/20 p-4">
 
                                 <p className="text-xs leading-6 text-muted-foreground">
                                     Performance figures shown
@@ -885,11 +885,11 @@ export default function ProductDetailsPage() {
                         {/* License */}
                         {product.license
                             ?.required && (
-                                <section className="mt-6 rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
+                                <section className="mt-6 rounded-lg border border-border/40 bg-muted/50 p-7 md:p-9">
 
                                     <div className="flex items-center gap-3">
 
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
 
                                             <CheckCircle2
                                                 size={18}
@@ -939,7 +939,7 @@ export default function ProductDetailsPage() {
                     {/* Purchase Card */}
                     <aside className="lg:sticky lg:top-6 lg:self-start">
 
-                        <div className="rounded-lg border border-border/30 bg-muted p-6">
+                        <div className="rounded-lg border border-border/40 bg-muted p-6">
 
                             <p className="text-xs text-muted-foreground">
                                 Access
@@ -949,7 +949,7 @@ export default function ProductDetailsPage() {
 
                                 <div>
 
-                                    <span className="font-numeric text-3xl font-semibold">
+                                    <span className="font-numeric text-lg font-semibold font-semibold">
 
                                         {isFree
                                             ? "Free"
@@ -1017,7 +1017,7 @@ export default function ProductDetailsPage() {
                                 disabled={
                                     creatingOrder
                                 }
-                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-black px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
 
                                 {isFree ? (
@@ -1060,7 +1060,7 @@ export default function ProductDetailsPage() {
                         </div>
 
                         {/* Risk */}
-                        <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="mt-4 rounded-lg border border-border/40 bg-muted/50 p-5">
 
                             <div className="flex gap-3">
 
@@ -1100,7 +1100,7 @@ function InfoCard({
     value: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 
@@ -1130,7 +1130,7 @@ function PerformanceCard({
     value: string;
 }) {
     return (
-        <div className="rounded-lg border border-border/30 bg-muted/20 p-5">
+        <div className="rounded-lg border border-border/40 bg-muted/20 p-5">
 
             <div className="flex items-center gap-2 text-muted-foreground">
 

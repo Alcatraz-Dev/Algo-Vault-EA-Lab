@@ -73,7 +73,7 @@ export default function ExtensionsMarketplacePage() {
 
     return (
         <main className="min-h-screen bg-background text-foreground">
-            <section className="border-b border-border/30">
+            <section className="border-b border-border/40">
                 <div className="mx-auto max-w-7xl px-6 py-10">
                     <Link
                         href="/marketplace"
@@ -123,7 +123,7 @@ export default function ExtensionsMarketplacePage() {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search extensions..."
-                            className="w-full rounded-lg border border-border/30 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                            className="w-full rounded-lg border border-border/40 bg-muted py-3 pl-11 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
                         />
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -135,13 +135,13 @@ export default function ExtensionsMarketplacePage() {
                 {loading && (
                     <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                         {[1, 2, 3].map((item) => (
-                            <div key={item} className="h-72 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                            <div key={item} className="h-72 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                         ))}
                     </div>
                 )}
 
                 {!loading && filtered.length === 0 && (
-                    <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                    <div className="rounded-lg border border-dashed border-border/40 bg-muted/50 px-6 py-20 text-center">
                         <Puzzle size={40} className="mx-auto text-muted-foreground" />
                         <h2 className="mt-5 text-lg font-medium">No extensions found</h2>
                         <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">
@@ -158,7 +158,7 @@ export default function ExtensionsMarketplacePage() {
                     </div>
                 )}
 
-                <div className="mt-10 rounded-lg border border-border/30 bg-muted/50 p-5">
+                <div className="mt-10 rounded-lg border border-border/40 bg-muted/50 p-5">
                     <div className="flex gap-3">
                         <Shield size={18} className="mt-0.5 shrink-0 text-muted-foreground" />
                         <p className="text-xs leading-6 text-muted-foreground">
@@ -190,7 +190,7 @@ function HubLink({
         <Link
             href={href}
             className={`w-full rounded-lg border p-4 transition sm:w-56 ${
-                active ? "border-primary/40 bg-primary/10" : "border-border/30 bg-muted/50 hover:border-border/50"
+                active ? "border-primary/40 bg-primary/10" : "border-border/40 bg-muted/50 hover:border-border/50"
             }`}
         >
             <div className="flex items-center gap-2 text-sm font-medium">
@@ -207,8 +207,8 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
     const extType = typed.extensionType || "browser";
     const perms = grantedPermissions(extension.permissions);
     return (
-        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/30 bg-card transition hover:border-border/60 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-            <div className="relative h-44 overflow-hidden border-b border-border/30 bg-muted">
+        <article className="group flex flex-col overflow-hidden rounded-lg border border-border/40 bg-card transition hover:border-border/60 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+            <div className="relative h-44 overflow-hidden border-b border-border/40 bg-muted">
                 <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-primary/10 hidden" />
                 <div className="relative z-10 flex h-full flex-col justify-between p-5">
                     <div className="flex items-start justify-between gap-3">
@@ -258,7 +258,7 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
                     <StatusBadge tone="live" label="Published" dot />
                 </div>
 
-                <div className="mt-5 flex items-center justify-between border-t border-border/30 pt-5">
+                <div className="mt-5 flex items-center justify-between border-t border-border/40 pt-5">
                     <p className="text-xs text-muted-foreground">
                         {(extension.capabilities || []).length || 0} capabilities
                     </p>
@@ -276,7 +276,7 @@ function ExtensionCard({ extension }: { extension: PluginRecord }) {
 
 function MiniStat({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
     return (
-        <div className="min-w-[90px] rounded-lg border border-border/30 bg-muted/50 p-3">
+        <div className="min-w-[90px] rounded-lg border border-border/40 bg-muted/50 p-3">
             <div className="flex items-center gap-2 text-muted-foreground">
                 {icon}
                 <span className="text-xs">{label}</span>

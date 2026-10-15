@@ -27,13 +27,13 @@ export default function AdminSandboxPage() {
                     <div className="flex items-center gap-3">
                         <a
                             href="/admin/plugins/ai-studio"
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
                         >
                             <FlaskConical size={14} /> Plugin Sandbox
                         </a>
                         <a
                             href="/api/agents"
-                            className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-medium transition hover:text-foreground"
                         >
                             <Terminal size={14} /> Agents API
                         </a>

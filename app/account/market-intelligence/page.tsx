@@ -195,7 +195,7 @@ export default function AccountMarketIntelligencePage() {
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, currentColor 1px, transparent 0)", backgroundSize: "24px 24px" }} />
               <div className="relative z-10 h-full flex flex-col gap-3">
                 <div className="flex items-center justify-between">
-                  <div className="font-numeric text-2xl font-black tracking-tight">{symbol}</div>
+                  <div className="font-numeric text-base font-semibold font-black tracking-tight">{symbol}</div>
                   <div className="text-xs text-muted-foreground">{timeframe} · {data ? "Live analytics" : "Loading..."}</div>
                 </div>
                 <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
@@ -251,8 +251,8 @@ export default function AccountMarketIntelligencePage() {
                 <div><strong>Evidence</strong> — references use real IDs only</div>
               </div>
               <div className="mt-3 flex gap-1 text-micro">
-                <span className="rounded border border-border/30 px-1.5 py-0.5">No confidence scores</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">No confidence scores</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">Replay-safe</span>
               </div>
               {report.regime && (
                 <div className="mt-3 rounded bg-muted/40 p-2 text-xs font-numeric">Regime: <span className={report.regime.regime?.includes("bullish") ? "text-positive" : report.regime.regime?.includes("bearish") ? "text-negative" : "text-warning"}>{report.regime.regime ?? "—"}</span></div>
@@ -312,10 +312,10 @@ export default function AccountMarketIntelligencePage() {
           <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
-              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
-              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
-              <a href="/strategy-lab" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
+              <a href="/advanced-analysis" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
+              <a href="/market-intelligence/backtest" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
+              <a href="/market-intelligence/research" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
+              <a href="/strategy-lab" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
             </div>
           </div>
         </div>

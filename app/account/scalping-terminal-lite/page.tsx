@@ -56,7 +56,7 @@ export default function AccountScalpingTerminalLitePage() {
                 </p>
                 <a
                     href="/scalping-terminal"
-                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
                 >
                     Open Lite Terminal
                 </a>

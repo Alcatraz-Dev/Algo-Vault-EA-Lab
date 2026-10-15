@@ -199,7 +199,7 @@ function StatCard({ label, value, sub, color = "text-foreground" }: { label: str
     return (
         <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4 text-center">
             <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-            <p className={`mt-1.5 font-numeric text-2xl font-black ${color}`}>{value}</p>
+            <p className={`mt-1.5 font-numeric text-base font-semibold font-black ${color}`}>{value}</p>
             {sub && <p className="mt-0.5 text-micro text-muted-foreground">{sub}</p>}
         </div>
     );
@@ -439,7 +439,7 @@ export default function SignalHistoryPage() {
             <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
                 <div className="text-center">
                     <p className="text-sm text-muted-foreground">Sign in to view signal history.</p>
-                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+                    <Link href="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90">
                         Sign In
                     </Link>
                 </div>
@@ -504,7 +504,7 @@ export default function SignalHistoryPage() {
                         <button
                             onClick={() => void Promise.all([fetchSignals(user), fetchStats(user)])}
                             disabled={isRefreshing}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-border/30 bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground disabled:opacity-40"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-card px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground disabled:opacity-40"
                         >
                             <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
                             {isRefreshing ? "Refreshing…" : "Refresh"}
@@ -518,7 +518,7 @@ export default function SignalHistoryPage() {
                     <div className="relative">
                         <button
                             onClick={() => setPeriodOpen(!periodOpen)}
-                            className="flex h-8 items-center gap-1.5 rounded-md border border-border/30 bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground"
+                            className="flex h-8 items-center gap-1.5 rounded-md border border-border/40 bg-card px-3 text-xs text-muted-foreground transition-colors hover:border-border/50 hover:text-foreground"
                         >
                             <Calendar size={12} />
                             {PERIOD_OPTIONS.find((o) => o.value === period)?.label}
@@ -527,7 +527,7 @@ export default function SignalHistoryPage() {
                         {periodOpen && (
                             <>
                                 <div className="fixed inset-0 z-40" onClick={() => setPeriodOpen(false)} />
-                                <div className="absolute left-0 top-full z-50 mt-1 w-44 rounded-lg border border-border/30 bg-popover p-1 shadow-lg">
+                                <div className="absolute left-0 top-full z-50 mt-1 w-44 rounded-lg border border-border/40 bg-popover p-1 shadow-lg">
                                     {PERIOD_OPTIONS.map((opt) => (
                                         <button
                                             key={opt.value}
@@ -543,7 +543,7 @@ export default function SignalHistoryPage() {
                     </div>
 
                     {/* Tier toggle */}
-                    <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-card/40 p-0.5">
+                    <div className="flex items-center gap-0.5 rounded-lg border border-border/40 bg-card/40 p-0.5">
                         {TIER_OPTIONS.map((opt) => (
                             <button
                                 key={opt.value}
@@ -556,7 +556,7 @@ export default function SignalHistoryPage() {
                     </div>
 
                     {/* Timeframe toggle */}
-                    <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-card/40 p-0.5">
+                    <div className="flex items-center gap-0.5 rounded-lg border border-border/40 bg-card/40 p-0.5">
                         <button
                             onClick={() => setTimeframeFilter("all")}
                             className={`rounded-md px-2.5 py-1 text-micro font-medium transition-all ${timeframeFilter === "all" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
@@ -575,7 +575,7 @@ export default function SignalHistoryPage() {
                     </div>
 
                     {/* Direction toggle */}
-                    <div className="flex items-center gap-0.5 rounded-lg border border-border/30 bg-card/40 p-0.5">
+                    <div className="flex items-center gap-0.5 rounded-lg border border-border/40 bg-card/40 p-0.5">
                         {(["all", "BUY", "SELL"] as const).map((dir) => (
                             <button
                                 key={dir}
@@ -595,7 +595,7 @@ export default function SignalHistoryPage() {
                             placeholder="Search symbol…"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="h-8 w-44 rounded-lg border border-border/30 bg-card/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-warning/30"
+                            className="h-8 w-44 rounded-lg border border-border/40 bg-card/40 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/50 outline-none transition-colors focus:border-warning/30"
                         />
                     </div>
                 </div>
@@ -679,7 +679,7 @@ export default function SignalHistoryPage() {
                             { label: "TP2 Hit Rate", rate: stats.tp2HitRate, color: "bg-info" },
                             { label: "TP3 Hit Rate", rate: stats.tp3HitRate, color: "bg-chart-3" },
                         ].map(({ label, rate, color }) => (
-                            <div key={label} className="rounded-lg border border-border/30 bg-card/60 px-4 py-3">
+                            <div key={label} className="rounded-lg border border-border/40 bg-card/60 px-4 py-3">
                                 <div className="mb-1.5 flex items-center justify-between">
                                     <span className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
                                     <span className="text-xs font-bold text-foreground">{rate.toFixed(1)}%</span>
@@ -694,7 +694,7 @@ export default function SignalHistoryPage() {
 
                 {/* ── Equity Curve ── */}
                 {filtered.filter((s) => s.result === "WIN" || s.result === "LOSS" || s.result === "BREAKEVEN").length >= 2 && (
-                    <div className="mt-6 rounded-lg border border-border/30 bg-card/60 p-4">
+                    <div className="mt-6 rounded-lg border border-border/40 bg-card/60 p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <BarChart3 size={14} className="text-warning" />
@@ -715,7 +715,7 @@ export default function SignalHistoryPage() {
                 )}
 
                 {/* ── Signal Table ── */}
-                <div className="mt-6 overflow-hidden rounded-lg border border-border/30 bg-card/60">
+                <div className="mt-6 overflow-hidden rounded-lg border border-border/40 bg-card/60">
                     {/* table header */}
                     <div className="flex items-center justify-between border-b border-border/20 px-4 py-3">
                         <div className="flex items-center gap-2">

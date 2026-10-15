@@ -51,7 +51,7 @@ export default function WalkForwardPage() {
                 <div className="space-y-6" data-guide="page-header">
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">Split historical data into training (in-sample) and validation (out-of-sample) periods to test strategy robustness.</p>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md bg-black px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Run Walk-Forward
                         </button>
                     </div>
@@ -85,7 +85,7 @@ export default function WalkForwardPage() {
                             </table>
                         </div>
                     ) : (
-                        <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
+                        <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                             <BarChart3 size={32} className="mx-auto text-muted-foreground" />
                             <p className="mt-3 text-sm text-muted-foreground">No strategies found. Create a strategy in the Strategy Lab first.</p>
                         </div>

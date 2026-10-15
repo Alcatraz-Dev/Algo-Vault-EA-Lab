@@ -415,7 +415,7 @@ export default function AdminOrdersPage() {
 
                         <Link
                             href="/login"
-                            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+                            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-black px-5 py-3 text-xs font-medium text-white transition-colors hover:bg-black/80"
                         >
                             Sign In
 
@@ -1098,7 +1098,7 @@ function AdminStat({
 
             </div>
 
-            <p className="mt-3 font-numeric text-2xl font-semibold">
+            <p className="mt-3 font-numeric text-base font-semibold font-semibold">
                 {value}
             </p>
 

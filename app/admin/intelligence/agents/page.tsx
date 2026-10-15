@@ -115,7 +115,7 @@ export default function AdminAgentsPage() {
                     <select
                         value={filterStatus}
                         onChange={(e) => setFilterStatus(e.target.value)}
-                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Statuses</option>
                         {(["draft", "testing", "active", "paused", "disabled", "deprecated"] as AgentStatus[]).map((s) => (
@@ -125,7 +125,7 @@ export default function AdminAgentsPage() {
                     <select
                         value={filterRole}
                         onChange={(e) => setFilterRole(e.target.value)}
-                        className="rounded-lg border border-border/30 bg-muted px-4 py-2.5 text-xs outline-none"
+                        className="rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs outline-none"
                     >
                         <option value="all">All Roles</option>
                         {roles.map((r) => (
@@ -138,11 +138,11 @@ export default function AdminAgentsPage() {
             {loading ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {[1, 2, 3].map((n) => (
-                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+                        <div key={n} className="h-40 animate-pulse rounded-lg border border-border/40 bg-muted/50" />
                     ))}
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border/30 bg-muted/50 px-6 py-20 text-center">
+                <div className="rounded-lg border border-dashed border-border/40 bg-muted/50 px-6 py-20 text-center">
                     <Bot size={40} className="mx-auto text-muted-foreground" />
                     <h3 className="mt-3 text-lg font-medium">No agents found</h3>
                     <p className="mt-1 text-sm text-muted-foreground">Try adjusting your filters or search query.</p>
@@ -179,7 +179,7 @@ function AgentCard({
             <div className="p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-4">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
                             <Bot size={20} className="text-warning/60" />
                         </div>
                         <div className="min-w-0">
@@ -213,7 +213,7 @@ function AgentCard({
                     </div>
                     <button
                         onClick={onToggle}
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5 transition hover:bg-muted/10"
                     >
                         {isExpanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                     </button>
@@ -254,7 +254,7 @@ function AgentCard({
                             <Link
                                 href={`/api/agents/${agent.id}`}
                                 target="_blank"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 text-xs font-medium text-muted-foreground transition hover:text-foreground"
                             >
                                 <Copy size={13} />
                                 Copy API
@@ -276,7 +276,7 @@ function DetailRow({ label, value, copyable = false }: { label: string; value: s
                 {copyable && (
                     <button
                         onClick={() => navigator.clipboard.writeText(value)}
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-muted/5 transition hover:bg-muted/10"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-muted/5 transition hover:bg-muted/10"
                         title="Copy"
                     >
                         <Copy size={12} className="text-muted-foreground" />

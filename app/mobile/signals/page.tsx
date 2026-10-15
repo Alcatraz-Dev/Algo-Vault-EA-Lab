@@ -216,7 +216,7 @@ export default function MobileSignalsPage() {
                 className={cn(
                   "whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors touch-target",
                   filter === f.id
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-white"
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
@@ -258,7 +258,7 @@ export default function MobileSignalsPage() {
                           )}>
                             {signal.tier}
                           </Badge>
-                          <Badge variant="outline" className="border-border/30">{signal.timeframe}</Badge>
+                          <Badge variant="outline" className="border-border/40">{signal.timeframe}</Badge>
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5 truncate">{signal.reasoning || "AI-generated signal based on market structure and momentum"}</p>
                       </div>
@@ -271,7 +271,7 @@ export default function MobileSignalsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-4 gap-3 text-center">
+                  <div className="mt-3 pt-3 border-t border-border/40 grid grid-cols-4 gap-3 text-center">
                     <div>
                       <p className="font-numeric text-sm font-semibold">{formatPrice(signal.symbol, signal.entry)}</p>
                       <p className="text-micro text-muted-foreground">Entry</p>
@@ -290,7 +290,7 @@ export default function MobileSignalsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-border/30 flex items-center justify-between text-micro text-muted-foreground">
+                  <div className="mt-3 pt-3 border-t border-border/40 flex items-center justify-between text-micro text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Shield className="h-3 w-3" />
                       {getRegimeLabel(signal.marketRegime)}
@@ -306,7 +306,7 @@ export default function MobileSignalsPage() {
                     <Badge variant="outline" className={cn(
                       signal.strength === "STRONG" && "border-positive/30 text-positive",
                       signal.strength === "MODERATE" && "border-warning/30 text-warning",
-                      "border-border/30"
+                      "border-border/40"
                     )}>
                       {signal.strength}
                     </Badge>

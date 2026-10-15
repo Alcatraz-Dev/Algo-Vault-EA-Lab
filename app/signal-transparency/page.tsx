@@ -78,7 +78,7 @@ export default function SignalTransparencyPage() {
                             <p className="mt-1 text-xs text-muted-foreground">Average confidence</p>
                         </div>
                     </div>
-                    <button type="button" onClick={fetchSignals} disabled={loading} aria-label="Refresh signals" className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/80 transition disabled:opacity-50">
+                    <button type="button" onClick={fetchSignals} disabled={loading} aria-label="Refresh signals" className="rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-black/80 transition disabled:opacity-50">
                         {loading ? <Loader2 className="mx-auto h-4 w-4 animate-spin" /> : <RefreshCw size={16} />}
                     </button>
                 </div>
@@ -109,7 +109,7 @@ export default function SignalTransparencyPage() {
                             )}
                         </div>
                     ))}
-                    {!signals.length && !loading && <div className="rounded-lg border border-dashed border-border/30 p-8 text-center"><Eye className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No signals to display</p></div>}
+                    {!signals.length && !loading && <div className="rounded-lg border border-dashed border-border/40 p-8 text-center"><Eye className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">No signals to display</p></div>}
                 </div>
             </div>
         </AccountShell>

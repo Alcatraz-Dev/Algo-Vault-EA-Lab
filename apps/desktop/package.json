@@ -79,6 +79,11 @@
     "mac": {
       "category": "public.app-category.finance",
       "icon": "public/icons/icon-512x512.png",
+      "hardenedRuntime": true,
+      "entitlements": "entitlements/entitlements.mac.plist",
+      "entitlementsInherit": "entitlements/entitlements.mac.inherit.plist",
+      "entitlementsLoginHelper": "entitlements/entitlements.mac.login-helper.plist",
+      "notarize": true,
       "target": [
         {
           "target": "dmg",

@@ -83,7 +83,7 @@ export default function OverlapDetectorPage() {
                     <Clock size={18} className="text-primary" />
                     <div>
                         <p className="text-xs text-muted-foreground">Current UTC Time</p>
-                        <p className="font-numeric text-xl font-bold text-foreground">{String(utcHour).padStart(2, "0")}:{String(new Date().getUTCMinutes()).padStart(2, "0")}</p>
+                        <p className="font-numeric text-sm font-semibold font-bold text-foreground">{String(utcHour).padStart(2, "0")}:{String(new Date().getUTCMinutes()).padStart(2, "0")}</p>
                     </div>
                 </div>
             </div>

@@ -558,7 +558,7 @@ function ProductCard({
     const hasLogo = hasBrandingItem(product.branding?.logo);
 
     return (
-        <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md">
+        <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-[transform,box-shadow,border-color] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
 
             {/* Banner / Product Visual Header */}
             <div className="relative h-52 overflow-hidden border-b border-border bg-muted">

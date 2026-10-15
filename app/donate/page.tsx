@@ -263,7 +263,7 @@ export default function DonatePage() {
                                     }}
                                     className={`w-full rounded-lg border p-5 text-left transition-all ${isSelected
                                         ? `${tier.border} ${tier.color}`
-                                        : "border-border/30 bg-muted hover:border-border/50 hover:bg-muted/20"
+                                        : "border-border/40 bg-muted hover:border-border/50 hover:bg-muted/20"
                                     }`}
                                 >
                                     <div className="flex items-start gap-4">
@@ -305,7 +305,7 @@ export default function DonatePage() {
                         <div
                             className={`rounded-lg border p-5 transition-all ${useCustom
                                 ? "border-positive/30 bg-positive/[0.08]"
-                                : "border-border/30 bg-muted"
+                                : "border-border/40 bg-muted"
                             }`}
                         >
                             <button
@@ -337,7 +337,7 @@ export default function DonatePage() {
                                         placeholder="0.00"
                                         value={customAmount}
                                         onChange={(e) => setCustomAmount(e.target.value)}
-                                        className="w-full rounded-lg border border-border/30 bg-background pl-8 pr-4 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                        className="w-full rounded-lg border border-border/40 bg-background pl-8 pr-4 py-2.5 text-sm font-numeric text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                     />
                                 </div>
                             )}
@@ -345,8 +345,8 @@ export default function DonatePage() {
                     </div>
 
                     {/* Checkout Panel */}
-                    <div className="rounded-lg border border-border/30 bg-card p-6 h-fit sticky top-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                        <div className="flex items-center gap-2 mb-5 border-b border-border/30 pb-5">
+                    <div className="rounded-lg border border-border/40 bg-card p-6 h-fit sticky top-8 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <div className="flex items-center gap-2 mb-5 border-b border-border/40 pb-5">
                             <Sparkles size={16} className="text-primary" />
                             <h3 className="font-bold text-foreground">Your Donation</h3>
                         </div>
@@ -373,7 +373,7 @@ export default function DonatePage() {
 
                         {/* Rewards unlocked */}
                         {effectiveTier && (
-                            <div className="mb-5 rounded-lg border border-border/30 bg-background/70 p-4">
+                            <div className="mb-5 rounded-lg border border-border/40 bg-background/70 p-4">
                                 <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2">
                                     🎁 Rewards Unlocked
                                 </p>
@@ -403,7 +403,7 @@ export default function DonatePage() {
                                     placeholder="Anonymous"
                                     value={donorName}
                                     onChange={(e) => setDonorName(e.target.value)}
-                                    className="w-full rounded-lg border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="w-full rounded-lg border border-border/40 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 />
                             </div>
 
@@ -420,7 +420,7 @@ export default function DonatePage() {
                                     value={donorMessage}
                                     onChange={(e) => setDonorMessage(e.target.value)}
                                     rows={2}
-                                    className="w-full resize-none rounded-lg border border-border/30 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
+                                    className="w-full resize-none rounded-lg border border-border/40 bg-background px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
                                 />
                             </div>
                         </div>
@@ -444,7 +444,7 @@ export default function DonatePage() {
                             type="button"
                             onClick={handleDonate}
                             disabled={loading || (!effectiveAmount || effectiveAmount < 100)}
-                            className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-primary text-primary-foreground px-5 py-3 text-sm font-bold transition-colors hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2.5 rounded-lg bg-primary text-white px-5 py-3 text-sm font-bold transition-colors hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {loading ? (
                                 <>

@@ -228,12 +228,12 @@ export default function AdminShell({
                             {isActive ? (
                                 <span
                                     aria-hidden="true"
-                                    className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary"
+                                    className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-neutral-950"
                                 />
                             ) : null}
                             <Icon
                                 size={15}
-                                className={isActive ? "shrink-0 text-primary" : "shrink-0 text-muted-foreground group-hover/item:text-foreground"}
+                                className={isActive ? "shrink-0 text-foreground" : "shrink-0 text-muted-foreground group-hover/item:text-foreground"}
                             />
                             <span className="truncate">{label}</span>
                         </Link>
@@ -314,9 +314,12 @@ export default function AdminShell({
                 <header
                     ref={headerRef}
                     data-guide="page-header"
-                    className="sticky top-0 z-40 bg-background/85 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4 md:px-8"
+                    className="sticky top-0 z-40 bg-background/85 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4 md:px-8 border-b border-border/30 overflow-hidden"
                 >
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:flex-nowrap">
+                    {/* Gradient glow behind header — matches ModernPageHeader */}
+                    <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
+                    <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2.5 lg:flex-nowrap">
                         <div className="flex shrink-0 items-center gap-1.5">
                             <button
                                 type="button"
@@ -344,7 +347,7 @@ export default function AdminShell({
                             <p className="mb-1 text-micro font-medium uppercase tracking-wider text-muted-foreground">
                                 Administration
                             </p>
-                            <h1 className="truncate text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                            <h1 className="truncate text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
                                 {title}
                             </h1>
                             {subtitle ? (

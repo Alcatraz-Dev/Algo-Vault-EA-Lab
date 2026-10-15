@@ -315,7 +315,7 @@ export default function AdminBotsPage() {
 
                 <Link
                     href="/admin/bots/new"
-                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90"
+                    className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:bg-primary/90"
                 >
                     <Plus size={17} />
                     Add Product
@@ -866,7 +866,7 @@ function StatCard({
                 {title}
             </p>
 
-            <p className="mt-2 font-numeric text-2xl font-semibold">
+            <p className="mt-2 font-numeric text-base font-semibold font-semibold">
                 {value}
             </p>
 

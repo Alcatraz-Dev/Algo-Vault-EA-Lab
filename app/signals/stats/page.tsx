@@ -467,7 +467,7 @@ export default function SignalStatsPage() {
                             onClick={handleScan}
                             disabled={scanning}
                             data-guide="scan"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
                         >
                             {scanning ? (
                                 <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
@@ -479,7 +479,7 @@ export default function SignalStatsPage() {
 
                         <Link
                             href="/account/live"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
                             <span>Live Performance</span>
@@ -487,7 +487,7 @@ export default function SignalStatsPage() {
 
                         <Link
                             href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/30 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
                         >
                             <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-info" />
                             <span>History</span>
@@ -496,7 +496,7 @@ export default function SignalStatsPage() {
                 </div>
 
                 {/* TAB NAVIGATION */}
-                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/30 bg-background p-1 scrollbar-none">
+                <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/40 bg-background p-1 scrollbar-none">
                     {tabs.map((tab) => (
                         <button
                             key={tab.key}
@@ -518,7 +518,7 @@ export default function SignalStatsPage() {
                 <div className="mt-6 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-4" data-guide="daily-limit">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card">
                                 <BarChart3 className="h-5 w-5 text-warning" />
                             </div>
                             <div>
@@ -584,7 +584,7 @@ export default function SignalStatsPage() {
                             {sentiments.length > 0 ? (
                                 <MarketOverview sentiments={sentiments} prices={sentimentPrices} />
                             ) : (
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-8 text-center">
                                     <BarChart3 className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">Market overview data loading...</p>
                                 </div>
@@ -593,7 +593,7 @@ export default function SignalStatsPage() {
 
                         
                         {/* LOT SIZE SELECTOR */}
-                        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/30 bg-card/60 p-4">
+                        <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/40 bg-card/60 p-4">
                             <div className="flex items-center gap-2">
                                 <Calculator className="h-4 w-4 text-warning" />
                                 <span className="text-xs font-bold text-foreground">Exact Monetary Lot Size Baseline:</span>
@@ -645,7 +645,7 @@ export default function SignalStatsPage() {
                                         color: "text-info",
                                     },
                                 ].map((stat) => (
-                                    <div key={stat.label} className="rounded-lg border border-border/30 bg-card/60 p-4">
+                                    <div key={stat.label} className="rounded-lg border border-border/40 bg-card/60 p-4">
                                         <p className="text-micro font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
                                         <p className={`mt-1 text-2xl font-black tabular-nums ${stat.color}`}>{stat.value}</p>
                                         <p className="mt-0.5 text-micro text-muted-foreground/70">{stat.sub}</p>
@@ -664,11 +664,11 @@ export default function SignalStatsPage() {
                         {/* CHARTS SECTION */}
                         {signals.length > 0 && (
                             <div className="mt-10 grid gap-5 lg:grid-cols-2">
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-5">
                                     <div className="mb-4 flex items-center gap-2">
                                         <TrendingUp className="h-4 w-4 text-warning" />
                                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Signals by Day</h2>
-                                        <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
+                                        <span className="rounded-md border border-border/40 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
                                             {chartData.length} days
                                         </span>
                                     </div>
@@ -682,13 +682,13 @@ export default function SignalStatsPage() {
                                             formatValue={(value) => Math.round(value).toLocaleString()}
                                         />
                                     ) : (
-                                        <div className="rounded-lg border border-border/30 p-8 text-center">
+                                        <div className="rounded-lg border border-border/40 p-8 text-center">
                                             <p className="text-sm text-muted-foreground">No signal activity yet</p>
                                         </div>
                                     )}
                                 </div>
 
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-5">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-5">
                                     <div className="mb-4 flex items-center gap-2">
                                         <TrendingDown className="h-4 w-4 text-positive" />
                                         <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Cumulative R</h2>
@@ -706,7 +706,7 @@ export default function SignalStatsPage() {
                                             formatXAxis={(value) => String(value)}
                                         />
                                     ) : (
-                                        <div className="rounded-lg border border-border/30 p-8 text-center">
+                                        <div className="rounded-lg border border-border/40 p-8 text-center">
                                             <p className="text-sm text-muted-foreground">No resolved results yet</p>
                                         </div>
                                     )}
@@ -719,17 +719,17 @@ export default function SignalStatsPage() {
                             <div className="mb-4 flex items-center gap-2">
                                 <Target className="h-4 w-4 text-warning" />
                                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Recent Resolved Signals</h2>
-                                <span className="rounded-md border border-border/30 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
+                                <span className="rounded-md border border-border/40 bg-muted/5 px-2 py-0.5 text-micro font-semibold text-muted-foreground">
                                     {recentSignals.length} latest
                                 </span>
                             </div>
 
                             {loading ? (
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-8">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-8">
                                     <LoadingState label="Loading signal statistics" rows={4} />
                                 </div>
                             ) : recentSignals.length > 0 ? (
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-5 overflow-x-auto">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-5 overflow-x-auto">
                                     <table className="w-full min-w-[720px] text-xs">
                                         <thead>
                                             <tr className="border-b border-border text-left text-muted-foreground">
@@ -784,7 +784,7 @@ export default function SignalStatsPage() {
                                     </table>
                                 </div>
                             ) : (
-                                <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center">
+                                <div className="rounded-lg border border-border/40 bg-card/60 p-8 text-center">
                                     <Target className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                     <p className="text-sm text-muted-foreground">No resolved signals yet</p>
                                 </div>
@@ -836,7 +836,7 @@ export default function SignalStatsPage() {
                                             onView={(signal) => router.push(`/signals/pro/${signal.id}`)}
                                         />
                                     ) : (
-                                        <div className="rounded-lg border border-border/30 bg-card/60 p-8 text-center">
+                                        <div className="rounded-lg border border-border/40 bg-card/60 p-8 text-center">
                                             <Radio className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                                             <p className="text-sm text-muted-foreground">No live Pro signals yet</p>
                                             <p className="text-xs text-muted-foreground mt-1">Signals will appear here when detected</p>

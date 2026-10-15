@@ -1370,7 +1370,7 @@ function MarketClockWidget() {
     return (
         <div className="flex h-full flex-col justify-center gap-3">
             <div className="flex items-baseline gap-2">
-                <span className="font-numeric text-3xl font-semibold tracking-tight text-foreground">
+                <span className="font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">
                     {now.toLocaleTimeString("en-GB", { hour12: false })}
                 </span>
                 <span className="text-micro text-muted-foreground">local</span>
@@ -2384,7 +2384,7 @@ function BiasChip({ bias }: { bias: Score["bias"] }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-full border px-2 py-0.5 text-micro font-medium uppercase tracking-wide",
+                "inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider",
                 tone === "positive" && "border-positive/30 bg-positive/10 text-positive",
                 tone === "negative" && "border-negative/30 bg-negative/10 text-negative",
                 tone === "muted" && "border-border bg-muted text-muted-foreground"
@@ -2481,7 +2481,7 @@ export function SignalCoreView({
                     <div className="flex flex-wrap items-center gap-2">
                         <BiasChip bias={bias} />
                         {strength ? (
-                            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-primary">
                                 {strength}
                             </span>
                         ) : null}
@@ -2892,7 +2892,7 @@ function MtfBiasWidget({ user, refreshKey, config, isPro }: WidgetProps) {
                             {known.length > 0 ? `${aligned}/${known.length} aligned` : "—"}
                         </span>
                         {aiTimeframe ? (
-                            <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
+                            <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-primary">
                                 AI · {aiTimeframe}
                             </span>
                         ) : null}
@@ -2975,7 +2975,7 @@ function MtfRow({
                 {score ? Math.round(score.total) : "—"}
             </span>
             {isAiTimeframe ? (
-                <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
+                <span className="rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-primary">
                     AI
                 </span>
             ) : null}
@@ -3107,7 +3107,7 @@ export function WidgetPicker({
                                 {spec.label}
                             </span>
                             {spec.pro && (
-                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-medium uppercase tracking-wide text-primary">
+                                <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-primary">
                                     <Crown size={10} />
                                     Pro
                                 </span>

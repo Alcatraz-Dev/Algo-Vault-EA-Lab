@@ -31,7 +31,7 @@ export default function MarketIntelligenceAnalysisPage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-lg border border-dashed border-border/30 p-6 text-center text-sm text-muted-foreground">
+        <div className="mt-6 rounded-lg border border-dashed border-border/40 p-6 text-center text-sm text-muted-foreground">
           Smart Money calculations delegate to lib/analytics/ (structure, liquidity, market-structure) when historical data is available. No invented scores.
         </div>
       </div>

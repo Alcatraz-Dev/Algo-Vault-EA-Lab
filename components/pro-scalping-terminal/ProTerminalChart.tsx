@@ -79,6 +79,7 @@ import {
 import {
     MAGNET_TOOLS,
     hitTestDrawing,
+    positionLevels,
     removeDrawingById,
     resolveMarketPointToPixel,
     resolvePriceY,
@@ -86,14 +87,16 @@ import {
     resolvedFiboLevels,
     snapToOHLC,
     toolCommitsDrawing,
+    moveDrawingPointByMarketDelta,
     translateDrawingByMarketDelta,
     undoLastDrawing,
     updateDrawingColor,
     updateDrawingLabel,
     type DrawingGeom,
     type MarketTimeTransform,
+    type PositionSide,
 } from "./drawing-utils";
-import { Pencil, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gauge, History, Pause, Pencil, Play, RotateCcw, SkipForward, Trash2 } from "lucide-react";
 import { aiDrawLevels, computeAiDrawPlan, type AiDrawPlan } from "@/lib/chart-engine/ai-draw";
 
 export type ChartType = "candlestick" | "bar" | "line" | "area" | "baseline";
@@ -110,7 +113,9 @@ export type DrawingTool =
     | "rectangle"
     | "text"
     | "ruler"
-    | "triangle";
+    | "triangle"
+    | "long"
+    | "short";
 /**
  * lightweight-charts types `lineWidth` as the literal union 1–4 while the
  * settings model stores a plain number, so narrow/clamp at the boundary
@@ -438,6 +443,8 @@ const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
     text: "Click, type a label, Enter saves",
     ruler: "Drag to measure price / time",
     triangle: "Drag to draw a triangle (right-angled on the drag diagonal)",
+    long: "Drag from entry to target — a LONG plan with a stop-loss and take-profit box",
+    short: "Drag from entry to target — a SHORT plan with a stop-loss and take-profit box",
 };
 /** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
 const HISTORY_LOAD_THRESHOLD_BARS = 6;
@@ -458,6 +465,16 @@ const MARKET_NOTICE_MS = 4_000;
  * feed that recovers resumes immediately too.
   */
 const FEED_PAUSE_GRACE_MS = 10_000;
+
+/**
+ * Bar replay: how many of the freshest bars stay hidden when replay starts.
+ * Hiding the tail gives the trader something to step FORWARD into; the rest of
+ * the loaded window is the history they rewind through.
+ */
+const REPLAY_HIDDEN_BARS = 120;
+
+/** Bar-replay speed multipliers, cycled by the transport's speed button. */
+const REPLAY_SPEEDS = [1, 2, 4, 8] as const;
 
 /** UTC weekday label for the market-hours tooltip (0 = Sunday). */
 const UTC_DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
@@ -558,6 +575,68 @@ function contrastText(hex: string): string {
     return luma > 0.6 ? "#0b0f17" : "#ffffff";
 }
 
+/**
+ * Stable identities for the optional list props.
+ *
+ * These MUST be module-level constants, never inline `= []` defaults. A fresh
+ * array on every render breaks the render-phase "adjust state when props
+ * change" sync below (`lastDrawingsProp !== drawings` → setState → re-render →
+ * new identity → …), which is an immediate "Too many re-renders" crash for any
+ * host that omits the prop. The Pro Terminal workspace always passes stable
+ * lists so it never surfaced, but a shared component must not depend on every
+ * caller remembering to.
+ */
+const NO_SIGNALS: TerminalSignal[] = [];
+const NO_DRAWINGS: DrawingItem[] = [];
+const NO_POSITIONS: ChartPositionView[] = [];
+const NO_PENDING_ORDERS: ChartPendingOrderView[] = [];
+const NO_TRADE_HISTORY: ChartTradeFill[] = [];
+
+/**
+ * Cheap content equality for the `drawings` prop.
+ *
+ * The render-phase sync below compares identities, so a host that derives the
+ * array inline (`drawings={items.filter(…)}`) would hand back an equal-looking
+ * but freshly allocated array on every render and re-render forever. Comparing
+ * the content first makes the sync idempotent: a same-content prop is a no-op,
+ * a genuinely edited one still lands. Lists are tiny (a handful of shapes), so
+ * the scan is free next to a chart frame.
+ */
+function sameDrawingList(a: DrawingItem[], b: DrawingItem[]): boolean {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        const left = a[i];
+        const right = b[i];
+        if (left === right) continue;
+        if (
+            left.id !== right.id ||
+            left.type !== right.type ||
+            left.label !== right.label ||
+            left.color !== right.color ||
+            left.width !== right.width ||
+            left.lineStyle !== right.lineStyle ||
+            left.points.length !== right.points.length
+        ) {
+            return false;
+        }
+        const lf = left.fiboLevels;
+        const rf = right.fiboLevels;
+        if ((lf?.length ?? 0) !== (rf?.length ?? 0)) return false;
+        if (lf && rf) {
+            for (let f = 0; f < lf.length; f++) {
+                if (lf[f] !== rf[f]) return false;
+            }
+        }
+        for (let p = 0; p < left.points.length; p++) {
+            if (left.points[p].time !== right.points[p].time || left.points[p].price !== right.points[p].price) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 export function ProTerminalChart({
     symbol,
     timeframe,
@@ -566,25 +645,27 @@ export function ProTerminalChart({
     token = null,
     height,
     studyOverlay = null,
-    signals = [],
+    signals = NO_SIGNALS,
     onCandlesChange,
     orderFlowSettings,
     chartLevels = null,
     optionsChain = null,
     chartType = "candlestick",
     activeDrawingTool = "select",
-    drawings = [],
+    drawings = NO_DRAWINGS,
     onDrawingsChange,
     gridVisible = true,
     theme = "dark",
     aiOverlay: aiOverlayProp = null,
     settings = null,
-    positions = [],
-    pendingOrders = [],
-    tradeHistory = [],
+    positions = NO_POSITIONS,
+    pendingOrders = NO_PENDING_ORDERS,
+    tradeHistory = NO_TRADE_HISTORY,
     quote = null,
     aiDraw = false,
     fitSignal = 0,
+    replayActive = false,
+    candles: candlesOverride = null,
     focusRequest = null,
     onAiPlanChange,
     onPositionSelect,
@@ -650,6 +731,20 @@ export function ProTerminalChart({
     aiDraw?: boolean;
     /** Increment to reset the viewport (fit content + re-enable price auto-scale). */
     fitSignal?: number;
+    /**
+     * Bar replay (TradingView-style). When true the chart renders only the
+     * candles up to an internal playhead and shows a transport bar; the live
+     * feed keeps running for the host but the chart stays frozen on the past.
+     */
+    replayActive?: boolean;
+    /**
+     * Candle override for dedicated replay surfaces. When a non-empty series is
+     * supplied the chart draws exactly it and the live feed is switched OFF —
+     * no second market-data subscription — so a `ProTerminalChart` can be used
+     * as a bar-replay player (historical window in, transport out). The
+     * override is a plain series: nothing about it is invented or smoothed.
+     */
+    candles?: Candle[] | null;
     /**
      * Event → chart navigation (Phase 5 §32). Each request carries its own
      * `seq`, so clicking the same feed entry twice re-centres the view. The
@@ -888,6 +983,7 @@ export function ProTerminalChart({
         // rest of the chart is not polluted with a fake tool.
         _dragMode?: "line";
         _lineRef?: TradePriceLine;
+        resizePoint?: number;
     } | null>(null);
     // Double-click detection for the select tool (second tap edits a label).
     const lastSelectClickRef = useRef<{ id: string; at: number } | null>(null);
@@ -900,10 +996,12 @@ export function ProTerminalChart({
     useEffect(() => { activeDrawingToolRef.current = activeDrawingTool; }, [activeDrawingTool]);
     // Local mirror of drawings used to render the SVG overlay. Re-synced
     // during render (React's "adjust state when props change" pattern) so no
-    // effect has to push prop changes back into state.
+    // effect has to push prop changes back into state. The comparison is by
+    // content, not identity: an inline array from the host would otherwise be
+    // a new object every render and re-render forever.
     const [drawingElements, setDrawingElements] = useState<DrawingItem[]>(drawings);
     const [lastDrawingsProp, setLastDrawingsProp] = useState<DrawingItem[]>(drawings);
-    if (lastDrawingsProp !== drawings) {
+    if (!sameDrawingList(lastDrawingsProp, drawings)) {
         setLastDrawingsProp(drawings);
         setDrawingElements(drawings);
     }
@@ -986,6 +1084,17 @@ export function ProTerminalChart({
         setTextEdit(null);
     }
 
+    // ── bar replay (TradingView-style) ──────────────────────────────────
+    // `replayCursor` is the number of candles the chart is allowed to draw;
+    // `replayEnd` freezes the dataset length when replay began so the live
+    // feed growing underneath does not move the finish line mid-session.
+    const [replayCursor, setReplayCursor] = useState(0);
+    const [replayPlaying, setReplayPlaying] = useState(false);
+    const [replaySpeed, setReplaySpeed] = useState<number>(1);
+    const [replayEnd, setReplayEnd] = useState(0);
+    /** Context key `${symbol}|${timeframe}` the session is armed for ("" = none). */
+    const [replayContext, setReplayContext] = useState("");
+
     // ── keyboard: Del removes the selection, Ctrl/Cmd+Z undoes the last
     // placement. Ignored while typing in an input (label editor, panels). ──
     useEffect(() => {
@@ -1037,13 +1146,21 @@ export function ProTerminalChart({
 
     // Live feed shared with every chart in the app: history, tick merge into
     // the forming bar, and periodic reconciliation against the provider.
-    const { candles: liveCandles, error: feedError, isLoading: feedLoading, connection: liveConnection, quality: liveQuality, hasMoreHistory, loadOlder } = useLiveCandles(
+    //
+    // A non-empty `candles` override replaces the feed entirely and switches it
+    // OFF (`enabled: false`): a replay surface must not open a second market
+    // subscription, and the series it draws is the historical window the host
+    // asked for — exactly those bars, nothing merged in.
+    const replayOverride = candlesOverride && candlesOverride.length > 0 ? candlesOverride : null;
+    const { candles: feedCandles, error: feedError, isLoading: feedLoading, connection: liveConnection, quality: liveQuality, hasMoreHistory, loadOlder } = useLiveCandles(
         symbol,
         timeframe,
-        { limit: 400 }
-    );        // `candles` must be declared before useOrderFlow below — referencing it
-        // earlier threw "Cannot access 'candles' before initialization" and
-        // crashed the signal detail pages.
+        { limit: 400, enabled: replayOverride === null }
+    );
+    const liveCandles = replayOverride ?? feedCandles;
+    // `candles` must be declared before useOrderFlow below — referencing it
+    // earlier threw "Cannot access 'candles' before initialization" and
+    // crashed the signal detail pages.
     // ── Bar-close countdown + market-hours clock ────────────────────────
     // One shared clock (see `subscribeClock`) for the moving countdown line,
     // the HUD chip and the open/close notice. Ticks on a 250 ms store update
@@ -1159,7 +1276,79 @@ export function ProTerminalChart({
     // at the frozen snapshot holds the candles, every overlay and the
     // live-follow scroll still. `liveCandles` remains the feed's truth for the
     // host callback above.
-    const candles = sessionOpen || pause === null ? liveCandles : pause.candles;
+    //
+    // REPLAY — the same idea with a movable playhead: while replay is on the
+    // chart draws only `liveCandles.slice(0, replayCursor)`, so every overlay
+    // (VWAP/EMA/Smart Money/order flow) is derived from the revealed history
+    // only and can never leak a future price. Replay wins over the market-close
+    // pause because it is the explicit user intent.
+    //
+    // Both arrays are memoised, and that is load-bearing, not an optimisation:
+    // `candles` is a dependency of the data-push, chart-type and AI-overlay
+    // effects, and `SeriesRenderer.syncChartType` calls `setData`, which makes
+    // lightweight-charts refire `subscribeCrosshairMove`. A fresh `.slice()`
+    // on every render therefore closed the loop
+    //     effect → setData → crosshair → setHover → render → effect …
+    // i.e. "Maximum update depth exceeded" as soon as the pointer sat over a
+    // replaying chart. Identity must change only when the data does.
+    const replaySlice = useMemo(
+        () =>
+            replayActive && liveCandles.length > 0 && replayCursor > 0
+                ? liveCandles.slice(0, Math.min(replayCursor, liveCandles.length))
+                : null,
+        [replayActive, liveCandles, replayCursor]
+    );
+    // While replay is armed the slice ALWAYS wins, even when it holds a single
+    // bar (the "Restart" / scrub-to-1 position). A `length > 1` guard here used
+    // to fall through to the full live series at cursor 1 — i.e. restarting the
+    // replay revealed every future bar, the exact opposite of the contract.
+    // `slice(0, ≥1)` is never empty, so a 1-bar series is safe to draw.
+    const candles = useMemo(
+        () => replaySlice ?? (sessionOpen || pause === null ? liveCandles : pause.candles),
+        [replaySlice, sessionOpen, pause, liveCandles]
+    );
+
+    const replayTotal =
+        liveCandles.length > 0
+            ? Math.min(replayEnd > 0 ? replayEnd : liveCandles.length, liveCandles.length)
+            : replayEnd;
+    const replayBusy = replayActive && replaySlice !== null;
+
+    // Replay arming — React's "adjust state when something changes" pattern,
+    // already used above for the active drawing tool. It is render-phase, not an
+    // effect, because arming is *derived* from props/state (on, context, data
+    // present) and must be settled before the frame that draws the playhead.
+    //
+    // It is keyed on the instrument/timeframe context, never on the dataset
+    // length, so that:
+    //   • a surface that turns replay on BEFORE its candles arrive (a replay
+    //     panel feeding a historical window) arms as soon as they do, and
+    //   • a live tick growing the array does not reset an in-flight session.
+    const replayArmKey = `${symbol}|${timeframe}`;
+    if (replayActive && liveCandles.length > 0 && replayContext !== replayArmKey) {
+        setReplayContext(replayArmKey);
+        setReplayEnd(liveCandles.length);
+        setReplayCursor(Math.max(2, liveCandles.length - REPLAY_HIDDEN_BARS));
+    }
+    if (!replayActive && (replayContext !== "" || replayPlaying)) {
+        if (replayContext !== "") setReplayContext("");
+        if (replayPlaying) setReplayPlaying(false);
+    }
+
+    // Replay transport: advance one bar per tick while playing.
+    useEffect(() => {
+        if (!replayActive || !replayPlaying) return;
+        const id = window.setInterval(() => {
+            setReplayCursor((c) => {
+                if (c >= replayTotal) {
+                    setReplayPlaying(false);
+                    return c;
+                }
+                return c + 1;
+            });
+        }, Math.max(40, 900 / replaySpeed));
+        return () => window.clearInterval(id);
+    }, [replayActive, replayPlaying, replaySpeed, replayTotal]);
 
     // Sync volume series visibility with layers prop (clean chart by default)
     useEffect(() => {
@@ -1322,11 +1511,29 @@ export function ProTerminalChart({
         });
 
         
+        // Idempotent hover commit. `setData` (chart-type switch, overlay sync,
+        // replay reveal) makes lightweight-charts refire this callback with the
+        // bar already under the pointer, so an unconditional setState here turns
+        // any parent re-render into a feedback loop. Bailing out on an unchanged
+        // bar keeps the callback convergent.
+        const commitHover = (next: { o: number; h: number; l: number; c: number; time: number } | null) => {
+            setHover((prev) => {
+                if (prev === next || !prev || !next) return prev === next ? prev : next;
+                return prev.o === next.o &&
+                    prev.h === next.h &&
+                    prev.l === next.l &&
+                    prev.c === next.c &&
+                    prev.time === next.time
+                    ? prev
+                    : next;
+            });
+        };
+
         chart.subscribeCrosshairMove((param) => {
             const data = param.seriesData.get(candleSeriesRef.current as ISeriesApi<"Candlestick">);
             if (data && "close" in data) {
                 const d = data as unknown as { open: number; high: number; low: number; close: number };
-                setHover({ o: d.open, h: d.high, l: d.low, c: d.close, time: (param.time as number) * 1000 });
+                commitHover({ o: d.open, h: d.high, l: d.low, c: d.close, time: (param.time as number) * 1000 });
                 return;
             }
             const activeType = activeSeriesTypeRef.current;
@@ -1338,12 +1545,12 @@ export function ProTerminalChart({
             const activeData = activeSeries ? param.seriesData.get(activeSeries) : undefined;
             if (activeData && "close" in activeData) {
                 const d = activeData as unknown as { open: number; high: number; low: number; close: number };
-                setHover({ o: d.open, h: d.high, l: d.low, c: d.close, time: Number(param.time) * 1000 });
+                commitHover({ o: d.open, h: d.high, l: d.low, c: d.close, time: Number(param.time) * 1000 });
             } else if (activeData && "value" in activeData) {
                 const value = (activeData as unknown as { value: number }).value;
-                setHover({ o: value, h: value, l: value, c: value, time: Number(param.time) * 1000 });
+                commitHover({ o: value, h: value, l: value, c: value, time: Number(param.time) * 1000 });
             } else {
-                setHover(null);
+                commitHover(null);
             }
         });
 
@@ -1703,7 +1910,7 @@ export function ProTerminalChart({
          * never invents a pixel, never matches a hidden drawing, and never
          * mutates the drawing's market data.
          */
-        const hitTestAt = (x: number, y: number, w: number, h: number): DrawingItem | null => {
+        const hitTestAt = (x: number, y: number, w: number, h: number): (DrawingItem & { hitKind?: 'move'|'resize'; pointIndex?: 0|1 }) | null => {
             const cs = candleSeriesRef.current;
             if (!cs) return null;
             const fontSize = cfgRef.current.tools.fontSize;
@@ -1745,8 +1952,38 @@ export function ProTerminalChart({
                     ...(d.type === "fibo"
                         ? { fiboLevels: resolvedFiboLevels(d, cfgRef.current.tools.fiboLevels) }
                         : {}),
+                    // Position plans resolve their stop/target pixel levels
+                    // through the same `positionLevels` derivation the renderer
+                    // paints with, so the clickable boxes match the drawn boxes.
+                    ...(d.type === "long" || d.type === "short"
+                        ? {
+                            position: (() => {
+                                const side: PositionSide = d.type === "long" ? "long" : "short";
+                                const lv = positionLevels(p1.price, p2.price, side);
+                                const entryY = resolvePriceY(lv.entry, cs);
+                                const stopY = resolvePriceY(lv.stop, cs);
+                                const targetY = resolvePriceY(lv.target, cs);
+                                return entryY === null || stopY === null || targetY === null
+                                    ? undefined
+                                    : { entryY, stopY, targetY };
+                            })(),
+                        }
+                        : {}),
                 };
-                if (hitTestDrawing(d.type, geom, x, y)) return d;
+                // Check handles first (resize)
+                const isTwoPoint = d.points.length >= 2;
+                if (isTwoPoint) {
+                    const handleRadius = 10;
+                    const dist0 = Math.hypot(x - x1, y - y1);
+                    const dist1 = Math.hypot(x - x2, y - y2);
+                    if (dist0 <= handleRadius) {
+                        return { ...d, hitKind: 'resize', pointIndex: 0 };
+                    }
+                    if (dist1 <= handleRadius) {
+                        return { ...d, hitKind: 'resize', pointIndex: 1 };
+                    }
+                }
+                if (hitTestDrawing(d.type, geom, x, y)) return { ...d, hitKind: 'move' };
             }
             return null;
         };
@@ -1809,7 +2046,7 @@ export function ProTerminalChart({
                     const isDouble = last?.id === hit.id && now - last.at < 450;
                     lastSelectClickRef.current = { id: hit.id, at: now };
                     setSelectedDrawingId(hit.id);
-                    // Start drag-to-move on selected drawing
+                    // Start drag-to-move or resize on selected drawing
                     const pointerStartPrice = pixelToPrice(sx, sy);
                     const pointerStartTime = pixelToTime(sx);
                     drawingInProgressRef.current = {
@@ -1821,6 +2058,7 @@ export function ProTerminalChart({
                         moveId: hit.id,
                         pointerStartPrice,
                         pointerStartTime,
+                        ...(hit.hitKind === 'resize' ? { resizePoint: hit.pointIndex } : {}),
                     };
                     try {
                         container.setPointerCapture(e.pointerId);
@@ -1932,9 +2170,12 @@ export function ProTerminalChart({
                 const deltaPrice = pixelToPrice(x, y) - (dp.pointerStartPrice ?? dp.startPrice);
                 const deltaTimeMs = pixelToTime(x) - (dp.pointerStartTime ?? dp.startTime);
                 setDrawingPreview(null);
+                const isResize = dp.resizePoint !== undefined && Number.isFinite(dp.resizePoint);
                 setDrawingElements(drawingsRef.current.map((drawing) =>
                     drawing.id === dp.moveId
-                        ? translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice)
+                        ? (isResize
+                            ? moveDrawingPointByMarketDelta(drawing, dp.resizePoint!, deltaTimeMs, deltaPrice)
+                            : translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice))
                         : drawing
                 ));
             } else {
@@ -1971,7 +2212,18 @@ export function ProTerminalChart({
             }
 
             const endPrice = pixelToPrice(x, y);
-            const endTime = pixelToTime(x);
+            const mirror = candlesMirrorRef.current;
+            const interval = intervalMsRef.current;
+            const snapTime = (t: number): number => {
+                if (mirror.length === 0 || !Number.isFinite(t)) return t;
+                const idx = barIndexForTime(mirror, t, interval);
+                if (!Number.isFinite(idx)) return t;
+                const i = Math.round(idx);
+                if (i >= 0 && i < mirror.length) return mirror[i].timestamp;
+                if (i < 0) return mirror[0].timestamp;
+                return mirror[mirror.length - 1].timestamp;
+            };
+            const endTime = snapTime(pixelToTime(x));
 
             // Only add if the drag moved enough (filter accidental clicks).
             // For trade-line drags the commit path already returned above.
@@ -1980,9 +2232,32 @@ export function ProTerminalChart({
                 const deltaPrice = endPrice - (dp.pointerStartPrice ?? dp.startPrice);
                 const deltaTimeMs = endTime - (dp.pointerStartTime ?? dp.startTime);
                 const current = drawingsRef.current;
+                const mirror = candlesMirrorRef.current;
+                const interval = intervalMsRef.current;
+                const snapTime = (t: number): number => {
+                    if (mirror.length === 0 || !Number.isFinite(t)) return t;
+                    const idx = barIndexForTime(mirror, t, interval);
+                    if (!Number.isFinite(idx)) return t;
+                    const i = Math.round(idx);
+                    if (i >= 0 && i < mirror.length) return mirror[i].timestamp;
+                    if (i < 0) return mirror[0].timestamp;
+                    return mirror[mirror.length - 1].timestamp;
+                };
+                const isResize = dp.resizePoint !== undefined && Number.isFinite(dp.resizePoint);
                 const moved = current.map((drawing) =>
                     drawing.id === dp.moveId
-                        ? translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice)
+                        ? (() => {
+                            const tr = isResize
+                                ? moveDrawingPointByMarketDelta(drawing, dp.resizePoint!, deltaTimeMs, deltaPrice)
+                                : translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice);
+                            return {
+                                ...tr,
+                                points: tr.points.map((pt) => ({
+                                    ...pt,
+                                    time: pt.time !== undefined && pt.time !== null ? snapTime(pt.time) : pt.time,
+                                })),
+                            };
+                        })()
                         : drawing
                 );
                 commitDrawings(moved);
@@ -2225,6 +2500,18 @@ export function ProTerminalChart({
         lastPushedBarRef.current = { time: last.time, open: last.open, high: last.high, low: last.low, close: last.close };
         lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
     }, [candles, symbol, timeframe, viewport, seriesRenderer]);
+
+    // ── replay follow ───────────────────────────────────────────────────
+    // Keep the playhead at the right edge while replay drives the dataset, the
+    // way TradingView bar replay does. This is the controller's own
+    // enterLiveFollow() — the single sanctioned live-edge call — so the
+    // viewport policy stays owned by ViewportController and no logic is
+    // duplicated here. It runs AFTER the data commit above, so it pins the view
+    // to the freshly-revealed last bar rather than the previous one.
+    useEffect(() => {
+        if (!replayBusy) return;
+        viewport.enterLiveFollow();
+    }, [replayBusy, replayCursor, viewport]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
     // Recreate the study series whenever the applied script (or its pane
@@ -3762,9 +4049,13 @@ export function ProTerminalChart({
                     </div>
                 ) : null}
 
-                {/* Active-tool hint — what to do next, and how to get out */}
+                {/* Active-tool hint — what to do next, and how to get out.
+                    Lifts above the replay transport bar while replay is on. */}
                 {activeDrawingTool !== "select" && !textEdit ? (
-                    <div className="pointer-events-none absolute bottom-2 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-2.5 py-1 font-numeric text-micro font-semibold text-primary">
+                    <div className={cn(
+                        "pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-2.5 py-1 font-numeric text-micro font-semibold text-primary",
+                        replayActive ? "bottom-14" : "bottom-2"
+                    )}>
                         {DRAWING_TOOL_HINTS[activeDrawingTool]} · Esc to exit
                     </div>
                 ) : null}
@@ -3777,8 +4068,9 @@ export function ProTerminalChart({
                     </div>
                 ) : null}
 
-                {/* Go-to-Live chip — visible only when the user scrolled away */}
-                {showGoLive ? (
+                {/* Go-to-Live chip — visible only when the user scrolled away and
+                    live is actually the intent (hidden during bar replay). */}
+                {showGoLive && !replayActive ? (
                     <button
                         type="button"
                         onClick={handleGoLive}
@@ -3789,10 +4081,104 @@ export function ProTerminalChart({
                     </button>
                 ) : null}
 
+                {/* Bar replay transport — TradingView-style: rewind / step /
+                    play-pause / jump / speed plus a position scrubber. Only the
+                    revealed history is drawn, so nothing to the right of the
+                    playhead is ever visible. */}
+                {replayActive ? (
+                    <div className="absolute bottom-2 left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1.5 overflow-x-auto rounded-full border border-border/60 bg-background/95 px-2 py-1 shadow-lg backdrop-blur">
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wide text-primary">
+                            <History className="size-3" aria-hidden />
+                            Replay
+                        </span>
+                        <button
+                            type="button"
+                            title="Restart replay"
+                            aria-label="Restart replay"
+                            onClick={() => { setReplayPlaying(false); setReplayCursor(1); }}
+                            className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        >
+                            <RotateCcw className="size-3.5" />
+                        </button>
+                        <button
+                            type="button"
+                            title="Step back one bar"
+                            aria-label="Step back one bar"
+                            disabled={replayCursor <= 1}
+                            onClick={() => { setReplayPlaying(false); setReplayCursor((c) => Math.max(1, c - 1)); }}
+                            className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40"
+                        >
+                            <ChevronLeft className="size-3.5" />
+                        </button>
+                        <button
+                            type="button"
+                            title={replayPlaying ? "Pause replay" : "Play replay"}
+                            aria-label={replayPlaying ? "Pause replay" : "Play replay"}
+                            onClick={() => setReplayPlaying((p) => !p)}
+                            disabled={replayCursor >= replayTotal}
+                            className="flex size-6 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition hover:opacity-90 disabled:opacity-40"
+                        >
+                            {replayPlaying ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
+                        </button>
+                        <button
+                            type="button"
+                            title="Step forward one bar"
+                            aria-label="Step forward one bar"
+                            disabled={replayCursor >= replayTotal}
+                            onClick={() => { setReplayPlaying(false); setReplayCursor((c) => Math.min(replayTotal, c + 1)); }}
+                            className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40"
+                        >
+                            <ChevronRight className="size-3.5" />
+                        </button>
+                        <button
+                            type="button"
+                            title="Jump to end of replay"
+                            aria-label="Jump to end of replay"
+                            disabled={replayCursor >= replayTotal}
+                            onClick={() => { setReplayPlaying(false); setReplayCursor(replayTotal); }}
+                            className="flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-40"
+                        >
+                            <SkipForward className="size-3.5" />
+                        </button>
+                        <button
+                            type="button"
+                            title="Playback speed"
+                            aria-label="Cycle replay speed"
+                            onClick={() =>
+                                setReplaySpeed((s) => REPLAY_SPEEDS[(REPLAY_SPEEDS.indexOf(s as 1) + 1) % REPLAY_SPEEDS.length])
+                            }
+                            className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        >
+                            <Gauge className="size-3" aria-hidden />
+                            {replaySpeed}×
+                        </button>
+                        <input
+                            type="range"
+                            min={1}
+                            max={Math.max(1, replayTotal)}
+                            value={Math.min(replayCursor, Math.max(1, replayTotal))}
+                            onChange={(e) => { setReplayPlaying(false); setReplayCursor(Number(e.target.value)); }}
+                            aria-label="Replay position"
+                            className="h-1 w-24 shrink-0 cursor-pointer accent-foreground sm:w-40"
+                        />
+                        <span className="shrink-0 font-numeric text-micro tabular-nums text-muted-foreground">
+                            {Math.min(replayCursor, replayTotal)}/{replayTotal}
+                        </span>
+                    </div>
+                ) : null}
+
                 {/* Data-quality badge (Phase 20): never presents stale data as live */}
                 {!loading || candles.length > 0 ? (
                     <div className="absolute left-3 top-2 z-10 flex items-center gap-1.5 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium text-muted-foreground">
-                        {!sessionOpen ? (
+                        {replayActive ? (
+                            <>
+                                {/* Replay is the honest state: the chart is
+                                    deliberately showing past candles, not a
+                                    live (or stale) feed. */}
+                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary" aria-hidden />
+                                <span className="text-primary">REPLAY · PAST</span>
+                            </>
+                        ) : !sessionOpen ? (
                             <>
                                 {/* Session state wins over the connection state:
                                     a paused market is not "reconnecting". */}

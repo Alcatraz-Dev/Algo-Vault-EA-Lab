@@ -62,7 +62,7 @@ export default function TradeJournalPage() {
                             <Activity size={16} />
                             {journal.length} trades recorded
                         </div>
-                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
+                        <button type="button" onClick={fetchJournal} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
                             <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
                         </button>
                     </div>
@@ -70,7 +70,7 @@ export default function TradeJournalPage() {
                     {loading ? (
                         <div className="flex h-32 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
                     ) : journal.length === 0 ? (
-                        <div className="rounded-lg border border-dashed border-border/30 p-16 text-center">
+                        <div className="rounded-lg border border-dashed border-border/40 p-16 text-center">
                             <BookOpen size={32} className="mx-auto text-muted-foreground" />
                             <p className="mt-3 text-sm text-muted-foreground">No trade data yet</p>
                             <p className="mt-1 text-xs text-muted-foreground">Trade signals will appear here as you execute trades</p>

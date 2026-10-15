@@ -259,7 +259,7 @@ export default function MobileMarketsPage() {
                 className={cn(
                   "whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors touch-target",
                   category === cat.id
-                    ? "bg-primary text-primary-foreground"
+                    ? "bg-primary text-white"
                     : "text-muted-foreground hover:bg-muted"
                 )}
               >
@@ -329,7 +329,7 @@ export default function MobileMarketsPage() {
                     </div>
                   </div>
                   
-                  <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/30">
+                  <div className="mt-2 flex items-center justify-between pt-2 border-t border-border/40">
                     <div className="flex items-center gap-2 text-micro text-muted-foreground">
                       <Badge variant="outline" className={cn(
                         (sym.volatility ?? "normal") === "high" && "border-negative/30 text-negative",
@@ -338,7 +338,7 @@ export default function MobileMarketsPage() {
                       )}>
                         {(sym.volatility ?? "normal").charAt(0).toUpperCase() + (sym.volatility ?? "normal").slice(1)} Vol
                       </Badge>
-                      <Badge variant="outline" className="border-border/30">
+                      <Badge variant="outline" className="border-border/40">
                         {(sym.regime ?? "RANGING").replace(/_/g, " ")}
                       </Badge>
                     </div>
@@ -370,7 +370,7 @@ export default function MobileMarketsPage() {
           className="fixed bottom-20 right-4 z-40 lg:hidden rounded-full bg-primary p-3 shadow-xl touch-target transition-transform hover:scale-105"
           aria-label="Scroll to top"
         >
-          <ChevronRight className="h-5 w-5 text-primary-foreground rotate-90" />
+          <ChevronRight className="h-5 w-5 text-white rotate-90" />
         </button>
       )}
     </div>

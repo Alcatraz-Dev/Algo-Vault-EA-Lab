@@ -28,6 +28,8 @@ export const MAGNET_TOOLS: ReadonlySet<DrawingTool> = new Set<DrawingTool>([
     "horizontal",
     "fibo",
     "rectangle",
+    "long",
+    "short",
 ]);
 
 export interface OhlcCandle {
@@ -35,6 +37,59 @@ export interface OhlcCandle {
     high: number;
     low: number;
     close: number;
+}
+
+// ── long / short position plans (TradingView position tools) ────────────
+//
+// The "Enter Long" / "Enter Short" tools are two-point drawings: point 0 is
+// the ENTRY (price + start time) and point 1 sets the size (end time + the
+// vertical distance to the target). The stop is derived from the same drag at
+// a fixed risk:reward, so both a take-profit box and a stop-loss box are drawn
+// from exactly the two stored market points. No level is invented: a
+// zero-distance drag collapses to entry === target === stop.
+
+/** Default risk:reward for the position tools (2 ⇒ 1:2, risk half the reward). */
+export const POSITION_RISK_REWARD = 2;
+
+export type PositionSide = "long" | "short";
+
+export interface PositionLevels {
+    side: PositionSide;
+    entry: number;
+    stop: number;
+    target: number;
+    /** Reward distance |target − entry| (always ≥ 0). */
+    reward: number;
+    /** Risk distance |entry − stop| (always ≥ 0). */
+    risk: number;
+}
+
+/**
+ * Derive the entry/stop/target prices of a position plan from the two stored
+ * market points. `entry` is point 0's price; the vertical distance to point 1
+ * is the target distance, mirrored to the other side for the stop at the
+ * configured risk:reward. The direction is fixed by the tool (long = profit up,
+ * short = profit down) so a "backwards" drag still yields a coherent plan
+ * rather than a box on the wrong side of the entry.
+ */
+export function positionLevels(
+    entry: number,
+    sizing: number,
+    side: PositionSide,
+    riskReward = POSITION_RISK_REWARD,
+): PositionLevels {
+    const dir = side === "long" ? 1 : -1;
+    const reward =
+        Number.isFinite(entry) && Number.isFinite(sizing) ? Math.abs(sizing - entry) : 0;
+    const risk = riskReward > 0 ? reward / riskReward : 0;
+    return {
+        side,
+        entry,
+        target: entry + dir * reward,
+        stop: entry - dir * risk,
+        reward,
+        risk,
+    };
 }
 
 // ── market → pixel resolution (the coordinate contract) ──────────────
@@ -139,6 +194,13 @@ export interface DrawingGeom {
      * this value through `resolvedFiboLevels` — never a hardcoded array).
      */
     fiboLevels?: readonly number[];
+    /**
+     * Long/short position levels in PIXELS, resolved by the caller from the
+     * same `positionLevels` derivation the renderer uses (entry + both boxes
+     * share one source of truth, so the hit area can never drift from the
+     * painted boxes).
+     */
+    position?: { entryY: number; stopY: number; targetY: number };
 }
 
 // ── drawing-tool geometry (pure) ────────────────────────────────────────
@@ -300,6 +362,31 @@ export function hitTestDrawing(
             const diff = g.y2 - g.y1;
             return levels.some((lvl) => Math.abs(y - (g.y1 + diff * lvl)) <= threshold);
         }
+        case "long":
+        case "short": {
+            // Position plan: the entry line plus the edges of the two boxes
+            // (entry↔stop and entry↔target). The interior stays free for
+            // chart panning, exactly like the rectangle tool. The three pixel
+            // levels come from the shared `positionLevels` derivation so the
+            // hit area always matches the painted boxes.
+            const pos = g.position;
+            const left = Math.min(g.x1, g.x2);
+            const right = Math.max(g.x1, g.x2);
+            if (!pos) return false;
+            const edgeHit = (yLine: number): boolean =>
+                Math.abs(y - yLine) <= threshold && x >= left - threshold && x <= right + threshold;
+            const sideHit = (yLine: number): boolean =>
+                (Math.abs(x - left) <= threshold || Math.abs(x - right) <= threshold) &&
+                y >= Math.min(yLine, pos.entryY) - threshold &&
+                y <= Math.max(yLine, pos.entryY) + threshold;
+            return (
+                edgeHit(pos.entryY) ||
+                edgeHit(pos.stopY) ||
+                edgeHit(pos.targetY) ||
+                sideHit(pos.stopY) ||
+                sideHit(pos.targetY)
+            );
+        }
         case "text": {
             const fontSize = Math.max(8, g.fontSize);
             const text = g.label ?? "";
@@ -340,6 +427,34 @@ export function translateDrawingByMarketDelta(
             ...(point.time !== undefined ? { time: point.time + deltaTimeMs } : {}),
             price: (point.price ?? 0) + deltaPrice,
         })),
+    };
+}
+
+/**
+ * Move a single point of a drawing by market-coordinate deltas (for resize).
+ * If the point index is out of range, falls back to translating all points.
+ */
+export function moveDrawingPointByMarketDelta(
+    drawing: DrawingItem,
+    pointIndex: number,
+    deltaTimeMs: number,
+    deltaPrice: number,
+): DrawingItem {
+    if (!Number.isFinite(deltaTimeMs) || !Number.isFinite(deltaPrice)) return drawing;
+    if (pointIndex < 0 || pointIndex >= drawing.points.length) {
+        return translateDrawingByMarketDelta(drawing, deltaTimeMs, deltaPrice);
+    }
+    return {
+        ...drawing,
+        points: drawing.points.map((pt, idx) =>
+            idx === pointIndex
+                ? {
+                    ...pt,
+                    ...(pt.time !== undefined ? { time: pt.time + deltaTimeMs } : {}),
+                    price: (pt.price ?? 0) + deltaPrice,
+                }
+                : pt
+        ),
     };
 }
 

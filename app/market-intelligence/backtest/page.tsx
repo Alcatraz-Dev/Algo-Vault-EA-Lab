@@ -61,8 +61,8 @@ export default function MarketIntelligenceBacktestPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-base font-semibold">Equity Curve · Drawdown</h2>
             <div className="flex gap-1 text-xs">
-              <span className="rounded-md border border-border/30 px-2 py-0.5 text-muted-foreground">Equity</span>
-              <span className="rounded-md border border-border/30 px-2 py-0.5 text-muted-foreground">Drawdown</span>
+              <span className="rounded-md border border-border/40 px-2 py-0.5 text-muted-foreground">Equity</span>
+              <span className="rounded-md border border-border/40 px-2 py-0.5 text-muted-foreground">Drawdown</span>
             </div>
           </div>
           <div className="h-72 w-full bg-muted/30 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
@@ -75,7 +75,7 @@ export default function MarketIntelligenceBacktestPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="border-b border-border/30 text-muted-foreground text-[11px] uppercase tracking-wider">
+                <tr className="border-b border-border/40 text-muted-foreground text-[11px] uppercase tracking-wider">
                   <th className="py-2 px-3">#</th>
                   <th className="py-2 px-3">Time</th>
                   <th className="py-2 px-3">Side</th>
@@ -98,9 +98,9 @@ export default function MarketIntelligenceBacktestPage() {
         </div>
 
         <div className="mt-4 flex gap-2 text-xs">
-          <a href="/advanced-analysis" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Open in Advanced Analysis</a>
-          <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Continue Research</a>
-          <a href="/strategy-lab" className="rounded-md border border-border/30 px-3 py-1 hover:bg-muted/20 transition-colors">Trading Studio</a>
+          <a href="/advanced-analysis" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20 transition-colors">Open in Advanced Analysis</a>
+          <a href="/market-intelligence/research" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20 transition-colors">Continue Research</a>
+          <a href="/strategy-lab" className="rounded-md border border-border/40 px-3 py-1 hover:bg-muted/20 transition-colors">Trading Studio</a>
         </div>
       </div>
     </AppShell>

@@ -169,10 +169,11 @@ export function BiasChip({
   return (
     <span
       className={cn(
-        "rounded-full border px-1.5 py-0.5 text-xs font-medium uppercase tracking-wide",
+        "rounded-full border px-1 py-0.5 text-micro font-medium uppercase tracking-wide",
         BIAS_CLASS[tone],
         className
       )}
+      title={`${tone} bias`}
     >
       {tone}
     </span>

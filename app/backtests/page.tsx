@@ -614,8 +614,8 @@ export default function BacktestsPage() {
                                 <Activity className="h-4 w-4 text-positive" />
                                 <span>Live Performance</span>
                             </Link>
-                            <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                                <Bot className="h-4 w-4 text-primary-foreground" />
+                            <Link href="/marketplace" className="inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-black px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90">
+                                <Bot className="h-4 w-4 text-white" />
                                 <span>Explore EAs</span>
                             </Link>
                         </div>
@@ -683,7 +683,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("myfxbook")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "myfxbook"
-                                    ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-md font-semibold"
+                                    ? "bg-gradient-to-r from-orange-500 to-amber-400 text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -694,7 +694,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("mt5")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "mt5"
-                                    ? "bg-gradient-to-r from-blue-600 to-cyan-400 text-white shadow-md font-semibold"
+                                    ? "bg-gradient-to-r from-blue-600 to-cyan-400 text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -705,7 +705,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("trades")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "trades"
-                                    ? "bg-gradient-to-r from-emerald-500 to-teal-400 text-white shadow-md font-semibold"
+                                    ? "bg-gradient-to-r from-emerald-500 to-teal-400 text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -716,7 +716,7 @@ export default function BacktestsPage() {
                             <button
                                 onClick={() => setViewMode("comparison")}
                                 className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${viewMode === "comparison"
-                                    ? "bg-gradient-to-r from-violet-600 to-purple-400 text-white shadow-md font-semibold"
+                                    ? "bg-gradient-to-r from-violet-600 to-purple-400 text-white shadow-[0_1px_2px_rgb(0_0_0/0.05)] font-semibold"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
                             >
@@ -737,7 +737,7 @@ export default function BacktestsPage() {
                                     <span>Total Return</span>
                                     <TrendingUp className="h-4 w-4 text-positive" />
                                 </div>
-                                <div className="mt-3 font-numeric text-2xl font-semibold tracking-tight text-positive">
+                                <div className="mt-3 font-numeric text-base font-semibold font-semibold tracking-tight text-positive">
                                     {metrics.profit != null && metrics.profit !== 0 ? `${metrics.profit > 0 ? "+" : ""}${metrics.profit}%` : "—"}
                                 </div>
                                 <div className="mt-1 font-numeric text-xs text-muted-foreground">
@@ -750,7 +750,7 @@ export default function BacktestsPage() {
                                     <span>Win Rate</span>
                                     <Target className="h-4 w-4 text-warning" />
                                 </div>
-                                <div className="mt-3 font-numeric text-2xl font-semibold tracking-tight text-foreground">
+                                <div className="mt-3 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">
                                     {metrics.winRate ? `${metrics.winRate}%` : "—"}
                                 </div>
                                 <div className="mt-1 font-numeric text-xs text-muted-foreground">
@@ -763,7 +763,7 @@ export default function BacktestsPage() {
                                     <span>Profit Factor</span>
                                     <BarChart3 className="h-4 w-4 text-info" />
                                 </div>
-                                <div className="mt-3 font-numeric text-2xl font-semibold tracking-tight text-foreground">
+                                <div className="mt-3 font-numeric text-base font-semibold font-semibold tracking-tight text-foreground">
                                     {metrics.profitFactor || "—"}
                                 </div>
                                 <div className="mt-1 font-numeric text-xs text-muted-foreground">
@@ -776,7 +776,7 @@ export default function BacktestsPage() {
                                     <span>Max Drawdown</span>
                                     <TrendingDown className="h-4 w-4 text-negative" />
                                 </div>
-                                <div className="mt-3 font-numeric text-2xl font-semibold tracking-tight text-negative">
+                                <div className="mt-3 font-numeric text-base font-semibold font-semibold tracking-tight text-negative">
                                     {metrics.maxDrawdown ? `-${metrics.maxDrawdown}%` : "—"}
                                 </div>
                                 <div className="mt-1 font-numeric text-xs text-muted-foreground">
@@ -787,7 +787,7 @@ export default function BacktestsPage() {
 
                         {/* INTERACTIVE CHARTS SECTION - PRO ONLY */}
                         <ProGate>
-<div className="rounded-lg border border-border/30 bg-card/60 p-6" data-guide="charts">
+<div className="rounded-lg border border-border/40 bg-card/60 p-6" data-guide="charts">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
@@ -801,7 +801,7 @@ export default function BacktestsPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/30 bg-background p-1">
+                                <div className="flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/40 bg-background p-1">
                                     <button
                                         onClick={() => setChartType("equity")}
                                         className={`rounded-lg px-3 py-1 text-xs font-medium transition-all ${chartType === "equity"
@@ -1075,7 +1075,7 @@ export default function BacktestsPage() {
                                             <div className="text-xs font-semibold uppercase tracking-wider opacity-70">
                                                 {m.month}
                                             </div>
-                                            <div className="mt-2 font-numeric text-xl font-semibold tracking-tight">
+                                            <div className="mt-2 font-numeric text-sm font-semibold font-semibold tracking-tight">
                                                 {metrics.isLive ? `${isPositive ? "+" : ""}$${m.return}` : `${isPositive ? "+" : ""}${m.return}%`}
                                             </div>
                                             <div className="mt-1 font-numeric text-micro text-muted-foreground">

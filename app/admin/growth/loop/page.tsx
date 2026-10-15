@@ -118,7 +118,7 @@ export default function LoopPage() {
                         <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                             <Activity size={10} /> Detected opportunities
                         </p>
-                        <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums text-foreground">{opportunityCount}</p>
+                        <p className="mt-1 font-numeric text-base font-semibold font-semibold tabular-nums text-foreground">{opportunityCount}</p>
                         <p className="text-xs text-muted-foreground">
                             {activeCount > 0 ? `${activeCount} active/queued` : "none in flight"} · last scan{" "}
                             {scannedAt ? fmtRelative(scannedAt) : "—"}
@@ -128,14 +128,14 @@ export default function LoopPage() {
                         <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                             <ShieldCheck size={10} /> Policy mode
                         </p>
-                        <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums text-foreground">APPROVAL</p>
+                        <p className="mt-1 font-numeric text-base font-semibold font-semibold tabular-nums text-foreground">APPROVAL</p>
                         <p className="text-xs text-muted-foreground">default, enforced server-side by the loop runner</p>
                     </div>
                     <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                             <WorkflowIcon size={10} /> Detection source
                         </p>
-                        <p className="mt-1 font-numeric text-2xl font-semibold tabular-nums text-foreground">Stored data</p>
+                        <p className="mt-1 font-numeric text-base font-semibold font-semibold tabular-nums text-foreground">Stored data</p>
                         <p className="text-xs text-muted-foreground">
                             content · events · placements · revenue · metrics{data?.feedback?.analyticsAvailable === false ? " · (some sources unavailable)" : ""}
                         </p>

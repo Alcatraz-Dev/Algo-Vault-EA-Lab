@@ -87,7 +87,7 @@ export default function AIInsightsPage() {
                                 <h2 className="text-lg font-bold text-foreground">Insights</h2>
                                 {generatedAt > 0 && <span className="text-micro text-muted-foreground">Last: {new Date(generatedAt).toLocaleTimeString()}</span>}
                             </div>
-                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50">
+                            <button type="button" onClick={generateAll} disabled={loading} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-50">
                                 {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Generate All Insights
                             </button>
                         </div>
@@ -101,7 +101,7 @@ export default function AIInsightsPage() {
 
                         <div className="space-y-2">
                             {SECTIONS.map((section) => (
-                                <button key={section.id} type="button" onClick={() => { setActiveSection(section.id); generateInsight(section.id); }} className={cn("flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors", activeSection === section.id ? "border-primary/30 bg-primary/[0.03]" : "border-border/30 bg-muted/50 hover:bg-muted")}>
+                                <button key={section.id} type="button" onClick={() => { setActiveSection(section.id); generateInsight(section.id); }} className={cn("flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors", activeSection === section.id ? "border-primary/30 bg-primary/[0.03]" : "border-border/40 bg-muted/50 hover:bg-muted")}>
                                     <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", activeSection === section.id ? "bg-primary/10" : "bg-muted")}>
                                         <section.icon size={18} className={activeSection === section.id ? "text-primary" : "text-muted-foreground"} />
                                     </div>
@@ -116,7 +116,7 @@ export default function AIInsightsPage() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <div className="rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                             <h3 className="mb-3 text-sm font-semibold text-foreground flex items-center gap-2"><Layers size={16} className="text-primary" />Active Sections</h3>
                             <div className="space-y-2">
                                 {SECTIONS.map((s) => (

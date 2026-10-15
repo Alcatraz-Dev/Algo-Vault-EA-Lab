@@ -278,7 +278,7 @@ export default function AdminSignalsPage() {
                                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.symbols || []).includes(sym)
                                             ? "border-warning/40 bg-warning/15 text-warning"
-                                            : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
+                                            : "border-border/40 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
                                     {sym}
@@ -297,7 +297,7 @@ export default function AdminSignalsPage() {
                                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.timeframes || []).includes(tf)
                                             ? "border-info/40 bg-info/15 text-info"
-                                            : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
+                                            : "border-border/40 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
                                     {tf}
@@ -316,7 +316,7 @@ export default function AdminSignalsPage() {
                                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
                                         (config.sessions || []).includes(s.value as MarketSessionName)
                                             ? "border-positive/40 bg-positive/15 text-positive"
-                                            : "border-border/30 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
+                                            : "border-border/40 bg-muted/5 text-muted-foreground hover:border-border/50 hover:text-foreground"
                                     }`}
                                 >
                                     {s.label}

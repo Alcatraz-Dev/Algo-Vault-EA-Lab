@@ -200,7 +200,7 @@ function PositionSizeCalc() {
                     <div className="space-y-3">
                         <div className="rounded-lg border border-positive/20 bg-positive/[0.06] p-5 text-center">
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Position Size</p>
-                            <p className="mt-1 font-numeric text-3xl font-bold text-positive">{result.lotSize} lots</p>
+                            <p className="mt-1 font-numeric text-lg font-semibold font-bold text-positive">{result.lotSize} lots</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="rounded-lg bg-muted p-3">
@@ -310,7 +310,7 @@ function PipValueCalc() {
                     <div className="space-y-3">
                         <div className="rounded-lg border border-info/20 bg-info/[0.06] p-5 text-center">
                             <p className="text-micro uppercase tracking-wider text-muted-foreground">Value per Pip</p>
-                            <p className="mt-1 font-numeric text-3xl font-bold text-info">
+                            <p className="mt-1 font-numeric text-lg font-semibold font-bold text-info">
                                 ${result.totalValuePerPip}
                             </p>
                             <p className="mt-1 text-micro text-muted-foreground">{lotSize} lot(s) of {instrument}</p>

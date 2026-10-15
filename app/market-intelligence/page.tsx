@@ -52,8 +52,8 @@ export default function MarketIntelligenceCommandCenterPage() {
                 <div><strong>Evidence</strong> — references use real IDs only</div>
               </div>
               <div className="mt-3 flex gap-1 text-micro">
-                <span className="rounded border border-border/30 px-1.5 py-0.5">No confidence scores</span>
-                <span className="rounded border border-border/30 px-1.5 py-0.5">Replay-safe</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">No confidence scores</span>
+                <span className="rounded border border-border/40 px-1.5 py-0.5">Replay-safe</span>
               </div>
             </div>
 
@@ -94,10 +94,10 @@ export default function MarketIntelligenceCommandCenterPage() {
           <div className="rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
             <h3 className="font-bold text-sm mb-2">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <a href="/advanced-analysis" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
-              <a href="/market-intelligence/backtest" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
-              <a href="/market-intelligence/research" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
-              <a href="/strategy-lab" className="rounded-md border border-border/30 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
+              <a href="/advanced-analysis" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Advanced Analysis</a>
+              <a href="/market-intelligence/backtest" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Backtest</a>
+              <a href="/market-intelligence/research" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Research</a>
+              <a href="/strategy-lab" className="rounded-md border border-border/40 px-2 py-1.5 hover:bg-muted/20 transition-colors">Trading Studio</a>
             </div>
           </div>
         </div>

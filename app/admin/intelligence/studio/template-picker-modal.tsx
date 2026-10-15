@@ -83,7 +83,7 @@ export function TemplatePickerModal({ open, onOpenChange, onSelectTemplate }: Te
                   onClick={() => setSelectedCategory(cat)}
                   className={`text-xs px-2.5 py-1 rounded-lg border transition-colors capitalize whitespace-nowrap ${
                     selectedCategory === cat
-                      ? "bg-primary text-primary-foreground border-primary font-medium"
+                      ? "bg-primary text-white border-primary font-medium"
                       : "border-border bg-background hover:bg-muted text-foreground"
                   }`}
                 >

@@ -111,9 +111,9 @@ const STATE_META: Record<string, { label: string; tone: string; icon: React.Elem
     TP3_HIT: { label: "TP3 Hit", tone: "text-positive bg-positive/10 border-positive/20", icon: CheckCircle },
     RUNNER_ACTIVE: { label: "Runner Active", tone: "text-primary bg-primary/10 border-primary/20", icon: Zap },
     TRAILING: { label: "Trailing", tone: "text-primary bg-primary/10 border-primary/20", icon: Gauge },
-    CLOSED: { label: "Closed", tone: "text-muted-foreground bg-muted/30 border-border/30", icon: CheckCircle },
+    CLOSED: { label: "Closed", tone: "text-muted-foreground bg-muted/30 border-border/40", icon: CheckCircle },
     STOPPED: { label: "Stopped", tone: "text-negative bg-negative/10 border-negative/20", icon: AlertTriangle },
-    CANCELLED: { label: "Cancelled", tone: "text-muted-foreground bg-muted/30 border-border/30", icon: Ban },
+    CANCELLED: { label: "Cancelled", tone: "text-muted-foreground bg-muted/30 border-border/40", icon: Ban },
 };
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -443,7 +443,7 @@ export default function TradeManagementPage() {
                 <Shield size={40} className="text-muted-foreground" />
                 <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
                 <p className="text-sm text-muted-foreground">Sign in to manage your open trades.</p>
-                <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">Sign In</Link>
+                <Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">Sign In</Link>
             </div>
         );
     }
@@ -473,7 +473,7 @@ export default function TradeManagementPage() {
                         <button type="button" onClick={() => void fetchData()} className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
                             <RefreshCw size={13} className={cn(refreshing && "animate-spin")} /> Refresh
                         </button>
-                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg ">
+                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors shadow-lg ">
                             <Plus size={13} /> Manage Trade
                         </button>
                     </div>
@@ -506,7 +506,7 @@ export default function TradeManagementPage() {
                         <Target size={32} className="mx-auto text-muted-foreground" />
                         <p className="mt-3 text-sm font-medium text-foreground">No managed trades</p>
                         <p className="mt-1 text-xs text-muted-foreground">Add an open position to start scaling out with automatic targets.</p>
-                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="mt-4 inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
                             <Plus size={13} /> Manage your first trade
                         </button>
                     </div>
@@ -560,7 +560,7 @@ export default function TradeManagementPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
                     <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-lg border border-border/40 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
                         {/* Wizard header */}
-                        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/30 bg-background/95 px-6 py-4 backdrop-blur">
+                        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border/40 bg-background/95 px-6 py-4 backdrop-blur">
                             <div>
                                 <h2 className="text-base font-semibold text-foreground">Manage a Trade</h2>
                                 <div className="mt-2 flex items-center gap-1.5">
@@ -598,9 +598,9 @@ export default function TradeManagementPage() {
                                                 <button type="button" onClick={() => void fetchPositions(selAccount)} className="text-micro text-primary hover:text-primary">Reload</button>
                                             </div>
                                             {!positions[selAccount] ? (
-                                                <div className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/20 px-3 py-4 text-xs text-muted-foreground"><Loader2 size={13} className="animate-spin" /> Loading positions…</div>
+                                                <div className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/20 px-3 py-4 text-xs text-muted-foreground"><Loader2 size={13} className="animate-spin" /> Loading positions…</div>
                                             ) : positions[selAccount].length === 0 ? (
-                                                <div className="rounded-lg border border-dashed border-border/30 px-3 py-4 text-xs text-muted-foreground text-center">No open positions on this account.</div>
+                                                <div className="rounded-lg border border-dashed border-border/40 px-3 py-4 text-xs text-muted-foreground text-center">No open positions on this account.</div>
                                             ) : (
                                                 <div className="max-h-48 space-y-1.5 overflow-y-auto pr-1">
                                                     {positions[selAccount]
@@ -614,7 +614,7 @@ export default function TradeManagementPage() {
                                                                   "flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
                                                                     selTicket === String(p.ticket)
                                                                         ? "border-primary/50 bg-primary/10"
-                                                                        : "border-border/30 bg-muted/20 hover:border-border/60 hover:bg-muted/40"
+                                                                        : "border-border/40 bg-muted/20 hover:border-border/60 hover:bg-muted/40"
                                                                 )}
                                                             >
                                                                 <span className={cn("flex h-7 w-7 items-center justify-center rounded-lg", p.type.toUpperCase().includes("BUY") ? "bg-positive/15 text-positive" : "bg-negative/15 text-negative")}>
@@ -628,7 +628,7 @@ export default function TradeManagementPage() {
                                                             </button>
                                                         ))}
                                                     {positions[selAccount].filter((p) => !trades.find((t) => t.ticket === String(p.ticket))).length === 0 && (
-                                                        <div className="rounded-lg border border-dashed border-border/30 px-3 py-4 text-center text-xs text-muted-foreground">All open positions are already managed.</div>
+                                                        <div className="rounded-lg border border-dashed border-border/40 px-3 py-4 text-center text-xs text-muted-foreground">All open positions are already managed.</div>
                                                     )}
                                                 </div>
                                             )}
@@ -641,7 +641,7 @@ export default function TradeManagementPage() {
                             {/* STEP 2: targets */}
                             {step === 2 && selectedPos && (
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/30 bg-muted/20 p-3 text-xs">
+                                    <div className="grid grid-cols-2 gap-3 rounded-lg border border-border/40 bg-muted/20 p-3 text-xs">
                                         <Detail label="Symbol" value={selectedPos.symbol} mono />
                                         <Detail label="Direction" value={selectedPos.type.toUpperCase().includes("BUY") ? "BUY" : "SELL"} mono accent={selectedPos.type.toUpperCase().includes("BUY") ? "text-positive" : "text-negative"} />
                                         <Detail label="Entry" value={fmtP(selectedPos.openPrice, selectedPos.symbol)} mono />
@@ -655,7 +655,7 @@ export default function TradeManagementPage() {
                                         </div>
                                         <div className="mb-3 grid grid-cols-2 gap-2">
                                             {PRESETS.map((p) => (
-                                                <button key={p.name} type="button" onClick={() => applyPreset(p)} className="rounded-lg border border-border/30 bg-muted/20 px-3 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5">
+                                                <button key={p.name} type="button" onClick={() => applyPreset(p)} className="rounded-lg border border-border/40 bg-muted/20 px-3 py-2 text-left transition-colors hover:border-primary/40 hover:bg-primary/5">
                                                     <span className="block text-micro font-semibold text-foreground">{p.name}</span>
                                                     <span className="block text-micro text-muted-foreground">{p.desc}</span>
                                                 </button>
@@ -699,7 +699,7 @@ export default function TradeManagementPage() {
                                         checked={autoMgmt}
                                         onChange={setAutoMgmt}
                                     />
-                                    <div className={cn("space-y-2.5 rounded-lg border border-border/30 bg-muted/10 p-3", !autoMgmt && "opacity-50")}>
+                                    <div className={cn("space-y-2.5 rounded-lg border border-border/40 bg-muted/10 p-3", !autoMgmt && "opacity-50")}>
                                         <ToggleRow
                                             icon={<Lock size={14} className="text-positive" />}
                                             title="Break Even after TP1"
@@ -777,8 +777,8 @@ export default function TradeManagementPage() {
             {/* ======== Events drawer ======== */}
             {eventsFor && (
                 <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-sm" onClick={() => setEventsFor(null)}>
-                    <div className="flex h-full w-full max-w-md flex-col border-l border-border/30 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-between border-b border-border/30 px-5 py-4">
+                    <div className="flex h-full w-full max-w-md flex-col border-l border-border/40 bg-background shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between border-b border-border/40 px-5 py-4">
                             <div>
                                 <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
                                     <Bell size={14} className="text-primary" /> Trade Activity
@@ -821,7 +821,7 @@ export default function TradeManagementPage() {
 
 function StatCard({ label, value, icon: Icon, accent, footnote, className }: { label: string; value: string; icon: React.ElementType; accent: string; footnote?: string; className?: string }) {
     return (
-        <div className={cn("rounded-lg border border-border/30 bg-muted/40 p-4", className)}>
+        <div className={cn("rounded-lg border border-border/40 bg-muted/40 p-4", className)}>
             <div className="flex items-center justify-between">
                 <p className="truncate text-micro font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
                 <Icon size={13} className={cn("shrink-0", accent)} />
@@ -863,7 +863,7 @@ function ToggleRow({ icon, title, desc, checked, onChange }: { icon: React.React
             onClick={() => onChange(!checked)}
             className={cn(
               "flex w-full items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
-                checked ? "border-primary/40 bg-primary/[0.06]" : "border-border/30 bg-muted/10 hover:border-border/60"
+                checked ? "border-primary/40 bg-primary/[0.06]" : "border-border/40 bg-muted/10 hover:border-border/60"
             )}
         >
             <span className="mt-0.5 shrink-0">{icon}</span>
@@ -895,7 +895,7 @@ function StepFooter({ backLabel, onBack, nextLabel, onNext, nextDisabled, hint, 
                     type="button"
                     onClick={onNext}
                     disabled={nextDisabled || busy}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {busy && <Loader2 size={12} className="animate-spin" />}
                     {nextLabel}
@@ -928,7 +928,7 @@ function TradeCard({
     const canMoveBe = editable && trade.currentSl !== trade.entry;
 
     return (
-        <div className={cn("overflow-hidden rounded-lg border border-border/30 bg-muted/40 transition-colors", expanded && "border-primary/30")}>
+        <div className={cn("overflow-hidden rounded-lg border border-border/40 bg-muted/40 transition-colors", expanded && "border-primary/30")}>
             {/* Header row */}
             <div className="flex flex-wrap items-center gap-4 p-5">
                 <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", isBuy ? "bg-positive/10 text-positive" : "bg-negative/10 text-negative")}>
@@ -969,7 +969,7 @@ function TradeCard({
                                     "flex items-center gap-1 rounded-lg border px-2 py-1 text-micro font-medium transition-colors",
                                     t.hit
                                         ? "border-positive/30 bg-positive/10 text-positive"
-                                        : "border-border/30 bg-muted/30 text-muted-foreground"
+                                        : "border-border/40 bg-muted/30 text-muted-foreground"
                                 )}
                             >
                                 {t.hit ? <CheckCircle size={10} /> : <Target size={10} />}

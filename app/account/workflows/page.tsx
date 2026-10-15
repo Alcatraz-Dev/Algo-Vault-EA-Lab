@@ -292,7 +292,7 @@ export default function AccountWorkflowsPage() {
               {(["all", "active", "draft", "paused"] as const).map(f => (
                 <button key={f} onClick={() => setFilter(f)}
                   className={`text-xs px-3 py-1.5 rounded-full border transition-colors capitalize ${
-                    filter === f ? "bg-primary text-primary-foreground border-primary" : "border-border bg-background hover:bg-muted text-foreground"
+                    filter === f ? "bg-primary text-white border-primary" : "border-border bg-background hover:bg-muted text-foreground"
                   }`}>
                   {f}
                 </button>
@@ -344,7 +344,7 @@ export default function AccountWorkflowsPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-guide="workflows-grid">
             {filtered.map(wf => (
               <div key={wf.id}
-                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-0.5 hover:shadow-md">
+                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                 {/* Top */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

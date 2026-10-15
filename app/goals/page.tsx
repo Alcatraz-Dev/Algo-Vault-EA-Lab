@@ -44,7 +44,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
             "group relative rounded-lg border p-6 transition-all duration-200",
             goal.achieved
                 ? "border-positive/20 bg-positive-muted shadow-lg "
-                : "border-border/30 bg-muted/50 hover:border-border/20 hover:bg-muted"
+                : "border-border/40 bg-muted/50 hover:border-border/20 hover:bg-muted"
         )}>
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -136,7 +136,7 @@ function GoalCard({ goal, onUpdate, onDelete }: { goal: TradingGoal; onUpdate: (
                         type="button"
                         onClick={() => { if (editValue) { onUpdate(goal.id, Number(editValue)); setEditValue(""); } }}
                         disabled={!editValue}
-                        className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         Update
                     </button>
@@ -237,7 +237,7 @@ export default function GoalsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
                         Sign In
                     </Link>
                 </div>
@@ -271,7 +271,7 @@ export default function GoalsPage() {
                         <button
                             type="button"
                             onClick={() => setShowCreate(true)}
-                            className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-lg  transition-all"
+                            className="flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-lg  transition-all"
                         >
                             <Plus size={16} /> New Goal
                         </button>
@@ -343,7 +343,7 @@ export default function GoalsPage() {
                                                       "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-xs transition-all",
                                                         formType === gt.value
                                                             ? "border-primary/40 bg-primary/10 text-primary"
-                                                            : "border-border/30 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                            : "border-border/40 bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                                                     )}
                                                 >
                                                     <Icon size={14} /> {gt.label}
@@ -388,7 +388,7 @@ export default function GoalsPage() {
                                     type="button"
                                     onClick={createGoal}
                                     disabled={creating || !formTitle || !formTarget}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-primary-foreground transition-all disabled:opacity-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-sm font-semibold text-white transition-all disabled:opacity-50"
                                 >
                                     {creating ? <Loader2 size={15} className="animate-spin" /> : <Target size={15} />} Create Goal
                                 </button>
@@ -414,7 +414,7 @@ export default function GoalsPage() {
                         <button
                             type="button"
                             onClick={() => setShowCreate(true)}
-                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+                            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
                         >
                             <Plus size={14} /> Create First Goal
                         </button>

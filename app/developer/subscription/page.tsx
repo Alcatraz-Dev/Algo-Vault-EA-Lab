@@ -231,7 +231,7 @@ export default function DeveloperSubscription() {
                                   }
 
  if (!user) {
-                                    return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition">Sign In</Link></div></div>);
+                                    return (<div className="flex min-h-screen flex-col bg-background"><div className="flex flex-1 flex-col items-center justify-center gap-4"><Shield size={40} className="text-muted-foreground" /><h1 className="text-xl font-semibold text-foreground">Sign in required</h1><Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition">Sign In</Link></div></div>);
                                       }
 
  if (role && role !== "developer" && role !== "admin") {
@@ -273,7 +273,7 @@ export default function DeveloperSubscription() {
 
  {/* Current Plan Status */}
  {subscription && (
- <div className="mb-6 rounded-xl border border-border/30 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="mb-6 rounded-xl border border-border/40 bg-muted/50 p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <div className="flex items-center justify-between">
  <div className="flex items-center gap-4">
                                           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -296,7 +296,7 @@ export default function DeveloperSubscription() {
  type="button"
  onClick={handleManageBilling}
  disabled={actionLoading}
-                                            className="flex items-center gap-2 rounded-lg border border-border/30 bg-muted/5 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10"
+                                            className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted/5 px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/10"
  >
  <CreditCard size={12} /> Manage Billing
  </button>
@@ -329,12 +329,12 @@ export default function DeveloperSubscription() {
  "relative rounded-xl border p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-all",
  plan.highlighted
  ? "border-primary/40 bg-primary/[0.04] "
- : "border-border/30 bg-muted/50",
+ : "border-border/40 bg-muted/50",
  isActive && "ring-2 ring-positive/40"
  )}
  >
  {plan.highlighted && (
- <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-micro font-bold text-primary-foreground">
+ <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-black px-3 py-1 text-micro font-bold text-white">
  MOST POPULAR
  </div>
  )}
@@ -368,7 +368,7 @@ export default function DeveloperSubscription() {
  className={cn(
                                                 "flex w-full min-h-[44px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-50",
  plan.highlighted
- ? "bg-primary text-primary-foreground hover:bg-primary/90"
+ ? "bg-primary text-white hover:bg-primary/90"
  : "bg-muted/30 text-foreground hover:bg-muted/20"
  )}
  >
@@ -384,7 +384,7 @@ export default function DeveloperSubscription() {
  })}
  </div>
 
- <div className="mt-8 rounded-xl border border-border/30 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="mt-8 rounded-xl border border-border/40 bg-muted/50 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
  <h3 className="mb-4 text-sm font-semibold text-foreground">What are platform fees?</h3>
  <p className="text-xs text-muted-foreground leading-relaxed">
  Platform fees are charged on each sale you make. For example, with the Starter plan at 5% fee, if you sell a product for $100, you receive $95 and the platform keeps $5. Higher-tier plans reduce or eliminate this fee.

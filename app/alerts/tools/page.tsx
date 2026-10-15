@@ -171,7 +171,7 @@ export default function ToolAlertsPage() {
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
-                    <Link href="/login" className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <Link href="/login" className="rounded-lg bg-black px-6 py-2.5 text-sm font-semibold text-white hover:bg-primary/90 transition-colors">
                         Sign In
                     </Link>
                 </div>
@@ -305,7 +305,7 @@ export default function ToolAlertsPage() {
                                         "group flex items-center gap-4 rounded-lg border p-4 transition-all",
                                         expired
                                             ? "border-negative/10 bg-negative/[0.02] opacity-60"
-                                            : "border-border/30 bg-muted/50 hover:bg-muted"
+                                            : "border-border/40 bg-muted/50 hover:bg-muted"
                                     )}
                                 >
                                     {/* Checkbox */}

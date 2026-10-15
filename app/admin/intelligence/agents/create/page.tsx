@@ -91,7 +91,7 @@ export default function CreateAgentPage() {
                             <Link href={`/admin/intelligence/agents/${agentId}`} className="inline-flex items-center gap-2 rounded-lg bg-positive px-5 py-2.5 text-sm font-semibold text-background shadow  hover:bg-positive transition">
                                 <Terminal size={14} /> View Agent
                             </Link>
-                            <Link href="/admin/intelligence/agents" className="inline-flex items-center gap-2 rounded-lg border border-border/30 bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition">Back to Registry</Link>
+                            <Link href="/admin/intelligence/agents" className="inline-flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-5 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition">Back to Registry</Link>
                         </div>
                     </div>
                 ) : (
@@ -111,7 +111,7 @@ export default function CreateAgentPage() {
                                         onChange={(e) => setName(e.target.value)}
                                         required
                                         placeholder="e.g. Volatility Agent"
-                                        className="w-full rounded-lg border border-border/30 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground transition"
+                                        className="w-full rounded-lg border border-border/40 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground transition"
                                     />
                                 </div>
                                 <div>
@@ -121,7 +121,7 @@ export default function CreateAgentPage() {
                                         value={version}
                                         onChange={(e) => setVersion(e.target.value)}
                                         placeholder="e.g. 1.0.0"
-                                        className="w-full rounded-lg border border-border/30 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground transition"
+                                        className="w-full rounded-lg border border-border/40 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground transition"
                                     />
                                 </div>
                                 <div className="md:col-span-2">
@@ -132,7 +132,7 @@ export default function CreateAgentPage() {
                                         onChange={(e) => setDesc(e.target.value)}
                                         rows={2}
                                         placeholder="What does this agent do? What domain does it cover?"
-                                        className="w-full rounded-lg border border-border/30 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground resize-none transition"
+                                        className="w-full rounded-lg border border-border/40 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground resize-none transition"
                                     />
                                 </div>
                             </div>
@@ -152,7 +152,7 @@ export default function CreateAgentPage() {
                                             id="role"
                                             value={role}
                                             onChange={(e) => setRole(e.target.value as AgentRole)}
-                                            className="w-full rounded-lg border border-border/30 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 appearance-none transition"
+                                            className="w-full rounded-lg border border-border/40 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 appearance-none transition"
                                         >
                                             {ROLES.map((r) => (
                                                 <option key={r.value} value={r.value}>{r.label}</option>
@@ -217,7 +217,7 @@ export default function CreateAgentPage() {
                                 value={outputs}
                                 onChange={(e) => setOutputs(e.target.value)}
                                 placeholder="Comma-separated outputs this agent produces"
-                                className="w-full rounded-lg border border-border/30 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground resize-none transition"
+                                className="w-full rounded-lg border border-border/40 bg-background px-4 py-3 text-sm outline-none focus:border-info/50 focus:ring-1 focus:ring-info/20 placeholder:text-muted-foreground resize-none transition"
                             />
                         </div>
 
@@ -258,7 +258,7 @@ export default function CreateAgentPage() {
                                         <Link href="/admin/intelligence/sandbox" className="inline-flex items-center gap-1.5 rounded-lg border border-info/20 bg-info/10 px-3 py-2 text-micro font-medium text-info hover:bg-info/15 transition">
                                             <Layers size={12} /> Run Pipeline Test
                                         </Link>
-                                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted px-3 py-2 text-micro font-medium text-muted-foreground hover:text-foreground transition">
+                                        <Link href="/api/agents" className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted px-3 py-2 text-micro font-medium text-muted-foreground hover:text-foreground transition">
                                             <Terminal size={12} /> View Pipeline API
                                         </Link>
                                     </div>

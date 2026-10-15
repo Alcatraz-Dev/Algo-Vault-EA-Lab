@@ -97,7 +97,7 @@ export default function AccountHealthPage() {
     // indistinguishable from a real "your account is blown" verdict.
     if (error || !health) {
         return shell(
-            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border/30 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
+            <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-border/40 bg-muted/50 px-6 py-12 text-center" data-guide="score-ring">
                 <Shield size={28} className={error ? "text-negative" : "text-muted-foreground"} />
                 <h2 className="text-sm font-semibold text-foreground">
                     {error ? "Health report unavailable" : "No trading activity yet"}
@@ -109,7 +109,7 @@ export default function AccountHealthPage() {
                     type="button"
                     onClick={fetchHealth}
                     disabled={loading}
-                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Retry
                 </button>
@@ -124,7 +124,7 @@ export default function AccountHealthPage() {
                     type="button"
                     onClick={fetchHealth}
                     disabled={loading}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/30 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/50 px-3 py-1.5 text-micro font-medium text-muted-foreground transition hover:text-foreground disabled:opacity-50"
                 >
                     <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>

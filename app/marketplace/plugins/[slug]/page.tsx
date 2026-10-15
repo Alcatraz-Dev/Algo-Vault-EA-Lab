@@ -199,8 +199,8 @@ export default function PluginDetailsPage() {
  <div className="mx-auto max-w-7xl px-6 py-12">
  <div className="h-8 w-32 animate-pulse rounded-lg bg-muted/5" />
  <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
- <div className="h-[500px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
- <div className="h-[400px] animate-pulse rounded-lg border border-border/30 bg-muted/50" />
+ <div className="h-[500px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
+ <div className="h-[400px] animate-pulse rounded-lg border border-border/40 bg-muted/50" />
  </div>
  </div>
  </main>
@@ -235,7 +235,7 @@ export default function PluginDetailsPage() {
 
  return (
  <main className="min-h-screen bg-background text-foreground">
- <div className="border-b border-border/30">
+ <div className="border-b border-border/40">
  <div className="mx-auto max-w-7xl px-6 py-5">
  <div className="flex items-center gap-3">
  <Link href="/marketplace/plugins" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
@@ -251,7 +251,7 @@ export default function PluginDetailsPage() {
  </div>
 
  <div className="mx-auto max-w-7xl px-6 py-10">
- <div className="overflow-hidden rounded-lg border border-border/30 bg-muted/50">
+ <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
  {/* Hero */}
  <div className="relative h-56 overflow-hidden bg-primary/10 md:h-64">
  <div className="absolute left-20 top-10 h-48 w-48 rounded-full bg-muted/10 hidden" />
@@ -260,17 +260,17 @@ export default function PluginDetailsPage() {
  <div className="absolute inset-x-0 bottom-0">
  <div className="flex flex-col gap-5 p-6 md:p-9 lg:flex-row lg:items-end lg:justify-between">
  <div className="flex items-end gap-5">
- <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/30 bg-card ">
+ <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg border border-border/40 bg-card ">
  {isExtension ? <Zap size={32} className="text-positive" /> : <Plug size={32} className="text-primary" />}
  </div>
  <div>
  <div className="flex flex-wrap items-center gap-2">
- <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
+ <span className="rounded-lg border border-border/40 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
  {isExtension
  ? EXTENSION_TYPE_LABELS[extensionType]
  : "Plugin"}
  </span>
- <span className="rounded-lg border border-border/30 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
+ <span className="rounded-lg border border-border/40 bg-background/950 px-2.5 py-1 text-micro text-muted-foreground ">
  {CATEGORY_LABELS[plugin.category]}
  </span>
  </div>
@@ -308,7 +308,7 @@ export default function PluginDetailsPage() {
  <h2 className="text-sm font-medium">Capabilities</h2>
  <div className="mt-3 grid gap-2 sm:grid-cols-2">
  {plugin.capabilities.map((cap) => (
-                              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/30 bg-muted/20 p-3">
+                              <div key={cap} className="flex items-center gap-3 rounded-lg border border-border/40 bg-muted/20 p-3">
  <CheckCircle2 size={15} className="shrink-0 text-positive" />
  <span className="text-sm text-muted-foreground">{cap}</span>
  </div>
@@ -325,7 +325,7 @@ export default function PluginDetailsPage() {
  </p>
  <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
  {perms.map((permission) => (
-                                <div key={permission} className="rounded-lg border border-border/30 bg-muted/20 p-4">
+                                <div key={permission} className="rounded-lg border border-border/40 bg-muted/20 p-4">
  <p className="text-sm font-medium">{permissionLabel(permission)}</p>
  <p className="mt-1 text-xs leading-5 text-muted-foreground">{permissionDescription(permission)}</p>
  </div>
@@ -344,7 +344,7 @@ export default function PluginDetailsPage() {
  {plugin.documentation && (
  <div className="mt-8">
  <h2 className="text-sm font-medium">Documentation</h2>
- <div className="mt-3 max-w-3xl rounded-lg border border-border/30 bg-muted/20 p-5">
+ <div className="mt-3 max-w-3xl rounded-lg border border-border/40 bg-muted/20 p-5">
  {plugin.documentation.split("\n").map((line, i) => {
  if (line.startsWith("## ")) {
  return (
@@ -376,9 +376,9 @@ export default function PluginDetailsPage() {
  <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
  <div className="space-y-6">
  {/* Lifecycle */}
- <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
+ <section className="rounded-lg border border-border/40 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
-                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
  <Settings2 size={18} />
  </div>
  <div>
@@ -391,7 +391,7 @@ export default function PluginDetailsPage() {
  <div className="mt-6 flex flex-wrap items-center gap-2">
  {LIFECYCLE.map((step, i) => (
  <div key={step} className="flex items-center gap-2">
- <span className="rounded-lg border border-border/30 bg-muted/20 px-2.5 py-1.5 text-micro text-muted-foreground">
+ <span className="rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1.5 text-micro text-muted-foreground">
  {step}
  </span>
  {i < LIFECYCLE.length - 1 && <span className="text-muted-foreground/40">→</span>}
@@ -408,9 +408,9 @@ export default function PluginDetailsPage() {
  </section>
 
  {/* Reviews */}
- <section className="rounded-lg border border-border/30 bg-muted/50 p-7 md:p-9">
+ <section className="rounded-lg border border-border/40 bg-muted/50 p-7 md:p-9">
  <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/30 bg-muted/5">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border/40 bg-muted/5">
  <Star size={18} />
  </div>
  <div>
@@ -421,7 +421,7 @@ export default function PluginDetailsPage() {
  </div>
  </div>
 
- <div className="mt-6 rounded-lg border border-border/30 bg-muted/20 p-5">
+ <div className="mt-6 rounded-lg border border-border/40 bg-muted/20 p-5">
  <p className="text-xs font-medium">Share your experience</p>
  <div className="mt-3 flex items-center gap-1">
  {[1, 2, 3, 4, 5].map((n) => (
@@ -441,7 +441,7 @@ export default function PluginDetailsPage() {
  onChange={(e) => setReviewComment(e.target.value)}
  placeholder="What did this plugin help you with? (optional)"
  rows={2}
-                                          className="mt-3 w-full rounded-lg border border-border/30 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
+                                          className="mt-3 w-full rounded-lg border border-border/40 bg-muted/50 p-3 text-sm outline-none placeholder:text-muted-foreground focus:border-border/50"
  />
  <button
  type="button"
@@ -466,7 +466,7 @@ export default function PluginDetailsPage() {
  {reviews.length > 0 && (
  <div className="mt-6 space-y-3">
  {reviews.slice(0, 10).map((review) => (
- <div key={review.id} className="rounded-lg border border-border/30 bg-muted/20 p-4">
+ <div key={review.id} className="rounded-lg border border-border/40 bg-muted/20 p-4">
  <div className="flex items-center justify-between gap-3">
  <div className="flex items-center gap-2">
  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted/5 text-micro font-semibold uppercase">
@@ -493,7 +493,7 @@ export default function PluginDetailsPage() {
 
  {/* Purchase card */}
  <aside className="lg:sticky lg:top-6 lg:self-start">
- <div className="rounded-lg border border-border/30 bg-muted p-6">
+ <div className="rounded-lg border border-border/40 bg-muted p-6">
  <p className="text-xs text-muted-foreground">Access</p>
  <div className="mt-2 flex items-end justify-between">
  <span className="text-3xl font-semibold">
@@ -549,7 +549,7 @@ export default function PluginDetailsPage() {
  </p>
  </div>
 
- <div className="mt-4 rounded-lg border border-border/30 bg-muted/50 p-5">
+ <div className="mt-4 rounded-lg border border-border/40 bg-muted/50 p-5">
  <div className="flex gap-3">
  <Shield size={17} className="mt-0.5 shrink-0 text-muted-foreground" />
  <p className="text-micro leading-5 text-muted-foreground">
@@ -568,7 +568,7 @@ export default function PluginDetailsPage() {
 
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
  return (
-  <div className="rounded-lg border border-border/30 bg-muted/20 p-4">
+  <div className="rounded-lg border border-border/40 bg-muted/20 p-4">
  <div className="flex items-center gap-2 text-muted-foreground">
  {icon}
  <span className="text-micro">{label}</span>

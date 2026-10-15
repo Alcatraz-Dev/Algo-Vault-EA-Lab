@@ -1001,7 +1001,7 @@ function AdminTelegramDashboard() {
                     </div>
 
                     {loadingSources ? (
-                        <div className="flex h-40 items-center justify-center rounded-lg border border-border/30 bg-card">
+                        <div className="flex h-40 items-center justify-center rounded-lg border border-border/40 bg-card">
                             <RefreshCw className="h-6 w-6 animate-spin text-warning" />
                         </div>
                     ) : sources.length === 0 ? (
@@ -1418,7 +1418,7 @@ function AdminTelegramDashboard() {
                         </div>
 
                         {/* QUICK BULK SELECTION */}
-                        <div className="flex items-center gap-2 pt-2 border-t border-border/30 md:border-t-0 md:pt-0">
+                        <div className="flex items-center gap-2 pt-2 border-t border-border/40 md:border-t-0 md:pt-0">
                             <button
                                 onClick={() => {
                                     const filtered = channels.filter((ch) => {
@@ -1447,7 +1447,7 @@ function AdminTelegramDashboard() {
                     </div>
 
                     {loadingChannels ? (
-                        <div className="flex h-48 items-center justify-center rounded-lg border border-border/30 bg-card">
+                        <div className="flex h-48 items-center justify-center rounded-lg border border-border/40 bg-card">
                             <RefreshCw className="h-6 w-6 animate-spin text-warning" />
                         </div>
                     ) : channels.length === 0 ? (
@@ -1519,7 +1519,7 @@ function AdminTelegramDashboard() {
                                                     {ch.lastMessage || "No recent messages"}
                                                 </p>
 
-                                                <div className="mt-3 pt-2.5 border-t border-border/30 space-y-2" onClick={(e) => e.stopPropagation()}>
+                                                <div className="mt-3 pt-2.5 border-t border-border/40 space-y-2" onClick={(e) => e.stopPropagation()}>
                                                     {/* Trading Style Selector */}
                                                     <div className="flex items-center justify-between">
                                                         <label className="text-micro font-semibold text-muted-foreground">Trading Style:</label>
@@ -1645,7 +1645,7 @@ function AdminTelegramDashboard() {
                                             </span>
                                         </div>
 
-                                        <div className="mt-4 grid grid-cols-2 gap-3 text-xs border-t border-border/30 pt-3">
+                                        <div className="mt-4 grid grid-cols-2 gap-3 text-xs border-t border-border/40 pt-3">
                                             <div>
                                                 <span className="text-muted-foreground text-micro">Risk Multiplier:</span>
                                                 <p className="font-bold text-warning text-sm font-numeric tabular-nums">{grp.riskMultiplier}x</p>
@@ -1671,7 +1671,7 @@ function AdminTelegramDashboard() {
                                         </div>
                                     </div>
 
-                                    <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-end gap-2">
+                                    <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-end gap-2">
                                         <button
                                             onClick={() => {
                                                 setEditingGroup(grp);
@@ -1891,7 +1891,7 @@ function AdminTelegramDashboard() {
 
                         {/* Result Preview Box */}
                         <div className="rounded-lg border border-border/40 bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                            <div className="flex items-center justify-between mb-3 border-b border-border/30 pb-2">
+                            <div className="flex items-center justify-between mb-3 border-b border-border/40 pb-2">
                                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Signal Analysis Result</h4>
                                 <span className="rounded-lg border border-warning/30 bg-warning/10 px-2 py-0.5 text-micro font-bold text-warning">
                                     By {aiSiteName}
@@ -1935,7 +1935,7 @@ function AdminTelegramDashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="pt-2 border-t border-border/30 text-micro text-muted-foreground italic">
+                                        <div className="pt-2 border-t border-border/40 text-micro text-muted-foreground italic">
                                             &ldquo;{aiGeneratedResult.generatedSignal?.reasoning}&rdquo;
                                         </div>
                                     </div>
@@ -2158,7 +2158,7 @@ function AdminTelegramDashboard() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2 border-t border-border/30 pt-3">
+                            <div className="space-y-2 border-t border-border/40 pt-3">
                                 <div className="flex items-center justify-between">
                                     <label className="text-xs font-medium">Auto Execution Allowed</label>
                                     <input
@@ -2191,7 +2191,7 @@ function AdminTelegramDashboard() {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
+                        <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
                             <button
                                 onClick={() => { setIsCreatingGroup(false); setEditingGroup(null); }}
                                 className="rounded-lg border border-border px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted"
@@ -2263,7 +2263,7 @@ function AdminTelegramDashboard() {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between border-t border-border/30 pt-3">
+                            <div className="flex items-center justify-between border-t border-border/40 pt-3">
                                 <span>Signal Parsing Enabled</span>
                                 <input
                                     type="checkbox"

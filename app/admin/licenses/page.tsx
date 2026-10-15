@@ -208,7 +208,7 @@ export default function AdminLicensesPage() {
 
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80"
+                    className="flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-black/80"
                 >
                     <Plus size={16} /> Generate License
                 </button>
@@ -371,7 +371,7 @@ export default function AdminLicensesPage() {
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/80 disabled:opacity-50"
+                                    className="rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-black/80 disabled:opacity-50"
                                 >
                                     {saving ? "Generating..." : "Generate Key"}
                                 </button>

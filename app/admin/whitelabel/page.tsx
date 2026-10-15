@@ -89,7 +89,7 @@ export default function WhiteLabelPage() {
                         <h1 className="text-2xl font-semibold tracking-tight text-foreground">White-Label Configuration</h1>
                         <p className="mt-1 text-sm text-muted-foreground">Customize branding, colors, and feature toggles</p>
                     </div>
-                    <button type="button" onClick={saveConfig} disabled={saving || loading} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50">
+                    <button type="button" onClick={saveConfig} disabled={saving || loading} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition disabled:opacity-50">
                         {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Save
                     </button>
                 </div>
@@ -99,7 +99,7 @@ export default function WhiteLabelPage() {
                 ) : (
                     <div className="space-y-6">
                         {/* Branding */}
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                             <div className="flex items-center gap-2 mb-4"><Palette size={16} className="text-primary" /><h2 className="text-sm font-semibold text-foreground">Branding</h2></div>
                             <div className="space-y-3">
                                 <div>
@@ -143,7 +143,7 @@ export default function WhiteLabelPage() {
                         </div>
 
                         {/* Domain & Contact */}
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                             <div className="flex items-center gap-2 mb-4"><Globe size={16} className="text-primary" /><h2 className="text-sm font-semibold text-foreground">Domain & Contact</h2></div>
                             <div className="space-y-3">
                                 <div>
@@ -162,11 +162,11 @@ export default function WhiteLabelPage() {
                         </div>
 
                         {/* Feature Toggles */}
-                        <div className="rounded-lg border border-border/30 bg-muted/50 p-5">
+                        <div className="rounded-lg border border-border/40 bg-muted/50 p-5">
                             <div className="flex items-center gap-2 mb-4"><Settings size={16} className="text-primary" /><h2 className="text-sm font-semibold text-foreground">Feature Toggles</h2></div>
                             <div className="space-y-2">
                                 {(Object.entries(config.features) as [keyof WhiteLabelConfig["features"], boolean][]).map(([key, enabled]) => (
-                                    <button key={key} type="button" onClick={() => toggleFeature(key)} className="flex w-full items-center justify-between rounded-lg border border-border/30 bg-muted/50 px-4 py-3 transition hover:bg-muted">
+                                    <button key={key} type="button" onClick={() => toggleFeature(key)} className="flex w-full items-center justify-between rounded-lg border border-border/40 bg-muted/50 px-4 py-3 transition hover:bg-muted">
                                         <span className="text-sm text-muted-foreground capitalize">{key.replace(/([A-Z])/g, " $1")}</span>
                                         {enabled ? <ToggleRight size={22} className="text-positive" /> : <ToggleLeft size={22} className="text-muted-foreground" />}
                                     </button>
