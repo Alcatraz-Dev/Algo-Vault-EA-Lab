@@ -2,6 +2,10 @@ import { getHomeData } from "@/lib/home-data";
 import HomePage from "@/components/home/HomePage";
 import { HomeNativeAd } from "@/components/growth/HomeNativeAd";
 
+// Homepage figures come from Firebase Realtime Database and must be read at
+// request time; prerendering would require production Admin credentials in CI.
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const data = await getHomeData();
   return (

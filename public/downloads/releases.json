@@ -11,26 +11,26 @@
       "min_version": "Windows 10",
       "status": "preview",
       "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
-      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-Setup-0.1.0-preview-x64.exe",
+      "download_url": "",
       "file_size_bytes": 0,
-      "file_size_human": "~85 MB (estimated; not yet produced — requires windows-latest CI runner)",
+      "file_size_human": "Not available — installer has not been produced.",
       "build_target": "nsis",
       "supported_processors": ["x64"],
-      "notes": "NOT BUILT. Requires windows-latest CI runner or Windows environment. Workflow configured (.github/workflows/desktop-release.yml). No artifact exists at download_url. Status remains preview until CI produces verified .exe."
+      "notes": "Preview only. No verified Windows installer or release asset exists; no download URL is advertised."
     },
     "macos": {
       "label": "macOS App",
       "os": "macos",
-      "arch": ["Apple Silicon", "Intel"],
+      "arch": ["Apple Silicon ARM64"],
       "min_version": "macOS 13",
       "status": "preview",
       "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
-      "download_url": "/downloads/AlgoVault-0.1.0-preview-universal.zip",
-      "file_size_bytes": 493000000,
-      "file_size_human": "~470 MB (zipped .app bundle from apps/desktop/dist/desktop-build/mac-arm64/AlgoVault.app)",
+      "download_url": "",
+      "file_size_bytes": 0,
+      "file_size_human": "Not available — the local ARM64 package is unsigned for distribution.",
       "build_target": "dmg",
-      "supported_processors": ["Apple Silicon", "Intel"],
-      "notes": "LOCAL .app BUNDLE BUILT and PACKAGED as .zip in public/downloads. Download URL points to working file. Status preview until verified CI artifact is published to GitHub Releases."
+      "supported_processors": ["Apple Silicon ARM64"],
+      "notes": "Preview only. A local ARM64 package exists but is not Developer ID signed or notarized; the 134-byte public Git LFS pointer is not a usable archive. No download URL is advertised."
     }
   },
   "next_stable_version": "0.1.0",

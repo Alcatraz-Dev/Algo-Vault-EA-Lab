@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { App } from "firebase-admin/app";
 import type { Auth } from "firebase-admin/auth";
 import type { Database } from "firebase-admin/database";

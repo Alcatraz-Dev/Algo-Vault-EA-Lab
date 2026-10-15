@@ -249,7 +249,7 @@ export default function AffiliatesPage() {
                         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-foreground/50" />
 
                         <div>
-                            <h3 className="text-sm font-medium text-primary font-bold">
+                            <h3 className="text-sm font-extrabold text-foreground">
                                 Affiliate Disclosure
                             </h3>
 
@@ -287,8 +287,6 @@ function AffiliateCard({
 }) {
     const commission = formatCommission(offer);
 
-    // Always try to load the broker logo.
-    // The API will return 404 if no logo exists.
     const logoUrl = `/api/affiliate/branding?offerId=${encodeURIComponent(
         offer.id
     )}&type=logo`;
@@ -297,13 +295,13 @@ function AffiliateCard({
 
     return (
         <article
-            className={`group relative overflow-hidden rounded-2xl border shadow-[0_1px_3px_rgb(0_0_0/0.05)] transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md ${featured
-                ? "border-primary/30 bg-gradient-to-br from-primary/[0.07] to-card"
-                : "border-border/30"
-                } hover:bg-foreground/10`}
+            className={`group relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:shadow-md ${featured
+                ? "border-border/40 bg-black"
+                : "border-border/40 hover:border-border/60 dark:border-border/40 dark:hover:border-border/60"
+            }`}
         >
             {featured && (
-                <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border bg-gradient-to-r from-amber-400 to-orange-400 px-2.5 py-1 text-[11px] font-extrabold text-white shadow-md">
+                <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-black px-2.5 py-1 text-[11px] font-extrabold text-white shadow-md">
                     <Star className="h-3 w-3 fill-current" />
                     Featured
                 </div>
@@ -312,7 +310,7 @@ function AffiliateCard({
             <div className="p-6">
                 <div className="flex items-start gap-4">
                     {/* Broker Logo */}
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/30 bg-muted/5 p-2.5">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted p-2.5">
                         {!logoError ? (
                             <img
                                 key={logoUrl}
@@ -324,17 +322,16 @@ function AffiliateCard({
                                         `BROKER LOGO NOT FOUND: ${offer.name}`,
                                         logoUrl
                                     );
-
                                     setLogoError(true);
                                 }}
                             />
                         ) : (
-                            <ExternalLink className="h-5 w-5 text-foreground/50" />
+                            <ExternalLink className="h-5 w-5 text-muted-foreground" />
                         )}
                     </div>
 
                     <div className="min-w-0 pr-16">
-                        <h3 className="truncate text-lg font-semibold">
+                        <h3 className="truncate text-lg font-semibold text-card-foreground">
                             {offer.name}
                         </h3>
 
@@ -347,21 +344,21 @@ function AffiliateCard({
 
                 {offer.category && (
                     <div className="mt-5">
-                        <span className="rounded-lg border border-border/30 bg-muted/5 px-2.5 py-1 text-xs text-foreground/50">
+                        <span className="rounded-md bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                             {offer.category}
                         </span>
                     </div>
                 )}
 
-                <p className="mt-5 min-h-[48px] text-sm leading-6 text-foreground/80">
+                <p className="mt-4 min-h-[48px] text-sm leading-6 text-card-foreground/90">
                     {offer.description ||
                         "Explore this recommended trading service."}
                 </p>
 
                 {commission && (
-                    <div className="mt-5 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-medium text-foreground shadow-sm">
+                    <div className="mt-5 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-medium shadow-sm">
                         Partnership:{" "}
-                        <span className="font-extrabold text-white">
+                        <span className="font-extrabold text-black dark:text-white">
                             {commission}
                         </span>
                     </div>
@@ -371,7 +368,7 @@ function AffiliateCard({
                     href={`/api/affiliate/click?offerId=${encodeURIComponent(
                         offer.id
                     )}`}
-                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-extrabold text-white shadow-md transition hover:brightness-110"
+                    className="mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800"
                 >
                     Visit Offer
                     <ArrowUpRight className="h-4 w-4" />

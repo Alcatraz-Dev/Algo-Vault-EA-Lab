@@ -53,6 +53,46 @@ NEXT_OUTPUT_STANDALONE=1 npm run build      # produce .next/standalone
 npm run start                                # next start (or use the desktop launcher)
 ```
 
+## Runtime configuration and credentials
+
+The embedded Next.js server runs as a child of Electron. Its environment is inherited
+from the launching process, but Firebase Admin credentials are removed by default.
+They are forwarded only when `ALGOVAULT_SELF_HOSTED=1` is explicitly set, and only
+for an operator-managed self-hosted/development instance. Provide `FIREBASE_PROJECT_ID`,
+`FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`; `FIREBASE_DATABASE_URL` may be
+provided explicitly or derived by the existing Admin initializer from the project ID.
+The private key must be the rotated replacement credential and must remain in the
+operator's secret store/process environment—not in `.env.local` committed to source,
+installer resources, renderer code, static assets, or build artifacts. Never set it as
+`NEXT_PUBLIC_*`.
+
+The `NEXT_PUBLIC_FIREBASE_*` client configuration (`API_KEY`, `AUTH_DOMAIN`,
+`DATABASE_URL`, `PROJECT_ID`, `STORAGE_BUCKET`, `MESSAGING_SENDER_ID`, `APP_ID`) is
+public client configuration and is compiled into the client bundle at build time. It
+must be supplied through GitHub repository/environment Variables (or equivalent
+protected build configuration); it is public and is not an Admin credential. The
+release workflow fails with the missing variable names only if any required setting
+is absent.
+
+The Electron-to-Next child environment uses an OS-runtime allowlist, strips unrelated
+user credentials, and does not rely on runtime public Firebase variables: Next embeds
+those values in browser bundles at build time. Child stdout/stderr contents are never
+written to the desktop log; only generic readiness/error states are recorded.
+
+A normal downloadable desktop app must use the authenticated hosted AlgoVault backend
+for privileged operations. The current desktop shell embeds the Next.js API server and
+has no supported remote-API origin/proxy mode; therefore it is not safe to ship a
+normal installer that depends on a Firebase Admin service account on the end user's
+machine. Until a remote backend boundary is implemented, Firebase Admin-backed desktop
+routes are supported only in explicit operator-managed self-hosted mode above. Missing
+Admin configuration fails closed; it is not replaced by weaker client-side access.
+
+Before any backend test, revoke the previously exposed service-account key in Google
+Cloud IAM, create a replacement with only required Firebase permissions, update the
+server secret store and CI secrets, and verify the old key is disabled. Do not paste
+credentials into chat or logs. This repository does not confirm whether rotation has
+occurred.
+
 ## Packaging
 
 `apps/desktop/package.json` is an Electron-builder app; `electron-builder` lives in

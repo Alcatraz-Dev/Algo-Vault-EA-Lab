@@ -141,11 +141,11 @@ export default function DesktopDownloadSection() {
               title="macOS App"
               platform={macos}
               version={release?.version ?? "0.1.0-preview"}
-              description="Native macOS application for Apple Silicon and Intel Macs, with native menus, dark/light theme, tray icon, and persistent preferences."
+              description="Native macOS application for Apple Silicon Macs, with native menus, dark/light theme, tray icon, and persistent preferences."
               specs={[
-                { label: "Architecture", value: "Universal (ARM + x64)" },
+                { label: "Architecture", value: "Apple Silicon ARM64" },
                 { label: "Minimum", value: "macOS 13+" },
-                { label: "Package", value: ".dmg + .zip (~92 MB)" },
+                { label: "Package", value: "Not available for download" },
               ]}
               ciNote="Build is prepared by the desktop-release CI workflow on a macOS runner. Final .dmg and .zip publish to GitHub Releases once verified."
             />
@@ -157,7 +157,7 @@ export default function DesktopDownloadSection() {
           <Card variant="default" className="mt-8 bg-secondary/40 border-border">
             <CardContent className="text-xs leading-relaxed text-muted-foreground">
               <strong className="text-foreground">Release process:</strong>{" "}
-              Windows x64 and macOS universal builds are configured in{" "}
+              Windows x64 and macOS ARM64 builds are configured in{" "}
               <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
                 apps/desktop/package.json
               </code>{" "}

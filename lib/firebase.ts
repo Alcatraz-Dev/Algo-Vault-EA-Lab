@@ -1,5 +1,7 @@
 import { initializeApp, getApps } from "firebase/app";
+import type { Auth } from "firebase/auth";
 import { getAuth } from "firebase/auth";
+import type { Database } from "firebase/database";
 import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
@@ -12,10 +14,56 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app =
-    getApps().length > 0
-        ? getApps()[0]
-        : initializeApp(firebaseConfig);
+const requiredConfig = [
+    "apiKey",
+    "authDomain",
+    "databaseURL",
+    "projectId",
+    "storageBucket",
+    "messagingSenderId",
+    "appId",
+] as const;
 
-export const auth = getAuth(app);
-export const database = getDatabase(app);
+function getClientApp() {
+    if (typeof window === "undefined") {
+        throw new Error("Firebase client services cannot be accessed during server rendering.");
+    }
+
+    const missing = requiredConfig.filter((key) => !firebaseConfig[key]);
+    if (missing.length > 0) {
+        const envNames = missing.map((key) => `NEXT_PUBLIC_FIREBASE_${key.replace(/[A-Z]/g, (letter) => `_${letter}`).toUpperCase()}`);
+        throw new Error(`Firebase client configuration is missing: ${envNames.join(", ")}.`);
+    }
+
+    return getApps()[0] ?? initializeApp(firebaseConfig);
+}
+
+function lazyBrowserService<T extends object>(getService: () => T): T {
+    return new Proxy({} as T, {
+        get(_target, property) {
+            const service = getService();
+            const value = Reflect.get(service, property, service);
+            return typeof value === "function" ? value.bind(service) : value;
+        },
+        getPrototypeOf() {
+            return Object.getPrototypeOf(getService());
+        },
+        set(_target, property, value) {
+            const service = getService();
+            return Reflect.set(service, property, value, service);
+        },
+        has(_target, property) {
+            return property in getService();
+        },
+    });
+}
+
+let authInstance: Auth | undefined;
+let databaseInstance: Database | undefined;
+
+export const auth = lazyBrowserService(
+    () => (authInstance ??= getAuth(getClientApp())),
+);
+export const database = lazyBrowserService(
+    () => (databaseInstance ??= getDatabase(getClientApp())),
+);

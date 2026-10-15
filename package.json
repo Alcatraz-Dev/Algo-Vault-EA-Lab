@@ -93,6 +93,7 @@
     "babel-plugin-module-resolver": "^5.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "server-only": "0.0.1",
     "shadcn": "^4.21.4",
     "skills": "^1.7.0",
     "tailwindcss": "^4",
