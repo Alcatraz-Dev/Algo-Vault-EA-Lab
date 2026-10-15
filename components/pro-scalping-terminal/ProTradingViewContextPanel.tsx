@@ -10,7 +10,7 @@
  * This panel NEVER supplies the live chart price and never gates signals.
  */
 import { Info, Newspaper, Zap, CalendarClock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Chip, Panel, PanelHeader, type ChipTone } from "./ProTerminalPanels";
 
 export interface TradingViewContextSection {
     available: boolean;
@@ -25,15 +25,15 @@ export interface TradingViewContextPayload {
     economicCalendar: TradingViewContextSection;
 }
 
-const STATE_STYLES: Record<string, string> = {
-    CONNECTED: "bg-positive/10 text-positive",
-    DISABLED: "bg-muted text-muted-foreground",
-    NOT_CONNECTED: "bg-muted text-muted-foreground",
-    RATE_LIMITED: "bg-warning/10 text-warning",
-    REAUTH_REQUIRED: "bg-warning/10 text-warning",
-    TOKEN_EXPIRED: "bg-warning/10 text-warning",
-    UNAVAILABLE: "bg-negative/10 text-negative",
-    ERROR: "bg-negative/10 text-negative",
+const STATE_TONES: Record<string, ChipTone> = {
+    CONNECTED: "positive",
+    DISABLED: "neutral",
+    NOT_CONNECTED: "neutral",
+    RATE_LIMITED: "warning",
+    REAUTH_REQUIRED: "warning",
+    TOKEN_EXPIRED: "warning",
+    UNAVAILABLE: "negative",
+    ERROR: "negative",
 };
 
 function SectionCard({
@@ -46,7 +46,7 @@ function SectionCard({
     section: TradingViewContextSection | undefined;
 }) {
     if (!section) return null;
-    const stateStyle = STATE_STYLES[section.state] ?? "bg-muted text-muted-foreground";
+    const tone = STATE_TONES[section.state] ?? "neutral";
     return (
         <div className="rounded-lg bg-muted/40 p-2.5">
             <div className="flex items-center justify-between gap-2">
@@ -54,7 +54,9 @@ function SectionCard({
                     {icon}
                     {title}
                 </span>
-                <span className={cn("rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide", stateStyle)}>{section.state}</span>
+                <Chip tone={tone} className="font-medium uppercase tracking-wide">
+                    {section.state}
+                </Chip>
             </div>
             {section.available ? (
                 <ul className="mt-1.5 space-y-1">
@@ -75,30 +77,29 @@ function SectionCard({
 export function ProTradingViewContextPanel({ context }: { context: TradingViewContextPayload | null }) {
     if (!context) {
         return (
-            <section className="rounded-lg border border-border bg-card">
-                <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
-                    <Zap size={14} className="text-muted-foreground" />
-                    <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                    <span className="ml-auto rounded-full border border-border/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-muted text-muted-foreground">OFF</span>
-                </div>
+            <Panel>
+                <PanelHeader
+                    icon={<Zap size={14} />}
+                    title="TradingView Context"
+                    right={<Chip className="font-medium uppercase tracking-wide">OFF</Chip>}
+                />
                 <p className="px-3 py-3 text-micro text-muted-foreground">
                     Not loaded. Connect TradingView in Account → Settings → Integrations to add external context here.
                 </p>
-            </section>
+            </Panel>
         );
     }
 
     const allUnavailable = [context.technicals, context.news, context.economicCalendar].every((s) => !s?.available);
 
     return (
-        <section className="rounded-lg border border-border bg-card">
-            <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
-                <Zap size={14} className="text-info" />
-                <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">TradingView Context</h2>
-                <span className="rounded-full border border-info/40 px-1 py-0.5 text-micro font-medium uppercase tracking-wide bg-info/10 text-info">BETA</span>
-                <span className="ml-auto text-micro text-muted-foreground">external · may be delayed</span>
-            </div>
-
+        <Panel>
+            <PanelHeader
+                icon={<Zap size={14} />}
+                title="TradingView Context"
+                meta={<Chip tone="info" className="font-medium uppercase tracking-wide">BETA</Chip>}
+                right={<span className="text-micro text-muted-foreground">external · may be delayed</span>}
+            />
             <div className="grid gap-2 p-2.5 sm:grid-cols-3">
                 <SectionCard icon={<Zap size={11} className="text-info" />} title="Technicals" section={context.technicals} />
                 <SectionCard icon={<Newspaper size={11} className="text-info" />} title="News" section={context.news} />
@@ -118,6 +119,6 @@ export function ProTradingViewContextPanel({ context }: { context: TradingViewCo
                     context only — it never drives the live chart price or the deterministic signal scanner.
                 </span>
             </p>
-        </section>
+        </Panel>
     );
 }

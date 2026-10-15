@@ -79,12 +79,13 @@ import {
 import {
     MAGNET_TOOLS,
     hitTestDrawing,
-    positionLevels,
+    positionPrices,
     removeDrawingById,
     resolveMarketPointToPixel,
     resolvePriceY,
     resolveTimeX,
     resolvedFiboLevels,
+    setPositionStop,
     snapToOHLC,
     toolCommitsDrawing,
     moveDrawingPointByMarketDelta,
@@ -94,7 +95,6 @@ import {
     updateDrawingLabel,
     type DrawingGeom,
     type MarketTimeTransform,
-    type PositionSide,
 } from "./drawing-utils";
 import { ChevronLeft, ChevronRight, Gauge, History, Pause, Pencil, Play, RotateCcw, SkipForward, Trash2 } from "lucide-react";
 import { aiDrawLevels, computeAiDrawPlan, type AiDrawPlan } from "@/lib/chart-engine/ai-draw";
@@ -157,6 +157,14 @@ export type DrawingItem = {
      * added later without a migration (existing 2-point drawings unaffected).
      */
     fiboLevels?: readonly number[];
+    /**
+     * Optional stop price for the "Enter Long" / "Enter Short" position tools.
+     * Absent on every drawing placed before the stop became independently
+     * draggable — `positionPrices` then falls back to the default risk:reward
+     * derivation, so 2-point position drawings are unaffected. When present it
+     * is the SL level the user dragged, and the R:R tag is measured from it.
+     */
+    stop?: number;
     /** Stroke width captured when the drawing was placed (tool settings). */
     width?: number;
     /** Stroke style captured when the drawing was placed (tool settings). */
@@ -443,8 +451,8 @@ const DRAWING_TOOL_HINTS: Record<DrawingTool, string> = {
     text: "Click, type a label, Enter saves",
     ruler: "Drag to measure price / time",
     triangle: "Drag to draw a triangle (right-angled on the drag diagonal)",
-    long: "Drag from entry to target — a LONG plan with a stop-loss and take-profit box",
-    short: "Drag from entry to target — a SHORT plan with a stop-loss and take-profit box",
+    long: "Drag entry → target; drag the red SL line to change the risk — the R:R is measured",
+    short: "Drag entry → target; drag the red SL line to change the risk — the R:R is measured",
 };
 /** Panning within this many bars of the loaded window's left edge triggers an older-page load. */
 const HISTORY_LOAD_THRESHOLD_BARS = 6;
@@ -616,6 +624,7 @@ function sameDrawingList(a: DrawingItem[], b: DrawingItem[]): boolean {
             left.color !== right.color ||
             left.width !== right.width ||
             left.lineStyle !== right.lineStyle ||
+            left.stop !== right.stop ||
             left.points.length !== right.points.length
         ) {
             return false;
@@ -984,6 +993,12 @@ export function ProTerminalChart({
         _dragMode?: "line";
         _lineRef?: TradePriceLine;
         resizePoint?: number;
+        /**
+         * Set while the user is dragging a position drawing's SL line. The stop
+         * is a price, not a stored point, so it has its own drag slot instead
+         * of overloading `resizePoint`.
+         */
+        stopId?: string;
     } | null>(null);
     // Double-click detection for the select tool (second tap edits a label).
     const lastSelectClickRef = useRef<{ id: string; at: number } | null>(null);
@@ -1307,6 +1322,21 @@ export function ProTerminalChart({
         () => replaySlice ?? (sessionOpen || pause === null ? liveCandles : pause.candles),
         [replaySlice, sessionOpen, pause, liveCandles]
     );
+
+    // Keep the market→bar-index mirror in sync with the charted candles and the
+    // active timeframe's interval. The drawing tools, the magnet and the
+    // anchored-overlay bridge all read these refs (never during render), and
+    // `snapTime` is a NO-OP while the mirror is empty: it must map an arbitrary
+    // cursor time onto a real bar, but with no bars to snap against it hands the
+    // raw value straight through. Every anchor that is not an exact bar
+    // timestamp — which is precisely what `coordinateToTime` returns inside the
+    // right-hand margin — then cannot be resolved back by `timeToCoordinate`, so
+    // the object was committed and immediately invisible ("I draw and it
+    // disappears"). Assigning here is what makes the snap real.
+    useEffect(() => {
+        candlesMirrorRef.current = candles;
+        intervalMsRef.current = intervalMs;
+    }, [candles, intervalMs]);
 
     const replayTotal =
         liveCandles.length > 0
@@ -1887,21 +1917,29 @@ export function ProTerminalChart({
         const pixelToTime = (x: number): number => {
             try {
                 const ts = chart.timeScale().coordinateToTime(x);
-                // lightweight-charts returns null when x lands in a whitespace
-                // area or before the first bar. Date.now() can never be
-                // resolved back to a candle, so fall back to the nearest
-                // real candle in the mirror so every drawing keeps a
-                // timeToCoordinate-resolvable timestamp.
+                // lightweight-charts returns null when x lands past the first or
+                // last bar (the empty margin) and, in the right-hand margin,
+                // interpolates a CONTINUOUS time that no bar carries. A raw
+                // `null * 1000` would collapse to 0 (a 1970 stamp) and an
+                // interpolated value is not a bar either — both are impossible
+                // for `timeToCoordinate` to resolve, which silently deleted a
+                // drawing placed near the live edge. Clamp to the nearest real
+                // bar in the mirror so every anchor stays resolvable.
                 if (ts) return (ts as number) * 1000;
 
-                const idx = barIndexForTime(
-                    candlesMirrorRef.current,
-                    Date.now(),
-                    intervalMsRef.current
-                );
-                const candle = candlesMirrorRef.current[idx];
-                return candle?.timestamp ?? Date.now();
-            } catch { return candlesMirrorRef.current[0]?.timestamp ?? Date.now(); }
+                const mirror = candlesMirrorRef.current;
+                if (mirror.length === 0) return Date.now();
+                const first = mirror[0].timestamp;
+                const last = mirror[mirror.length - 1].timestamp;
+                const xFirst = chart.timeScale().timeToCoordinate(Math.floor(first / 1000) as UTCTimestamp);
+                const xLast = chart.timeScale().timeToCoordinate(Math.floor(last / 1000) as UTCTimestamp);
+                if (typeof xLast === "number" && x >= xLast) return last;
+                if (typeof xFirst === "number" && x <= xFirst) return first;
+                return last;
+            } catch {
+                const mirror = candlesMirrorRef.current;
+                return mirror[mirror.length - 1]?.timestamp ?? Date.now();
+            }
         };
 
         /**
@@ -1910,7 +1948,7 @@ export function ProTerminalChart({
          * never invents a pixel, never matches a hidden drawing, and never
          * mutates the drawing's market data.
          */
-        const hitTestAt = (x: number, y: number, w: number, h: number): (DrawingItem & { hitKind?: 'move'|'resize'; pointIndex?: 0|1 }) | null => {
+        const hitTestAt = (x: number, y: number, w: number, h: number): (DrawingItem & { hitKind?: 'move'|'resize'|'stop'; pointIndex?: 0|1 }) | null => {
             const cs = candleSeriesRef.current;
             if (!cs) return null;
             const fontSize = cfgRef.current.tools.fontSize;
@@ -1938,6 +1976,20 @@ export function ProTerminalChart({
                     if (!a || !b) continue;
                     x1 = a.x; y1 = a.y; x2 = b.x; y2 = b.y;
                 }
+                // One position resolver for the boxes and the SL line (the same
+                // one the renderer paints with). Undefined when a level cannot
+                // resolve — the object is then skipped rather than faked.
+                const position = (() => {
+                    if (d.type !== "long" && d.type !== "short") return undefined;
+                    const plan = positionPrices(d);
+                    if (!plan) return undefined;
+                    const entryY = resolvePriceY(plan.entry, cs);
+                    const stopY = resolvePriceY(plan.stop, cs);
+                    const targetY = resolvePriceY(plan.target, cs);
+                    return entryY === null || stopY === null || targetY === null
+                        ? undefined
+                        : { entryY, stopY, targetY };
+                })();
                 const geom: DrawingGeom = {
                     x1,
                     y1,
@@ -1952,28 +2004,16 @@ export function ProTerminalChart({
                     ...(d.type === "fibo"
                         ? { fiboLevels: resolvedFiboLevels(d, cfgRef.current.tools.fiboLevels) }
                         : {}),
-                    // Position plans resolve their stop/target pixel levels
-                    // through the same `positionLevels` derivation the renderer
-                    // paints with, so the clickable boxes match the drawn boxes.
-                    ...(d.type === "long" || d.type === "short"
-                        ? {
-                            position: (() => {
-                                const side: PositionSide = d.type === "long" ? "long" : "short";
-                                const lv = positionLevels(p1.price, p2.price, side);
-                                const entryY = resolvePriceY(lv.entry, cs);
-                                const stopY = resolvePriceY(lv.stop, cs);
-                                const targetY = resolvePriceY(lv.target, cs);
-                                return entryY === null || stopY === null || targetY === null
-                                    ? undefined
-                                    : { entryY, stopY, targetY };
-                            })(),
-                        }
-                        : {}),
+                    // Position plans resolve their entry/stop/target pixel
+                    // levels through the same `positionPrices` resolver the
+                    // renderer paints with, so the clickable boxes match the
+                    // drawn boxes (including a dragged stop).
+                    ...(position ? { position } : {}),
                 };
                 // Check handles first (resize)
+                const handleRadius = 10;
                 const isTwoPoint = d.points.length >= 2;
                 if (isTwoPoint) {
-                    const handleRadius = 10;
                     const dist0 = Math.hypot(x - x1, y - y1);
                     const dist1 = Math.hypot(x - x2, y - y2);
                     if (dist0 <= handleRadius) {
@@ -1982,6 +2022,44 @@ export function ProTerminalChart({
                     if (dist1 <= handleRadius) {
                         return { ...d, hitKind: 'resize', pointIndex: 1 };
                     }
+                    // Edge midpoint handles for axis-aligned shapes (rectangles)
+                    if (d.type === "rectangle") {
+                        const minX = Math.min(x1, x2);
+                        const maxX = Math.max(x1, x2);
+                        const minY = Math.min(y1, y2);
+                        const maxY = Math.max(y1, y2);
+                        const midY = (minY + maxY) / 2;
+                        const midX = (minX + maxX) / 2;
+                        // left edge midpoint
+                        if (Math.hypot(x - minX, y - midY) <= handleRadius) {
+                            return { ...d, hitKind: 'resize', pointIndex: 0 };
+                        }
+                        // right edge midpoint
+                        if (Math.hypot(x - maxX, y - midY) <= handleRadius) {
+                            return { ...d, hitKind: 'resize', pointIndex: 1 };
+                        }
+                        // top/bottom edge midpoints: map to point 0 or 1 depending on which corner they affect
+                        if (Math.hypot(x - midX, y - minY) <= handleRadius) {
+                            // top edge — affects the top corner (point 0 or 1 depending on which has smaller y)
+                            const topIdx = y1 < y2 ? 0 : 1;
+                            return { ...d, hitKind: 'resize', pointIndex: topIdx };
+                        }
+                        if (Math.hypot(x - midX, y - maxY) <= handleRadius) {
+                            const bottomIdx = y1 > y2 ? 0 : 1;
+                            return { ...d, hitKind: 'resize', pointIndex: bottomIdx };
+                        }
+                    }
+                }
+                // The SL line of a position plan is its own drag target: grab
+                // it anywhere along the box to move the stop and re-measure the
+                // R:R. Checked before the body so a stop drag never becomes a
+                // whole-plan move.
+                if (position) {
+                    const onStopLine =
+                        Math.abs(y - position.stopY) <= handleRadius &&
+                        x >= Math.min(x1, x2) - handleRadius &&
+                        x <= Math.max(x1, x2) + handleRadius;
+                    if (onStopLine) return { ...d, hitKind: 'stop' };
                 }
                 if (hitTestDrawing(d.type, geom, x, y)) return { ...d, hitKind: 'move' };
             }
@@ -2059,6 +2137,7 @@ export function ProTerminalChart({
                         pointerStartPrice,
                         pointerStartTime,
                         ...(hit.hitKind === 'resize' ? { resizePoint: hit.pointIndex } : {}),
+                        ...(hit.hitKind === 'stop' ? { stopId: hit.id } : {}),
                     };
                     try {
                         container.setPointerCapture(e.pointerId);
@@ -2164,6 +2243,18 @@ export function ProTerminalChart({
                 return;
             }
 
+            if (dp.stopId) {
+                // Dragging a position drawing's SL line: the stop is a price,
+                // not a stored point, so it moves on its own axis. Recomputed
+                // from the original plan each frame (no delta accumulation).
+                const stopPrice = pixelToPrice(x, y);
+                setDrawingPreview(null);
+                setDrawingElements(drawingsRef.current.map((drawing) =>
+                    drawing.id === dp.stopId ? setPositionStop(drawing, stopPrice) : drawing
+                ));
+                return;
+            }
+
             if (dp.moveId) {
                 // Render a temporary, market-coordinate translation from the
                 // original anchors; do not accumulate deltas frame by frame.
@@ -2224,10 +2315,32 @@ export function ProTerminalChart({
                 return mirror[mirror.length - 1].timestamp;
             };
             const endTime = snapTime(pixelToTime(x));
+            // Both anchors must land on a real bar. `pixelToTime` returns the
+            // time under the cursor, which is usually between bars; only the
+            // end anchor used to be snapped, so the stored start time could
+            // not be resolved back by `timeToCoordinate` and the freshly
+            // drawn object vanished the moment the pointer was released (it
+            // still showed as a preview, which paints raw pixels).
+            const startTime = snapTime(dp.startTime);
 
             // Only add if the drag moved enough (filter accidental clicks).
             // For trade-line drags the commit path already returned above.
             const dist = Math.hypot(dp.curX - dp.startX, dp.curY - dp.startY);
+            // Stop-line drag commit: the SL price is final; drop it onto the
+            // stored plan (clamped to the risk side) and record nothing about
+            // the times.
+            if (dp.stopId) {
+                const stopPrice = pixelToPrice(x, y);
+                const committed = drawingsRef.current.map((drawing) =>
+                    drawing.id === dp.stopId ? setPositionStop(drawing, stopPrice) : drawing
+                );
+                commitDrawings(committed);
+                drawingInProgressRef.current = null;
+                setDrawingPreview(null);
+                setSelectedDrawingId(dp.stopId);
+                return;
+            }
+
             if (dp.moveId) {
                 const deltaPrice = endPrice - (dp.pointerStartPrice ?? dp.startPrice);
                 const deltaTimeMs = endTime - (dp.pointerStartTime ?? dp.startTime);
@@ -2275,7 +2388,7 @@ export function ProTerminalChart({
                     id: `d_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
                     type: dp.tool,
                     points: [
-                        { time: dp.startTime, price: dp.startPrice },
+                        { time: startTime, price: dp.startPrice },
                         { time: endTime, price: endPrice },
                     ],
                     color: toolStyle.color,

@@ -233,6 +233,7 @@ when touching those lines.
 **Rules:**
 
 - **11px is the floor in-app.** Replace `text-[9px]/[10px]` with the micro utility.
+- **Terminal status chips/badges use `text-[10px] leading-none px-1 py-px rounded border`** — a square-cornered tag shape rather than a full pill. This keeps the dense terminal surfaces readable without badges dominating the layout. Use `rounded-full` pills only on marketing or account-management surfaces, never inside chart workspaces or panel tables.
 - Short headings get `text-balance`; prose gets `text-pretty`.
 - Uppercase micro-labels only for eyebrows/group/chip labels with wide tracking. Never
   uppercase a sentence.

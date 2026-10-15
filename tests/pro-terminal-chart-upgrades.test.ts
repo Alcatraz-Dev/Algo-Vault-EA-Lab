@@ -39,10 +39,14 @@ import { isMarketTradableAt } from "../lib/chart-engine/timeframe";
 import {
     MAGNET_TOOLS,
     extendRayToBounds,
+    formatRiskReward,
     hitTestDrawing,
+    positionLevels,
+    positionPrices,
     removeDrawingById,
     resolveMarketPointToPixel,
     resolvedFiboLevels,
+    setPositionStop,
     snapToOHLC,
     toolCommitsDrawing,
     translateDrawingByMarketDelta,
@@ -788,6 +792,44 @@ check("hand never commits a drawing; select neither; placement needs a drag", ()
     assert(CHART_SOURCE.includes('if (tool === "hand")'), "pointer-down early-returns for hand");
     assert(CHART_SOURCE.includes("toolCommitsDrawing(dp.tool, dist)"), "pointer-up gates commit on toolCommitsDrawing");
 });
+check("both anchors of a new drawing land on real bars (no vanish-on-release)", () => {
+    // `timeToCoordinate` only resolves an exact bar timestamp (see the
+    // coordinate-contract check above), so a persisted anchor must never keep
+    // the raw `pixelToTime` value: that renders as a preview (raw pixels) and
+    // then disappears the instant the pointer is released.
+    assert(CHART_SOURCE.includes("const endTime = snapTime(pixelToTime(x))"), "end anchor is snapped");
+    assert(CHART_SOURCE.includes("const startTime = snapTime(dp.startTime)"), "start anchor is snapped too");
+    assert(
+        CHART_SOURCE.includes("{ time: startTime, price: dp.startPrice }") &&
+            CHART_SOURCE.includes("{ time: endTime, price: endPrice }"),
+        "the created drawing stores both snapped times"
+    );
+    assert(
+        !CHART_SOURCE.includes("{ time: dp.startTime, price: dp.startPrice }"),
+        "no persisted anchor keeps the raw cursor time"
+    );
+    // Drags and resizes re-snap every point after the transform.
+    assert(
+        CHART_SOURCE.includes("time: pt.time !== undefined && pt.time !== null ? snapTime(pt.time) : pt.time"),
+        "move/resize re-snaps every stored point"
+    );
+});
+check("the market→bar mirror is actually populated (otherwise the snap is a no-op)", () => {
+    // `snapTime` maps a cursor time onto a real bar through `candlesMirrorRef`.
+    // While that ref is empty the helper short-circuits and returns the raw
+    // value, so a non-bar time — exactly what `coordinateToTime` returns in the
+    // right-hand margin — is stored and can never be resolved back. The drawing
+    // is committed and immediately invisible. Keep the refs assigned.
+    assert(CHART_SOURCE.includes("candlesMirrorRef.current = candles"), "the candle mirror is assigned");
+    assert(CHART_SOURCE.includes("intervalMsRef.current = intervalMs"), "the timeframe interval is assigned");
+    assert(
+        CHART_SOURCE.includes("useEffect(() => {\n        candlesMirrorRef.current = candles;"),
+        "the mirror is refreshed in an effect (the refs are read outside render)"
+    );
+    // The null-coordinate fallback must clamp to a real bar, never Date.now()
+    // (an arbitrary ms stamp no candle carries) or a bare 0 (a 1970 stamp).
+    assert(!CHART_SOURCE.includes("const idx = barIndexForTime(\n                    candlesMirrorRef.current,\n                    Date.now()"), "the old Date.now()-based fallback is gone");
+});
 check("triangle: deterministic third vertex, real polygon renderer", () => {
     assertEqual(triangleVertices(10, 20, 110, 80), [[10, 20], [110, 80], [10, 80]], "third vertex derived from the two stored points");
     // Phase 3E: the branch moved to DrawingRenderer and paints its polygon
@@ -821,6 +863,101 @@ check("ray extends from anchor toward p2 to the container boundary", () => {
     assert(hitTestDrawing("ray", g, 700, 360, 8), "hit far past p2 on the extended ray");
     assert(!hitTestDrawing("ray", g, 700, 100, 8), "off-axis point misses");
     assert(DRAWING_RENDERER_SOURCE.includes("extendRayToBounds("), "renderer uses the shared extension helper");
+});
+
+console.log("Phase 0: position plans — draggable stop, measured R:R");
+check("a new plan has no stored stop and derives the default 1:2", () => {
+    const d: DrawingItem = {
+        id: "pos1",
+        type: "long",
+        points: [{ time: 1_700_000_000_000, price: 100 }, { time: 1_700_000_600_000, price: 110 }],
+    };
+    const plan = positionPrices(d);
+    assertEqual(plan?.entry, 100, "entry is point 0's price");
+    assertEqual(plan?.target, 110, "target is point 1's price");
+    assertEqual(plan?.stop, 95, "stop derives at the default risk:reward (below the entry)");
+    assertEqual(plan?.side, "long", "side comes from the tool");
+    assertEqual(formatRiskReward(100, 110, 95), "1:2", "the tag reads the derived 1:2");
+});
+check("dragging the stop stores it and re-measures the R:R", () => {
+    const d: DrawingItem = {
+        id: "pos2",
+        type: "long",
+        points: [{ time: 1_700_000_000_000, price: 100 }, { time: 1_700_000_600_000, price: 110 }],
+    };
+    // Reward 10, risk 5 → 1:2 (derived), then drag the stop to 97.5 → risk 2.5 → 1:4.
+    assertEqual(formatRiskReward(100, 110, 95), "1:2", "before the drag");
+    const moved = setPositionStop(d, 97.5);
+    assertEqual(moved.stop, 97.5, "the stop price is stored on the drawing");
+    const plan = positionPrices(moved);
+    assertEqual(plan?.stop, 97.5, "the resolver reads the stored stop");
+    assertEqual(formatRiskReward(100, 110, 97.5), "1:4", "the tag is now measured, not a constant");
+    // Non-integer ratios are shown to two decimals, never rounded to a lie.
+    assertEqual(formatRiskReward(100, 110, 94.4), "1:1.79", "1:1.79 is displayed as measured");
+    assertEqual(moved.points, d.points, "the two time anchors are untouched by a stop drag");
+});
+check("the stop is clamped to the risk side of the entry", () => {
+    const long: DrawingItem = {
+        id: "l",
+        type: "long",
+        points: [{ time: 1, price: 100 }, { time: 2, price: 110 }],
+    };
+    const short: DrawingItem = {
+        id: "s",
+        type: "short",
+        points: [{ time: 1, price: 100 }, { time: 2, price: 90 }],
+    };
+    // A long's stop can never cross above its entry; a short's never below.
+    assertEqual(setPositionStop(long, 130).stop, 100, "long stop clamps at the entry");
+    assertEqual(setPositionStop(short, 70).stop, 100, "short stop clamps at the entry");
+    assertEqual(setPositionStop(long, 90).stop, 90, "a legal long stop is kept");
+    assertEqual(setPositionStop(short, 110).stop, 110, "a legal short stop is kept");
+});
+check("a degenerate plan reports no ratio instead of 1:∞", () => {
+    assertEqual(formatRiskReward(100, 110, 100), "—", "zero risk → dash");
+    assertEqual(formatRiskReward(100, 100, 95), "—", "zero reward → dash");
+    assertEqual(formatRiskReward(100, 110, Number.NaN), "—", "NaN stop → dash");
+    // Zero-size drags stay coherent: entry === target === stop.
+    const flat = positionLevels(100, 100, "long");
+    assertEqual([flat.entry, flat.target, flat.stop], [100, 100, 100], "flat plan collapses to one price");
+});
+check("non-position drawings are never touched by a stop drag", () => {
+    const trend: DrawingItem = {
+        id: "t",
+        type: "trendline",
+        points: [{ time: 1, price: 100 }, { time: 2, price: 110 }],
+    };
+    assertEqual(setPositionStop(trend, 95), trend, "returns the same object unchanged");
+    assertEqual(positionPrices(trend), null, "no prices for a non-position tool");
+});
+check("moving the whole plan carries its stop with it", () => {
+    const d: DrawingItem = {
+        id: "p",
+        type: "long",
+        points: [{ time: 1_000, price: 100 }, { time: 2_000, price: 110 }],
+        stop: 97.5,
+    };
+    // Drag the plan up 5 price units: entry, target AND stop all move 5.
+    const moved = translateDrawingByMarketDelta(d, 0, 5);
+    assertEqual(moved.points.map((p) => p.price), [105, 115], "both anchors translate");
+    assertEqual(moved.stop, 102.5, "the stop translates too — the boxes keep their shape");
+    assertEqual(formatRiskReward(105, 115, 102.5), formatRiskReward(100, 110, 97.5), "R:R is unchanged by a pure move");
+    // A plan with no stored stop derives it, so there is nothing to shift.
+    const derived: DrawingItem = { id: "q", type: "long", points: [{ time: 1, price: 100 }, { time: 2, price: 110 }] };
+    assertEqual(translateDrawingByMarketDelta(derived, 0, 5).stop, undefined, "no stop invented by a move");
+});
+check("renderer, hit-test and label share one position resolver", () => {
+    // The R:R is measured from the plan, so the renderer must not hold a
+    // constant, and both consumers must read `positionPrices`.
+    assert(
+        DRAWING_RENDERER_SOURCE.includes("positionPrices(d)") &&
+            DRAWING_RENDERER_SOURCE.includes("formatRiskReward("),
+        "renderer resolves and measures the plan"
+    );
+    assert(!DRAWING_RENDERER_SOURCE.includes("POSITION_RISK_REWARD > 0 ? `1:${POSITION_RISK_REWARD}`"), "renderer no longer prints a constant ratio");
+    assert(CHART_SOURCE.includes("positionPrices(d)"), "hit-test uses the same resolver");
+    assert(CHART_SOURCE.includes("setPositionStop(drawing, stopPrice)"), "the stop drag commits through the shared helper");
+    assert(CHART_SOURCE.includes("hitKind === 'stop'") || CHART_SOURCE.includes("hitKind: 'stop'"), "the SL line is its own hit kind");
 });
 
 console.log("Phase 0: fibonacci shared source of truth");

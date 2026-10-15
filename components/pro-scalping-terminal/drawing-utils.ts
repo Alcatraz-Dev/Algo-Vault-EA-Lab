@@ -92,6 +92,65 @@ export function positionLevels(
     };
 }
 
+/** The three market prices of a position plan, plus the tool's side. */
+export interface PositionPrices {
+    side: PositionSide;
+    entry: number;
+    target: number;
+    stop: number;
+}
+
+/**
+ * The three prices of a position drawing. `points[0]` is the entry and
+ * `points[1]` the target (the vertical drag distance IS the reward); the stop
+ * is the drawing's own stored `stop` price once the user has dragged the SL
+ * line, and otherwise the default risk:reward derivation. One resolver feeds
+ * the painter, the hit-test and the R:R label, so they cannot disagree.
+ */
+export function positionPrices(d: DrawingItem): PositionPrices | null {
+    if (d.type !== "long" && d.type !== "short") return null;
+    const entryPoint = d.points[0];
+    const targetPoint = d.points[1];
+    if (!entryPoint || !targetPoint) return null;
+    const entry = entryPoint.price;
+    const target = targetPoint.price;
+    if (!Number.isFinite(entry) || !Number.isFinite(target)) return null;
+    const side: PositionSide = d.type === "long" ? "long" : "short";
+    const stop =
+        typeof d.stop === "number" && Number.isFinite(d.stop)
+            ? d.stop
+            : positionLevels(entry, target, side).stop;
+    return { side, entry, target, stop };
+}
+
+/**
+ * Move a position plan's stop to a new price, clamped to the risk side of the
+ * entry (below for a long, above for a short) so the stop and target boxes can
+ * never swap places. A non-position drawing or an unusable price returns the
+ * drawing unchanged, so a stray drag is a no-op rather than a corrupt plan.
+ */
+export function setPositionStop(d: DrawingItem, stopPrice: number): DrawingItem {
+    if ((d.type !== "long" && d.type !== "short") || !Number.isFinite(stopPrice)) return d;
+    const entry = d.points[0]?.price;
+    if (typeof entry !== "number" || !Number.isFinite(entry)) return d;
+    const stop = d.type === "long" ? Math.min(stopPrice, entry) : Math.max(stopPrice, entry);
+    return { ...d, stop };
+}
+
+/**
+ * The R:R label a position plan shows. MEASURED from the plan's own prices —
+ * |target − entry| over |entry − stop| — never a constant, so the tag stays
+ * honest after the stop is dragged. A degenerate plan (zero reward or zero
+ * risk) has no ratio and reads "—" instead of "1:∞".
+ */
+export function formatRiskReward(entry: number, target: number, stop: number): string {
+    const reward = Math.abs(target - entry);
+    const risk = Math.abs(entry - stop);
+    if (!(reward > 0) || !(risk > 0)) return "—";
+    const rounded = Math.round((reward / risk) * 100) / 100;
+    return `1:${Number.isInteger(rounded) ? rounded : rounded.toFixed(2)}`;
+}
+
 // ── market → pixel resolution (the coordinate contract) ──────────────
 //
 // Every persistent chart object is stored in MARKET coordinates
@@ -420,7 +479,7 @@ export function translateDrawingByMarketDelta(
     deltaPrice: number,
 ): DrawingItem {
     if (!Number.isFinite(deltaTimeMs) || !Number.isFinite(deltaPrice)) return drawing;
-    return {
+    const translated: DrawingItem = {
         ...drawing,
         points: drawing.points.map((point) => ({
             ...point,
@@ -428,6 +487,11 @@ export function translateDrawingByMarketDelta(
             price: (point.price ?? 0) + deltaPrice,
         })),
     };
+    // A position plan's stop is an absolute price alongside the two points, so
+    // moving the whole plan must carry it along — otherwise the boxes tear apart.
+    return typeof drawing.stop === "number" && Number.isFinite(drawing.stop)
+        ? { ...translated, stop: drawing.stop + deltaPrice }
+        : translated;
 }
 
 /**

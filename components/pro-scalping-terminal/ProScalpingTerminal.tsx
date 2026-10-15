@@ -49,8 +49,11 @@ import { CrossAssetPanel } from "./CrossAssetPanel";
 import type { ChartType, DrawingTool, DrawingItem } from "./ProTerminalChart";
 import {
     CalendarPanel,
+    Chip,
     LiquidityPanel,
     MtfPanel,
+    Panel,
+    PanelHeader,
     RadarMiniPanel,
     RegimeStrip,
     SessionsPanel,
@@ -220,8 +223,10 @@ export function ProScalpingTerminal() {
 
     if (!token) {
         return (
-            <div className="rounded-lg border border-border bg-card p-8 text-center">
-                <TerminalIcon className="mx-auto size-5 text-muted-foreground" />
+            <div className="rounded-xl border border-border bg-card p-8 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                <span className="mx-auto grid size-10 place-items-center rounded-xl border border-border bg-muted/50 text-muted-foreground">
+                    <TerminalIcon className="size-5" />
+                </span>
                 <p className="mt-3 text-sm text-muted-foreground">Authenticating the terminal…</p>
             </div>
         );
@@ -230,31 +235,23 @@ export function ProScalpingTerminal() {
     return (
         <div className="flex min-w-0 flex-col gap-3">
             {/* ── command bar ─────────────────────────────────────────────── */}
-            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">
-                <div className="flex min-w-0 items-center gap-2">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                        <TerminalIcon className="size-3.5" />
-                    </div>
-                    <div className="min-w-0 leading-none">
-                        <div className="flex items-center gap-1.5">
-                            <span className="truncate text-sm font-semibold tracking-tight text-foreground">AlgoVault Pro</span>
-                            <span className="rounded border border-primary/30 px-1 py-0.5 text-micro font-bold tracking-wider text-primary">
-                                PRO
-                            </span>
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
-                            <span>{symbol}</span>
-                            <span className="text-border">·</span>
-                            <span>{timeframe}</span>
-                            <span className="text-border">·</span>
-                            <span className="tabular-nums">{fmtTime(now)}</span>
-                        </div>
-                    </div>
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+                {/* Symbol · timeframe · clock */}
+                <div className="flex min-w-0 items-center gap-1.5 text-sm">
+                    <span className="font-semibold tracking-tight text-foreground">{symbol}</span>
+                    <span className="text-border/70">·</span>
+                    <span className="text-xs text-muted-foreground">{timeframe}</span>
+                    <span className="text-border/70">·</span>
+                    <span className="font-numeric text-xs tabular-nums text-muted-foreground">{fmtTime(now)}</span>
                 </div>
 
+                {/* Separator */}
+                <div className="h-4 w-px shrink-0 bg-border" />
+
+                {/* Price */}
                 {lastPrice !== null ? (
-                    <div className="flex items-baseline gap-1.5 px-1">
-                        <span className="font-numeric text-lg font-semibold tabular-nums text-foreground">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="font-numeric text-sm font-semibold tabular-nums text-foreground">
                             {lastPrice >= 100 ? lastPrice.toFixed(2) : lastPrice.toFixed(5)}
                         </span>
                         <span
@@ -268,30 +265,38 @@ export function ProScalpingTerminal() {
                     </div>
                 ) : null}
 
-                <div className="ml-auto flex flex-wrap items-center gap-1.5">
+                {/* Right-side controls */}
+                <div className="ml-auto flex items-center gap-1.5">
                     <CandelToolbarButton
                         symbol={symbol}
                         timeframe={timeframe}
                         openPanel={() => {}}
                     />
+
+                    {/* Separator */}
+                    <div className="h-4 w-px bg-border" />
+
+                    {/* Live / Paused toggle */}
                     <button
                         type="button"
                         onClick={() => setPollMs((p) => (p === 0 ? 30_000 : 0))}
                         className={cn(
-                            "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs transition",
+                            "inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs font-medium transition",
                             pollMs === 0
-                                ? "border-warning/40 bg-warning/10 text-warning"
-                                : "border-positive/40 bg-positive/10 text-positive"
+                                ? "border-warning/30 bg-warning/10 text-warning hover:bg-warning/15"
+                                : "border-positive/30 bg-positive/10 text-positive hover:bg-positive/15"
                         )}
                         aria-label={pollMs === 0 ? "Resume live polling" : "Pause live polling"}
                     >
                         {pollMs === 0 ? <Pause className="size-3" /> : <Play className="size-3" />}
                         {pollMs === 0 ? "Paused" : "Live"}
                     </button>
+
+                    {/* Poll interval */}
                     <select
                         value={pollMs}
                         onChange={(e) => setPollMs(Number(e.target.value))}
-                        className="rounded-md border border-border bg-background px-1.5 py-1 text-xs outline-none focus:border-primary/50"
+                        className="h-7 rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none transition focus:border-primary/50 hover:bg-muted"
                         aria-label="Poll interval"
                     >
                         <option value={0}>Off</option>
@@ -300,20 +305,24 @@ export function ProScalpingTerminal() {
                         <option value={60000}>60s</option>
                         <option value={300000}>5m</option>
                     </select>
+
+                    {/* Refresh */}
                     <button
                         type="button"
                         onClick={refreshAll}
-                        className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        className="inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
                         aria-label="Refresh all data"
                     >
                         <RefreshCw className={cn("size-3", (quotes.loading || radar.loading || analysis.loading) && "animate-spin")} />
                         Refresh
                     </button>
+
+                    {/* Risk */}
                     <button
                         type="button"
                         onClick={() => setRiskOpen((o) => !o)}
                         aria-expanded={riskOpen}
-                        className="rounded-md border border-border bg-background px-2 py-1 text-xs transition hover:bg-muted"
+                        className="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     >
                         Risk
                     </button>
@@ -321,7 +330,7 @@ export function ProScalpingTerminal() {
 
                 {/* Risk calculator drawer */}
                 {riskOpen ? (
-                    <div className="w-full rounded-md border border-border bg-background p-2.5">
+                    <div className="w-full rounded-lg border border-border bg-muted/30 p-3">
                         <RiskCalculator
                             symbol={symbol}
                             price={lastPrice}
@@ -344,14 +353,14 @@ export function ProScalpingTerminal() {
             ) : null}
 
             {/* ── mobile view switch ──────────────────────────────────────── */}
-            <div className="flex gap-1 rounded-lg border border-border bg-card p-1 lg:hidden">
+            <div className="flex gap-1 rounded-xl border border-border bg-card p-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:hidden">
                 {(["chart", "panels"] as const).map((v) => (
                     <button
                         key={v}
                         type="button"
                         onClick={() => setMobileView(v)}
                         className={cn(
-                            "flex-1 rounded-md px-2 py-1.5 text-xs font-medium capitalize transition",
+                            "flex-1 rounded-lg px-2 py-1.5 text-xs font-medium capitalize transition",
                             mobileView === v ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                         )}
                         aria-pressed={mobileView === v}
@@ -385,7 +394,7 @@ export function ProScalpingTerminal() {
                                 type="button"
                                 onClick={() => setLayersOpen((o) => !o)}
                                 aria-expanded={layersOpen}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-1 text-xs transition hover:bg-muted"
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 text-xs transition hover:bg-muted"
                             >
                                 <Layers className="size-3.5" />
                                 Overlays
@@ -393,13 +402,13 @@ export function ProScalpingTerminal() {
                                     {Object.values(layers).filter(Boolean).length}
                                 </span>
                             </button>
-                            <span className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-micro text-muted-foreground" title="This terminal runs the deterministic measurement pipeline. It makes no LLM calls and consumes no AI budget.">
+                            <Chip title="This terminal runs the deterministic measurement pipeline. It makes no LLM calls and consumes no AI budget.">
                                 <Cpu className="size-3" />
                                 Deterministic · 0 AI spend
-                            </span>
+                            </Chip>
                         </div>
                         {layersOpen ? (
-                            <div className="rounded-lg border border-border bg-card p-2.5">
+                            <div className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                                 <LayerPicker layers={layers} availability={layerAvailability} onToggle={toggleLayer} />
                             </div>
                         ) : null}
@@ -458,7 +467,7 @@ export function ProScalpingTerminal() {
                     {/* timeframe picker */}
                     <div className="flex flex-wrap items-center gap-1.5">
                         <span className="text-xs text-muted-foreground">Execution TF</span>
-                        <div className="flex gap-0.5 rounded-lg border border-border bg-card p-0.5">
+                        <div className="flex gap-0.5 rounded-full border border-border bg-card p-0.5">
                             {TERMINAL_TIMEFRAMES.map((t) => (
                                 <button
                                     key={t}
@@ -466,7 +475,7 @@ export function ProScalpingTerminal() {
                                     onClick={() => setTimeframe(t)}
                                     aria-pressed={timeframe === t}
                                     className={cn(
-                                        "rounded-md px-2 py-1 font-numeric text-xs transition",
+                                        "rounded-full px-2.5 py-1 font-numeric text-xs transition",
                                         timeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"
                                     )}
                                 >
@@ -525,19 +534,24 @@ export function ProScalpingTerminal() {
                     />
                     <ProTerminalJournal trades={journalTrades} loading={journal.loading} error={journal.error} now={now} />
 
-                    <div className="rounded-lg border border-border bg-card p-3">
-                        <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-foreground">
-                            {pollMs === 0 ? <WifiOff className="size-3 text-warning" /> : <Wifi className="size-3 text-positive" />}
-                            Data status
-                        </h3>
-                        <ul className="mt-1.5 space-y-1 font-numeric text-micro text-muted-foreground">
+                    <Panel>
+                        <PanelHeader
+                            icon={pollMs === 0 ? <WifiOff className="size-3.5" /> : <Wifi className="size-3.5" />}
+                            title="Data status"
+                            right={
+                                <Chip tone={pollMs === 0 ? "warning" : "positive"} className="uppercase tracking-wide">
+                                    {pollMs === 0 ? "Paused" : "Live"}
+                                </Chip>
+                            }
+                        />
+                        <ul className="space-y-1 p-3 font-numeric text-micro text-muted-foreground">
                             <li>quotes · {quotes.lastUpdated ? fmtTime(quotes.lastUpdated) : "—"}</li>
                             <li>radar · {radar.lastUpdated ? fmtTime(radar.lastUpdated) : "—"}</li>
                             <li>analysis · {analysis.lastUpdated ? fmtTime(analysis.lastUpdated) : "—"}</li>
                             <li>signals · {signals.lastUpdated ? fmtTime(signals.lastUpdated) : "—"}</li>
                             <li>journal · {journal.lastUpdated ? fmtTime(journal.lastUpdated) : "—"}</li>
                         </ul>
-                    </div>
+                    </Panel>
                 </aside>
             </div>
 

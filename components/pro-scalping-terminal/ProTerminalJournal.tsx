@@ -13,6 +13,7 @@ import { memo, useMemo, useState } from "react";
 import { Award, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AwaitingState } from "@/components/scalping/TerminalPrimitives";
+import { Chip, Panel, PanelHeader } from "./ProTerminalPanels";
 import {
     computeJournalAnalytics,
     fmtDate,
@@ -139,7 +140,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                     type="button"
                                     onClick={() => setGroup(g)}
                                     className={cn(
-                                        "rounded border px-1.5 py-0.5 text-micro transition",
+                                        "rounded-full border px-2 py-0.5 text-micro font-medium transition",
                                         group === g
                                             ? "border-primary/40 bg-primary/10 text-primary"
                                             : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -154,7 +155,7 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                 No {group} labels on your trades yet — tag entries to unlock this breakdown.
                             </p>
                         ) : (
-                            <div className="min-w-0 overflow-x-auto rounded-md border border-border/70">
+                            <div className="min-w-0 overflow-x-auto rounded-lg border border-border/60">
                                 <table className="w-full border-collapse text-xs">
                                     <thead>
                                         <tr className="border-b border-border/60 text-left text-micro uppercase tracking-wide text-muted-foreground">
@@ -202,20 +203,18 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
                                 return (
                                     <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3 py-1.5 text-xs">
                                         <span className="font-numeric font-semibold text-foreground">{t.symbol ?? "—"}</span>
-                                        <span
-                                            className={cn(
-                                                "w-14 shrink-0 rounded px-1 py-0.5 text-center text-micro font-bold uppercase tracking-wide",
+                                        <Chip
+                                            tone={
                                                 t.result === "win"
-                                                    ? "bg-positive/10 text-positive"
+                                                    ? "positive"
                                                     : t.result === "loss"
-                                                      ? "bg-negative/10 text-negative"
-                                                      : t.result === "breakeven"
-                                                        ? "bg-muted text-muted-foreground"
-                                                        : "border border-border text-muted-foreground"
-                                            )}
+                                                      ? "negative"
+                                                      : "neutral"
+                                            }
+                                            className="w-14 justify-center font-bold uppercase tracking-wide"
                                         >
                                             {t.result ?? "open"}
-                                        </span>
+                                        </Chip>
                                         {t.setup ? (
                                             <span className="min-w-0 flex-1 truncate text-muted-foreground" title={t.setup}>
                                                 {t.setup}
@@ -271,14 +270,10 @@ export const ProTerminalJournal = memo(function ProTerminalJournal({
 
 function PanelShell({ title, meta, children }: { title: string; meta?: string; children: React.ReactNode }) {
     return (
-        <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
-            <div className="flex min-w-0 items-center gap-2 border-b border-border px-3 py-2">
-                <Award className="size-3.5 shrink-0 text-muted-foreground" />
-                <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-foreground">{title}</h2>
-                {meta ? <span className="truncate text-xs text-muted-foreground">{meta}</span> : null}
-            </div>
+        <Panel>
+            <PanelHeader icon={<Award className="size-3.5" />} title={title} meta={meta} />
             {children}
-        </section>
+        </Panel>
     );
 }
 
@@ -296,7 +291,7 @@ function Stat({
     title?: string;
 }) {
     return (
-        <div className="rounded-md border border-border/70 bg-background px-2 py-1.5" title={title}>
+        <div className="rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2" title={title}>
             <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(

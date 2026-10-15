@@ -81,8 +81,9 @@ import type { ChartSettings } from "./chart-settings";
 import { fmtPrice } from "./terminal-utils";
 import {
     extendRayToBounds,
-    POSITION_RISK_REWARD,
+    formatRiskReward,
     positionLevels,
+    positionPrices,
     resolveMarketPointToPixel,
     resolvePriceY,
     resolveTimeX,
@@ -351,22 +352,21 @@ const EMPTY_SCENE: DrawingScene = {
 // ── position-plan resolution (long / short tools) ──────────────────────────
 
 /**
- * Resolve a position plan's three PIXEL levels from its two stored market
- * points. The prices come from the same `positionLevels` derivation the
- * hit-test uses, so the painted boxes and the clickable area share one source
- * of truth. Returns null when any level cannot resolve — never a fake pixel.
+ * Resolve a position plan's three PIXEL levels from its three market prices.
+ * The prices come from the same `positionPrices` resolver the hit-test uses,
+ * so the painted boxes and the clickable area share one source of truth.
+ * Returns null when any level cannot resolve — never a fake pixel.
  */
 function positionPixelLevels(
     entryPrice: number,
-    sizingPrice: number,
-    side: PositionSide,
+    targetPrice: number,
+    stopPrice: number,
     series: DrawingSeriesTransform | null,
 ): { entryY: number; stopY: number; targetY: number } | null {
     if (!series) return null;
-    const lv = positionLevels(entryPrice, sizingPrice, side);
-    const entryY = resolvePriceY(lv.entry, series);
-    const stopY = resolvePriceY(lv.stop, series);
-    const targetY = resolvePriceY(lv.target, series);
+    const entryY = resolvePriceY(entryPrice, series);
+    const stopY = resolvePriceY(stopPrice, series);
+    const targetY = resolvePriceY(targetPrice, series);
     if (entryY === null || stopY === null || targetY === null) return null;
     return { entryY, stopY, targetY };
 }
@@ -374,8 +374,8 @@ function positionPixelLevels(
 /** The resolved position geometry plus its pre-formatted labels. */
 function resolvePositionPixels(
     entryPrice: number,
-    sizingPrice: number,
-    side: PositionSide,
+    targetPrice: number,
+    stopPrice: number,
     series: DrawingSeriesTransform | null,
     symbol: string,
 ): {
@@ -387,15 +387,52 @@ function resolvePositionPixels(
     targetLabel: string;
     rrLabel: string;
 } | null {
-    const px = positionPixelLevels(entryPrice, sizingPrice, side, series);
+    const px = positionPixelLevels(entryPrice, targetPrice, stopPrice, series);
     if (!px) return null;
-    const lv = positionLevels(entryPrice, sizingPrice, side);
     return {
         ...px,
-        entryLabel: fmtPrice(lv.entry, symbol),
-        stopLabel: fmtPrice(lv.stop, symbol),
-        targetLabel: fmtPrice(lv.target, symbol),
-        rrLabel: POSITION_RISK_REWARD > 0 ? `1:${POSITION_RISK_REWARD}` : "—",
+        entryLabel: fmtPrice(entryPrice, symbol),
+        stopLabel: fmtPrice(stopPrice, symbol),
+        targetLabel: fmtPrice(targetPrice, symbol),
+        // Measured from the plan's own prices, never a constant.
+        rrLabel: formatRiskReward(entryPrice, targetPrice, stopPrice),
+    };
+}
+
+/**
+ * Vertical baselines for the position plan's four text runs. The direction tag
+ * and the TP/SL price labels used to be painted one pixel apart — the tag at
+ * `topY - 5` and the near price label at `topY - 4` — so "▲ LONG · 1:2"
+ * overlapped "TP <price>" (long) and "SL <price>" (short). The tag is now a
+ * full line above the top price label, which keeps the two rows apart at every
+ * box height. When that would push the tag off the top of the canvas it flips
+ * to just inside the box instead.
+ *
+ * Derived from the resolved geometry rather than the tool's side, so the
+ * layout stays correct however the stop is dragged (the stop line may sit on
+ * either side of the entry once the user moves it). Shared by the committed
+ * and preview paths so a drag preview matches the finished drawing exactly.
+ */
+function positionLabelLevels(
+    entryY: number,
+    stopY: number,
+    targetY: number,
+    fontSize: number,
+    labelSize: number,
+): { tagY: number; targetLabelY: number; stopLabelY: number; entryLabelY: number } {
+    const NEAR_PAD = 4;
+    const FAR_PAD = 12;
+    const lineH = Math.max(fontSize, labelSize) + 5;
+    const topY = Math.min(entryY, stopY, targetY);
+    const aboveTag = topY - NEAR_PAD - lineH;
+    // Each price label sits on the far side of its own line, away from the
+    // entry line it is measured against.
+    const outward = (levelY: number) => (levelY <= entryY ? levelY - NEAR_PAD : levelY + FAR_PAD);
+    return {
+        tagY: aboveTag >= 10 ? aboveTag : topY - NEAR_PAD + lineH,
+        targetLabelY: outward(targetY),
+        stopLabelY: outward(stopY),
+        entryLabelY: entryY - NEAR_PAD,
     };
 }
 
@@ -603,13 +640,14 @@ export class DrawingRenderer {
             };
         }
         if (d.type === "long" || d.type === "short") {
-            const side: PositionSide = d.type === "long" ? "long" : "short";
-            const px = resolvePositionPixels(p1.price, p2.price, side, this.series, symbol);
+            const plan = positionPrices(d);
+            if (!plan) return null;
+            const px = resolvePositionPixels(plan.entry, plan.target, plan.stop, this.series, symbol);
             if (!px) return null;
             return {
                 kind: "position",
                 id: d.id,
-                side,
+                side: plan.side,
                 left: Math.min(x1, x2),
                 right: Math.max(x1, x2),
                 entryY: px.entryY,
@@ -692,14 +730,18 @@ export class DrawingRenderer {
         const pos = this.anchors(d, width, height);
         if (!pos) return null;
         let box: { x: number; y: number; w: number; h: number };
+        /** Positions get a third handle on the SL line (drag it to set the R:R). */
+        let stopHandle: { x: number; y: number } | null = null;
         if (d.type === "horizontal") {
             box = { x: 0, y: pos.y1 - 7, w: width, h: 14 };
         } else if (d.type === "vertical") {
             box = { x: pos.x1 - 7, y: 0, w: 14, h: height };
         } else if (d.type === "long" || d.type === "short") {
             // Frame both boxes, not just the entry→sizing diagonal.
-            const side: PositionSide = d.type === "long" ? "long" : "short";
-            const px = positionPixelLevels(d.points[0].price, d.points[1].price, side, this.series);
+            const plan = positionPrices(d);
+            const px = plan
+                ? positionPixelLevels(plan.entry, plan.target, plan.stop, this.series)
+                : null;
             const ys = px ? [pos.y1, px.stopY, px.targetY] : [pos.y1, pos.y2];
             const minX = Math.min(pos.x1, pos.x2);
             const maxX = Math.max(pos.x1, pos.x2);
@@ -711,6 +753,8 @@ export class DrawingRenderer {
                 w: Math.max(14, maxX - minX + 14),
                 h: Math.max(14, maxY - minY + 14),
             };
+            // At the far end of the SL line, clear of the entry→sizing handle.
+            if (px) stopHandle = { x: Math.max(pos.x1, pos.x2), y: px.stopY };
         } else {
             const minX = Math.min(pos.x1, pos.x2);
             const maxX = Math.max(pos.x1, pos.x2);
@@ -724,11 +768,29 @@ export class DrawingRenderer {
             };
         }
         const withPoints = d.type !== "horizontal" && d.type !== "vertical" && d.type !== "text";
+        const handles: Array<{ x: number; y: number }> = [];
+        if (withPoints) {
+            handles.push({ x: pos.x1, y: pos.y1 });
+            handles.push({ x: pos.x2, y: pos.y2 });
+            if (d.type === "rectangle") {
+                const minX = Math.min(pos.x1, pos.x2);
+                const maxX = Math.max(pos.x1, pos.x2);
+                const minY = Math.min(pos.y1, pos.y2);
+                const maxY = Math.max(pos.y1, pos.y2);
+                const midY = Math.round((minY + maxY) / 2);
+                handles.push({ x: minX, y: midY });
+                handles.push({ x: maxX, y: midY });
+                const midX = Math.round((minX + maxX) / 2);
+                handles.push({ x: midX, y: minY });
+                handles.push({ x: midX, y: maxY });
+            }
+            if (stopHandle) handles.push(stopHandle);
+        }
         return {
             anchorX: pos.x1,
             anchorY: pos.y1,
             box,
-            handles: withPoints ? [{ x: pos.x1, y: pos.y1 }, { x: pos.x2, y: pos.y2 }] : [],
+            handles,
         };
     }
 
@@ -845,7 +907,10 @@ export class DrawingRenderer {
                     return dp.startPrice;
                 }
             })();
-            const px = resolvePositionPixels(dp.startPrice, sizingP, side, cs, symbol);
+            // A new plan has no dragged stop yet, so it starts at the default
+            // risk:reward — the same derivation `positionPrices` falls back to.
+            const stopP = positionLevels(dp.startPrice, sizingP, side).stop;
+            const px = resolvePositionPixels(dp.startPrice, sizingP, stopP, cs, symbol);
             if (!px) return null;
             return {
                 kind: "position",
@@ -966,7 +1031,13 @@ function drawingElement(v: DrawingVisual): ReactElement {
             const targetColor = "#22c55e";
             const labelSize = Math.max(8, v.fontSize - 1);
             const boxW = Math.max(1, v.right - v.left);
-            const tagY = (long ? Math.min(v.entryY, v.targetY) : Math.min(v.entryY, v.stopY)) - 5;
+            const { tagY, targetLabelY, stopLabelY, entryLabelY } = positionLabelLevels(
+                v.entryY,
+                v.stopY,
+                v.targetY,
+                v.fontSize,
+                labelSize,
+            );
             return el(
               "g",
                 { key: v.id },
@@ -1004,17 +1075,17 @@ function drawingElement(v: DrawingVisual): ReactElement {
                 ),
                 el(
                     "text",
-                    { x: v.left + 4, y: v.targetY + (long ? -4 : 12), fill: targetColor, fontSize: labelSize, fontFamily: "monospace" },
+                    { x: v.left + 4, y: targetLabelY, fill: targetColor, fontSize: labelSize, fontFamily: "monospace" },
                     `TP  ${v.targetLabel}`
                 ),
                 el(
                     "text",
-                    { x: v.left + 4, y: v.stopY + (long ? 12 : -4), fill: stopColor, fontSize: labelSize, fontFamily: "monospace" },
+                    { x: v.left + 4, y: stopLabelY, fill: stopColor, fontSize: labelSize, fontFamily: "monospace" },
                     `SL  ${v.stopLabel}`
                 ),
                 el(
                     "text",
-                    { x: v.left + 4, y: v.entryY - 4, fill: v.color, fontSize: labelSize, fontFamily: "monospace" },
+                    { x: v.left + 4, y: entryLabelY, fill: v.color, fontSize: labelSize, fontFamily: "monospace" },
                     `Entry  ${v.entryLabel}`
                 )
             );
@@ -1031,12 +1102,13 @@ function selectionElement(selection: DrawingSelectionVisual | null): ReactElemen
       "g",
         null,
         el("rect", { x: box.x, y: box.y, width: box.w, height: box.h, rx: 4, fill: "none", stroke: "#38bdf8", strokeWidth: 1, strokeDasharray: "4,3", opacity: 0.9 }),
-        handles.length === 2
+        handles.length > 0
             ? el(
               "g",
                   null,
-                  el("circle", { cx: handles[0].x, cy: handles[0].y, r: 5, fill: "#38bdf8" }),
-                  el("circle", { cx: handles[1].x, cy: handles[1].y, r: 5, fill: "#38bdf8" })
+                  handles.map((handle) =>
+                      el("circle", { key: `${handle.x}:${handle.y}`, cx: handle.x, cy: handle.y, r: 5, fill: "#38bdf8" })
+                  )
               )
             : null
     );
@@ -1102,6 +1174,13 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
             const targetColor = "#22c55e";
             const labelSize = Math.max(8, pv.fontSize - 1);
             const boxW = Math.max(1, pv.right - pv.left);
+            const { tagY, targetLabelY, stopLabelY } = positionLabelLevels(
+                pv.entryY,
+                pv.stopY,
+                pv.targetY,
+                pv.fontSize,
+                labelSize,
+            );
             return el(
               "g",
                 { opacity: 0.85 },
@@ -1126,11 +1205,11 @@ function previewElement(pv: DrawingPreviewVisual): ReactElement {
                 el("line", { x1: pv.left, y1: pv.entryY, x2: pv.right, y2: pv.entryY, stroke: pv.color, strokeWidth: pv.strokeWidth, strokeDasharray: "4,3" }),
                 el(
                     "text",
-                    { x: pv.left + 4, y: (long ? Math.min(pv.entryY, pv.targetY) : Math.min(pv.entryY, pv.stopY)) - 5, fill: long ? targetColor : stopColor, fontSize: pv.fontSize, fontFamily: "monospace", fontWeight: "bold" },
+                    { x: pv.left + 4, y: tagY, fill: long ? targetColor : stopColor, fontSize: pv.fontSize, fontFamily: "monospace", fontWeight: "bold" },
                     `${long ? "\u25B2 LONG" : "\u25BC SHORT"} \u00B7 ${pv.rrLabel}`
                 ),
-                el("text", { x: pv.left + 4, y: pv.targetY + (long ? -4 : 12), fill: targetColor, fontSize: labelSize, fontFamily: "monospace" }, `TP  ${pv.targetLabel}`),
-                el("text", { x: pv.left + 4, y: pv.stopY + (long ? 12 : -4), fill: stopColor, fontSize: labelSize, fontFamily: "monospace" }, `SL  ${pv.stopLabel}`)
+                el("text", { x: pv.left + 4, y: targetLabelY, fill: targetColor, fontSize: labelSize, fontFamily: "monospace" }, `TP  ${pv.targetLabel}`),
+                el("text", { x: pv.left + 4, y: stopLabelY, fill: stopColor, fontSize: labelSize, fontFamily: "monospace" }, `SL  ${pv.stopLabel}`)
             );
         }
     }

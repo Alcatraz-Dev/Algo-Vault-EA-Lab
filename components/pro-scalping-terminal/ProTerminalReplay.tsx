@@ -22,6 +22,7 @@ import { History, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { ProTerminalChart, type Candle } from "./ProTerminalChart";
+import { Chip, Panel, PanelHeader } from "./ProTerminalPanels";
 import { TERMINAL_TIMEFRAMES, defaultLayerState } from "./chart-layers";
 import { useChartSettings } from "@/hooks/use-chart-settings";
 
@@ -124,8 +125,15 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
 
     if (!token) {
         return (
-            <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card">
-                <div className="border-b border-border p-3">
+            <Panel>
+                <PanelHeader
+                    icon={<History className="size-3.5" />}
+                    title="Market Replay"
+                    meta={
+                        <Chip className="font-numeric font-bold uppercase tracking-widest">Bar-by-bar</Chip>
+                    }
+                />
+                <div className="border-b border-border/70 p-3">
                     <ReplayHeader
                         bars={bars}
                         setBars={setBars}
@@ -136,7 +144,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                 <p className="py-8 text-center text-xs italic text-muted-foreground">
                     Sign in to replay historical candles.
                 </p>
-            </section>
+            </Panel>
         );
     }
 
@@ -146,14 +154,15 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
             : "—";
 
     return (
-        <section className="flex min-w-0 flex-col rounded-xl border border-border bg-card">
-            <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
-                <History className="size-3.5 shrink-0 text-muted-foreground" />
-                <h2 className="text-xs font-semibold uppercase tracking-wide text-foreground">Market Replay</h2>
-                <span className="rounded-full border border-border/60 bg-muted px-1.5 py-0.5 font-numeric text-[8px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Bar-by-bar
-                </span>
-                <div className="ml-auto flex flex-wrap items-center gap-1.5">
+        <Panel>
+            <PanelHeader
+                icon={<History className="size-3.5" />}
+                title="Market Replay"
+                meta={
+                    <Chip className="font-numeric font-bold uppercase tracking-widest">Bar-by-bar</Chip>
+                }
+                right={
+                    <>
                     <select
                         value={symbol}
                         onChange={(e) => setSymbol(e.target.value as SupportedSymbol)}
@@ -178,8 +187,9 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                             </option>
                         ))}
                     </select>
-                </div>
-            </div>
+                    </>
+                }
+            />
 
             <div className="p-3">
                 <ReplayHeader
@@ -193,7 +203,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     <div className="mt-3 flex flex-col items-center gap-1 rounded-lg border border-dashed border-border px-3 py-6 text-center">
                         <TriangleAlert className="size-4 text-warning" />
                         <p className="text-xs font-medium text-muted-foreground">Replay unavailable</p>
-                        <p className="text-[8px] text-muted-foreground/80">{state.error}</p>
+                        <p className="text-micro text-muted-foreground/80">{state.error}</p>
                     </div>
                 ) : loading ? (
                     <div className="mt-3 flex h-[400px] items-center justify-center rounded-lg border border-dashed border-border">
@@ -207,7 +217,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     <>
                         {/* Meta strip: the loaded window only — no future bar is
                             summarised, so replay practice stays honest. */}
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-numeric text-[8px] text-muted-foreground">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-numeric text-micro text-muted-foreground">
                             <span>{state.candles.length} bars loaded</span>
                             <span>{range}</span>
                             <span className="ml-auto">
@@ -233,7 +243,7 @@ export function ProTerminalReplay({ token }: { token: string | null }) {
                     </>
                 )}
             </div>
-        </section>
+        </Panel>
     );
 }
 
@@ -249,8 +259,8 @@ function ReplayHeader({
     disabled?: boolean;
 }) {
     return (
-        <div className={cn("flex items-center gap-2 text-[8px] text-muted-foreground", disabled && "opacity-70")}>
-            <span>Window</span>
+        <div className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", disabled && "opacity-70")}>
+            <span className="text-[11px] font-medium">Window</span>
             {WINDOW_OPTIONS.map((n) => (
                 <button
                     key={n}
@@ -258,8 +268,10 @@ function ReplayHeader({
                     disabled={disabled}
                     onClick={() => setBars(n)}
                     className={cn(
-                        "rounded border px-1.5 py-0.5 font-numeric transition disabled:opacity-50",
-                        bars === n ? "border-primary/40 bg-primary/10 text-primary" : "border-border hover:bg-muted"
+                        "h-6 rounded border px-2 font-numeric text-[11px] transition disabled:opacity-50",
+                        bars === n
+                            ? "border-primary/40 bg-primary/10 text-primary"
+                            : "border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                     )}
                 >
                     {n}
@@ -268,7 +280,7 @@ function ReplayHeader({
             <button
                 type="button"
                 onClick={onReload}
-                className="ml-auto rounded border border-border px-1.5 py-0.5 transition hover:bg-muted"
+                className="ml-auto h-6 rounded border border-border px-2 text-[11px] text-muted-foreground transition hover:bg-muted hover:text-foreground"
             >
                 Reload
             </button>

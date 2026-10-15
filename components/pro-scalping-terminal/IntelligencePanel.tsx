@@ -15,7 +15,7 @@
 import { useState } from "react";
 import { BrainCircuit, ChevronDown, ChevronUp, ShieldCheck, ShieldX } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PanelHeader } from "./ProTerminalPanels";
+import { Chip, Panel, PanelHeader, type ChipTone } from "./ProTerminalPanels";
 
 export interface TerminalIntelligencePayload {
     success: boolean;
@@ -35,15 +35,15 @@ export interface TerminalIntelligencePayload {
     error?: string;
 }
 
-const STATE_TONES: Record<string, string> = {
-    READY: "border-positive/40 bg-positive/10 text-positive",
-    TRIGGERED: "border-positive/40 bg-positive/10 text-positive",
-    WAITING: "border-warning/40 bg-warning/10 text-warning",
-    VALIDATING: "border-warning/40 bg-warning/10 text-warning",
-    HOLD: "border-warning/40 bg-warning/10 text-warning",
-    BLOCKED: "border-negative/40 bg-negative/10 text-negative",
-    INVALID: "border-negative/40 bg-negative/10 text-negative",
-    AI_UNAVAILABLE: "border-border bg-muted text-muted-foreground",
+const STATE_TONES: Record<string, ChipTone> = {
+    READY: "positive",
+    TRIGGERED: "positive",
+    WAITING: "warning",
+    VALIDATING: "warning",
+    HOLD: "warning",
+    BLOCKED: "negative",
+    INVALID: "negative",
+    AI_UNAVAILABLE: "neutral",
 };
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -59,15 +59,9 @@ const SOURCE_LABELS: Record<string, string> = {
 function StateChip({ state }: { state: string }) {
     const tone = STATE_TONES[state] ?? STATE_TONES.AI_UNAVAILABLE;
     return (
-        <span
-            className={cn(
-                "inline-flex items-center rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide",
-                tone,
-            )}
-            title={state}
-        >
+        <Chip tone={tone} className="font-semibold uppercase tracking-wide" title={state}>
             {state.replace("_", " ")}
-        </span>
+        </Chip>
     );
 }
 
@@ -98,7 +92,7 @@ export function IntelligencePanel({
     const decision = payload?.decision ?? null;
 
     return (
-        <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card">
+        <Panel>
             <PanelHeader
                 icon={<BrainCircuit className="h-3.5 w-3.5" />}
                 title="Intelligence"
@@ -136,21 +130,14 @@ export function IntelligencePanel({
                             <div className="flex items-center gap-1.5">
                                 <span className="text-xs font-semibold text-foreground">{decision.direction}</span>
                                 {decision.jev ? (
-                                    <span
-                                        className={cn(
-                                            "rounded-full border px-1.5 py-0.5 text-micro font-medium",
-                                            decision.jev.status === "VALIDATED"
-                                                ? "border-positive/40 bg-positive/10 text-positive"
-                                                : "border-border bg-muted text-muted-foreground",
-                                        )}
+                                    <Chip
+                                        tone={decision.jev.status === "VALIDATED" ? "positive" : "neutral"}
                                         title={`Jev ${decision.jev.status}`}
                                     >
                                         JEV {decision.jev.confidence}%
-                                    </span>
+                                    </Chip>
                                 ) : (
-                                    <span className="rounded-full border border-border bg-muted px-1.5 py-0.5 text-micro text-muted-foreground">
-                                        JEV n/a
-                                    </span>
+                                    <Chip>JEV n/a</Chip>
                                 )}
                             </div>
                         </div>
@@ -190,6 +177,6 @@ export function IntelligencePanel({
                     </>
                 )}
             </div>
-        </section>
+        </Panel>
     );
 }

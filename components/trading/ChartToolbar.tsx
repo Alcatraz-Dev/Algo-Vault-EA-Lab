@@ -126,8 +126,8 @@ const DRAWING_TOOLS: Array<{ id: DrawingTool; label: string; hint: string; icon:
     { id: "fibo", label: "Fibonacci Retracement", hint: "Drag from swing start to swing end", icon: Activity },
     { id: "rectangle", label: "Rectangle / Box", hint: "Drag to mark a zone", icon: Box },
     { id: "triangle", label: "Triangle", hint: "Drag to draw a triangle", icon: Triangle },
-    { id: "long", label: "Enter Long", hint: "Drag from entry to target — stop-loss & take-profit plan", icon: MoveUpRight },
-    { id: "short", label: "Enter Short", hint: "Drag from entry to target — stop-loss & take-profit plan", icon: MoveDownRight },
+    { id: "long", label: "Enter Long", hint: "Drag entry → target; then drag the red SL line to set the risk — the R:R tag is measured", icon: MoveUpRight },
+    { id: "short", label: "Enter Short", hint: "Drag entry → target; then drag the red SL line to set the risk — the R:R tag is measured", icon: MoveDownRight },
     { id: "text", label: "Text Label", hint: "Click, type a label, Enter saves", icon: Type },
     { id: "ruler", label: "Measure / Ruler", hint: "Drag to measure price / time", icon: Ruler },
 ];
@@ -423,7 +423,7 @@ function ChartToolbar({
                             aria-pressed={aiDraw}
                             disabled={aiDrawChecking}
                             className={cn(
-                                "h-8 gap-1 px-2 text-micro",
+                                "h-7 gap-1 px-2 text-xs font-normal tracking-normal",
                                 aiDraw
                                     ? "bg-primary text-primary-foreground hover:bg-primary/90"
                                     : "text-muted-foreground hover:text-foreground"
@@ -438,7 +438,7 @@ function ChartToolbar({
                             <span>AI Draw</span>
                             <span
                                 className={cn(
-                                    "rounded px-1 font-numeric text-micro font-bold",
+                                    "rounded px-1 font-numeric text-[10px] leading-none font-bold",
                                     aiDraw ? "bg-white/20 text-primary-foreground" : "bg-primary/15 text-primary"
                                 )}
                             >
@@ -566,7 +566,7 @@ function ChartToolbar({
                         />
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="font-numeric text-micro text-muted-foreground">Width</span>
+                        <span className="font-normal text-xs text-muted-foreground">Width</span>
                         {[1, 2, 3, 4].map((w) => (
                             <button
                                 key={w}
@@ -586,7 +586,7 @@ function ChartToolbar({
                         ))}
                     </div>
                     <div className="flex items-center gap-1">
-                        <span className="font-numeric text-micro text-muted-foreground">Font</span>
+                        <span className="font-normal text-xs text-muted-foreground">Font</span>
                         {[9, 11, 13, 16].map((fs) => (
                             <button
                                 key={fs}

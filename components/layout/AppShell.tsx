@@ -669,8 +669,8 @@ export function AppShell({
                 {subtitle ? (
                   <p
                     className={cn(
-                      "truncate text-muted-foreground",
-                      compactHeader ? "hidden text-meta sm:block" : "mt-1 text-body-sm"
+                      "truncate text-xs font-normal text-muted-foreground/80",
+                      compactHeader ? "mt-0.5 hidden text-xs font-normal sm:block" : "mt-1 text-sm font-normal"
                     )}
                   >
                     {subtitle}

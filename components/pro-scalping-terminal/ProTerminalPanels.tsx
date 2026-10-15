@@ -115,7 +115,7 @@ export function Chip({
     return (
         <span
             className={cn(
-                "inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-1.5 py-0.5 text-micro font-medium",
+                "inline-flex shrink-0 items-center gap-0.5 whitespace-nowrap rounded border px-1 py-px text-[10px] leading-none font-medium tracking-wide",
                 CHIP_TONES[tone],
                 className,
             )}
@@ -672,12 +672,14 @@ export const RegimeStrip = memo(function RegimeStrip({
     const regime = analysis?.regime.regime.value ?? null;
     const confidence = analysis?.regime.confidence.value ?? null;
     return (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-lg border border-border bg-card px-3 py-2">
-            <span className="inline-flex items-center gap-1.5 text-xs">
-                <Activity className="size-3.5 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card px-3 py-2.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+            <span className="inline-flex items-center gap-2 text-xs">
+                <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-border/70 bg-muted/50 text-muted-foreground [&_svg]:size-3.5">
+                    <Activity />
+                </span>
                 <span className="text-muted-foreground">Regime</span>
                 {regime ? (
-                    <span className="font-numeric font-semibold capitalize text-foreground">{regime.replace(/_/g, " ")}</span>
+                    <Chip className="font-numeric font-semibold capitalize">{regime.replace(/_/g, " ")}</Chip>
                 ) : (
                     <span className="italic text-muted-foreground">{loading ? "measuring…" : "Data unavailable"}</span>
                 )}
@@ -855,19 +857,10 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
                             <li key={s.id} className="px-3 py-2">
                                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                                     <span className="font-numeric text-xs font-semibold text-foreground">{s.symbol}</span>
-                                    <span
-                                        className={cn(
-                                            "rounded-full border px-1.5 py-0.5 text-micro font-bold tracking-wide",
-                                            isLong
-                                                ? "border-positive/40 bg-positive/10 text-positive"
-                                                : "border-negative/40 bg-negative/10 text-negative"
-                                        )}
-                                    >
+                                    <Chip tone={isLong ? "positive" : "negative"} className="font-bold tracking-wide">
                                         {isLong ? "LONG" : "SHORT"}
-                                    </span>
-                                    <span className="rounded-full border border-border px-1.5 py-0.5 font-numeric text-micro text-muted-foreground">
-                                        {s.timeframe}
-                                    </span>
+                                    </Chip>
+                                    <Chip className="font-numeric">{s.timeframe}</Chip>
                                     <span className="ml-auto font-numeric text-micro text-muted-foreground">
                                         {ageMin < 1 ? "just now" : `${ageMin}m ago`}
                                     </span>
@@ -932,12 +925,6 @@ export const SignalsMiniPanel = memo(function SignalsMiniPanel({
 });
 
 // ── economic calendar (from /api/calendar) ──────────────────────────────────
-
-const IMPACT_TONE: Record<CalendarEvent["impact"], string> = {
-    High: "border-negative/40 bg-negative/10 text-negative",
-    Medium: "border-warning/40 bg-warning/10 text-warning",
-    Low: "border-border bg-muted text-muted-foreground",
-};
 
 export function CalendarPanel({
     events,
@@ -1012,14 +999,12 @@ export function CalendarPanel({
                                 <span className="w-9 shrink-0 font-numeric text-micro text-muted-foreground">
                                     {e.currency}
                                 </span>
-                                <span
-                                    className={cn(
-                                        "shrink-0 rounded border px-1 py-0.5 text-micro font-semibold uppercase",
-                                        IMPACT_TONE[e.impact]
-                                    )}
+                                <Chip
+                                    tone={e.impact === "High" ? "negative" : e.impact === "Medium" ? "warning" : "neutral"}
+                                    className="w-12 justify-center font-semibold uppercase"
                                 >
                                     {e.impact}
-                                </span>
+                                </Chip>
                                 <span className="min-w-0 flex-1 truncate" title={e.title}>
                                     {e.title}
                                 </span>
