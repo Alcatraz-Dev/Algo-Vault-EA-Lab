@@ -62,7 +62,7 @@ function SymbolPicker() {
                     aria-label="Search symbol"
                     className="w-24 bg-transparent font-numeric text-[10px] uppercase text-foreground outline-none placeholder:text-foreground"
                 />
-                <kbd className="hidden rounded border border-border px-1 font-numeric text-micro text-muted-foreground sm:inline">
+                <kbd className="hidden rounded border border-border px-1 font-numeric text-[8px] text-muted-foreground sm:inline">
                     ⌘K
                 </kbd>
             </div>
@@ -199,8 +199,8 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
             <div className="flex min-w-0 items-center gap-2">
                 <div className="leading-none">
                     <div className="flex items-center gap-1">
-                        <span className="font-numeric text-[10px] font-normal text-primary">{state.symbol}</span>
-                        <span className="font-numeric text-micro text-muted-foreground">{state.timeframe}</span>
+                        <span className="font-numeric text-[9px] font-normal text-primary">{state.symbol}</span>
+                        <span className="font-numeric text-[8px] text-muted-foreground">{state.timeframe}</span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-2 font-numeric text-[10px] text-muted-foreground">
                         <span className="inline-flex items-center gap-1">{session.label}</span>
@@ -215,7 +215,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
 
             {price !== null ? (
                 <div className="flex items-baseline gap-1">
-                    <span className="font-numeric text-[10px] font-normal tabular-nums text-foreground">
+                    <span className="font-numeric text-[9px] font-normal tabular-nums text-foreground">
                         {price >= 100 ? price.toFixed(2) : price.toFixed(5)}
                     </span>
                     {change !== null ? (
@@ -229,11 +229,11 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                             {change.toFixed(2)}%
                         </span>
                     ) : (
-                        <span className="font-numeric text-micro text-muted-foreground">day n/a</span>
+                        <span className="font-numeric text-[8px] text-muted-foreground">day n/a</span>
                     )}
                 </div>
             ) : (
-                <span className="font-numeric text-micro text-muted-foreground">
+                <span className="font-numeric text-[8px] text-muted-foreground">
                     {data.quotesLoading ? "Loading price…" : "No price available"}
                 </span>
             )}

@@ -90,7 +90,7 @@ export default function AccountShell({
       onBack={handleBack}
       headerActions={headerActions}
       role="account"
-      maxWidth="max-w-7xl"
+      maxWidth="max-w-full"
       navSearch={navSearch}
       onNavSearch={setNavSearch}
       hideSidebar={hideSidebar}

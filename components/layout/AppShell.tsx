@@ -690,7 +690,7 @@ export function AppShell({
             "flex-1 animate-page-enter",
             padding &&
               (fullscreen
-                ? "w-full min-w-0 px-3 py-3 sm:px-4 sm:py-4"
+                ? "w-full min-w-0 px-0 py-0 sm:px-0 sm:py-0"
                 : `${maxWidth} px-4 py-6 sm:px-6 lg:px-8`)
           )}
         >

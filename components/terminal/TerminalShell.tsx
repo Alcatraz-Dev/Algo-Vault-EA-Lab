@@ -359,7 +359,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     }
 
     return (
-        <div className="mx-auto flex w-full max-w-[1600px] min-w-0 flex-col gap-2.5 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-3">
+        <div className="mx-auto flex w-full max-w-full min-w-0 flex-col gap-2.5 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-3">
             <TerminalTopBar now={now} isPro={isPro} />
 
             {/* workspace + panel controls */}
