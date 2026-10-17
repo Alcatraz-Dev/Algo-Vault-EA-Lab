@@ -76,7 +76,7 @@ function StructureBlock() {
     return (
         <div className="flex flex-col gap-1 p-3">
             <div className="grid grid-cols-2 gap-1">
-                <div className="rounded-md border border-border/70 bg-background px-1 py-0.5.5">
+                <div className="rounded-full border border-border/70 bg-background px-1 py-0.5.5">
                     <div className="text-micro uppercase tracking-wide text-muted-foreground">Structure bias</div>
                     <div
                         className={cn(
@@ -87,7 +87,7 @@ function StructureBlock() {
                         {bias ?? "unavailable"}
                     </div>
                 </div>
-                <div className="rounded-md border border-border/70 bg-background px-1 py-0.5.5">
+                <div className="rounded-full border border-border/70 bg-background px-1 py-0.5.5">
                     <div className="text-micro uppercase tracking-wide text-muted-foreground">Reversal setup</div>
                     <div className="text-[7px] font-normal text-foreground">
                         {analysis.structure.reversalSetup.value?.detected
@@ -97,7 +97,7 @@ function StructureBlock() {
                 </div>
             </div>
 
-            <div className="rounded-md border border-border/70">
+            <div className="rounded-full border border-border/70">
                 <div className="border-b border-border/60 px-1 py-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                     Recent breaks
                 </div>
@@ -298,7 +298,7 @@ function RiskSummary() {
         <div className="flex flex-col gap-1 p-3">
             <div
                 className={cn(
-                    "rounded-md border px-1 py-0.5.5 text-center text-[7px] font-normal tracking-wider",
+                    "rounded-full border px-1 py-0.5.5 text-center text-[7px] font-normal tracking-wider",
                     risk.status === "SAFE" && "border-positive/40 bg-positive/10 text-positive",
                     risk.status === "WARNING" && "border-warning/40 bg-warning/10 text-warning",
                     risk.status === "RESTRICTED" && "border-warning/40 bg-warning/10 text-warning",
@@ -370,7 +370,7 @@ export function IntelligenceRail({ now }: { now: number }) {
                                 aria-selected={active}
                                 onClick={() => setIntelligenceMode(t.id)}
                                 className={cn(
-                                    "inline-flex items-center gap-1 rounded-full px-1 py-0.5 text-[12px] font-normal transition",
+                                    "inline-flex items-center gap-1 rounded-full px-1 py-0.5 text-[10px] font-normal transition",
                                     active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                                 )}
                             >

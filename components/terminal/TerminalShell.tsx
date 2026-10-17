@@ -79,6 +79,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     const {
         state,
         hydrated,
+        setChatOpen,
         setSymbol,
         setTimeframe,
         togglePanel,
@@ -481,6 +482,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     {visible("chat") && !state.chatOpen ? (
                         <button
                             type="button"
+                            onClick={() => setChatOpen(true)}
                             className="rounded-lg border border-border/60 bg-card/60 px-1 py-0.5.5 text-left text-[10px] text-muted-foreground transition hover:bg-muted"
                         >
                             <MessagesSquare className="mr-1.5 inline size-3.5" />

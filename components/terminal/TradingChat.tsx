@@ -158,22 +158,22 @@ export function TradingChat({ now }: { now: number }) {
 
 
     return (
-        <section className="flex min-h-0 flex-col rounded-lg border border-border bg-card" aria-label="Trading chat">
+        <section className="flex min-h-0 flex-col rounded-2xl border border-border/60 bg-card/80 shadow-sm p-2" aria-label="Trading chat">
             <PanelErrorBoundary name="Trading Chat">
-                <header className="flex items-center gap-2 border-b border-border px-3 py-1">
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <header className="flex items-center gap-2 border-b border-border px-2 py-1">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">
                         <Bot className="size-3.5" />
                     </div>
                     <div className="min-w-0 leading-none">
                         <div className="flex items-center gap-1">
-                            <span className="text-micro font-normal uppercase tracking-wide text-foreground">
+                            <span className="text-[9px] font-normal uppercase tracking-wide text-foreground">
                                 Trading Chat
                             </span>
                             <span className="rounded border border-primary/30 px-1 py-px text-micro font-normal tracking-wider text-primary">
                                 CONTEXT-AWARE
                             </span>
                         </div>
-                        <p className="mt-0.5 font-numeric text-micro text-muted-foreground">
+                        <p className="mt-0.5 font-numeric text-[9px] text-muted-foreground">
                             {state.symbol} {state.timeframe} · {state.accountMode}
                         </p>
                     </div>
@@ -183,7 +183,7 @@ export function TradingChat({ now }: { now: number }) {
                             onClick={() => setShowActions((s) => !s)}
                             aria-expanded={showActions}
                             aria-label="Quick actions"
-                            className="rounded-md border border-border bg-background p-1 text-muted-foreground transition hover:bg-muted"
+                            className="rounded-full border border-border bg-background p-1 text-muted-foreground transition hover:bg-muted"
                         >
                             <ListPlus className="size-3.5" />
                         </button>
@@ -191,7 +191,7 @@ export function TradingChat({ now }: { now: number }) {
                             type="button"
                             onClick={() => setChatOpen(false)}
                             aria-label="Hide chat"
-                            className="rounded-md border border-border bg-background px-1.5 py-1 text-micro text-muted-foreground transition hover:bg-muted"
+                            className="rounded-full border border-border bg-background px-1.5 py-1 text-micro text-muted-foreground transition hover:bg-muted"
                         >
                             Hide
                         </button>
@@ -238,7 +238,7 @@ export function TradingChat({ now }: { now: number }) {
                     </div>
                 ) : null}
 
-                <div ref={listRef} className="min-h-[8rem] flex-1 space-y-3 overflow-y-auto p-3">
+                <div ref={listRef} className="min-h-[6rem] md:min-h-[8rem] flex-1 space-y-3 overflow-y-auto p-2 md:p-3">
                     {turns.length === 0 ? (
                         <div className="space-y-2 text-micro leading-4 text-muted-foreground">
                             <p>
@@ -285,7 +285,7 @@ export function TradingChat({ now }: { now: number }) {
                                                     </span>
                                                 </span>
                                             ) : null}
-                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-numeric [&_code]:text-micro [&_h1]:text-[8px] [&_h1]:font-normal [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-[8px] [&_h2]:font-normal [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-normal [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-normal [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
+                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-numeric [&_code]:text-micro [&_h1]:text-[9px] [&_h1]:font-normal [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-[9px] [&_h2]:font-normal [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-normal [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-normal [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
                                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
                                             </div>
                                         </>
@@ -319,14 +319,14 @@ export function TradingChat({ now }: { now: number }) {
                                 }}
                                 rows={2}
                                 placeholder={`Ask about ${state.symbol} ${state.timeframe}…`}
-                                className="w-full resize-none rounded-md border border-border bg-background px-1 py-0.5.5 text-[8px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50"
+                                className="w-full resize-none rounded-full border border-border bg-background px-1 py-0.5.5 text-[9px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50 placeholder:text-center"
                             />
                         </label>
                         <button
                             type="submit"
                             disabled={sending || input.trim().length === 0}
                             aria-label="Send message"
-                            className="rounded-md bg-primary px-2.5 py-1 text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                            className="rounded-full bg-primary px-2.5 py-1 text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
                         >
                             {sending ? <Loader2 className="size-3.5 animate-spin" /> : <SendHorizonal className="size-3.5" />}
                         </button>
