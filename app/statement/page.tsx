@@ -6,6 +6,7 @@ import { auth } from "@/lib/firebase";
 import { Loader2, Shield, ArrowLeft, Download, FileText, TrendingUp, TrendingDown, BarChart3, PieChart, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type MT5Account = { id: string; mt5Account: string; broker: string };
 
@@ -98,16 +99,17 @@ export default function StatementPage() {
                 <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
+            <div className="mt-6">
+            <ModernPageHeader
+                backHref="/account"
+                backLabel="Back to Account"
+                eyebrow="Statement"
+                title="Account Statement"
+                subtitle="Detailed performance report for your trading account"
+            />
+            </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Account Statement</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Detailed performance report for your trading account</p>
-                    </div>
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
                         <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} className="rounded-lg border border-border/40 bg-muted px-3 py-2.5 text-xs text-foreground focus:border-primary focus:outline-none">
                             {accounts.map((a) => <option key={a.id} value={a.id}>{a.broker} — {a.mt5Account}</option>)}

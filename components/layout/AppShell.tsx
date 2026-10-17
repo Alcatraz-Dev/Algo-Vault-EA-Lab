@@ -475,7 +475,7 @@ export function AppShell({
       <NotificationsMenu key={user?.uid ?? "signed-out"} user={user} compact />
       <ThemeToggle compact />
       {/* Account menu */}
-      <div ref={accountRef} className="relative">
+      <div ref={accountRef} className="relative overflow-visible">
         <Button
           variant="ghost"
           size="icon"
@@ -490,7 +490,7 @@ export function AppShell({
           </span>
         </Button>
         {accountOpen ? (
-          <div className="absolute right-0 z-[60] mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
+          <div className="absolute right-0 z-[80] mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
             <div className="border-b border-border px-3 py-3">
               <p className="truncate text-meta font-semibold text-foreground">
                 {user?.displayName || "Account"}
@@ -608,7 +608,7 @@ export function AppShell({
           <div className="relative z-10">
           <div
             className={cn(
-              "flex items-center gap-2",
+              "flex items-center gap-2 min-w-0",
               !compactHeader && "flex-wrap gap-x-3 gap-y-2.5 lg:flex-nowrap"
             )}
           >

@@ -20,6 +20,7 @@ import {
     X,
 } from "lucide-react";
 import Link from "next/link";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { cn } from "@/lib/utils";
 
 type AlertType = "price_above" | "price_below" | "structure_bos" | "structure_choch" | "zone_entry" | "volatility_high" | "session_start";
@@ -144,25 +145,22 @@ export default function AlertsPage() {
     const triggeredAlerts = alerts.filter((a) => a.triggered);
 
     return (
-        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30">
+        <div className="min-h-screen bg-background text-foreground selection:bg-warning/30 overflow-x-hidden">
             <div className="pointer-events-none fixed inset-0 overflow-hidden">
                 <div className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-warning/10 hidden" />
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
+            <div className="mt-6">
+            <ModernPageHeader
+                backHref="/account"
+                backLabel="Back to Account"
+                eyebrow="Alerts"
+                title="Alerts"
+                subtitle="Price, structure, and zone alerts with Discord/Telegram notifications"
+            />
+            </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alerts</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Price, structure, and zone alerts with Discord/Telegram notifications</p>
-                    </div>
-                    <button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
-                        <Plus size={14} /> New Alert
-                    </button>
-                </div>
+                <div className="mb-6 flex items-center justify-between"><button type="button" onClick={() => setShowCreate(true)} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors"><Plus size={14} /> New Alert</button></div>
 
                 {/* Stats */}
                 <div className="mb-6 grid grid-cols-3 gap-4" data-guide="stats">
