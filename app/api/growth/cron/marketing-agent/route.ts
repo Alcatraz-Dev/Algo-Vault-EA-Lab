@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runCronJob } from "@/lib/growth/jobs";
 import { requireGrowthAdmin } from "@/lib/growth/server-auth";
+import { cronSecretsMatch, getConfiguredCronSecret, presentedCronSecrets } from "@/lib/security/cron-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,10 +28,10 @@ export async function POST(request: NextRequest) {
       bucket?: string;
     };
 
-    const header = request.headers.get("authorization") ?? "";
-    const bearer = header.startsWith("Bearer ") ? header.slice(7) : header;
-    const expected = process.env.CRON_SECRET;
-    const secretMatches = !!expected && (bearer === expected || body.cronSecret === expected);
+    const expected = getConfiguredCronSecret();
+    const secretMatches =
+      presentedCronSecrets(request).some((c) => cronSecretsMatch(c, expected)) ||
+      cronSecretsMatch(body.cronSecret, expected);
     const admin = await requireGrowthAdmin(request);
 
     if (!secretMatches && !admin) {

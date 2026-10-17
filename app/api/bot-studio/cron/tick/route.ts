@@ -4,6 +4,7 @@ import { listAllDeployments, getStrategy, updateDeploymentState } from "@/lib/bo
 import { BotRuntimeSession, type BotTickResult } from "@/lib/bot-studio/runtime";
 import { fetchCandles } from "@/lib/market-data/normalizer";
 import type { MarketCandle, SupportedSymbol } from "@/lib/market-data/types";
+import { isCronRequest } from "@/lib/security/cron-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,11 +13,8 @@ export const dynamic = "force-dynamic";
 const sessions = new Map<string, BotRuntimeSession>();
 
 async function isAuthorized(request: NextRequest): Promise<boolean> {
-    const cronSecret = process.env.CRON_SECRET;
-    const isVercelCron = request.headers.get("user-agent")?.includes("vercel-cron");
-    const secretHeader = request.headers.get("x-cron-secret") || request.nextUrl.searchParams.get("secret");
-
-    if (isVercelCron || (cronSecret && secretHeader === cronSecret)) {
+    // CRON_SECRET (bearer or x-cron-secret) or an admin Firebase session.
+    if (isCronRequest(request)) {
         return true;
     }
 

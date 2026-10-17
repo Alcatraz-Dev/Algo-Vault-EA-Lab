@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { runCronJob } from "@/lib/growth/jobs";
 import type { CronJobName } from "@/lib/growth/jobs";
 import { requireGrowthAdmin } from "@/lib/growth/server-auth";
+import { cronSecretsMatch, getConfiguredCronSecret } from "@/lib/security/cron-auth";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ job: string }> }) {
     try {
@@ -18,11 +19,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const { payload, cronSecret } = body;
 
         // Fail closed: a cron job cannot run without CRON_SECRET configured.
-        const expectedSecret = process.env.CRON_SECRET;
+        const expectedSecret = getConfiguredCronSecret();
         if (!expectedSecret) {
             return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
         }
-        if (cronSecret !== expectedSecret) {
+        if (!cronSecretsMatch(cronSecret, expectedSecret)) {
             return NextResponse.json({ error: "Invalid cron secret" }, { status: 403 });
         }
 

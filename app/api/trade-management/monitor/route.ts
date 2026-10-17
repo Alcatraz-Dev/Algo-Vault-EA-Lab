@@ -13,13 +13,14 @@ import {
     TradeState,
     TradeEventType,
 } from "@/lib/trade-management/types";
+import { isCronRequest } from "@/lib/security/cron-auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 // ============================================
 // MONITOR: watch every open managed trade
-// Called by cron (x-cron-secret) or heartbeat.
+// Called by cron (CRON_SECRET bearer or x-cron-secret) or heartbeat.
 // For each trade:
 //   1. sync live price from trading_positions
 //   2. detect closed positions on MT5
@@ -37,13 +38,9 @@ const CHECK_INTERVAL_MS = 30000;
 
 export async function POST(request: NextRequest) {
     try {
-        // Fail-closed cron auth: requires x-cron-secret (or ?secret=) matching
-        // CRON_SECRET, or Vercel's cron runner UA. Refuses when CRON_SECRET is unset.
-        const cronSecret = process.env.CRON_SECRET;
-        const headerSecret = request.headers.get("x-cron-secret") || "";
-        const querySecret = new URL(request.url).searchParams.get("secret") || "";
-        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
-        if (!isVercelCron && !Boolean(cronSecret && (headerSecret === cronSecret || querySecret === cronSecret))) {
+        // Cron auth: CRON_SECRET via Authorization bearer or x-cron-secret.
+        // Fails closed when CRON_SECRET is unset.
+        if (!isCronRequest(request)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

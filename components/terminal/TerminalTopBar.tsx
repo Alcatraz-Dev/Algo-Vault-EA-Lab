@@ -202,7 +202,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
                 </div>
                 <div className="leading-none">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-semibold tracking-tight text-foreground">AlgoVault</span>
+                        <span className="text-xs font-semibold tracking-tight text-foreground">AlgoVault</span>
                         <span className="text-border">|</span>
                         <span className="font-numeric text-xs font-bold text-primary">{state.symbol}</span>
                         <span className="font-numeric text-micro text-muted-foreground">{state.timeframe}</span>
@@ -231,7 +231,7 @@ export function TerminalTopBar({ now, isPro }: { now: number; isPro: boolean }) 
 
             {price !== null ? (
                 <div className="flex items-baseline gap-1.5">
-                    <span className="font-numeric text-base font-semibold tabular-nums text-foreground">
+                    <span className="font-numeric text-sm font-normal tabular-nums text-foreground">
                         {price >= 100 ? price.toFixed(2) : price.toFixed(5)}
                     </span>
                     {change !== null ? (

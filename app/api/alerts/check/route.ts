@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
+import { isCronRequest } from "@/lib/security/cron-auth";
 import {
     evaluateCrossAssetAlert,
     type CrossAssetAlert,
@@ -34,13 +35,9 @@ type Alert = {
 
 export async function GET(request: NextRequest) {
     try {
-        // Fail-closed cron auth: requires x-cron-secret (or ?secret=) matching
-        // CRON_SECRET, or Vercel's cron runner UA. Refuses when CRON_SECRET is unset.
-        const secret = process.env.CRON_SECRET;
-        const headerSecret = request.headers.get("x-cron-secret") || "";
-        const querySecret = new URL(request.url).searchParams.get("secret") || "";
-        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
-        if (!isVercelCron && !Boolean(secret && (headerSecret === secret || querySecret === secret))) {
+        // Cron auth: CRON_SECRET via Authorization bearer (Vercel Cron) or
+        // x-cron-secret. Fails closed when CRON_SECRET is unset.
+        if (!isCronRequest(request)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

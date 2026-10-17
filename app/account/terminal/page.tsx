@@ -80,7 +80,7 @@ export default function TerminalPage() {
     return (
         <AccountShell
             title="Trading Terminal"
-            subtitle="Market · Intelligence · Account · Strategies — one shared context"
+            subtitle="Market · Intelligence · Account · Strategies"
             onBack={() => router.push("/account")}
             hideSidebar
             fullscreen

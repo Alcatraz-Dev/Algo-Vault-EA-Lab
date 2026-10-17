@@ -4,6 +4,7 @@ import { saveProSignal } from "@/features/telegram-signals/signals/signal-engine
 import { transitionSignalState } from "@/features/telegram-signals/lifecycle/state-machine";
 import type { ProSignal } from "@/features/telegram-signals/types";
 import { tradingViewLivePriceCache } from "@/lib/market-data/tradingview-live";
+import { isCronRequest } from "@/lib/security/cron-auth";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
@@ -13,22 +14,18 @@ const MAX_SIGNALS_TO_CHECK = 200;
  * which sends `Authorization: Bearer <idToken>`).
  *
  * Auth: accepts any of —
- *   - Vercel's cron runner (user-agent "vercel-cron")
- *   - `x-cron-secret` (or `?secret=`) matching CRON_SECRET
+ *   - CRON_SECRET presented as `Authorization: Bearer` (Vercel Cron) or
+ *     `x-cron-secret` (see lib/security/cron-auth.ts)
  *   - a valid Firebase ID token as `Authorization: Bearer <idToken>`
- * If CRON_SECRET is unset the cron paths are simply not available (the bearer
- * path still works); nothing runs unauthenticated.
+ * If CRON_SECRET is unset the cron path is unavailable (the bearer path still
+ * works); nothing runs unauthenticated. User-Agent is never trusted.
  */
 export async function POST(request: NextRequest) {
     try {
-        const secret = process.env.CRON_SECRET;
-        const headerSecret = request.headers.get("x-cron-secret") || "";
-        const querySecret = new URL(request.url).searchParams.get("secret") || "";
-        const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
         const authorization = request.headers.get("Authorization") || "";
         const isBearer = authorization.startsWith("Bearer ");
 
-        const cronAuthorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
+        const cronAuthorized = isCronRequest(request);
 
         if (!cronAuthorized && !isBearer) {
             return NextResponse.json(
@@ -40,7 +37,10 @@ export async function POST(request: NextRequest) {
         if (!cronAuthorized && isBearer) {
             const { adminAuth } = await import("@/lib/firebase-admin");
             try {
-                await adminAuth.verifyIdToken(authorization.slice(7).trim());
+                const decoded = await adminAuth.verifyIdToken(authorization.slice(7).trim());
+                if (!decoded?.uid) {
+                    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+                }
             } catch {
                 return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
             }

@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { monitorAllActiveSignals } from "@/lib/ai-signals/monitor";
+import { isCronRequest } from "@/lib/security/cron-auth";
 
 /**
- * AI Signal Monitor — invoked by a cron/worker (or admin-triggered on-demand).
+ * AI Signal Monitor — invoked by Vercel Cron or an operator.
  *
- * Auth: requires `x-cron-secret` to match CRON_SECRET (same convention as
- * /api/alerts/check and /api/trade-management/monitor), OR the request must
- * come from Vercel's cron runner (user-agent "vercel-cron"). If CRON_SECRET is
- * unset the endpoint refuses to run instead of running unauthenticated.
+ * Auth: CRON_SECRET presented as `Authorization: Bearer` (Vercel Cron) or
+ * `x-cron-secret`. Fails closed when CRON_SECRET is unset. User-Agent and
+ * query-string values are never trusted.
  */
 export async function GET(request: NextRequest) {
-    const secret = process.env.CRON_SECRET;
-    const headerSecret = request.headers.get("x-cron-secret") || "";
-    const querySecret = new URL(request.url).searchParams.get("secret") || "";
-    const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
-
-    const authorized = isVercelCron || Boolean(secret && (headerSecret === secret || querySecret === secret));
-    if (!authorized) {
+    if (!isCronRequest(request)) {
         return NextResponse.json(
             { error: "Unauthorized. Set CRON_SECRET and send it as x-cron-secret." },
             { status: 401 }

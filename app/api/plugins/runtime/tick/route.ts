@@ -2,15 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase-admin";
 import { runDueTasks } from "@/lib/plugins/runtime/engine";
 import { adminDatabase } from "@/lib/firebase-admin";
+import {
+    getConfiguredCronSecret,
+    isCronRequest,
+} from "@/lib/security/cron-auth";
+
+const PLUGIN_CRON_SECRET_ENV = "PLUGIN_RUNTIME_CRON_SECRET";
 
 /**
  * Runtime scheduler tick — invoked by a cron/worker (vercel.json) or by an
  * admin token for on-demand sweeps. Runs every due plugin across all users.
  *
- * Auth: when PLUGIN_RUNTIME_CRON_SECRET is configured the request must send
- * `x-cron-secret`; otherwise an admin Bearer token is accepted. If neither
- * auth path is available the endpoint reports a clear configuration error
- * instead of pretending to run.
+ * Auth: when CRON_SECRET or PLUGIN_RUNTIME_CRON_SECRET is configured, the
+ * request must present one of them (Authorization bearer or x-cron-secret).
+ * Otherwise an admin Bearer token is accepted. If neither path is available
+ * the endpoint reports a clear configuration error. User-Agent is never trusted.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
     return handleTick(request);
@@ -21,16 +27,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 }
 
 async function handleTick(request: NextRequest): Promise<NextResponse> {
-    const secret = process.env.PLUGIN_RUNTIME_CRON_SECRET;
-    const headerSecret = request.headers.get("x-cron-secret") || "";
-    const querySecret = new URL(request.url).searchParams.get("secret") || "";
-    const isVercelCron = (request.headers.get("user-agent") || "").toLowerCase().includes("vercel-cron");
+    const cronConfigured = Boolean(getConfiguredCronSecret() || getConfiguredCronSecret(PLUGIN_CRON_SECRET_ENV));
 
-    if (secret) {
-        if (headerSecret !== secret && querySecret !== secret && !isVercelCron) {
+    if (cronConfigured) {
+        // Vercel Cron sends CRON_SECRET as a bearer; the plugin-specific secret
+        // is also accepted for operators who set it separately.
+        if (!isCronRequest(request) && !isCronRequest(request, PLUGIN_CRON_SECRET_ENV)) {
             return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
         }
-    } else if (!isVercelCron) {
+    } else {
         const authorization = request.headers.get("authorization") || "";
         if (!authorization.startsWith("Bearer ")) {
             return NextResponse.json(
