@@ -956,9 +956,9 @@ export default function AccountTradingPage() {
                                 : "—"
                         }
                         delta={
-                            marginLevel !== null && marginLevel < 200
-                                ? "Below 200% comfort threshold"
-                                : undefined
+                            marginLevel !== null && marginLevel < 200 ? (
+                                <span title="Below the 200% comfort threshold">Below 200%</span>
+                            ) : undefined
                         }
                         deltaTone={
                             marginLevel !== null && marginLevel < 200

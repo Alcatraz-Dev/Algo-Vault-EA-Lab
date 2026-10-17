@@ -31,7 +31,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        "card rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]",
+        "card rounded-xl border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-5",
         className
       )}
     >
@@ -55,7 +55,7 @@ export function MetricCard({
       {delta ? (
         <div
           className={cn(
-            "mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
+            "mt-2 inline-flex w-fit max-w-full items-start gap-1 rounded-full border px-2 py-0.5 text-[11px] leading-snug font-medium [overflow-wrap:anywhere]",
             deltaTone === "up" && "border-positive/30 bg-positive-muted text-positive",
             deltaTone === "down" && "border-negative/30 bg-negative-muted text-negative",
             deltaTone === "warning" && "border-warning/30 bg-warning-muted text-warning",

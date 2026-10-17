@@ -197,11 +197,11 @@ export default function OrderPanel({
     <Badge
       className={cn(
         "gap-1",
-        PHASE_TONE[ticket.phase] === "good" && "bg-positive/10 text-positive dark:text-positive",
-        PHASE_TONE[ticket.phase] === "progress" && "bg-info/10 text-info dark:text-info",
-        PHASE_TONE[ticket.phase] === "bad" && "bg-negative/10 text-negative dark:text-negative",
-        PHASE_TONE[ticket.phase] === "warn" && "bg-warning/10 text-warning dark:text-warning",
-        PHASE_TONE[ticket.phase] === "neutral" && "bg-muted text-muted-foreground"
+        PHASE_TONE[ticket.phase] === "good" && "border-positive/30 bg-positive/10 text-positive",
+        PHASE_TONE[ticket.phase] === "progress" && "border-info/30 bg-info/10 text-info",
+        PHASE_TONE[ticket.phase] === "bad" && "border-negative/30 bg-negative/10 text-negative",
+        PHASE_TONE[ticket.phase] === "warn" && "border-warning/30 bg-warning/10 text-warning",
+        PHASE_TONE[ticket.phase] === "neutral" && "border-border bg-muted text-muted-foreground"
       )}
     >
       {PHASE_TONE[ticket.phase] === "progress" ? (
@@ -215,7 +215,7 @@ export default function OrderPanel({
     if (!ticket?.result) return null;
     const r = ticket.result;
     return (
-      <div className="space-y-1.5 rounded-none border border-border bg-muted/40 px-3 py-2 text-micro leading-4">
+      <div className="space-y-1.5 rounded-lg border border-border bg-muted/40 px-3 py-2 text-micro leading-4">
         <div className="flex justify-between gap-2">
           <span className="text-muted-foreground">Symbol</span>
           <span className="font-numeric font-medium">{r.executionType === "PLACE_ORDER" ? symbol.toUpperCase() : "—"}</span>
@@ -253,7 +253,7 @@ export default function OrderPanel({
           </span>
         </div>
         {r.status === "EXECUTED_PENDING_SYNC" ? (
-          <p className="pt-1 text-warning dark:text-warning">
+          <p className="pt-1 text-warning">
             Executed on the broker — the position will appear when the next
             account snapshot syncs.
           </p>
@@ -267,7 +267,9 @@ export default function OrderPanel({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
-            <Zap size={14} />
+            <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-border/70 bg-muted/50 text-muted-foreground">
+              <Zap size={13} />
+            </span>
             Place Order
           </span>
           {statusBadge}
@@ -294,10 +296,10 @@ export default function OrderPanel({
               disabled={processing}
               onClick={() => setSide("BUY")}
               className={cn(
-                "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
+                "flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-semibold transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
                 side === "BUY"
-                  ? "border-positive bg-positive/10 text-positive dark:text-positive"
-                  : "border-border text-muted-foreground hover:bg-muted"
+                  ? "border-positive/50 bg-positive/15 text-positive shadow-sm ring-1 ring-positive/20"
+                  : "border-border bg-background text-muted-foreground hover:border-foreground/20 hover:bg-muted/60 hover:text-foreground"
               )}
             >
               <ArrowUpRight size={14} />
@@ -308,10 +310,10 @@ export default function OrderPanel({
               disabled={processing}
               onClick={() => setSide("SELL")}
               className={cn(
-                "flex items-center justify-center gap-2 rounded-none border py-2 text-sm font-semibold transition-all",
+                "flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-semibold transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
                 side === "SELL"
-                  ? "border-negative bg-negative/10 text-negative dark:text-negative"
-                  : "border-border text-muted-foreground hover:bg-muted"
+                  ? "border-negative/50 bg-negative/15 text-negative shadow-sm ring-1 ring-negative/20"
+                  : "border-border bg-background text-muted-foreground hover:border-foreground/20 hover:bg-muted/60 hover:text-foreground"
               )}
             >
               <ArrowDownRight size={14} />
@@ -336,7 +338,7 @@ export default function OrderPanel({
         {/* Order Type */}
         <div className="space-y-1.5">
           <label className="text-micro font-medium text-muted-foreground">Order Type</label>
-          <div className="grid grid-cols-3 gap-1 rounded-none border border-border p-0.5">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-muted/40 p-0.5">
             {(["market", "limit", "stop"] as OrderType[]).map((type) => (
               <button
                 key={type}
@@ -344,10 +346,10 @@ export default function OrderPanel({
                 disabled={processing}
                 onClick={() => setOrderType(type)}
                 className={cn(
-                  "rounded-none px-2 py-1.5 text-xs font-medium capitalize transition-all",
+                  "rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all disabled:pointer-events-none disabled:opacity-50",
                   orderType === type
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-muted"
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-background/60 hover:text-foreground"
                 )}
               >
                 {type}
@@ -400,29 +402,25 @@ export default function OrderPanel({
         <Separator />
 
         {/* Risk / Margin */}
-        <div className="grid grid-cols-2 gap-4 text-xs">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Shield size={12} />
-            <span>
-              Est. Risk:{" "}
-              <span className="font-numeric font-semibold text-foreground">
-                ${formatCurrency(estimatedRisk)}
-              </span>
+        <div className="space-y-1.5 text-micro">
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-2.5 py-2">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Shield size={12} className="shrink-0" />
+              Est. Risk
             </span>
+            <span className="font-numeric font-semibold text-foreground">${formatCurrency(estimatedRisk)}</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <AlertTriangle size={12} />
-            <span>
-              Est. Margin:{" "}
-              <span className="font-numeric font-semibold text-foreground">
-                ${formatCurrency(estimatedMargin)}
-              </span>
+          <div className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/30 px-2.5 py-2">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <AlertTriangle size={12} className="shrink-0" />
+              Est. Margin
             </span>
+            <span className="font-numeric font-semibold text-foreground">${formatCurrency(estimatedMargin)}</span>
           </div>
         </div>
 
         {error && (
-          <div className="rounded-none border border-negative/30 bg-negative/10 px-3 py-2 text-xs text-negative dark:text-negative">
+          <div className="rounded-lg border border-negative/30 bg-negative/10 px-3 py-2 text-xs text-negative">
             {error}
           </div>
         )}
@@ -433,10 +431,10 @@ export default function OrderPanel({
           onClick={handleSubmit}
           disabled={!canSubmit}
           className={cn(
-            "w-full font-semibold",
+            "w-full font-semibold shadow-sm",
             side === "BUY"
-              ? "bg-positive text-foreground hover:bg-positive"
-              : "bg-negative text-foreground hover:bg-negative"
+              ? "border-positive/50 bg-positive/15 text-positive hover:border-positive/70 hover:bg-positive/25"
+              : "border-negative/50 bg-negative/15 text-negative hover:border-negative/70 hover:bg-negative/25"
           )}
         >
           {processing ? "Submitting…" : `PLACE ${side} ORDER`}
