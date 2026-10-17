@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { ArrowUpRight, Activity, ShieldCheck, Database } from "lucide-react";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function AdvancedAnalysisPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight">Advanced Market Intelligence</h1>
-          <div className="text-sm text-muted-foreground">Market Intelligence / Advanced</div>
-        </div>
-      </header>
+      <div className="mx-auto max-w-7xl px-6 pt-6">
+        <ModernPageHeader
+          backHref="/account"
+          backLabel="Back to Account"
+          eyebrow="Market Intelligence"
+          title="Advanced Market Intelligence"
+        />
+      </div>
       <main className="mx-auto max-w-7xl px-6 py-6 space-y-6">
         <div className="rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h3 className="font-semibold mb-2 flex items-center gap-2"><Activity className="w-5 h-5 text-warning" /> Technical Analysis</h3>

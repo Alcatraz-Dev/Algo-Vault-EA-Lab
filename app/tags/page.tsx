@@ -4,10 +4,11 @@ import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, ArrowLeft, Tag, Plus, Trash2, X, Palette,
+    Loader2, Shield, Tag, Plus, Trash2, X, Palette,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type TradeTag = { id: string; name: string; color: string; trades: string[]; createdAt: number };
 
@@ -83,22 +84,23 @@ export default function TradeTagsPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Trade Tags</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Create custom tags to organize and filter your trades</p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setShowForm(!showForm)}
-                        className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors"
-                    >
-                        {showForm ? <X size={13} /> : <Plus size={13} />} {showForm ? "Cancel" : "New Tag"}
-                    </button>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Trade Journal"
+                        title="Trade Tags"
+                        subtitle="Create custom tags to organize and filter your trades"
+                        actions={
+                            <button
+                                type="button"
+                                onClick={() => setShowForm(!showForm)}
+                                className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors"
+                            >
+                                {showForm ? <X size={13} /> : <Plus size={13} />} {showForm ? "Cancel" : "New Tag"}
+                            </button>
+                        }
+                    />
                 </div>
 
                 {showForm && (

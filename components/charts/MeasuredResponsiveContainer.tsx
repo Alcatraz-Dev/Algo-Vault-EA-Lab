@@ -47,8 +47,6 @@ export function MeasuredResponsiveContainer({
     children,
 }: MeasuredResponsiveContainerProps) {
     const containerRef = React.useRef<HTMLDivElement | null>(null);
-    const propsRef = React.useRef<ChartSizeProps>({ width, height, aspect, maxHeight });
-    propsRef.current = { width, height, aspect, maxHeight };
 
     // No measured box yet: a size is only known without measurement when the
     // caller fixed BOTH dimensions numerically.
@@ -60,8 +58,11 @@ export function MeasuredResponsiveContainer({
         const element = containerRef.current;
         if (!element) return;
 
+        // The effect only re-runs when the size-affecting props change, so the
+        // closure always holds the current dimensions.
+        const sizeProps: ChartSizeProps = { width, height, aspect, maxHeight };
         const measure = (box: { width: number; height: number }) => {
-            setSize((previous) => nextChartSize(previous, box, propsRef.current));
+            setSize((previous) => nextChartSize(previous, box, sizeProps));
         };
 
         measure(element.getBoundingClientRect());

@@ -4,12 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, RefreshCw, ArrowLeft, ExternalLink, TrendingUp, TrendingDown,
+    Loader2, Shield, RefreshCw, ExternalLink, TrendingUp, TrendingDown,
     Minus, Newspaper, Globe, Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type NewsItem = {
     id: string; title: string; summary: string; source: string; url: string;
@@ -66,18 +67,19 @@ export default function NewsPage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Market News</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Financial headlines and market sentiment</p>
-                    </div>
-                    <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
-                        <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
-                    </button>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Market Intelligence"
+                        title="Market News"
+                        subtitle="Financial headlines and market sentiment"
+                        actions={
+                            <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
+                                <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+                            </button>
+                        }
+                    />
                 </div>
 
                 {/* Category Tabs */}

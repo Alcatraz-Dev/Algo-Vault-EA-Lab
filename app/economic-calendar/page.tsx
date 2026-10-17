@@ -1,11 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import {
     AlertTriangle,
-    ArrowLeft,
-    Calendar,
     CheckCircle2,
     Clock,
     DollarSign,
@@ -22,6 +19,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { EconomicNewsItem } from "@/app/api/calendar/route";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import TradingViewEconomicCalendar from "@/components/tradingview/TradingViewEconomicCalendar";
 
 export default function EconomicCalendarPage() {
@@ -70,36 +68,15 @@ export default function EconomicCalendarPage() {
             </div>
 
             {/* Header Section */}
-            <section className="border-b border-border/40" data-guide="page-header">
+            <section className="border-b border-border/40">
                 <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                    
-                    {/* Back Button matching Purchases page style */}
-                    <Link
-                        href="/account"
-                        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Account
-                    </Link>
-
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <div className="inline-flex items-center gap-2 rounded-full border border-border/40 bg-muted/5 px-3 py-1.5 text-xs text-muted-foreground">
-                                <Calendar size={13} />
-                                Economic Impact & News Telemetry
-                            </div>
-
-                            <h1 className="text-2xl font-semibold tracking-tight mt-4">
-                                Economic Calendar & EA News Filter
-                            </h1>
-
-                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                Real-time forex news releases, high-impact event schedule, and automated EA pause recommendations to protect account equity.
-                            </p>
-                        </div>
-
-                        {/* Controls & Refresh */}
-                        <div className="flex items-center gap-3">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Market Intelligence"
+                        title="Economic Calendar & EA News Filter"
+                        subtitle="Real-time forex news releases, high-impact event schedule, and automated EA pause recommendations to protect account equity."
+                        actions={
                             <button
                                 type="button"
                                 onClick={() => loadCalendar(true)}
@@ -109,8 +86,8 @@ export default function EconomicCalendarPage() {
                                 <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
                                 <span>{refreshing ? "Updating..." : "Refresh Calendar"}</span>
                             </button>
-                        </div>
-                    </div>
+                        }
+                    />
 
                     {/* Controls Bar */}
                     <div className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border/40 pt-6">

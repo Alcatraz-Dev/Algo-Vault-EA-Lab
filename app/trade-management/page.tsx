@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
-    Loader2, Shield, ArrowLeft, Plus, X, ChevronDown, ChevronUp,
+    Loader2, Shield, Plus, X, ChevronDown, ChevronUp,
     TrendingUp, TrendingDown, Target, Lock, AlertTriangle, CheckCircle,
     Zap, Activity, Bell, RefreshCw, Clock, Trash2, History,
     Ban, CircleDollarSign, Gauge, ShieldCheck, Search, User as UserIcon, Moon, Sun,
@@ -12,6 +12,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/theme/theme-toggle";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 // ============================================
 // TYPES (mirroring lib/trade-management/types)
@@ -466,30 +467,24 @@ export default function TradeManagementPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
 
-            {/* Sticky header bar (like /alerts) */}
-            <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl px-4 py-3 sm:px-6 sm:py-4 border-b border-border/30 overflow-visible">
-                <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-                <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
-                <div className="relative z-10 flex items-center gap-3 flex-wrap gap-x-3 gap-y-2.5 lg:flex-nowrap">
-                    <div className="flex shrink-0 items-center gap-1.5">
-                        <button type="button" aria-label="Open navigation menu" className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground" onClick={() => alert("Menu not implemented")}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
-                        </button>
-                        <Link href="/account" aria-label="Back to Account" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-foreground hover:bg-muted" title="Back to Account">
-                            <ArrowLeft size={14} />
-                        </Link>
-                    </div>
-                    <div className="min-w-0 order-last w-full lg:order-none lg:w-auto lg:flex-1">
-                        <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">Smart Trade Management</h1>
-                        <p className="truncate text-sm font-normal text-muted-foreground/80">Scale out at multiple targets with auto break-even, profit lock, and trailing</p>
-                    </div>
-                    <div className="ml-auto flex items-center gap-2">
-                        <ThemeToggle compact />
-                    </div>
-                </div>
-            </header>
-
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Trade Management"
+                        title="Smart Trade Management"
+                        subtitle="Scale out at multiple targets with auto break-even, profit lock, and trailing"
+                        actions={
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button type="button" aria-label="Open navigation menu" className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground" onClick={() => alert("Menu not implemented")}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+                                </button>
+                                <ThemeToggle compact />
+                            </div>
+                        }
+                    />
+                </div>
                 {/* Banner */}
                 {banner && (
                     <div className={cn("mb-4 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium",

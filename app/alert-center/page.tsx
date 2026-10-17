@@ -2,13 +2,14 @@
 
 import { useState, useCallback, useEffect } from "react";
 import {
-    Loader2, Shield, ArrowLeft, Bell, BellRing, CheckCircle, Target, Lock,
+    Loader2, Shield, Bell, BellRing, CheckCircle, Target, Lock,
     Zap, AlertTriangle, Activity, TrendingUp, TrendingDown, Eye, Trash2, X,
 } from "lucide-react";
 import Link from "next/link";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type Notification = {
     id: string; title: string; message: string; severity: string; link?: string;
@@ -186,51 +187,54 @@ export default function AlertCenterPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={12} /> Back to Account</Link>
-
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alert Center</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Trade events, target hits, and management notifications</p>
-                    </div>
-                    {notifications.length > 0 && (
-                        <div className="flex items-center gap-2">
-                            {selectMode ? (
-                                <>
-                                    <span className="text-micro text-muted-foreground">{selected.size} selected</span>
-                                    <button type="button" onClick={selected.size > 0 ? bulkDelete : undefined} disabled={selected.size === 0} className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50">
-                                        <Trash2 size={13} /> Delete
-                                    </button>
-                                    <button type="button" onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-                                        <X size={13} /> Cancel
-                                    </button>
-                                </>
-                            ) : (
-                                <>
-                                    {unreadCount > 0 && (
-                                        <button type="button" onClick={markAllRead} className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
-                                            <Eye size={13} /> Mark all read ({unreadCount})
-                                        </button>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Alerts"
+                        title="Alert Center"
+                        subtitle="Trade events, target hits, and management notifications"
+                        actions={
+                            notifications.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                    {selectMode ? (
+                                        <>
+                                            <span className="text-micro text-muted-foreground">{selected.size} selected</span>
+                                            <button type="button" onClick={selected.size > 0 ? bulkDelete : undefined} disabled={selected.size === 0} className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50">
+                                                <Trash2 size={13} /> Delete
+                                            </button>
+                                            <button type="button" onClick={() => { setSelectMode(false); setSelected(new Set()); }} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                                                <X size={13} /> Cancel
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {unreadCount > 0 && (
+                                                <button type="button" onClick={markAllRead} className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-2.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors">
+                                                    <Eye size={13} /> Mark all read ({unreadCount})
+                                                </button>
+                                            )}
+                                            <button type="button" onClick={() => setSelectMode(true)} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+                                                <Trash2 size={13} /> Select
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={clearAll}
+                                                className={cn(
+                                                  "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors",
+                                                    confirmClear
+                                                        ? "border border-negative/40 bg-negative/20 text-negative hover:bg-negative/30"
+                                                        : "border border-negative/20 bg-negative/10 text-negative hover:bg-negative/20"
+                                                )}
+                                            >
+                                                <Trash2 size={13} /> {confirmClear ? "Confirm delete all?" : "Clear all"}
+                                            </button>
+                                        </>
                                     )}
-                                    <button type="button" onClick={() => setSelectMode(true)} className="flex items-center gap-2 rounded-lg border border-border/40 bg-muted px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
-                                        <Trash2 size={13} /> Select
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={clearAll}
-                                        className={cn(
-                                          "flex items-center gap-2 rounded-lg px-4 py-2.5 text-xs font-semibold transition-colors",
-                                            confirmClear
-                                                ? "border border-negative/40 bg-negative/20 text-negative hover:bg-negative/30"
-                                                : "border border-negative/20 bg-negative/10 text-negative hover:bg-negative/20"
-                                        )}
-                                    >
-                                        <Trash2 size={13} /> {confirmClear ? "Confirm delete all?" : "Clear all"}
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    )}
+                                </div>
+                            )
+                        }
+                    />
                 </div>
 
                 {/* Stats */}

@@ -1149,7 +1149,7 @@ html[data-desktop="true"] [data-desktop-content]:has([data-home-page]) {
   padding-top: 0;
 }
 html[data-desktop="true"] [data-home-site-header],
-html[data-desktop="true"] header[data-guide="page-header"] {
+html[data-desktop="true"] [data-shell-header] {
   position: static;
 }
 html[data-desktop="true"] [data-app-shell],

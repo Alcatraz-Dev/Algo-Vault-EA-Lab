@@ -1,7 +1,7 @@
 import Link from "next/link";
 import {
     Calculator, TrendingDown, Shield, TrendingUp, Coins, DollarSign,
-    Grid3x3, Zap, Clock, Globe, ArrowRight, Crown, Sparkles, Telescope,
+    Grid3x3, Zap, Clock, Globe, ArrowRight, Crown, Telescope,
     Layers, Copy, FlaskConical,
 } from "lucide-react";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/lib/tools-catalog";
 import { ToolBadge } from "@/components/tools/tier-ui";
 import { cn } from "@/lib/utils";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
     Calculator, TrendingDown, Shield, TrendingUp, Coins, DollarSign,
@@ -35,34 +36,38 @@ export default function ToolsLandingPage() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-                <header className="mb-10">
-                    <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.04] px-2.5 py-1 text-micro font-semibold uppercase tracking-wider text-primary">
-                        <Sparkles className="size-3" /> Tool Library
-                    </div>
-                    <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
-                        Every trading tool we ship, side by side.
-                    </h1>
-                    <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                        <span className="font-semibold text-foreground">{free.length} Lite tools</span> work on the free plan — useful on their own.
-                        <span className="ml-1 font-semibold text-primary">{pro.length} Pro tools</span> unlock the deep workspace,
-                        persistence, replay and AI explanations that turn these into a daily trading aid.
-                    </p>
-                    <div className="mt-5 flex flex-wrap items-center gap-3">
-                        <Link
-                            href="/pricing"
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
-                        >
-                            <Crown className="size-4" />
-                            Compare Pro plans
-                        </Link>
-                        <Link
-                            href="/account/tools"
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                        >
-                            Member tools <ArrowRight className="size-3.5" />
-                        </Link>
-                    </div>
-                </header>
+                <div className="mb-10">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Tool Library"
+                        title="Every trading tool we ship, side by side."
+                        subtitle={
+                            <>
+                                <span className="font-semibold text-foreground">{free.length} Lite tools</span> work on the free plan — useful on their own.
+                                <span className="ml-1 font-semibold text-primary">{pro.length} Pro tools</span> unlock the deep workspace,
+                                persistence, replay and AI explanations that turn these into a daily trading aid.
+                            </>
+                        }
+                        actions={
+                            <div className="flex flex-wrap items-center gap-3">
+                                <Link
+                                    href="/pricing"
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                                >
+                                    <Crown className="size-4" />
+                                    Compare Pro plans
+                                </Link>
+                                <Link
+                                    href="/account/tools"
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                                >
+                                    Member tools <ArrowRight className="size-3.5" />
+                                </Link>
+                            </div>
+                        }
+                    />
+                </div>
 
                 {/* Section: by group */}
                 {groups.map((groupKey) => {

@@ -4,11 +4,12 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, ArrowLeft, Bell, BellRing, Trash2, CheckCircle,
+    Loader2, Shield, Bell, BellRing, Trash2, CheckCircle,
     AlertTriangle, Clock, Zap, Activity, X, Power, PowerOff, Filter,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type ToolAlertDefinition = {
     id: string;
@@ -192,37 +193,38 @@ export default function ToolAlertsPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Tool Alerts</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Manage Pine Script and strategy alert definitions</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {selected.size > 0 && (
-                            <button
-                                type="button"
-                                onClick={bulkDelete}
-                                disabled={deleting}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
-                            >
-                                {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                                Delete ({selected.size})
-                            </button>
-                        )}
-                        {definitions.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={clearAll}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors"
-                            >
-                                <Trash2 size={13} /> Clear all
-                            </button>
-                        )}
-                    </div>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/alerts"
+                        backLabel="Back to Alerts"
+                        eyebrow="Alerts"
+                        title="Tool Alerts"
+                        subtitle="Manage Pine Script and strategy alert definitions"
+                        actions={
+                            <div className="flex items-center gap-2">
+                                {selected.size > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={bulkDelete}
+                                        disabled={deleting}
+                                        className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
+                                    >
+                                        {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                        Delete ({selected.size})
+                                    </button>
+                                )}
+                                {definitions.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={clearAll}
+                                        className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors"
+                                    >
+                                        <Trash2 size={13} /> Clear all
+                                    </button>
+                                )}
+                            </div>
+                        }
+                    />
                 </div>
 
                 {/* Stats */}

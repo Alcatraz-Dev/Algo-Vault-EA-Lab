@@ -13,7 +13,6 @@ import {
     update,
 } from "firebase/database";
 import {
-    ArrowLeft,
     Bot,
     CheckCircle2,
     DollarSign,
@@ -29,6 +28,7 @@ import Link from "next/link";
 
 import { auth, database } from "@/lib/firebase";
 import { formatProductFileExtensions, getProductFileRule, isAllowedProductFileName } from "@/lib/product-files";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type BrandingItem = {
     type?: string;
@@ -1174,41 +1174,19 @@ export default function EditBotPage() {
             <div className="mx-auto max-w-5xl px-6 py-8">
 
                 {/* Header */}
-                <div data-guide="page-header" className="mb-8 flex items-center justify-between">
-
-                    <div className="flex items-center gap-4">
-
-                        <Link
-                            href="/admin/bots"
-                            className="flex h-10 w-10 items-center justify-center rounded-lg border border-border hover:bg-muted/70"
-                        >
-                            <ArrowLeft size={18} />
-                        </Link>
-
-                        <div>
-                            <p className="text-sm text-muted-foreground">
-                                ADMIN / PRODUCTS / EDIT
-                            </p>
-
-                            <h1 className="text-2xl font-semibold tracking-tight mt-1">
-                                Edit Product
-                            </h1>
-                        </div>
-
-                    </div>
-
-                    <div className="hidden rounded-lg border border-border bg-muted/40 px-4 py-2 md:block">
-
-                        <p className="text-xs text-muted-foreground">
-                            Product ID
-                        </p>
-
-                        <p className="mt-1 font-numeric text-xs text-muted-foreground">
-                            {productId}
-                        </p>
-
-                    </div>
-
+                <div className="mb-8">
+                    <ModernPageHeader
+                        backHref="/admin/bots"
+                        backLabel="Back to Products"
+                        eyebrow="Admin / Products / Edit"
+                        title="Edit Product"
+                        actions={
+                            <div className="hidden rounded-lg border border-border bg-muted/40 px-4 py-2 md:block">
+                                <p className="text-xs text-muted-foreground">Product ID</p>
+                                <p className="mt-1 font-numeric text-xs text-muted-foreground">{productId}</p>
+                            </div>
+                        }
+                    />
                 </div>
 
                 <div className="space-y-6">

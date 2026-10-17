@@ -8,22 +8,24 @@ import { validateContext } from "@/components/market-intelligence/workspace-cont
 import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import { ChallengeContextBar } from "@/components/performance-arena/ChallengeContextBar";
 import ResearchEvidencePanel from "@/components/strategy-research/ResearchEvidencePanel";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function AIScalpingPage() {
   const [ctx, setCtx] = useState<WorkspaceContext>({ symbol: "XAUUSD", timeframe: "M5" });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Header bar matching AlgoVault compact design */}
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-xl font-semibold tracking-tight">AI Scalping Terminal</h1>
+      <div className="mx-auto max-w-7xl px-6 pt-6">
+        <ModernPageHeader
+          backHref="/account"
+          backLabel="Back to Account"
+          eyebrow="Market Intelligence"
+          title="AI Scalping Terminal"
+          actions={
             <span className="inline-flex items-center rounded-full border border-positive/30 bg-positive/10 px-2.5 py-0.5 text-xs font-medium text-positive-foreground">Active</span>
-          </div>
-          <div className="text-sm text-muted-foreground">Market Intelligence / Scalping</div>
-        </div>
-      </header>
+          }
+        />
+      </div>
 
       <main className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Performance Arena challenge context (rendered only with an active attempt) */}

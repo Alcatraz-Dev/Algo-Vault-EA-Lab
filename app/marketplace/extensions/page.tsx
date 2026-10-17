@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-    ArrowLeft,
     ArrowRight,
     Braces,
     Cable,
@@ -14,13 +13,13 @@ import {
     Puzzle,
     Search,
     Shield,
-    Sparkles,
 } from "lucide-react";
 import { onValue, ref } from "firebase/database";
 import { database } from "@/lib/firebase";
 import { PluginRecord } from "@/lib/plugins/types";
 import { CATEGORY_LABELS, EXTENSION_TYPE_LABELS, grantedPermissions, permissionLabel } from "@/lib/plugins/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 const EXT_TYPE_ICONS: Record<string, React.ReactNode> = {
     webhook: <Cable size={20} className="text-muted-foreground" />,
@@ -75,43 +74,34 @@ export default function ExtensionsMarketplacePage() {
         <main className="min-h-screen bg-background text-foreground">
             <section className="border-b border-border/40">
                 <div className="mx-auto max-w-7xl px-6 py-10">
-                    <Link
-                        href="/marketplace"
-                        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Marketplace
-                    </Link>
-
-                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="max-w-2xl">
-                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
-                                <Sparkles size={14} />
-                                Plugins &amp; Extensions Ecosystem
-                            </div>
-                            <h1 className="text-2xl font-semibold tracking-tight mt-3">
+                    <ModernPageHeader
+                        backHref="/marketplace"
+                        backLabel="Back to Marketplace"
+                        eyebrow="Marketplace"
+                        title={
+                            <>
                                 Extensions that connect
                                 <br />
                                 AlgoVault to your workflow.
-                            </h1>
-                            <p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">
-                                Deliver plugin intelligence to the tools you already use — Telegram,
-                                Discord, webhooks, your browser and TradingView. Extensions reuse your
-                                existing AlgoVault connections; no separate accounts required.
-                            </p>
-                            <div className="mt-6 grid max-w-md grid-cols-3 gap-3">
-                                <MiniStat icon={<Puzzle size={15} />} value={extensions.length} label="Extensions" />
-                                <MiniStat icon={<CheckCircle2 size={15} />} value={extensions.filter((e) => e.pricing?.type === "free").length} label="Free" />
-                                <MiniStat icon={<Cable size={15} />} value={extensions.filter((e) => (e.installs || 0) > 0).length} label="In use" />
-                            </div>
-                        </div>
+                            </>
+                        }
+                        subtitle="Deliver plugin intelligence to the tools you already use — Telegram, Discord, webhooks, your browser and TradingView. Extensions reuse your existing AlgoVault connections; no separate accounts required."
+                        actions={
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="grid max-w-md grid-cols-3 gap-3">
+                                    <MiniStat icon={<Puzzle size={15} />} value={extensions.length} label="Extensions" />
+                                    <MiniStat icon={<CheckCircle2 size={15} />} value={extensions.filter((e) => e.pricing?.type === "free").length} label="Free" />
+                                    <MiniStat icon={<Cable size={15} />} value={extensions.filter((e) => (e.installs || 0) > 0).length} label="In use" />
+                                </div>
 
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                            <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Braces size={18} />} />
-                            <HubLink href="/marketplace/plugins" title="Plugins" subtitle="Background intelligence agents" icon={<Plug size={18} />} />
-                            <HubLink href="/marketplace/extensions" title="Extensions" subtitle="Connect outside tools" icon={<Puzzle size={18} />} active />
-                        </div>
-                    </div>
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Braces size={18} />} />
+                                    <HubLink href="/marketplace/plugins" title="Plugins" subtitle="Background intelligence agents" icon={<Plug size={18} />} />
+                                    <HubLink href="/marketplace/extensions" title="Extensions" subtitle="Connect outside tools" icon={<Puzzle size={18} />} active />
+                                </div>
+                            </div>
+                        }
+                    />
                 </div>
             </section>
 

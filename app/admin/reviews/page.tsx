@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
     Check,
-    ChevronLeft,
     Clock,
     Eye,
     Filter,
@@ -18,7 +17,7 @@ import {
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import AdminShell from "@/components/admin/AdminShell";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type Review = {
     id: string;
@@ -267,38 +266,22 @@ export default function AdminReviewsPage() {
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className="mx-auto max-w-[1500px] px-6 py-8">
-                <div data-guide="page-header" className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <Link
-                            href="/admin"
-                            className="mb-3 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Back to Admin
-                        </Link>
-
-                        <div className="flex items-center gap-3">
-                            <div className="rounded-lg border border-border bg-muted/50 p-3">
-                                <MessageSquare className="h-6 w-6" />
-                            </div>
-
-                            <div>
-                                <h1 className="text-2xl font-semibold tracking-tight">
-                                    Reviews
-                                </h1>
-                                <p className="text-sm text-muted-foreground">
-                                    Manage customer ratings and reviews.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={loadReviews}
-                        className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium hover:bg-muted"
-                    >
-                        Refresh
-                    </button>
+                <div className="mb-8">
+                    <ModernPageHeader
+                        backHref="/admin"
+                        backLabel="Back to Admin"
+                        eyebrow="Admin"
+                        title="Reviews"
+                        subtitle="Manage customer ratings and reviews."
+                        actions={
+                            <button
+                                onClick={loadReviews}
+                                className="inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-muted/50 px-4 py-2.5 text-sm font-medium hover:bg-muted"
+                            >
+                                Refresh
+                            </button>
+                        }
+                    />
                 </div>
 
                 {error && (

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-    ArrowLeft,
     ArrowRight,
     Braces,
     CheckCircle2,
@@ -20,6 +19,7 @@ import { database } from "@/lib/firebase";
 import { PluginRecord } from "@/lib/plugins/types";
 import { CATEGORIES, CATEGORY_LABELS, formatPrice, grantedPermissions, permissionLabel, pluginStatusTone } from "@/lib/plugins/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function PluginsMarketplacePage() {
     const [plugins, setPlugins] = useState<PluginRecord[]>([]);
@@ -73,44 +73,34 @@ export default function PluginsMarketplacePage() {
             {/* Hub banner */}
             <section className="border-b border-border/40">
                 <div className="mx-auto max-w-7xl px-6 py-10">
-                    <Link
-                        href="/marketplace"
-                        className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-                    >
-                        <ArrowLeft size={16} />
-                        Back to Marketplace
-                    </Link>
-
-                    <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="max-w-2xl">
-                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-primary">
-                                <Sparkles size={14} />
-                                Plugins &amp; Extensions Ecosystem
-                            </div>
-                            <h1 className="text-2xl font-semibold tracking-tight mt-3">
+                    <ModernPageHeader
+                        backHref="/marketplace"
+                        backLabel="Back to Marketplace"
+                        eyebrow="Marketplace"
+                        title={
+                            <>
                                 Intelligence plugins that
                                 <br />
                                 run with your trading.
-                            </h1>
-                            <p className="mt-5 max-w-xl text-sm leading-7 text-muted-foreground">
-                                Background agents that analyze your strategies, markets and risk on a
-                                schedule you control — installed, configured and activated in minutes.
-                                Each plugin runs in AlgoVault&apos;s sandbox and only touches the data
-                                you grant it access to.
-                            </p>
-                            <div className="mt-6 grid max-w-md grid-cols-3 gap-3">
-                                <MiniStat icon={<Plug size={15} />} value={plugins.length} label="Plugins" />
-                                <MiniStat icon={<CheckCircle2 size={15} />} value={freeCount} label="Free" />
-                                <MiniStat icon={<Sparkles size={15} />} value={liveCount} label="In use" />
-                            </div>
-                        </div>
+                            </>
+                        }
+                        subtitle="Background agents that analyze your strategies, markets and risk on a schedule you control — installed, configured and activated in minutes. Each plugin runs in AlgoVault's sandbox and only touches the data you grant it access to."
+                        actions={
+                            <div className="flex flex-wrap items-center gap-3">
+                                <div className="grid max-w-md grid-cols-3 gap-3">
+                                    <MiniStat icon={<Plug size={15} />} value={plugins.length} label="Plugins" />
+                                    <MiniStat icon={<CheckCircle2 size={15} />} value={freeCount} label="Free" />
+                                    <MiniStat icon={<Sparkles size={15} />} value={liveCount} label="In use" />
+                                </div>
 
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                            <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Braces size={18} />} />
-                            <HubLink href="/marketplace/plugins" title="Plugins" subtitle="Background intelligence agents" icon={<Plug size={18} />} active />
-                            <HubLink href="/marketplace/extensions" title="Extensions" subtitle="Connect outside tools" icon={<Puzzle size={18} />} />
-                        </div>
-                    </div>
+                                <div className="flex flex-col gap-3 sm:flex-row">
+                                    <HubLink href="/marketplace" title="Trading Tools" subtitle="EAs, indicators & strategies" icon={<Braces size={18} />} />
+                                    <HubLink href="/marketplace/plugins" title="Plugins" subtitle="Background intelligence agents" icon={<Plug size={18} />} active />
+                                    <HubLink href="/marketplace/extensions" title="Extensions" subtitle="Connect outside tools" icon={<Puzzle size={18} />} />
+                                </div>
+                            </div>
+                        }
+                    />
                 </div>
             </section>
 

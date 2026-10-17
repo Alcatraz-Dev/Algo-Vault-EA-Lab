@@ -23,6 +23,7 @@ import { auth, database } from "@/lib/firebase";
 import { PluginRecord } from "@/lib/plugins/types";
 import { CATEGORY_LABELS, EXTENSION_TYPE_LABELS, grantedPermissions, permissionDescription, permissionLabel } from "@/lib/plugins/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function ExtensionDetailsPage() {
  const router = useRouter();
@@ -120,19 +121,13 @@ export default function ExtensionDetailsPage() {
 
  return (
  <main className="min-h-screen bg-background text-foreground">
- <div className="border-b border-border/40">
- <div className="mx-auto max-w-7xl px-6 py-5">
- <div className="flex items-center gap-3">
- <Link href="/marketplace/extensions" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
- <ArrowLeft size={14} />
- Extensions
- </Link>
- <span className="text-muted-foreground/30">•</span>
- <Link href="/marketplace/plugins" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
- Plugins
- </Link>
- </div>
- </div>
+ <div className="mx-auto max-w-7xl px-6 pt-6">
+ <ModernPageHeader
+ backHref="/marketplace/extensions"
+ backLabel="Back to Extensions"
+ eyebrow="Marketplace"
+ title={extension.displayName}
+ />
  </div>
 
  <div className="mx-auto max-w-7xl px-6 py-10">
@@ -156,9 +151,6 @@ export default function ExtensionDetailsPage() {
  {CATEGORY_LABELS[extension.category]}
  </span>
  </div>
- <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground drop-">
- {extension.displayName}
- </h1>
  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
  <span>by {extension.creator?.name || "AlgoVault Team"}</span>
  <span className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-2 py-0.5 text-micro font-medium text-positive">

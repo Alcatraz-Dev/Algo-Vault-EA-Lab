@@ -4,12 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, ArrowLeft, Clock, Bell, BellRing, CheckCircle, Trash2,
+    Loader2, Shield, Clock, Bell, BellRing, CheckCircle, Trash2,
     Filter, TrendingUp, TrendingDown, Zap, Activity, AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { StatusBadge } from "@/components/ui/status-badge";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type AlertHistory = {
     id: string; source?: "manual" | "tool"; symbol: string; type: string; targetPrice: number | null;
@@ -159,31 +160,32 @@ export default function AlertHistoryPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
             <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Alert History</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">View all alerts and their trigger history</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        {selected.size > 0 && (
-                            <button
-                                type="button"
-                                onClick={bulkDelete}
-                                disabled={deleting}
-                                className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
-                            >
-                                {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                                Delete ({selected.size})
-                            </button>
-                        )}
-                        <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
-                            <BellRing size={13} /> New Alert
-                        </Link>
-                    </div>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/alerts"
+                        backLabel="Back to Alerts"
+                        eyebrow="Alerts"
+                        title="Alert History"
+                        subtitle="View all alerts and their trigger history"
+                        actions={
+                            <div className="flex items-center gap-2">
+                                {selected.size > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={bulkDelete}
+                                        disabled={deleting}
+                                        className="flex items-center gap-2 rounded-lg border border-negative/20 bg-negative/10 px-4 py-2.5 text-xs font-semibold text-negative hover:bg-negative/20 transition-colors disabled:opacity-50"
+                                    >
+                                        {deleting ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                        Delete ({selected.size})
+                                    </button>
+                                )}
+                                <Link href="/alerts" className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors">
+                                    <BellRing size={13} /> New Alert
+                                </Link>
+                            </div>
+                        }
+                    />
                 </div>
 
                 {/* Stats */}

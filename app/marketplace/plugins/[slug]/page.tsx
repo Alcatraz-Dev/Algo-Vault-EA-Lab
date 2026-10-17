@@ -31,6 +31,7 @@ import {
 } from "@/lib/plugins/ui";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type PluginReview = {
  id: string;
@@ -235,19 +236,13 @@ export default function PluginDetailsPage() {
 
  return (
  <main className="min-h-screen bg-background text-foreground">
- <div className="border-b border-border/40">
- <div className="mx-auto max-w-7xl px-6 py-5">
- <div className="flex items-center gap-3">
- <Link href="/marketplace/plugins" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
- <ArrowLeft size={14} />
- Plugins
- </Link>
- <span className="text-muted-foreground/30">•</span>
- <Link href="/marketplace/extensions" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground">
- Extensions
- </Link>
- </div>
- </div>
+ <div className="mx-auto max-w-7xl px-6 pt-6">
+ <ModernPageHeader
+ backHref="/marketplace/plugins"
+ backLabel="Back to Plugins"
+ eyebrow="Marketplace"
+ title={plugin.displayName}
+ />
  </div>
 
  <div className="mx-auto max-w-7xl px-6 py-10">
@@ -274,9 +269,6 @@ export default function PluginDetailsPage() {
  {CATEGORY_LABELS[plugin.category]}
  </span>
  </div>
- <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground drop-">
- {plugin.displayName}
- </h1>
  <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
  <span>by {plugin.creator?.name || "AlgoVault Team"}</span>
  <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-micro font-medium text-primary">

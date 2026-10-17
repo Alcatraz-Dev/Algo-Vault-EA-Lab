@@ -4,12 +4,13 @@ import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, RefreshCw, Wifi, WifiOff, ArrowLeft, TrendingUp, TrendingDown,
+    Loader2, Shield, RefreshCw, Wifi, WifiOff, TrendingUp, TrendingDown,
     Minus, AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { EmptyState } from "@/components/ui/empty-state";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type SpreadData = Record<string, {
     bid: number; ask: number; spread: number; spreadPips: number;
@@ -63,28 +64,29 @@ export default function SpreadMonitorPage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Spread Monitor</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Real-time bid/ask spreads across major instruments</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setAutoRefresh((a) => !a)}
-                            className={cn("flex items-center gap-2 rounded-md border px-4 py-2.5 text-xs font-medium transition-colors", autoRefresh ? "border-positive/30 bg-positive/10 text-positive" : "border-border bg-muted text-muted-foreground")}
-                        >
-                            {autoRefresh ? <Wifi size={13} /> : <WifiOff size={13} />}
-                            {autoRefresh ? "Live (10s)" : "Paused"}
-                        </button>
-                        <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
-                            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
-                        </button>
-                    </div>
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Execution"
+                        title="Spread Monitor"
+                        subtitle="Real-time bid/ask spreads across major instruments"
+                        actions={
+                            <div className="flex flex-wrap items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setAutoRefresh((a) => !a)}
+                                    className={cn("flex items-center gap-2 rounded-md border px-4 py-2.5 text-xs font-medium transition-colors", autoRefresh ? "border-positive/30 bg-positive/10 text-positive" : "border-border bg-muted text-muted-foreground")}
+                                >
+                                    {autoRefresh ? <Wifi size={13} /> : <WifiOff size={13} />}
+                                    {autoRefresh ? "Live (10s)" : "Paused"}
+                                </button>
+                                <button type="button" onClick={fetchData} disabled={loading} className="flex items-center gap-2 rounded-md border border-border bg-muted px-4 py-2.5 text-xs text-muted-foreground hover:bg-muted/30 transition-colors disabled:opacity-50">
+                                    <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
+                                </button>
+                            </div>
+                        }
+                    />
                 </div>
 
                 {/* Stats */}

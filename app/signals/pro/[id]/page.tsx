@@ -28,6 +28,7 @@ import { formatPrice, getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 import ConfidenceBreakdown from "@/components/signals/ConfidenceBreakdown";
 import SignalTerminalChart from "@/components/signals/SignalTerminalChart";
 import SignalTimeline from "@/components/signals/SignalTimeline";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { cn } from "@/lib/utils";
 import { useLivePrices } from "@/hooks/useLivePrices";
 
@@ -507,100 +508,96 @@ export default function ProSignalDetailPage({ params }: { params: Promise<Params
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link
-                    href="/signals/pro"
-                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                    <ArrowLeft size={16} />
-                    Back to Pro Signals
-                </Link>
+                <ModernPageHeader
+                    backHref="/signals/pro"
+                    backLabel="Back to Signals Pro"
+                    eyebrow="Signals Pro"
+                    title={signal.symbol}
+                    actions={
+                        <>
+                            <div>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <span
+                                        className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
+                                            isBuy
+                                                ? "border-positive/30 bg-positive/10 text-positive"
+                                                : "border-negative/30 bg-negative/10 text-negative"
+                                        }`}
+                                    >
+                                        {isBuy ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                        {signal.direction}
+                                    </span>
 
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between" data-guide="page-header">
-                    <div>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <h1 className="text-2xl font-semibold tracking-tight">
-                                {signal.symbol}
-                            </h1>
+                                    <span
+                                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
+                                    >
+                                        {signal.status.replace(/_/g, " ")}
+                                    </span>
 
-                            <span
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
-                                    isBuy
-                                        ? "border-positive/30 bg-positive/10 text-positive"
-                                        : "border-negative/30 bg-negative/10 text-negative"
-                                }`}
-                            >
-                                {isBuy ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                                {signal.direction}
-                            </span>
+                                    <span className={`rounded-full border px-2 py-1 text-micro font-bold uppercase tracking-wider ${
+                                        signal.tier === "PRO"
+                                            ? "bg-primary/10 text-primary border-primary/30"
+                                            : "bg-muted/40 text-muted-foreground border-border/40"
+                                    }`}>
+                                        {signal.tier || "FREE"}
+                                    </span>
+                                </div>
 
-                            <span
-                                className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${statusStyle.bg} ${statusStyle.text} ${statusStyle.border}`}
-                            >
-                                {signal.status.replace(/_/g, " ")}
-                            </span>
+                                <div className="mt-3 flex flex-wrap items-center gap-4">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className={`text-2xl font-black font-numeric ${confidenceColor(signal.confidence)}`}>
+                                            {signal.confidence}%
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">confidence</span>
+                                    </div>
 
-                            <span className={`rounded-full border px-2 py-1 text-micro font-bold uppercase tracking-wider ${
-                                signal.tier === "PRO"
-                                    ? "bg-primary/10 text-primary border-primary/30"
-                                    : "bg-muted/40 text-muted-foreground border-border/40"
-                            }`}>
-                                {signal.tier || "FREE"}
-                            </span>
-                        </div>
+                                    <div className="h-5 w-px bg-muted/10" />
 
-                        <div className="mt-3 flex flex-wrap items-center gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <span className={`text-2xl font-black font-numeric ${confidenceColor(signal.confidence)}`}>
-                                    {signal.confidence}%
-                                </span>
-                                <span className="text-xs text-muted-foreground">confidence</span>
+                                    <span
+                                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-bold uppercase tracking-wider ${strengthStyle.bg} ${strengthStyle.text} ${strengthStyle.border}`}
+                                    >
+                                        <Flame size={10} />
+                                        {signal.strength.replace(/_/g, " ")}
+                                    </span>
+
+                                    <div className="h-5 w-px bg-muted/10" />
+
+                                    <span className="text-sm text-muted-foreground">
+                                        R:R <span className="font-numeric">{signal.riskReward.toFixed(1)}</span>
+                                    </span>
+                                </div>
                             </div>
 
-                            <div className="h-5 w-px bg-muted/10" />
-
-                            <span
-                                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-bold uppercase tracking-wider ${strengthStyle.bg} ${strengthStyle.text} ${strengthStyle.border}`}
-                            >
-                                <Flame size={10} />
-                                {signal.strength.replace(/_/g, " ")}
-                            </span>
-
-                            <div className="h-5 w-px bg-muted/10" />
-
-                            <span className="text-sm text-muted-foreground">
-                                R:R <span className="font-numeric">{signal.riskReward.toFixed(1)}</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                        {isActive && (
-                            <button
-                                onClick={handleFollow}
-                                disabled={followLoading}
-                                className={`inline-flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-colors ${
-                                    following
-                                        ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-                                        : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
-                                }`}
-                            >
-                                {followLoading ? (
-                                    <Loader2 size={16} className="animate-spin" />
-                                ) : (
-                                    <Heart size={16} className={following ? "fill-primary text-primary" : ""} />
+                            <div className="flex flex-wrap items-center gap-3">
+                                {isActive && (
+                                    <button
+                                        onClick={handleFollow}
+                                        disabled={followLoading}
+                                        className={`inline-flex items-center gap-2 rounded-md border px-4 py-2.5 text-sm font-medium transition-colors ${
+                                            following
+                                                ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+                                                : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
+                                        }`}
+                                    >
+                                        {followLoading ? (
+                                            <Loader2 size={16} className="animate-spin" />
+                                        ) : (
+                                            <Heart size={16} className={following ? "fill-primary text-primary" : ""} />
+                                        )}
+                                        {following ? "Following" : "Follow"}
+                                    </button>
                                 )}
-                                {following ? "Following" : "Follow"}
-                            </button>
-                        )}
-                        <Link
-                            href="/signals/pro"
-                            className="inline-flex items-center gap-2 rounded-md border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
-                        >
-                            <Radio size={16} />
-                            Pro Feed
-                        </Link>
-                    </div>
-                </div>
+                                <Link
+                                    href="/signals/pro"
+                                    className="inline-flex items-center gap-2 rounded-md border border-border/40 bg-muted/5 px-4 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                                >
+                                    <Radio size={16} />
+                                    Pro Feed
+                                </Link>
+                            </div>
+                        </>
+                    }
+                />
 
                 <LivePricePanel signal={signal} lastUpdatedAt={lastUpdatedAt} onRefresh={() => void fetchSignal(user)} />
 

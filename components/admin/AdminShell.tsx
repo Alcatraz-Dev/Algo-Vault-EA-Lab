@@ -314,6 +314,7 @@ export default function AdminShell({
                 <header
                     ref={headerRef}
                     data-guide="page-header"
+                    data-shell-header=""
                     className="sticky top-0 z-40 bg-background/85 px-4 py-3 backdrop-blur-xl sm:px-6 sm:py-4 md:px-8 border-b border-border/30 overflow-hidden"
                 >
                     {/* Gradient glow behind header — matches ModernPageHeader */}

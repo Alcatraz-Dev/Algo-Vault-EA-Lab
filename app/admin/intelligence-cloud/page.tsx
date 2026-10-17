@@ -1,8 +1,9 @@
 "use client";
 
-import { ShieldCheck, Database, AlertTriangle, Cog, Lock, Zap, Info } from "lucide-react";
+import { Database, AlertTriangle, Cog, Lock, Zap, Info } from "lucide-react";
 import { ENGINE_REGISTRY, buildEngineVersions, unversionedEngines } from "@/lib/intelligence-cloud/engine-registry";
 import { REQUIRED_CERTIFICATION_DISCLOSURES } from "@/lib/intelligence-cloud/certification";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 /**
  * Intelligence Cloud — Admin
@@ -24,14 +25,13 @@ export default function AdminIntelligenceCloud() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-3">
-          <ShieldCheck className="w-8 h-8 text-positive" /> Intelligence Cloud — Admin
-        </h1>
-        <p className="text-muted-foreground">
-          Engine versions, data lineage, tenant isolation and certification policy.
-        </p>
-      </header>
+      <ModernPageHeader
+        backHref="/admin"
+        backLabel="Back to Admin"
+        eyebrow="Admin"
+        title="Intelligence Cloud — Admin"
+        subtitle="Engine versions, data lineage, tenant isolation and certification policy."
+      />
 
       <section className="grid md:grid-cols-4 gap-4">
         <Stat label="Engines Registered" value={String(ENGINE_REGISTRY.length)} icon={<Cog />} />

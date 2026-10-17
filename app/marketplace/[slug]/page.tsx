@@ -29,6 +29,7 @@ import { onValue, ref, push, set } from "firebase/database";
 import { database, auth } from "@/lib/firebase";
 import ProductBranding from "@/components/products/ProductBranding";
 import ProductReviews from "@/components/products/ProductReviews";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type BrandingItem = {
     type?: string;
@@ -484,35 +485,21 @@ export default function ProductDetailsPage() {
         <main className="min-h-screen bg-background text-foreground">
 
             {/* Header */}
-            <div className="border-b border-border/40">
+            <div className="mx-auto max-w-7xl px-6 pt-6">
 
-                <div className="mx-auto max-w-7xl px-6 py-5">
-
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/marketplace"
-                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground"
-                        >
-                            <ArrowLeft size={14} />
-                            Marketplace
-                        </Link>
-                        <span className="text-muted-foreground/30">•</span>
-                        <Link
-                            href="/account"
-                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground transition hover:text-foreground"
-                        >
-                            Back to Account
-                        </Link>
-                    </div>
-
-                </div>
+                <ModernPageHeader
+                    backHref="/marketplace"
+                    backLabel="Back to Marketplace"
+                    eyebrow="Marketplace"
+                    title={product.name}
+                />
 
             </div>
 
             <div className="mx-auto max-w-7xl px-6 py-10">
 
                 {/* Product Hero */}
-                <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50" data-guide="page-header">
+                <div className="overflow-hidden rounded-lg border border-border/40 bg-muted/50">
 
                     {/* Banner */}
                     <div className="relative h-64 overflow-hidden bg-muted md:h-80">
@@ -591,12 +578,6 @@ export default function ProductDetailsPage() {
                                             )}
 
                                         </div>
-
-                                        <h1 className="text-2xl font-semibold tracking-tight mt-2 text-foreground">
-                                            {
-                                                product.name
-                                            }
-                                        </h1>
 
                                         <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                                             <span>by {product.developer || "AlgoVault Team"}</span>

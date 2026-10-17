@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-    ArrowLeft,
-    Sparkles,
     Save,
     RefreshCw,
     TrendingUp,
@@ -17,6 +15,7 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { SignalConfig, MarketSessionName } from "@/lib/ai-signals/types";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 const SYMBOLS = [
     "XAUUSD", "EURUSD", "GBPUSD", "USDJPY", "USDCHF",
@@ -229,31 +228,13 @@ export default function AdminSignalsPage() {
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* HEADER */}
-                <div data-guide="page-header" className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <Link
-                            href="/admin"
-                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to Admin
-                        </Link>
-
-                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
-                            <Sparkles className="h-4 w-4" />
-                            AI Signal Engine Configuration
-                        </div>
-
-                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
-                            AI Signal Configuration
-                        </h1>
-
-                        <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-                            Configure symbols, timeframes, sessions, confidence thresholds, weight distribution, risk defaults, and signal limits for the AI signal engine.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
+                <ModernPageHeader
+                    backHref="/admin"
+                    backLabel="Back to Admin"
+                    eyebrow="AI Signal Engine Configuration"
+                    title="AI Signal Configuration"
+                    subtitle="Configure symbols, timeframes, sessions, confidence thresholds, weight distribution, risk defaults, and signal limits for the AI signal engine."
+                    actions={
                         <button
                             onClick={handleSave}
                             disabled={saving}
@@ -262,8 +243,8 @@ export default function AdminSignalsPage() {
                             {saving ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             {saving ? "Saving..." : "Save Configuration"}
                         </button>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* FORM SECTIONS */}
                 <div className="mt-8 space-y-6">

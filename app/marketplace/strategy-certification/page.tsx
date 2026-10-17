@@ -2,6 +2,7 @@
 
 import { Shield, AlertCircle, BarChart3, CheckCircle2 } from "lucide-react";
 import { generateDueDiligence } from "@/lib/intelligence-cloud/marketplace-due-diligence";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function StrategyCertificationPage() {
   // Conceptual — would be driven by real strategy ID and backtest results
@@ -9,10 +10,13 @@ export default function StrategyCertificationPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-10 space-y-10">
-      <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Strategy Certification</h1>
-        <p className="text-muted-foreground">Transparent, methodology-based verification — not a profit guarantee.</p>
-      </header>
+      <ModernPageHeader
+        backHref="/marketplace"
+        backLabel="Back to Marketplace"
+        eyebrow="Marketplace"
+        title="Strategy Certification"
+        subtitle="Transparent, methodology-based verification — not a profit guarantee."
+      />
 
       <section className="border-border rounded-lg p-6 bg-card space-y-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
         <div className="flex items-center gap-3">

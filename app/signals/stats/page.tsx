@@ -6,12 +6,10 @@ import { useRouter } from "next/navigation";
 import {
     Activity,
     Calculator,
-    ArrowLeft,
     BarChart3,
     History,
     Loader2,
     Radio,
-    Sparkles,
     Target,
     TrendingDown,
     TrendingUp,
@@ -29,6 +27,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import AreaTrendChart from "@/components/charts/AreaTrendChart";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import SignalAnalyticsDashboard from "@/components/signals/SignalAnalyticsDashboard";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { calculateProfitUSD } from "@/lib/ai-signals/calculations";
 import { useLivePrices } from "@/hooks/useLivePrices";
 import type { AISignal, MarketSentiment, SignalAnalytics, SignalStats } from "@/lib/ai-signals/types";
@@ -429,71 +428,55 @@ export default function SignalStatsPage() {
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* HEADER */}
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between" data-guide="page-header">
-                    <div>
-                        <Link
-                            href="/account"
-                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to Account
-                        </Link>
+                <ModernPageHeader
+                    backHref="/signals"
+                    backLabel="Back to Signals"
+                    eyebrow="Signals"
+                    title="Signal Statistics"
+                    subtitle="Real-time performance metrics, historical outcomes, and analytical insights across all recorded signals."
+                    actions={
+                        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
+                            <Link
+                                href="/signals/pro"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-warning transition-colors hover:bg-warning/20"
+                            >
+                                <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning fill-warning" />
+                                <span>Pro Signals</span>
+                            </Link>
 
-                        <div className="flex items-center gap-2 text-sm text-warning font-medium">
-                            <Sparkles className="h-4 w-4" />
-                            Performance Analytics
+                            <button
+                                type="button"
+                                onClick={handleScan}
+                                disabled={scanning}
+                                data-guide="scan"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                            >
+                                {scanning ? (
+                                    <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                                ) : (
+                                    <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                )}
+                                <span>{scanning ? "Scanning..." : "Refresh Data"}</span>
+                            </button>
+
+                            <Link
+                                href="/account/live"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            >
+                                <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
+                                <span>Live Performance</span>
+                            </Link>
+
+                            <Link
+                                href="/signals/history"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                            >
+                                <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-info" />
+                                <span>History</span>
+                            </Link>
                         </div>
-
-                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
-                            Signal Statistics
-                        </h1>
-
-                        <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-                            Real-time performance metrics, historical outcomes, and analytical insights across all recorded signals.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
-                        <Link
-                            href="/signals/pro"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold text-warning transition-colors hover:bg-warning/20"
-                        >
-                            <Zap className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-warning fill-warning" />
-                            <span>Pro Signals</span>
-                        </Link>
-
-                        <button
-                            type="button"
-                            onClick={handleScan}
-                            disabled={scanning}
-                            data-guide="scan"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
-                        >
-                            {scanning ? (
-                                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
-                            ) : (
-                                <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            )}
-                            <span>{scanning ? "Scanning..." : "Refresh Data"}</span>
-                        </button>
-
-                        <Link
-                            href="/account/live"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
-                        >
-                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
-                            <span>Live Performance</span>
-                        </Link>
-
-                        <Link
-                            href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
-                        >
-                            <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-info" />
-                            <span>History</span>
-                        </Link>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* TAB NAVIGATION */}
                 <div className="mt-6 flex items-center gap-1.5 overflow-x-auto rounded-lg border border-border/40 bg-background p-1 scrollbar-none">

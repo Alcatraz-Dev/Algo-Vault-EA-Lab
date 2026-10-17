@@ -13,12 +13,12 @@ import {
     Radio,
     RefreshCw,
     ShieldAlert,
-    Sparkles,
     Zap,
 } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { RealtimeFeed, type CompleteActionResult, type FollowActionResult, type TradeActionResult } from "@/features/telegram-signals/components/RealtimeFeed";
 import { ConflictBanner } from "@/features/telegram-signals/components/ConflictBanner";
 import { AnalyticsView } from "@/features/telegram-signals/components/AnalyticsView";
@@ -327,49 +327,39 @@ export default function ProSignalsPage() {
             </div>
 
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link
-                    href="/signals"
-                    className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                    <ArrowLeft size={16} />
-                    Back to Signals
-                </Link>
+                <div className="mt-2">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Signals Pro"
+                        title="AlgoVault Pro Signals"
+                        subtitle="Monitor live setups, review exact levels, follow the signals that matter, and send approved orders to MT5."
+                        actions={
+                            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                                <button
+                                    type="button"
+                                    onClick={handleScan}
+                                    disabled={scanning}
+                                    className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
+                                >
+                                    {scanning ? (
+                                        <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                    )}
+                                    <span>{scanning ? "Scanning..." : "Scan Signals"}</span>
+                                </button>
 
-                <div className="mt-2 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between" data-guide="page-header">
-                    <div className="max-w-2xl">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-warning">
-                            <Sparkles size={16} />
-                            Institutional signal intelligence
-                        </div>
-                        <h1 className="text-2xl font-semibold tracking-tight mt-2">AlgoVault Pro Signals</h1>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                            Monitor live setups, review exact levels, follow the signals that matter, and send approved orders to MT5.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-                        <button
-                            type="button"
-                            onClick={handleScan}
-                            disabled={scanning}
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10"
-                        >
-                            {scanning ? (
-                                <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />
-                            ) : (
-                                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            )}
-                            <span>{scanning ? "Scanning..." : "Scan Signals"}</span>
-                        </button>
-
-                        <Link
-                            href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
-                        >
-                            <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
-                            <span>History</span>
-                        </Link>
-                    </div>
+                                <Link
+                                    href="/signals/history"
+                                    className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-lg border border-border/40 bg-muted/5 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted/10 hover:text-foreground"
+                                >
+                                    <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-positive" />
+                                    <span>History</span>
+                                </Link>
+                            </div>
+                        }
+                    />
                 </div>
 
                 {/* LIVE INDICATOR */}

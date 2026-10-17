@@ -84,20 +84,19 @@ function resolveTarget(step: TourStep | undefined, stepIndex: number): HTMLEleme
     if (step.target) {
         const matches = Array.from(document.querySelectorAll<HTMLElement>(step.target));
 
-        // AppShell / AdminShell also mark their sticky topbar with the same anchors and
-        // sit first in the DOM. When that topbar actually renders a page title it *is*
-        // the page header and should keep the spotlight; when it is only bare chrome
-        // (the sidebar-only layout renders no title), it must not steal the spotlight
-        // from the page's own header card. A page-level header is a visible match
-        // outside the chrome `<header>` that is not itself a container — a section
-        // wrapper holding other `[data-guide]` markers is page content, not a header.
-        const shellHeader = matches.find((el) => el.closest("header"));
-        const shellIsTitled = Boolean(shellHeader?.querySelector("h1"));
-        const pageHeader = matches.find(
-            (el) => !el.closest("header") && isVisible(el) && !el.querySelector("[data-guide]")
-        );
+        // AppShell / AdminShell mark their sticky topbar with the same anchors and sit
+        // first in the DOM. That topbar only *is* the page header when it renders a
+        // title — on the sidebar-only layout it is bare chrome, so the page's own
+        // header (ModernPageHeader, ToolPageShell, a page `<header>`) must win instead.
+        // A match that wraps other `[data-guide]` markers is a content container, not a
+        // header, so it never steals the spotlight.
+        const isHeader = (el: HTMLElement) =>
+            Boolean(el.querySelector("h1")) && !el.querySelector("[data-guide]");
 
-        const el = (shellIsTitled ? shellHeader : pageHeader ?? shellHeader) ?? matches[0];
+        const el =
+            matches.find((m) => isHeader(m) && isVisible(m)) ??
+            matches.find((m) => Boolean(m.querySelector("h1"))) ??
+            matches[0];
         if (el && isVisible(el) && isElementInViewport(el, 200)) {
             return expandToContainer(el);
         }

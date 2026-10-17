@@ -10,8 +10,9 @@
  */
 
 import { useCallback, useMemo, useState } from "react";
-import { Loader2, Network, RefreshCw, Search, Sparkles, TriangleAlert } from "lucide-react";
+import { Loader2, RefreshCw, Search, Sparkles, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { RELATIONSHIP_TIMEFRAMES, RELATIONSHIP_WINDOWS } from "@/lib/cross-asset/types";
 import {
     EdgeInspector,
@@ -91,39 +92,36 @@ export default function CrossAssetExplorerPage() {
         <div className="min-h-screen bg-background text-foreground">
             <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 {/* header */}
-                <header className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h1 className="flex items-center gap-2 text-lg font-semibold">
-                            <Network className="size-5 text-primary" />
-                            Market Relationship Explorer
-                        </h1>
-                        <p className="text-xs text-muted-foreground">
-                            Deterministic cross-asset intelligence — every edge is measured, every label carries evidence
-                            (Phase 16).
-                        </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        {data ? (
-                            <span
-                                className={cn(
-                                    "rounded px-2 py-1 text-micro font-semibold uppercase tracking-wide",
-                                    data.tier === "PRO" ? "bg-positive/15 text-positive" : "bg-muted/20 text-muted-foreground"
-                                )}
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Market Intelligence"
+                    title="Market Relationship Explorer"
+                    subtitle="Deterministic cross-asset intelligence — every edge is measured, every label carries evidence (Phase 16)."
+                    actions={
+                        <div className="flex flex-wrap items-center gap-3">
+                            {data ? (
+                                <span
+                                    className={cn(
+                                        "rounded px-2 py-1 text-micro font-semibold uppercase tracking-wide",
+                                        data.tier === "PRO" ? "bg-positive/15 text-positive" : "bg-muted/20 text-muted-foreground"
+                                    )}
+                                >
+                                    {data.tier} tier
+                                </span>
+                            ) : null}
+                            <button
+                                type="button"
+                                onClick={() => reload(true)}
+                                className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-muted"
+                                disabled={loading}
                             >
-                                {data.tier} tier
-                            </span>
-                        ) : null}
-                        <button
-                            type="button"
-                            onClick={() => reload(true)}
-                            className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs transition-colors hover:bg-muted"
-                            disabled={loading}
-                        >
-                            {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
-                            Recompute
-                        </button>
-                    </div>
-                </header>
+                                {loading ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+                                Recompute
+                            </button>
+                        </div>
+                    }
+                />
 
                 {/* controls */}
                 <div className="mt-4 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-3">

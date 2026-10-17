@@ -9,7 +9,6 @@ import {
 } from "firebase/auth";
 import { database, auth } from "@/lib/firebase";
 import {
-    ArrowLeft,
     Bot,
     CheckCircle2,
     DollarSign,
@@ -25,6 +24,7 @@ import {
 import Link from "next/link";
 import { formatProductFileExtensions, getProductFileRule, isAllowedProductFileName } from "@/lib/product-files";
 import ProductMediaUpload from "@/components/products/ProductMediaUpload";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function NewBotPage() {
     const router = useRouter();
@@ -612,25 +612,13 @@ export default function NewBotPage() {
             <div className="mx-auto max-w-5xl px-6 py-8">
 
                 {/* Header */}
-                <div data-guide="page-header" className="mb-8 flex items-center gap-4">
-
-                    <Link
-                        href="/admin"
-                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-border hover:bg-muted/70"
-                    >
-                        <ArrowLeft size={18} />
-                    </Link>
-
-                    <div>
-                        <p className="text-sm text-muted-foreground">
-                            ADMIN / PRODUCTS
-                        </p>
-
-                        <h1 className="text-2xl font-semibold tracking-tight mt-1">
-                            Add New Product
-                        </h1>
-                    </div>
-
+                <div className="mb-8">
+                    <ModernPageHeader
+                        backHref="/admin"
+                        backLabel="Back to Admin"
+                        eyebrow="Admin / Products"
+                        title="Add New Product"
+                    />
                 </div>
 
                 <div className="space-y-6">

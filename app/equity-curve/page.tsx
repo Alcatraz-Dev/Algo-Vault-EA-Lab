@@ -3,10 +3,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { Loader2, Shield, ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity, RefreshCw } from "lucide-react";
+import { Loader2, Shield, TrendingUp, TrendingDown, DollarSign, Activity, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type CurvePoint = { time: number; equity: number; balance: number };
 type Curve = { accountId: string; accountName: string; data: CurvePoint[] };
@@ -63,20 +64,21 @@ export default function EquityCurvePage() {
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <ArrowLeft size={12} /> Back to Account
-                </Link>
-
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Equity Curve</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Track your account equity and balance over time</p>
-                    </div>
-                    {curves.length > 0 && (
-                        <button onClick={() => void fetchData()} disabled={loading} className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50">
-                            <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
-                        </button>
-                    )}
+                <div className="mb-6">
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Account Analytics"
+                        title="Equity Curve"
+                        subtitle="Track your account equity and balance over time"
+                        actions={
+                            curves.length > 0 && (
+                                <button onClick={() => void fetchData()} disabled={loading} className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted px-3 py-2 text-xs text-muted-foreground hover:bg-background/15 hover:text-foreground transition-colors disabled:opacity-50">
+                                    <RefreshCw size={12} className={loading ? "animate-spin" : ""} /> Refresh
+                                </button>
+                            )
+                        }
+                    />
                 </div>
 
                 {curves.length > 1 && (

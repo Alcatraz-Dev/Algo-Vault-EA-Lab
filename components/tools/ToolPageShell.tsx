@@ -38,7 +38,7 @@ export function ToolPageShell({
     return (
         <div className="min-h-screen bg-background text-foreground">
             <div className={cn("mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8", className)}>
-                <header className="relative mb-6 overflow-hidden rounded-2xl border border-border bg-card/60 shadow-[0_1px_3px_rgb(0_0_0/0.05)] px-6 py-6 sm:px-8 sm:py-7">
+                <header data-guide="page-header" className="relative mb-6 overflow-hidden rounded-2xl border border-border bg-card/60 shadow-[0_1px_3px_rgb(0_0_0/0.05)] px-6 py-6 sm:px-8 sm:py-7">
                     <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
                     <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
                     <div className="relative z-10">

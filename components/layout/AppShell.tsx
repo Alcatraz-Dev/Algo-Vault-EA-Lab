@@ -597,6 +597,7 @@ export function AppShell({
         <header
           ref={headerRef}
           data-guide="page-header"
+          data-shell-header=""
           className={cn(
             "sticky top-0 z-40 bg-background/85 backdrop-blur-xl overflow-hidden",
             compactHeader ? "px-3 py-2.5 sm:px-4" : "px-4 py-3 sm:px-6 sm:py-4"

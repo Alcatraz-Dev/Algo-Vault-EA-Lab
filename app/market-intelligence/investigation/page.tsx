@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
 import { buildInvestigationContext } from "@/lib/market-intelligence/investigation/context";
 import type { InvestigationRoot } from "@/lib/market-intelligence/investigation/types";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 
 export default function InvestigationPage() {
   // useSearchParams() requires a Suspense boundary for static prerendering
@@ -14,11 +15,14 @@ export default function InvestigationPage() {
     <Suspense
       fallback={
         <div className="min-h-screen bg-background text-foreground">
-          <header className="border-b border-border bg-card px-6 py-4">
-            <div className="mx-auto max-w-7xl">
-              <h1 className="text-xl font-semibold tracking-tight">Intelligence Investigation</h1>
-            </div>
-          </header>
+          <div className="mx-auto max-w-7xl px-6 pt-6">
+            <ModernPageHeader
+              backHref="/account"
+              backLabel="Back to Account"
+              eyebrow="Market Intelligence"
+              title="Intelligence Investigation"
+            />
+          </div>
           <main className="mx-auto max-w-7xl px-6 py-6">
             <p className="text-sm text-muted-foreground">Loading investigation…</p>
           </main>
@@ -38,12 +42,17 @@ function InvestigationContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="mx-auto max-w-7xl flex items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight">Intelligence Investigation</h1>
-          <div className="text-sm text-muted-foreground">Root: <span className="font-medium text-foreground">{type}:{id}</span></div>
-        </div>
-      </header>
+      <div className="mx-auto max-w-7xl px-6 pt-6">
+        <ModernPageHeader
+          backHref="/account"
+          backLabel="Back to Account"
+          eyebrow="Market Intelligence"
+          title="Intelligence Investigation"
+          actions={
+            <div className="text-sm text-muted-foreground">Root: <span className="font-medium text-foreground">{type}:{id}</span></div>
+          }
+        />
+      </div>
       <main className="mx-auto max-w-7xl px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className="lg:col-span-2 rounded-xl border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
           <h2 className="text-base font-semibold mb-4">Investigation Overview</h2>
