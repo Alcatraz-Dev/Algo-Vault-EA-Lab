@@ -61,15 +61,6 @@ const nextConfig: NextConfig = {
       source: "/:path*",
       headers: securityHeaders,
     },
-    {
-      source: "/api/growth/cron/:path*",
-      headers: [
-        {
-          key: "x-cron-secret",
-          value: process.env.CRON_SECRET || "",
-        },
-      ],
-    },
   ],
 };
 

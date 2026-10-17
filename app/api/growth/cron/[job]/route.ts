@@ -17,9 +17,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const body = await request.json().catch(() => ({}));
         const { payload, cronSecret } = body;
 
-        // Verify cron secret.
+        // Fail closed: a cron job cannot run without CRON_SECRET configured.
         const expectedSecret = process.env.CRON_SECRET;
-        if (expectedSecret && cronSecret !== expectedSecret) {
+        if (!expectedSecret) {
+            return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
+        }
+        if (cronSecret !== expectedSecret) {
             return NextResponse.json({ error: "Invalid cron secret" }, { status: 403 });
         }
 
