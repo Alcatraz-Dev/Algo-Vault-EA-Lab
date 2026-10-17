@@ -237,7 +237,14 @@ export default function CandelLibraryPage() {
                 templateName={templateNames.get(candel.templateId)}
                 busy={busyId === candel.id}
                 onOpen={(id) => router.push(`/account/candels/${id}`)}
-                onCustomize={(instance) => setEditing(instance)}
+                onCustomize={async (instance) => {
+                  try {
+                    const full = await candelApi.get(instance.id);
+                    setEditing(full);
+                  } catch {
+                    setEditing(instance);
+                  }
+                }}
                 onSetStatus={(id, status) => void setStatus(id, status)}
                 onArchive={(id) => void archive(id)}
                 onDelete={(instance) => setPendingDelete(instance)}

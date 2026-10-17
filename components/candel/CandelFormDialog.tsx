@@ -238,7 +238,7 @@ export function CandelFormDialog({
             />
           </FormField>
 
-          <FormField label="Avatar" description="Upload or pick a cute character:">
+          <FormField label="Avatar" description="Upload your own or pick a creature:">
             <div className="flex flex-wrap items-center gap-3">
               <label className="inline-flex items-center gap-2 cursor-pointer rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors">
                 <span>Upload</span>
@@ -247,32 +247,28 @@ export function CandelFormDialog({
                   try { const r = new FileReader(); r.onload = () => setForm({ ...form, avatar: String(r.result) }); r.readAsDataURL(file); } catch {}
                 }} />
               </label>
-              <div className="grid grid-cols-6 gap-2">
+              {form.avatar && (
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-2 py-1.5">
+                  <img src={form.avatar} alt="custom" className="h-9 w-9 rounded-lg object-cover ring-1 ring-border" />
+                  <span className="text-xs text-muted-foreground">Custom</span>
+                </div>
+              )}
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 w-full">
+                <button type="button" onClick={() => { const s = Math.random().toString(36).slice(2, 8); setForm({ ...form, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${s}` }); }} className="rounded-md bg-primary text-primary-foreground px-2.5 py-1 text-xs font-medium hover:opacity-90 transition-opacity">Random</button>
                 {[
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Milo",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Sara",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Leo",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Ava",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Finn",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Noah",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Ruby",
-                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jasper",
-                ].map((url) => (
-                  <button
-                    key={url}
-                    type="button"
-                    onClick={() => setForm({ ...form, avatar: url })}
-                    className={cn(
-                      "h-10 w-10 rounded-lg overflow-hidden ring-2 transition-colors",
-                      form.avatar === url ? "ring-primary" : "ring-transparent hover:ring-border"
-                    )}
-                  >
-                    <img src={url} alt="char" className="h-full w-full object-cover" />
-                  </button>
+                  { s: "Felix", style: "avataaars" }, { s: "Luna", style: "avataaars" },
+                  { s: "Milo", style: "avataaars" }, { s: "Zoe", style: "avataaars" },
+                  { s: "Oliver", style: "avataaars" }, { s: "Sara", style: "avataaars" },
+                  { s: "Leo", style: "avataaars" }, { s: "Ava", style: "avataaars" },
+                  { s: "Finn", style: "avataaars" }, { s: "Noah", style: "avataaars" },
+                  { s: "Ruby", style: "avataaars" }, { s: "Jasper", style: "avataaars" },
+                  { s: "Bot1", style: "bottts" }, { s: "Bot2", style: "bottts" }, { s: "Bot3", style: "bottts" },
+                  { s: "MonA", style: "lorelei" }, { s: "MonB", style: "lorelei" }, { s: "MonC", style: "lorelei" },
+                  { s: "Wolf", style: "adventurer" }, { s: "Bear", style: "adventurer" }, { s: "Cat", style: "adventurer" },
+                  { s: "Fox", style: "miniavs" }, { s: "Panda", style: "miniavs" },
+                  { s: "Not1", style: "notionists" }, { s: "Not2", style: "notionists" },
+                ].map(({ s, style }) => (
+                  <button key={`${style}-${s}`} type="button" onClick={() => setForm({ ...form, avatar: `https://api.dicebear.com/7.x/${style}/svg?seed=${s}` })} className={cn("rounded-md border px-2 py-0.5 text-xs transition-colors", form.avatar?.includes(s) && form.avatar?.includes(style) ? "border-primary bg-primary/10 text-foreground" : "border-border bg-muted/40 text-muted-foreground hover:bg-muted")} title={`${s} (${style})`}>{s}</button>
                 ))}
               </div>
             </div>
