@@ -20,7 +20,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
 import type { IntelligenceErrorCode } from "./errors";
 import { IntelligenceError, toErrorBody } from "./errors";
-import { authenticateWithScope, type VerifiedApiKey } from "./api-keys";
+import { authenticateWithScope, requireKeyOwner, type VerifiedApiKey } from "./api-keys";
 import { consumeRateLimit, recordUsage, type UsageCategory, type UsageResult } from "./rate-limit";
 import { tenantHasEntitlement, type Entitlement } from "./entitlements";
 import { createSnapshot } from "./snapshots";
@@ -39,8 +39,10 @@ export interface PipelineOptions {
     /** Billable units for one success, used when the response carries no cost metadata. */
     unitsPerSuccess?: number;
     apiVersion: string;
-    /** Build the success payload from the computed intelligence. */
-    build: (intelligence: IntelligenceResponse, key: VerifiedApiKey) => unknown;
+    /** Require the key's explicit user binding (user-scoped resources). */
+    requireUserBinding?: boolean;
+    /** Build the success payload from the computed intelligence, when the route returns intelligence. */
+    build?: (intelligence: IntelligenceResponse, key: VerifiedApiKey) => unknown;
 }
 
 export interface PipelineRequestInit {
@@ -85,6 +87,10 @@ export async function runIntelligencePipeline(init: PipelineRequestInit): Promis
         const key = await authenticateWithScope(readBearerToken(request), options.requiredScope);
         verifiedKey = key;
 
+        // User-scoped endpoints fail closed on a tenant-only key. Enforced here,
+        // before computation, so no user data is read for an unbound principal.
+        if (options.requireUserBinding) requireKeyOwner(key);
+
         const tenant = await loadTenantForRequest(key.tenantId);
         if (options.requiredEntitlement && !tenantHasEntitlement(tenant.plan, options.requiredEntitlement, tenant.featureFlags)) {
             throw new IntelligenceError("FORBIDDEN", `The ${tenant.plan} plan does not include ${options.requiredEntitlement}.`);
@@ -105,6 +111,9 @@ export async function runIntelligencePipeline(init: PipelineRequestInit): Promis
         let intelligence: IntelligenceResponse | null = null;
         let payload: unknown;
         if (isIntelligenceResult(result)) {
+            if (!options.build) {
+                throw new IntelligenceError("INTERNAL_ERROR", "This endpoint returned intelligence without a response contract.");
+            }
             intelligence = result.intelligence ?? null;
             payload = options.build(result.intelligence, key);
             billableUnits = intelligence?.cost?.units;

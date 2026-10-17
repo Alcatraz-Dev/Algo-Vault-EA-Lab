@@ -43,6 +43,18 @@ import { ENGINE_REGISTRY, buildEngineVersions, unversionedEngines, UNVERSIONED }
 import { tenantHasEntitlement, PLAN_DEFINITIONS, entitlementsForConsumerTier } from "../entitlements";
 import { computeAuditHash, verifyAuditChain, type AuditEntry } from "../audit";
 import { INTELLIGENCE_API_VERSION } from "../contracts";
+import { requireKeyOwner, type VerifiedApiKey } from "../api-keys";
+import {
+    buildAccountAnalytics,
+    projectAccounts,
+    projectPositions,
+    requireVisibleAccount,
+    selectPositions,
+} from "../account-reads";
+import type { NormalizedBook } from "@/lib/portfolio/snapshot";
+import type { PortfolioAccount, PortfolioPosition } from "@/lib/portfolio/types";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
 type TestResult = { name: string; ok: boolean; error?: string };
 
@@ -898,6 +910,180 @@ async function auditTests(): Promise<void> {
     });
 }
 
+// ── account read API (v1) ──────────────────────────────────────────────────
+
+function sampleAccount(overrides: Partial<PortfolioAccount> = {}): PortfolioAccount {
+    return {
+        accountId: "gateway_1001",
+        portfolioId: "primary",
+        userId: "user-a",
+        kind: "DEMO",
+        broker: "BrokerA",
+        server: "BrokerA-Demo",
+        currency: "USD",
+        balance: 10_000,
+        equity: 10_250,
+        marginUsed: 500,
+        freeMargin: 9_750,
+        leverage: 100,
+        unrealizedPnL: 250,
+        drawdownPercent: 0,
+        dataTimestamp: 1_700_000_000_000,
+        connected: true,
+        status: "ACTIVE",
+        ...overrides,
+    };
+}
+
+function samplePosition(overrides: Partial<PortfolioPosition> = {}): PortfolioPosition {
+    return {
+        positionId: "gateway_1001:51",
+        accountId: "gateway_1001",
+        symbol: "XAUUSD",
+        side: "LONG",
+        quantity: 0.1,
+        entryPrice: 2300,
+        currentPrice: 2310,
+        stopLoss: 2290,
+        takeProfit: 2330,
+        riskAmount: 100,
+        unrealizedPnL: 100,
+        marginUsed: 231,
+        notional: 23_100,
+        equityWeight: 2.25,
+        assetClass: "METALS",
+        strategyId: "manual",
+        accountCurrency: "USD",
+        currencyExposures: [],
+        openedAt: 1_699_999_000_000,
+        dataTimestamp: 1_700_000_000_000,
+        ...overrides,
+    };
+}
+
+function analyticsSource(overrides: Partial<Pick<NormalizedBook, "accounts" | "positions" | "balance" | "equity" | "realizedPnL" | "marginUsed" | "freeMargin" | "storedDrawdownPercent" | "baseCurrency" | "dataTimestamp">> = {}) {
+    return {
+        accounts: [sampleAccount()],
+        positions: [samplePosition()],
+        balance: 10_000,
+        equity: 10_250,
+        realizedPnL: null,
+        marginUsed: 500,
+        freeMargin: 9_750,
+        storedDrawdownPercent: 2.5,
+        baseCurrency: "USD",
+        dataTimestamp: 1_700_000_000_000,
+        ...overrides,
+    };
+}
+
+async function accountReadTests(): Promise<void> {
+    await test("account read: an unbound API key is refused (fail closed)", () => {
+        const key: VerifiedApiKey = {
+            keyId: "key_abc",
+            tenantId: "tenant-a",
+            scopes: ["portfolio:read"],
+        };
+        const error = assertThrows(() => requireKeyOwner(key), "tenant-only key must be refused");
+        assert(error instanceof IntelligenceError, "must throw the contract error type");
+        assertEqual((error as IntelligenceError).code, "FORBIDDEN", "unbound keys are forbidden, not widened");
+    });
+
+    await test("account read: the verified binding is the only user id returned", () => {
+        const key: VerifiedApiKey = {
+            keyId: "key_abc",
+            tenantId: "tenant-a",
+            scopes: ["portfolio:read"],
+            ownerUserId: "user-a",
+        };
+        assertEqual(requireKeyOwner(key), "user-a", "owner binding is returned verbatim");
+    });
+
+    await test("account read: projection never exposes internal ownership fields", () => {
+        const [account] = projectAccounts({ accounts: [sampleAccount()] });
+        assertEqual(account.accountId, "gateway_1001", "account id survives");
+        assertEqual(account.equity, 10_250, "equity survives");
+        assert(!("userId" in account), "userId must not be exposed to API clients");
+        assert(!("portfolioId" in account), "portfolioId must not be exposed to API clients");
+    });
+
+    await test("account read: position projection keeps null risk/tp honest", () => {
+        const [position] = projectPositions({
+            positions: [samplePosition({ stopLoss: null, riskAmount: null, takeProfit: null })],
+        });
+        assertEqual(position.stopLoss, null, "missing stop loss stays null");
+        assertEqual(position.riskAmount, null, "risk is not invented when no SL exists");
+        assertEqual(position.takeProfit, null, "missing take profit stays null");
+    });
+
+    await test("account read: an account outside the loaded book is a 404, not an empty list", () => {
+        const book = { accounts: [sampleAccount()], positions: [samplePosition()] };
+        const error = assertThrows(
+            () => requireVisibleAccount(book, "gateway_9999"),
+            "unknown account must be rejected"
+        );
+        assertEqual((error as IntelligenceError).code, "RESOURCE_NOT_FOUND", "unknown account is a 404");
+        // The caller's own account is visible and filtering stays inside it.
+        requireVisibleAccount(book, "gateway_1001");
+        assertEqual(selectPositions(book, "gateway_1001").length, 1, "own positions are returned");
+        assertEqual(
+            selectPositions(book, "gateway_9999").length,
+            0,
+            "filtering can never reach another account's positions"
+        );
+    });
+
+    await test("account read: analytics derives totals from the normalised book", () => {
+        const analytics = buildAccountAnalytics(analyticsSource());
+        assertEqual(analytics.accountCount, 1, "account count");
+        assertEqual(analytics.positionCount, 1, "position count");
+        assertEqual(analytics.balance, 10_000, "balance");
+        assertEqual(analytics.equity, 10_250, "equity");
+        assertEqual(analytics.floatingPnL, 250, "floating PnL is equity - balance");
+        assertEqual(analytics.marginLevelPercent, 2_050, "margin level = equity / margin");
+        assertEqual(analytics.openRisk, 100, "open risk is the position's cash risk");
+        assertEqual(analytics.openRiskPercent, 0.975609756097561, "open risk percent from equity");
+        assertEqual(analytics.drawdownPercent, 2.5, "stored drawdown is used when present");
+    });
+
+    await test("account read: analytics reports unknown values as null, never as zero", () => {
+        const analytics = buildAccountAnalytics(
+            analyticsSource({
+                accounts: [],
+                positions: [],
+                balance: 0,
+                equity: 0,
+                marginUsed: 0,
+                freeMargin: 0,
+                storedDrawdownPercent: null,
+            })
+        );
+        assertEqual(analytics.realizedPnL, null, "unpersisted realized PnL is null");
+        assertEqual(analytics.openRisk, null, "no priced risk is null");
+        assertEqual(analytics.openRiskPercent, null, "no priced risk percent is null");
+        assertEqual(analytics.drawdownPercent, null, "no peak means no measured drawdown");
+        assert(analytics.limitations.length >= 3, "unknowns are stated as limitations");
+    });
+
+    await test("account read routes: every v1 account endpoint uses the shared pipeline", () => {
+        const routes = [
+            "app/api/v1/accounts/route.ts",
+            "app/api/v1/positions/route.ts",
+            "app/api/v1/analytics/route.ts",
+        ];
+        for (const route of routes) {
+            const src = fs.readFileSync(path.join(process.cwd(), route), "utf8");
+            assert(src.includes("runIntelligencePipeline"), `${route} must use the shared pipeline`);
+            assert(src.includes("ACCOUNT_READ_SCOPE"), `${route} must require the account read scope`);
+            assert(src.includes("requireUserBinding: true"), `${route} must require a user binding`);
+            assert(src.includes("requireKeyOwner"), `${route} must take the user id from the key`);
+            assert(!src.includes("validateApiKey"), `${route} must not use the legacy key shim`);
+            assert(!src.includes("adminDatabase"), `${route} must not read RTDB directly`);
+            assert(!src.includes("body.uid") && !src.includes("body.userId"), `${route} must never trust a caller-supplied user id`);
+        }
+    });
+}
+
 // ── runner ─────────────────────────────────────────────────────────────────
 
 export async function runIntelligenceCloudTests(): Promise<boolean> {
@@ -917,6 +1103,7 @@ export async function runIntelligenceCloudTests(): Promise<boolean> {
     await registryTests();
     await entitlementTests();
     await auditTests();
+    await accountReadTests();
 
     const failed = results.filter((r) => !r.ok);
     for (const result of results) {

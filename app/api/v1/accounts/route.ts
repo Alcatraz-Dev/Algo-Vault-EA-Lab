@@ -1,37 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import { adminDatabase } from "@/lib/firebase-admin";
-import { validateApiKey } from "@/lib/api-key-auth";
+/**
+ * GET /api/v1/accounts — the caller's broker accounts.
+ *
+ * Delivery only: authentication, scopes, rate limiting, request correlation,
+ * usage metering and the error contract all come from the shared Intelligence
+ * Cloud pipeline. Account truth comes from the canonical portfolio book.
+ *
+ * Ownership: the user id is the verified API key's explicit binding. It is
+ * never read from the query string or body, so one key can never address
+ * another user's accounts.
+ */
 
-export async function GET(request: NextRequest) {
-    try {
-        const authHeader = request.headers.get("authorization");
-        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
-        const userId = await validateApiKey(token);
-        if (!userId) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+import { runIntelligencePipeline } from "@/lib/intelligence-cloud/route";
+import { requireKeyOwner } from "@/lib/intelligence-cloud/api-keys";
+import { INTELLIGENCE_API_VERSION } from "@/lib/intelligence-cloud/contracts";
+import {
+    ACCOUNT_READ_SCOPE,
+    loadAccountRead,
+    projectAccounts,
+} from "@/lib/intelligence-cloud/account-reads";
 
-        const accountsSnap = await adminDatabase.ref(`trading_accounts/${userId}`).get();
-        const accounts: Record<string, unknown>[] = [];
+export const dynamic = "force-dynamic";
 
-        if (accountsSnap.exists()) {
-            const data = accountsSnap.val();
-            for (const [id, val] of Object.entries(data)) {
-                const acc = val as Record<string, unknown>;
-                accounts.push({
-                    id,
-                    mt5Account: String(acc.mt5Account || ""),
-                    broker: String(acc.broker || ""),
-                    balance: Number(acc.balance || 0),
-                    equity: Number(acc.equity || 0),
-                    margin: Number(acc.margin || 0),
-                    freeMargin: Number(acc.freeMargin || 0),
-                    marginLevel: Number(acc.marginLevel || 0),
-                    status: String(acc.status || ""),
-                });
-            }
-        }
+export async function GET(request: Request) {
+    return runIntelligencePipeline({
+        request,
+        options: {
+            requiredScope: ACCOUNT_READ_SCOPE,
+            requireUserBinding: true,
+            endpoint: "GET /v1/accounts",
+            usageCategory: "api.request",
+            apiVersion: INTELLIGENCE_API_VERSION,
+        },
+        run: async (_body, key) => {
+            const userId = requireKeyOwner(key);
+            const read = await loadAccountRead(userId);
 
-        return NextResponse.json({ success: true, accounts });
-    } catch (err) {
-        return NextResponse.json({ error: "Failed" }, { status: 500 });
-    }
+            return {
+                apiVersion: INTELLIGENCE_API_VERSION,
+                accounts: projectAccounts(read.book),
+                dataTimestamp: read.book.dataTimestamp,
+                freshness: read.freshness,
+                limitations: read.limitations,
+            };
+        },
+    });
 }

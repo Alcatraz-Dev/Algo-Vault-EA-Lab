@@ -31,6 +31,9 @@ interface FakeRef {
     update(v: unknown): Promise<void>;
     remove(): Promise<void>;
     child(c: string): FakeRef;
+    transaction(
+        update: (current: unknown) => unknown
+    ): Promise<{ committed: boolean; snapshot: FakeSnapshot }>;
 }
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
@@ -97,6 +100,23 @@ function makeFakeRef(path: string): FakeRef {
         remove(): Promise<void> {
             rtDbStore.delete(path);
             return Promise.resolve();
+        },
+        // Mirrors the real SDK contract closely enough for the rate-limit and
+        // usage counters: the updater receives the current value (null when
+        // absent), and returning undefined aborts the write.
+        transaction(
+            update: (current: unknown) => unknown
+        ): Promise<{ committed: boolean; snapshot: FakeSnapshot }> {
+            const current = rtDbStore.has(path) ? rtDbStore.get(path) : null;
+            const next = update(current);
+            if (next === undefined) {
+                return Promise.resolve({ committed: false, snapshot: getFakeSnapshot(path) });
+            }
+            rtDbStore.set(path, next);
+            return Promise.resolve({
+                committed: true,
+                snapshot: { exists: () => true, val: () => next },
+            });
         },
         child(c: string): FakeRef {
             return makeFakeRef(`${path}/${c}`);

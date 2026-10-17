@@ -38,10 +38,16 @@ export async function validateApiKey(token: string): Promise<string | null> {
     if (!token || typeof token !== "string") return null;
 
     // 1. Modern hashed key: prefix-indexed, constant-time, single read.
+    //
+    // The caller expects a Firebase uid, so only the explicit `ownerUserId`
+    // binding is a valid answer. Returning the key id here (the previous
+    // behaviour) made every legacy caller operate under a uid that no user
+    // owns. A key without a binding fails closed and falls through to the
+    // legacy path; it is never widened to `createdBy` or `tenantId`.
     try {
         const { verifyApiKey } = await import("@/lib/intelligence-cloud/api-keys");
         const result = await verifyApiKey(token);
-        if (result.key) return result.key.keyId;
+        if (result.key) return result.key.ownerUserId ?? null;
     } catch {
         // Fall through to the legacy path.
     }

@@ -42,6 +42,17 @@ export interface ApiKeyRecord {
     tenantId: string;
     /** Firebase uid of the human who created it (audit only, not authorisation). */
     createdBy: string;
+    /**
+     * Firebase uid whose broker/portfolio data this key may read.
+     *
+     * Tenant binding alone is not enough for account-scoped endpoints: several
+     * users can share a tenant, and a tenant-wide key must not read another
+     * user's trading accounts. This is an explicit server-side binding, never
+     * inferred from `createdBy`, and never accepted from a request.
+     *
+     * Keys without it fail closed on user-scoped routes.
+     */
+    ownerUserId?: string;
     /** Human label, e.g. "CI production". */
     name?: string;
     scopes: ApiScope[];
@@ -64,6 +75,11 @@ export interface ApiKeyRateLimit {
 export interface CreateApiKeyInput {
     tenantId: string;
     createdBy: string;
+    /**
+     * Optional user binding for account/portfolio reads. Required for any key
+     * expected to call user-scoped endpoints; omitted ⇒ those routes fail closed.
+     */
+    ownerUserId?: string;
     name?: string;
     scopes?: readonly string[];
     expiresAt?: number;
@@ -80,6 +96,8 @@ export interface VerifiedApiKey {
     keyId: string;
     tenantId: string;
     scopes: ApiScope[];
+    /** Present only when the key carries an explicit user binding. */
+    ownerUserId?: string;
     keyName?: string;
     rateLimit?: ApiKeyRateLimit;
 }
@@ -114,6 +132,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreatedApi
         hashedSecret: hashApiKey(secret),
         tenantId: sanitizeSegment(input.tenantId),
         createdBy: input.createdBy,
+        ...(input.ownerUserId ? { ownerUserId: sanitizeSegment(input.ownerUserId) } : {}),
         name: input.name,
         scopes,
         status: "active",
@@ -176,6 +195,9 @@ export async function verifyApiKey(
             keyId: record.keyId,
             tenantId: record.tenantId,
             scopes: Array.isArray(record.scopes) ? record.scopes : [],
+            ...(typeof record.ownerUserId === "string" && record.ownerUserId
+                ? { ownerUserId: record.ownerUserId }
+                : {}),
             keyName: record.name,
             rateLimit: (snap.val() as { rateLimit?: ApiKeyRateLimit }).rateLimit,
         },
@@ -194,6 +216,22 @@ export async function authenticateWithScope(
     if (!result.key) throw errors.unauthorized("The API key is missing, invalid, revoked or expired.");
     if (!hasScope(result.key.scopes, required)) throw errors.scopeInsufficient(required);
     return result.key;
+}
+
+/**
+ * Assert the explicit user binding on an already-verified key.
+ *
+ * User-scoped resources (broker accounts, positions, portfolio analytics) must
+ * never be addressed by a caller-supplied uid. A key that is not bound to a
+ * user is rejected rather than widened to its tenant or its `createdBy` field.
+ */
+export function requireKeyOwner(key: VerifiedApiKey): string {
+    if (!key.ownerUserId) {
+        throw errors.forbidden(
+            "This API key is not bound to a user, so it cannot read user-scoped data. Create a key with an explicit user binding."
+        );
+    }
+    return key.ownerUserId;
 }
 
 export async function revokeApiKey(

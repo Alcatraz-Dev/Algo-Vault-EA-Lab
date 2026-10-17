@@ -1,42 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import { adminDatabase } from "@/lib/firebase-admin";
-import { validateApiKey } from "@/lib/api-key-auth";
+/**
+ * GET /api/v1/analytics — aggregate account analytics for the caller.
+ *
+ * Every total is derived from the canonical normalised book, not recomputed
+ * ad hoc per route. Figures the gateway does not persist (realized P&L, open
+ * risk without stop losses) are returned as null with an explicit limitation
+ * rather than as a flattering zero.
+ */
 
-export async function GET(request: NextRequest) {
-    try {
-        const authHeader = request.headers.get("authorization");
-        const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : "";
-        const userId = await validateApiKey(token);
-        if (!userId) return NextResponse.json({ error: "Invalid API key" }, { status: 401 });
+import { runIntelligencePipeline } from "@/lib/intelligence-cloud/route";
+import { requireKeyOwner } from "@/lib/intelligence-cloud/api-keys";
+import { INTELLIGENCE_API_VERSION } from "@/lib/intelligence-cloud/contracts";
+import {
+    ACCOUNT_READ_SCOPE,
+    buildAccountAnalytics,
+    loadAccountRead,
+} from "@/lib/intelligence-cloud/account-reads";
 
-        const accountsSnap = await adminDatabase.ref(`trading_accounts/${userId}`).get();
-        let totalBalance = 0, totalEquity = 0, totalMargin = 0, totalPositions = 0;
+export const dynamic = "force-dynamic";
 
-        if (accountsSnap.exists()) {
-            const data = accountsSnap.val();
-            for (const [, acc] of Object.entries(data)) {
-                const a = acc as Record<string, unknown>;
-                totalBalance += Number(a.balance || 0);
-                totalEquity += Number(a.equity || 0);
-                totalMargin += Number(a.margin || 0);
+export async function GET(request: Request) {
+    return runIntelligencePipeline({
+        request,
+        options: {
+            requiredScope: ACCOUNT_READ_SCOPE,
+            requireUserBinding: true,
+            endpoint: "GET /v1/analytics",
+            usageCategory: "api.request",
+            apiVersion: INTELLIGENCE_API_VERSION,
+        },
+        run: async (_body, key) => {
+            const userId = requireKeyOwner(key);
+            const read = await loadAccountRead(userId);
+            const analytics = buildAccountAnalytics(read.book);
 
-                const posSnap = await adminDatabase.ref(`trading_positions/${userId}/${Object.keys(data).find((k) => data[k] === acc)}`).get();
-                if (posSnap.exists()) totalPositions += Object.keys(posSnap.val()).length;
-            }
-        }
-
-        return NextResponse.json({
-            success: true,
-            analytics: {
-                totalBalance: Number(totalBalance.toFixed(2)),
-                totalEquity: Number(totalEquity.toFixed(2)),
-                totalMargin: Number(totalMargin.toFixed(2)),
-                floatingPnl: Number((totalEquity - totalBalance).toFixed(2)),
-                totalPositions,
-                marginUtilization: totalBalance > 0 ? Number(((totalMargin / totalBalance) * 100).toFixed(2)) : 0,
-            },
-        });
-    } catch (err) {
-        return NextResponse.json({ error: "Failed" }, { status: 500 });
-    }
+            return {
+                apiVersion: INTELLIGENCE_API_VERSION,
+                analytics,
+                dataTimestamp: read.book.dataTimestamp,
+                freshness: read.freshness,
+                limitations: Array.from(
+                    new Set([...read.limitations, ...analytics.limitations])
+                ),
+            };
+        },
+    });
 }

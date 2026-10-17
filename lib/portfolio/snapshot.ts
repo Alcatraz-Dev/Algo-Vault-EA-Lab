@@ -517,20 +517,26 @@ function riskPercentBySymbol(book: NormalizedBook): Record<string, number | null
     return out;
 }
 
-export function openRiskPercent(book: NormalizedBook): number | null {
+export function openRiskPercent(
+    book: Pick<NormalizedBook, "equity" | "positions">
+): number | null {
     if (!(book.equity > 0)) return null;
     const withStops = book.positions.filter((p) => p.riskAmount !== null);
     if (withStops.length === 0) return null;
     return (withStops.reduce((acc, p) => acc + (p.riskAmount as number), 0) / book.equity) * 100;
 }
 
-export function drawdownPercent(book: NormalizedBook): number | null {
+export function drawdownPercent(
+    book: Pick<NormalizedBook, "storedDrawdownPercent" | "accounts">
+): number | null {
     if (book.storedDrawdownPercent !== null) return book.storedDrawdownPercent;
     if (book.accounts.length === 0) return null;
     return Math.max(0, ...book.accounts.map((a) => a.drawdownPercent));
 }
 
-export function marginLevelPercent(book: NormalizedBook): number | null {
+export function marginLevelPercent(
+    book: Pick<NormalizedBook, "marginUsed" | "equity">
+): number | null {
     if (book.marginUsed <= 0) return null;
     if (book.equity <= 0) return 0;
     return (book.equity / book.marginUsed) * 100;
