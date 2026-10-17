@@ -33,6 +33,27 @@ loadEnvConfig(process.cwd());
 // suites do not silently fall through to the real SDK).
 const isSecurityTest = script.includes("tests/security/");
 
+// `server-only` is a build-time marker: its default export throws so the module
+// can never be pulled into a client bundle, while Next.js resolves the
+// `react-server` condition to the package's empty entry on the server. jiti does
+// not apply that condition, so a Node-side test runner importing real server
+// modules (e.g. lib/firebase-admin.ts) crashed at import time before any test
+// ran. Alias the marker to the same empty entry Next uses on the server. This
+// only affects this runner — application bundling and the marker itself in
+// application code are untouched.
+const serverOnlyAlias = {
+    "server-only": resolve(process.cwd(), "node_modules/server-only/empty.js"),
+};
+
+const securityAlias = isSecurityTest
+    ? {
+          "firebase-admin": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+          "firebase-admin/app": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+          "firebase-admin/auth": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+          "firebase-admin/database": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
+      }
+    : {};
+
 const jiti = createJiti(process.cwd(), {
     // Enable tsconfig `paths` resolution ("@/*" → repo root).
     tsconfigPaths: true,
@@ -41,16 +62,7 @@ const jiti = createJiti(process.cwd(), {
     // (e.g. the dashboard widget catalog). Purely additive: files without
     // JSX are parsed exactly as before.
     jsx: true,
-    ...(isSecurityTest
-        ? {
-              alias: {
-                  "firebase-admin": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
-                  "firebase-admin/app": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
-                  "firebase-admin/auth": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
-                  "firebase-admin/database": resolve(process.cwd(), "tests/security/firebase-admin-stub.ts"),
-              },
-          }
-        : {}),
+    alias: { ...serverOnlyAlias, ...securityAlias },
 });
 
 await jiti.import(resolve(process.cwd(), script)).catch((error) => {
