@@ -36,7 +36,6 @@ import {
     XCircle,
     Brain,
 } from "lucide-react";
-import ModernPageHeader from "@/components/ui/modern-page-header";
 import AccountShell from "@/components/account/AccountShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import MiniSparkline from "@/components/charts/MiniSparkline";
@@ -221,7 +220,6 @@ export default function AccountPage() {
 
     return (
         <AccountShell
-           
             title="Account Dashboard"
             subtitle={
                 <>

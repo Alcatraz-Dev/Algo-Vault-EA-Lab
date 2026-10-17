@@ -4,19 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth, database } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
-import {
-    Shield,
-    AlertTriangle,
-    Loader2,
-    RefreshCw,
-    TrendingDown,
-    Activity,
-    Wallet,
-    BarChart3,
-    ArrowUpRight,
-    ArrowDownRight,
-} from "lucide-react";
-import SiteNavbar from "@/components/navbar/SiteNavbar";
+import { ArrowLeft, Shield, AlertTriangle, Loader2, RefreshCw, TrendingDown, Activity, Wallet, BarChart3, Sparkles } from "lucide-react";
+import ModernPageHeader from "@/components/ui/modern-page-header";
 import { cn } from "@/lib/utils";
 
 type RiskData = {
@@ -84,13 +73,12 @@ export default function RiskPage() {
     }, [selectedAccount, fetchRisk]);
 
     if (authLoading) {
-        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><SiteNavbar /><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
+        return (<div className="flex min-h-screen flex-col bg-background text-foreground"><div className="flex flex-1 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div></div>);
     }
 
     if (!user) {
         return (
             <div className="flex min-h-screen flex-col bg-background text-foreground">
-                <SiteNavbar />
                 <div className="flex flex-1 flex-col items-center justify-center gap-4">
                     <Shield size={40} className="text-muted-foreground" />
                     <h1 className="text-xl font-semibold text-foreground">Sign in required</h1>
@@ -102,22 +90,37 @@ export default function RiskPage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground">
-            <SiteNavbar />
             <div className="mx-auto max-w-7xl px-4 py-8">
-                <div className="mb-6 flex items-center justify-between" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Risk Dashboard</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">Real-time risk monitoring and margin analysis</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <select value={selectedAccount} onChange={(e) => setSelectedAccount(e.target.value)} className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none">
-                            {accounts.map((a) => <option key={a.id} value={a.id}>{a.broker} — {a.mt5Account}</option>)}
-                        </select>
-                        <button type="button" onClick={fetchRisk} disabled={loading} className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50">
-                            <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> Refresh
-                        </button>
-                    </div>
-                </div>
+                {/* PAGE HEADER */}
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Risk Management"
+                    title="Risk Dashboard"
+                    subtitle="Real-time risk monitoring and margin analysis"
+                    actions={
+                        <div className="flex flex-nowrap items-center gap-3 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
+                            <select
+                                value={selectedAccount}
+                                onChange={(e) => setSelectedAccount(e.target.value)}
+                                className="rounded-lg border border-border bg-card px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                            >
+                                {accounts.map((a) => (
+                                    <option key={a.id} value={a.id}>{a.broker} — {a.mt5Account}</option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                onClick={fetchRisk}
+                                disabled={loading}
+                                className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                                Refresh
+                            </button>
+                        </div>
+                    }
+                />
 
                 {loading && !risk ? (
                     <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>

@@ -5,12 +5,13 @@ import {
     Loader2, Shield, ArrowLeft, Plus, X, ChevronDown, ChevronUp,
     TrendingUp, TrendingDown, Target, Lock, AlertTriangle, CheckCircle,
     Zap, Activity, Bell, RefreshCw, Clock, Trash2, History,
-    Ban, CircleDollarSign, Gauge, ShieldCheck,
+    Ban, CircleDollarSign, Gauge, ShieldCheck, Search, User as UserIcon, Moon, Sun,
 } from "lucide-react";
 import Link from "next/link";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/theme/theme-toggle";
 
 // ============================================
 // TYPES (mirroring lib/trade-management/types)
@@ -186,6 +187,10 @@ export default function TradeManagementPage() {
     const [events, setEvents] = useState<TradeEvent[]>([]);
     const [eventsLoading, setEventsLoading] = useState(false);
     const [showCreate, setShowCreate] = useState(false);
+    const [theme, setTheme] = useState<"light" | "dark">("dark");
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [userOpen, setUserOpen] = useState(false);
     const [accounts, setAccounts] = useState<{ id: string; name: string }[]>([]);
     const [positions, setPositions] = useState<Record<string, Position[]>>({});
     const [busyTrade, setBusyTrade] = useState<string | null>(null);
@@ -420,7 +425,12 @@ export default function TradeManagementPage() {
     };
 
     // ---- Derived ----
-    const activeTrades = useMemo(() => trades.filter((t) => !["CLOSED", "STOPPED", "CANCELLED"].includes(t.state)), [trades]);
+    const activeTrades = useMemo(() => {
+        const base = trades.filter((t) => !["CLOSED", "STOPPED", "CANCELLED"].includes(t.state));
+        if (!searchQuery.trim()) return base;
+        const q = searchQuery.toLowerCase();
+        return base.filter((t) => (t.symbol || "").toLowerCase().includes(q) || (t.ticket || "").toLowerCase().includes(q));
+    }, [trades, searchQuery]);
     const closedTrades = useMemo(() => trades.filter((t) => ["CLOSED", "STOPPED", "CANCELLED"].includes(t.state)), [trades]);
     const totalPnl = useMemo(() => activeTrades.reduce((s, t) => s + (t.currentPnl || 0), 0), [activeTrades]);
     const avgR = useMemo(() => activeTrades.length ? activeTrades.reduce((s, t) => s + (t.currentR || 0), 0) / activeTrades.length : 0, [activeTrades]);
@@ -456,29 +466,30 @@ export default function TradeManagementPage() {
                 <div className="absolute -right-40 top-1/3 h-96 w-96 rounded-full bg-info/10 hidden" />
             </div>
 
-            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft size={12} /> Back to Account</Link>
-
-                {/* Header */}
-                <div className="mb-6 flex flex-wrap items-end justify-between gap-4" data-guide="page-header">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Smart Trade Management</h1>
-                        <p className="mt-1.5 text-sm text-muted-foreground">Scale out at multiple targets with auto break-even, profit lock, and trailing</p>
+            {/* Sticky header bar (like /alerts) */}
+            <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl px-4 py-3 sm:px-6 sm:py-4 border-b border-border/30 overflow-visible">
+                <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+                <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
+                <div className="relative z-10 flex items-center gap-3 flex-wrap gap-x-3 gap-y-2.5 lg:flex-nowrap">
+                    <div className="flex shrink-0 items-center gap-1.5">
+                        <button type="button" aria-label="Open navigation menu" className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground" onClick={() => alert("Menu not implemented")}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16"/><path d="M4 12h16"/><path d="M4 19h16"/></svg>
+                        </button>
+                        <Link href="/account" aria-label="Back to Account" className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-foreground hover:bg-muted" title="Back to Account">
+                            <ArrowLeft size={14} />
+                        </Link>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <span className="hidden sm:inline-flex items-center gap-1.5 text-micro text-muted-foreground">
-                            <span className={cn("h-1.5 w-1.5 rounded-full", refreshing ? "bg-warning animate-pulse" : "bg-positive")} />
-                            {refreshing ? "Syncing…" : lastSync ? `Synced ${fmtTimeAgo(lastSync)}` : ""}
-                        </span>
-                        <button type="button" onClick={() => void fetchData()} className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-muted/30 px-3 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors">
-                            <RefreshCw size={13} className={cn(refreshing && "animate-spin")} /> Refresh
-                        </button>
-                        <button type="button" onClick={() => { setShowCreate(true); setStep(1); }} className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition-colors shadow-lg ">
-                            <Plus size={13} /> Manage Trade
-                        </button>
+                    <div className="min-w-0 order-last w-full lg:order-none lg:w-auto lg:flex-1">
+                        <h1 className="truncate text-xl font-bold tracking-tight text-foreground sm:text-2xl md:text-3xl">Smart Trade Management</h1>
+                        <p className="truncate text-sm font-normal text-muted-foreground/80">Scale out at multiple targets with auto break-even, profit lock, and trailing</p>
+                    </div>
+                    <div className="ml-auto flex items-center gap-2">
+                        <ThemeToggle compact />
                     </div>
                 </div>
+            </header>
 
+            <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Banner */}
                 {banner && (
                     <div className={cn("mb-4 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs font-medium",

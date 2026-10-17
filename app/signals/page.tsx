@@ -58,6 +58,10 @@ export default function AiSignalsPage() {
     const signalsCountRef = useRef(0);
     const dailyCountRef = useRef(0);
 
+    // Calculate daily limit for UI
+    const dailyLimit = hasPro ? PRO_LIMIT : FREE_LIMIT;
+    const limitReached = dailyCount >= dailyLimit;
+
     useEffect(() => {
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
@@ -321,9 +325,6 @@ export default function AiSignalsPage() {
         enabled: topSignalSymbols.length > 0,
     });
 
-    const dailyLimit = hasPro ? PRO_LIMIT : FREE_LIMIT;
-    const limitReached = dailyCount >= dailyLimit;
-
     const tabs = [
         { key: "all" as const, label: "All Signals", count: liveSignals.length },
         { key: "active" as const, label: "Active", count: liveSignals.filter((s) => s.status === "ACTIVE").length },
@@ -333,88 +334,73 @@ export default function AiSignalsPage() {
 
     return (
         <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+            {/* Full-width container — lg/md screens stretch edge-to-edge inside shell */}
             <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-                {/* HEADER */}
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between" data-guide="page-header">
-                    <div>
-                        <Link
-                            href="/account"
-                            className="mb-6 inline-flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
-                        >
-                            <ArrowLeft size={16} />
-                            Back to Account
-                        </Link>
+                {/* PAGE HEADER */}
+                <ModernPageHeader
+                    backHref="/account"
+                    backLabel="Back to Account"
+                    eyebrow="Multi-Asset AI Signal Engine"
+                    title="Live AI Signals"
+                    subtitle="Real-time institutional-grade trading signals across forex, gold, indices, and crypto. Powered by multi-factor confidence scoring."
+                    actions={
+                        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
+                            <Link
+                                href="/signals/pro"
+                                className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
+                            >
+                                <Zap className="h-3.5 w-3.5 fill-primary text-primary sm:h-4 sm:w-4" />
+                                <span>Pro Signals</span>
+                            </Link>
 
-                        <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                            <Sparkles className="h-4 w-4" />
-                            Multi-Asset AI Signal Engine
+                            <button
+                                type="button"
+                                onClick={!limitReached ? handleScan : undefined}
+                                disabled={scanning || limitReached}
+                                data-guide="scan"
+                                title={limitReached ? `Daily limit reached (${dailyLimit}/${dailyLimit}). Upgrade to Pro for more signals.` : "Scan for new signals"}
+                                className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
+                                    limitReached
+                                        ? "border-border/20 bg-muted/5 text-muted-foreground cursor-not-allowed opacity-50"
+                                        : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
+                                }`}
+                            >
+                                {scanning ? (
+                                    <span className="loading loading-spinner h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                ) : limitReached ? (
+                                    <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                ) : (
+                                    <Radar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                )}
+                                <span>{scanning ? "Scanning..." : limitReached ? "Limit Reached" : "Scan for Signals"}</span>
+                            </button>
+
+                            <Link
+                                href="/live-performance"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            >
+                                <Activity className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
+                                <span>Live Performance</span>
+                            </Link>
+
+                            <Link
+                                href="/signals/stats"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            >
+                                <BarChart3 className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
+                                <span>Statistics</span>
+                            </Link>
+
+                            <Link
+                                href="/signals/history"
+                                className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                            >
+                                <History className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
+                                <span>History</span>
+                            </Link>
                         </div>
-
-                        <h1 className="text-2xl font-semibold tracking-tight mt-2">
-                            Live AI Signals
-                        </h1>
-
-                        <p className="mt-2 text-sm text-muted-foreground max-w-2xl">
-                            Real-time institutional-grade trading signals across forex, gold, indices, and crypto. Powered by multi-factor confidence scoring.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 sm:gap-3 sm:pb-0 scrollbar-none">
-                        <Link
-                            href="/signals/pro"
-                            className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/20 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-sm"
-                        >
-                            <Zap className="h-3.5 w-3.5 fill-primary text-primary sm:h-4 sm:w-4" />
-                            <span>Pro Signals</span>
-                        </Link>
-
-                        <button
-                            type="button"
-                            onClick={!limitReached ? handleScan : undefined}
-                            disabled={scanning || limitReached}
-                            data-guide="scan"
-                            title={limitReached ? `Daily limit reached (${dailyLimit}/${dailyLimit}). Upgrade to Pro for more signals.` : "Scan for new signals"}
-                            className={`inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium transition-colors ${
-                                limitReached
-                                    ? "border-border/20 bg-muted/5 text-muted-foreground cursor-not-allowed opacity-50"
-                                    : "border-border/40 bg-muted/5 text-foreground hover:bg-muted/10"
-                            }`}
-                        >
-                            {scanning ? (
-                                <span className="loading loading-spinner h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            ) : limitReached ? (
-                                <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            ) : (
-                                <Radar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            )}
-                            <span>{scanning ? "Scanning..." : limitReached ? "Limit Reached" : "Scan for Signals"}</span>
-                        </button>
-
-                        <Link
-                            href="/live-performance"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                        >
-                            <Activity className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
-                            <span>Live Performance</span>
-                        </Link>
-
-                        <Link
-                            href="/signals/stats"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                        >
-                            <BarChart3 className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
-                            <span>Statistics</span>
-                        </Link>
-
-                        <Link
-                            href="/signals/history"
-                            className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 sm:gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                        >
-                            <History className="h-3.5 w-3.5 text-muted-foreground sm:h-4 sm:w-4" />
-                            <span>History</span>
-                        </Link>
-                    </div>
-                </div>
+                    }
+                />
 
                 {/* DAILY LIMIT INDICATOR */}
                 <Card className="mt-6 gap-0 rounded-xl p-4 shadow-sm" data-guide="daily-limit">
@@ -673,7 +659,7 @@ export default function AiSignalsPage() {
                     ) : (
                         <>
                             {/* FREE SECTION — M5/M15 */}
-                            <div className="mx-auto mb-8 w-full max-w-3xl">
+                            <div className="mx-auto mb-8 w-full max-w-none lg:max-w-none md:max-w-none">
                                 <div className="mb-3 flex items-center gap-2">
                                     <StatusBadge tone="positive" label="Free" className="uppercase tracking-wide" />
                                     <span className="text-xs text-muted-foreground">M5 · M15 signals</span>
@@ -683,7 +669,7 @@ export default function AiSignalsPage() {
                             </div>
 
                             {/* PRO SECTION — M1 */}
-                            <div className="relative mx-auto mb-8 w-full max-w-3xl">
+                            <div className="relative mx-auto mb-8 w-full max-w-none lg:max-w-none md:max-w-none">
                                 <div className="mb-3 flex items-center gap-2">
                                     <StatusBadge tone="active" label="Pro" className="uppercase tracking-wide" />
                                     <span className="text-xs text-muted-foreground">M1 precision signals — Pro only</span>

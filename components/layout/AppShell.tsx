@@ -490,7 +490,7 @@ export function AppShell({
           </span>
         </Button>
         {accountOpen ? (
-          <div className="absolute right-0 z-50 mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
+          <div className="absolute right-0 z-[60] mt-1.5 w-56 overflow-hidden rounded-card-lg border border-border bg-popover shadow-lg">
             <div className="border-b border-border px-3 py-3">
               <p className="truncate text-meta font-semibold text-foreground">
                 {user?.displayName || "Account"}
