@@ -33,6 +33,29 @@ export function registerAgentExecutor(id: string, fn: AgentExecutor): void {
 
 // ─── Workflow Engine ────────────────────────────────────
 
+/**
+ * Persistence port for the workflow engine.
+ *
+ * Production callers get the Firebase-backed agents database (the default), so
+ * real behaviour is unchanged. Tests inject an in-memory implementation at this
+ * boundary, so engine unit tests need no Firebase credentials or network access.
+ */
+export type EnginePersistence = {
+    createExecution: typeof createExecution;
+    updateExecutionStatus: typeof updateExecutionStatus;
+    createStepRecord: typeof createStepRecord;
+    createAgentExecution: typeof createAgentExecution;
+    saveWorkflowContext: typeof saveWorkflowContext;
+};
+
+const defaultPersistence: EnginePersistence = {
+    createExecution,
+    updateExecutionStatus,
+    createStepRecord,
+    createAgentExecution,
+    saveWorkflowContext,
+};
+
 export type EngineConfig = {
     /** Override: caller's effective permissions (plugin/extension/admin). */
     permissions?: PermissionSet;
@@ -40,6 +63,8 @@ export type EngineConfig = {
     testOnly?: boolean;
     /** Max wall-clock ms for the whole workflow. */
     timeoutMs?: number;
+    /** Persistence port. Defaults to the Firebase-backed agents database. */
+    persistence?: EnginePersistence;
 };
 
 export type EngineResult = {
@@ -62,7 +87,8 @@ async function executeAgent(
     stepId: string,
     execution: WorkflowExecutionRecord,
     context: WorkflowContext,
-    timeoutMs: number
+    timeoutMs: number,
+    persistence: EnginePersistence
 ): Promise<AgentOutput> {
     const agent = getAgent(agentId);
     if (!agent) {
@@ -122,17 +148,17 @@ async function executeAgent(
         agentRecord.output = output;
         agentRecord.status = output.status;
 
-        await createAgentExecution(agentRecord);
-        await saveWorkflowContext(execution.id, context);
+        await persistence.createAgentExecution(agentRecord);
+        await persistence.saveWorkflowContext(execution.id, context);
         return output;
     } catch (err) {
         agentRecord.finishedAt = Date.now();
         agentRecord.durationMs = agentRecord.finishedAt - agentRecord.startedAt;
         agentRecord.error = err instanceof Error ? err.message : "Unknown";
         agentRecord.status = "failed";
-        await createAgentExecution(agentRecord);
+        await persistence.createAgentExecution(agentRecord);
         const fail = failureOutput(agentId, err instanceof Error ? err.message : "Unknown");
-        await saveWorkflowContext(execution.id, context);
+        await persistence.saveWorkflowContext(execution.id, context);
         return fail;
     }
 }
@@ -166,6 +192,7 @@ export async function executeWorkflow(
     const executionId = genId("wf_exec");
     const now = Date.now();
     const permissions = config.permissions || {};
+    const persistence = config.persistence ?? defaultPersistence;
     const timeoutMs = config.timeoutMs || workflow.timeoutMs || 120_000;
 
     const execution: WorkflowExecutionRecord = {
@@ -190,7 +217,7 @@ export async function executeWorkflow(
         testOnly: config.testOnly || false,
     };
 
-    await createExecution(execution);
+    await persistence.createExecution(execution);
 
     // Build shared context
     const context: WorkflowContext = {
@@ -226,7 +253,7 @@ export async function executeWorkflow(
         execution.finishedAt = Date.now();
         execution.durationMs = execution.finishedAt - execution.startedAt;
         execution.errors = [`Permission denied: ${wfPermsMissing.join(", ")}`];
-        await updateExecutionStatus(executionId, {
+        await persistence.updateExecutionStatus(executionId, {
             status: execution.status,
             finishedAt: execution.finishedAt,
             durationMs: execution.durationMs,
@@ -244,10 +271,10 @@ export async function executeWorkflow(
 
     for (const step of workflow.steps) {
         const stepRecord = await executeStep(
-            step, workflow, execution, context, outputs, permissions, timeoutMs
+            step, workflow, execution, context, outputs, permissions, timeoutMs, persistence
         );
         stepRecords.push(stepRecord);
-        await createStepRecord(stepRecord);
+        await persistence.createStepRecord(stepRecord);
 
         if (stepRecord.status === "completed") {
             completedCount++;
@@ -257,7 +284,7 @@ export async function executeWorkflow(
         execution.stepsCompleted = completedCount;
         execution.stepsFailed = failedCount;
         execution.agentsRun = agentsRunCount;
-        await updateExecutionStatus(executionId, {
+        await persistence.updateExecutionStatus(executionId, {
             stepsCompleted: execution.stepsCompleted,
             stepsFailed: execution.stepsFailed,
             agentsRun: execution.agentsRun,
@@ -290,7 +317,7 @@ export async function executeWorkflow(
         finalOutput = context.agentOutputs["synthesis"] as AgentOutput;
     }
 
-    await updateExecutionStatus(executionId, {
+    await persistence.updateExecutionStatus(executionId, {
         status: execution.status,
         finishedAt: execution.finishedAt,
         durationMs: execution.durationMs,
@@ -338,6 +365,7 @@ async function executeStep(
     outputs: Record<string, AgentOutput>,
     permissions: Record<string, boolean>,
     timeoutMs: number,
+    persistence: EnginePersistence,
 ): Promise<WorkflowStepRecord> {
     const now = Date.now();
 
@@ -358,7 +386,7 @@ async function executeStep(
                     durationMs: Date.now() - now,
                     condition: { matched: true, action: "abort", reason: branch.reason },
                 };
-                await createStepRecord(record);
+                await persistence.createStepRecord(record);
                 return record;
             } else if (branch.action === "markFlag") {
                 context.flags.push(branch.flag || branch.id);
@@ -374,7 +402,7 @@ async function executeStep(
                     durationMs: Date.now() - now,
                     condition: { matched: true, action: "markFlag", reason: branch.reason },
                 };
-                await createStepRecord(record);
+                await persistence.createStepRecord(record);
                 return record;
             }
             // skipTo - handled by the loop iteration check
@@ -382,9 +410,9 @@ async function executeStep(
     }
 
     if (step.mode === "parallel") {
-        return await executeParallelStep(step, workflow, execution, context, outputs, permissions, timeoutMs, now);
+        return await executeParallelStep(step, workflow, execution, context, outputs, permissions, timeoutMs, now, persistence);
     }
-    return await executeSequentialStep(step, workflow, execution, context, outputs, permissions, timeoutMs, now);
+    return await executeSequentialStep(step, workflow, execution, context, outputs, permissions, timeoutMs, now, persistence);
 }
 
 async function executeSequentialStep(
@@ -395,7 +423,8 @@ async function executeSequentialStep(
     outputs: Record<string, AgentOutput>,
     permissions: Record<string, boolean>,
     timeoutMs: number,
-    startedAt: number
+    startedAt: number,
+    persistence: EnginePersistence
 ): Promise<WorkflowStepRecord> {
     const agentId = step.agent;
     const agent = getAgent(agentId);
@@ -413,7 +442,7 @@ async function executeSequentialStep(
             durationMs: Date.now() - startedAt,
             error: `Unknown agent: ${agentId}`,
         };
-        await createStepRecord(record);
+        await persistence.createStepRecord(record);
         // Every step must leave an output record (matching the parallel path),
         // so consumers always find a per-step entry — even for failed steps.
         outputs[step.id] = failureOutput(agentId, `Unknown agent: ${agentId}`);
@@ -435,11 +464,11 @@ async function executeSequentialStep(
             durationMs: Date.now() - startedAt,
             error: `Permission denied: ${agentPermsMissing.join(", ")}`,
         };
-        await createStepRecord(record);
+        await persistence.createStepRecord(record);
         return record;
     }
 
-    const output = await executeAgent(agentId, step.id, execution, context, step.timeoutMs || timeoutMs || workflow.defaultStepTimeoutMs || 30000);
+    const output = await executeAgent(agentId, step.id, execution, context, step.timeoutMs || timeoutMs || workflow.defaultStepTimeoutMs || 30000, persistence);
     outputs[step.id] = output;
     context.agentOutputs[agentId] = output;
     execution.aiCalls += output.aiEnhanced ? 1 : 0;
@@ -455,7 +484,7 @@ async function executeSequentialStep(
         finishedAt: Date.now(),
         durationMs: Date.now() - startedAt,
     };
-    await createStepRecord(record);
+    await persistence.createStepRecord(record);
     return record;
 }
 
@@ -467,7 +496,8 @@ async function executeParallelStep(
     outputs: Record<string, AgentOutput>,
     permissions: Record<string, boolean>,
     timeoutMs: number,
-    startedAt: number
+    startedAt: number,
+    persistence: EnginePersistence
 ): Promise<WorkflowStepRecord> {
     const results = await Promise.all(
         step.agents.map(async (agentId) => {
@@ -479,7 +509,7 @@ async function executeParallelStep(
             if (agentPermsMissing.length > 0) {
                 return { agentId, output: failureOutput(agentId, `Permission denied: ${agentPermsMissing.join(", ")}`) };
             }
-            const output = await executeAgent(agentId, step.id, execution, context, timeoutMs || workflow.defaultStepTimeoutMs || 30000);
+            const output = await executeAgent(agentId, step.id, execution, context, timeoutMs || workflow.defaultStepTimeoutMs || 30000, persistence);
             return { agentId, output };
         })
     );
@@ -505,7 +535,7 @@ async function executeParallelStep(
         finishedAt: Date.now(),
         durationMs: Date.now() - startedAt,
     };
-    await createStepRecord(record);
+    await persistence.createStepRecord(record);
     return record;
 }
 

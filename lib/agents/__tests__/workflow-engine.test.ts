@@ -8,10 +8,33 @@ import {
     registerBuiltInExecutors,
 } from "@/lib/agents/workflow-engine";
 import { WorkflowDefinition, WorkflowContext } from "@/lib/agents/types";
-import { EngineConfig } from "@/lib/agents/workflow-engine";
+import { EngineConfig, EnginePersistence } from "@/lib/agents/workflow-engine";
 
 // Register built-in agent executors before running tests
 registerBuiltInExecutors();
+
+// ─── Test seam: in-memory persistence ───────────────────────────
+// The engine writes executions, step records, agent records, and workflow
+// contexts through an injectable persistence port. These unit tests supply an
+// in-memory implementation, so the suite needs no Firebase credentials and no
+// network access. Production callers keep the Firebase-backed default
+// (`lib/agents/database.ts`), which is still exercised by the app at runtime.
+
+const persisted = {
+    executions: 0,
+    statusUpdates: 0,
+    steps: 0,
+    agentExecutions: 0,
+    contexts: 0,
+};
+
+const memoryPersistence: EnginePersistence = {
+    createExecution: async () => { persisted.executions += 1; },
+    updateExecutionStatus: async () => { persisted.statusUpdates += 1; },
+    createStepRecord: async () => { persisted.steps += 1; },
+    createAgentExecution: async () => { persisted.agentExecutions += 1; },
+    saveWorkflowContext: async () => { persisted.contexts += 1; },
+};
 
 // ─── Test Helpers ─────────────────────────────
 
@@ -50,7 +73,12 @@ const basicWorkflow: WorkflowDefinition = {
 // so the engine's workflow-level permission gate passes. `notifications` is
 // included because the synthesis agent's contract requires it.
 function testConfig(extra?: Partial<EngineConfig>): EngineConfig {
-    return { testOnly: true, permissions: { market_data: true, notifications: true }, ...extra };
+    return {
+        testOnly: true,
+        permissions: { market_data: true, notifications: true },
+        persistence: memoryPersistence,
+        ...extra,
+    };
 }
 
 function createContext(partial?: Partial<WorkflowContext>): WorkflowContext {
@@ -105,6 +133,9 @@ export async function runWorkflowEngineTests(): Promise<boolean> {
         check(result.traces.steps.length === 2, "Two steps traced in order");
         check(result.traces.steps[0].stepId === "scout", "First traced step is scout");
         check(result.traces.steps[1].stepId === "context", "Second traced step is context");
+        check(persisted.executions >= 1, "Execution persisted through the injected boundary");
+        check(persisted.steps >= 2, "Step records persisted through the injected boundary");
+        check(persisted.agentExecutions >= 2, "Agent executions persisted through the injected boundary");
     }
 
     // 2. Agent outputs stored in context.
@@ -194,7 +225,7 @@ export async function runWorkflowEngineTests(): Promise<boolean> {
         };
         let rejected = false;
         try {
-            await executeWorkflow(wf, createContext(), { testOnly: true, permissions: { market_data: true } });
+            await executeWorkflow(wf, createContext(), testConfig({ permissions: { market_data: true } }));
         } catch (err) {
             rejected = err instanceof Error && err.message.includes("Permission denied");
         }
@@ -203,10 +234,11 @@ export async function runWorkflowEngineTests(): Promise<boolean> {
 
     // 7. Context isolation — workflows still run with partial permission sets.
     {
-        const result = await executeWorkflow(basicWorkflow, createContext(), {
-            testOnly: true,
-            permissions: { market_data: true },
-        });
+        const result = await executeWorkflow(
+            basicWorkflow,
+            createContext(),
+            testConfig({ permissions: { market_data: true } })
+        );
         check(Boolean(result.outputs["scout"]), "Workflow executes with partial permissions");
     }
 
