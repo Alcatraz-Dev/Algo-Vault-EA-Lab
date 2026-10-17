@@ -7,47 +7,42 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (e.g. 0.1.0)'
+        description: 'Release version (e.g. 0.1.0-preview)'
         required: true
         default: '0.1.0-preview'
       channel:
-        description: 'Release channel (stable, preview, beta)'
+        description: 'Release channel (preview, beta, stable)'
         required: true
         default: 'preview'
-      windows:
-        description: 'Build Windows installer'
-        required: false
-        default: true
-        type: boolean
-      macos:
-        description: 'Build macOS package'
+      prerelease:
+        description: 'Mark as GitHub prerelease'
         required: false
         default: true
         type: boolean
 
 permissions:
   contents: write
-  packages: write
+
+env:
+  NODE_OPTIONS: '--max-old-space-size=4096'
 
 jobs:
-  build-desktop:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
-            target: linux
-            label: Linux-AppImage
-            build_target: AppImage
           - os: macos-latest
             target: mac
             label: macOS-ARM64
-            build_target: mac-arm64
+            arch: arm64
+            artifact_pattern: '*.dmg'
           - os: windows-latest
             target: win
             label: Windows-x64
-            build_target: win
+            arch: x64
+            artifact_pattern: '*.exe'
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +53,43 @@ jobs:
 
       - name: Install root dependencies
         run: npm ci
+
+      - name: Detect signing capability (macOS only)
+        if: matrix.target == 'mac'
+        id: signing
+        shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=()
+          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [[ -z "${!name}" ]]; then missing+=("$name"); fi
+          done
+          if ((${#missing[@]})); then
+            echo "can_sign=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::macOS build will be UNSIGNED and UNNOTARIZED. Gatekeeper will show a warning on first open. This is expected for preview releases."
+            printf 'Missing Apple credentials (preview build will be unsigned): %s\n' "${missing[*]}"
+          else
+            echo "can_sign=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Apple signing credentials detected — build will be Developer ID signed and notarized."
+          fi
+
+      - name: Resolve package version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          VERSION="${INPUT_VERSION#v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release version: $VERSION" >&2
+            exit 1
+          fi
+          npm version "$VERSION" --no-git-tag-version --workspace=algovault-desktop
+          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Validate public Firebase build variables
         shell: bash
@@ -86,26 +118,10 @@ jobs:
             exit 1
           fi
 
-      - name: Resolve package version
-        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
-        shell: bash
-        env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
-        run: |
-          VERSION="${INPUT_VERSION#v}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
-            echo "Invalid release version: $VERSION" >&2
-            exit 1
-          fi
-          npm version "$VERSION" --no-git-tag-version --workspace=algovault-desktop
-          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
-
-      - name: Build web app for Electron
-        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
+      - name: Build web app for Electron (standalone)
         run: npm run build
         env:
           NEXT_OUTPUT_STANDALONE: '1'
-          NODE_OPTIONS: '--max-old-space-size=4096'
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
           NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
           NEXT_PUBLIC_FIREBASE_DATABASE_URL: ${{ vars.NEXT_PUBLIC_FIREBASE_DATABASE_URL }}
@@ -114,90 +130,186 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
 
-      - name: Verify macOS signing secrets
-        if: matrix.target == 'mac' && (github.event_name != 'workflow_dispatch' || inputs.macos)
+      - name: Compile desktop main process
+        working-directory: apps/desktop
+        run: npm run build
+
+      # ── macOS build ──
+      # When Apple credentials are present, package.json's notarize:true runs
+      # the full Developer ID signing + notarization pipeline.
+      # When absent (preview), we override notarize to false via the CLI.
+      # The DMG is still built with Hardened Runtime and entitlements, but
+      # is unsigned/unnotarized — Gatekeeper will warn on first launch.
+
+      - name: Build macOS package (signed + notarized)
+        if: matrix.target == 'mac' && steps.signing.outputs.can_sign == 'true'
+        working-directory: apps/desktop
         shell: bash
+        env:
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: npx electron-builder --mac --arm64 --publish=never
+
+      - name: Build macOS package (UNSIGNED preview)
+        if: matrix.target == 'mac' && steps.signing.outputs.can_sign != 'true'
+        working-directory: apps/desktop
+        shell: bash
+        run: npx electron-builder --mac --arm64 --publish=never --config.mac.notarize=false
+
+      # ── Windows build ──
+
+      - name: Build Windows installer
+        if: matrix.target == 'win'
+        working-directory: apps/desktop
+        shell: bash
+        run: npx electron-builder --win --x64 --publish=never
+
+      # ── Verify and collect artifacts ──
+
+      - name: Verify required artifacts exist
+        id: verify
+        shell: bash
+        env:
+          ARTIFACT_PATTERN: ${{ matrix.artifact_pattern }}
+          RELEASE_TARGET: ${{ matrix.target }}
         run: |
-          missing=()
-          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
-            if [[ -z "${!name}" ]]; then missing+=("$name"); fi
-          done
-          if ((${#missing[@]})); then
-            printf 'Missing macOS signing/notarization secrets: %s\n' "${missing[*]}" >&2
-            printf 'Configure a Developer ID Application certificate (base64 .p12 in CSC_LINK) and Apple notarization credentials as GitHub Actions secrets.\n' >&2
+          set -euo pipefail
+          if ! compgen -G "apps/desktop/dist/desktop-build/${ARTIFACT_PATTERN}" > /dev/null 2>&1; then
+            echo "ERROR: Expected $RELEASE_TARGET artifact (${ARTIFACT_PATTERN}) was not built." >&2
+            echo "Check the electron-builder output above for errors." >&2
             exit 1
           fi
-        env:
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          echo "Required artifact ${ARTIFACT_PATTERN} present."
 
-      - name: Build desktop package
-        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
+      - name: Collect artifacts
         shell: bash
         env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          npm run build --workspace=algovault-desktop
-          case "${{ matrix.target }}" in
-            mac) npx electron-builder --mac --arm64 --publish=never ;;
-            win) npx electron-builder --win --x64 --publish=never ;;
-            linux) npx electron-builder --linux --x64 --publish=never ;;
-            *) echo "Unsupported desktop target: ${{ matrix.target }}" >&2; exit 1 ;;
-          esac
-        working-directory: apps/desktop
-
-      - name: Prepare artifacts and manifest
-        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
-        shell: bash
-        env:
-          RELEASE_VERSION: ${{ github.event.inputs.version || github.ref_name }}
-          RELEASE_CHANNEL: ${{ github.event.inputs.channel || 'preview' }}
+          ARTIFACT_PATTERN: ${{ matrix.artifact_pattern }}
           RELEASE_TARGET: ${{ matrix.target }}
-          RELEASE_LABEL: ${{ matrix.label }}
         run: |
           mkdir -p artifacts
-          cp -R apps/desktop/dist/desktop-build/. artifacts/
-          case "$RELEASE_TARGET" in
-            mac) artifact_pattern='*.dmg' ;;
-            win) artifact_pattern='*.exe' ;;
-            linux) artifact_pattern='*.AppImage' ;;
-          esac
-          if ! compgen -G "artifacts/$artifact_pattern" > /dev/null; then
-            echo "Expected $RELEASE_TARGET package ($artifact_pattern) was not built." >&2
+          cp apps/desktop/dist/desktop-build/*.dmg artifacts/ 2>/dev/null || true
+          cp apps/desktop/dist/desktop-build/*.zip artifacts/ 2>/dev/null || true
+          cp apps/desktop/dist/desktop-build/*.exe artifacts/ 2>/dev/null || true
+          # Verify the expected artifact was copied
+          if ! compgen -G "artifacts/${ARTIFACT_PATTERN}" > /dev/null 2>&1; then
+            echo "ERROR: Failed to collect ${RELEASE_TARGET} artifacts." >&2
             exit 1
           fi
-          node --input-type=module <<'NODE'
-          import { readdirSync, statSync, writeFileSync } from 'node:fs';
-          const files = readdirSync('artifacts')
-            .filter((name) => /\.(dmg|zip|exe|AppImage)$/i.test(name))
-            .map((name) => ({ name, size: statSync(`artifacts/${name}`).size }));
-          if (!files.length) throw new Error('No desktop package artifacts were produced');
-          writeFileSync('artifacts/release-manifest.json', JSON.stringify({
-            version: process.env.RELEASE_VERSION.replace(/^v/, ''),
-            channel: process.env.RELEASE_CHANNEL,
-            platform: process.env.RELEASE_LABEL,
-            target: process.env.RELEASE_TARGET,
-            status: 'built',
-            artifacts: files,
-          }, null, 2) + '\n');
-          NODE
+          ls -la artifacts/
 
-      - name: Upload artifacts
-        if: github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux'
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-artifacts-${{ matrix.os }}-${{ github.event.inputs.version || github.ref_name }}
+          name: desktop-artifacts-${{ matrix.target }}
           path: artifacts/*
           retention-days: 30
 
-      - name: Release status
-        if: (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name != 'workflow_dispatch' || (matrix.target == 'mac' && inputs.macos) || (matrix.target == 'win' && inputs.windows) || matrix.target == 'linux')
-        run: echo "Desktop artifacts and their built manifest are attached to this workflow run. macOS artifacts are Developer ID signed and notarized when the CSC_* / APPLE_* secrets are configured. GitHub Release publication is not configured."
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve release version
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
+        run: |
+          VERSION="${INPUT_VERSION#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: desktop-artifacts-*
+          merge-multiple: true
+
+      - name: Verify required release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Downloaded artifacts:"
+          ls -la release-assets/ || true
+
+          errors=0
+          for ext in dmg exe; do
+            if ! compgen -G "release-assets/*.${ext}" > /dev/null 2>&1; then
+              echo "ERROR: Missing required artifact: *.${ext}" >&2
+              errors=$((errors + 1))
+            fi
+          done
+          if ((errors)); then
+            echo "::error::Build succeeded but required artifacts are missing. Check the build jobs above." >&2
+            exit 1
+          fi
+          echo "All required artifacts present."
+
+      - name: Generate release notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          cat > release-notes.md <<'NOTES'
+          ## AlgoVault Desktop Preview vVERSION_PLACEHOLDER
+
+          This is a **preview release** for testing and feedback. It is not a stable production release.
+
+          ### Downloads
+
+          | Platform | Architecture | File |
+          |----------|-------------|------|
+          | macOS | Apple Silicon (ARM64) | `AlgoVault-{version}-arm64.dmg` |
+          | Windows | x64 | `AlgoVault-Setup-{version}-x64.exe` |
+
+          ### ⚠️ macOS Security Warning
+
+          The macOS DMG is **unsigned and unnotarized**. When you open it for the first time:
+
+          1. macOS Gatekeeper will show "AlgoVault cannot be opened because it is from an unidentified developer."
+          2. To open it: right-click (or Control-click) the app → **Open** → confirm **Open** in the dialog. This is required only once.
+          3. Alternatively: System Settings → Privacy & Security → scroll down → click **Open Anyway**.
+          4. This is expected for preview builds without an Apple Developer ID certificate.
+
+          A signed and notarized macOS build will be available in a future release once Apple Developer credentials are configured.
+
+          ### Windows
+
+          The Windows installer is not code-signed. Windows SmartScreen may show a warning. Click **More info** → **Run anyway** to proceed.
+
+          ### Known Limitations
+
+          - macOS: unsigned, unnotarized — Gatekeeper warning on first launch (see above).
+          - Windows: unsigned installer — SmartScreen warning.
+          - Intel (x64) macOS is not yet supported. Apple Silicon (ARM64) only for this preview.
+          - Auto-updater is configured but inert until a stable release channel is published.
+
+          ---
+          *This is prerelease software. Use at your own risk.*
+          NOTES
+
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/g" release-notes.md
+          echo "Generated release notes:"
+          cat release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: AlgoVault Desktop Preview v${{ steps.version.outputs.version }}
+          body_path: release-notes.md
+          prerelease: ${{ github.event.inputs.prerelease != 'false' }}
+          files: |
+            release-assets/*.dmg
+            release-assets/*.exe
+            release-assets/*.zip
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
