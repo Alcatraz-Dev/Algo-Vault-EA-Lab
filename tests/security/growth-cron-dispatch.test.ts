@@ -233,8 +233,21 @@ async function runGrowthDispatchTests(): Promise<boolean> {
         s.section("6. POST [job] keeps its admin-authenticated contract");
         {
             const { runner, calls } = recordingRunner();
+            const anonymous = await handleGrowthCronPost(req("http://localhost/api/growth/cron/analysis", { body: {} }), "analysis", runner);
+            s.check(anonymous.status === 403 && calls.length === 0, `anonymous analysis POST -> 403, not executed (got ${anonymous.status})`);
+
+            const anonymousAffiliates = await handleGrowthCronPost(req("http://localhost/api/growth/cron/affiliates", { body: {} }), "affiliates", runner);
+            s.check(anonymousAffiliates.status === 403 && calls.length === 0, `anonymous affiliates POST -> 403, not executed (got ${anonymousAffiliates.status})`);
+
             const none = await handleGrowthCronPost(req("http://localhost/api/growth/cron/reports", { body: { cronSecret: SECRET } }), "reports", runner);
             s.check(none.status === 403 && calls.length === 0, `no admin session with correct body secret -> 403, not executed (got ${none.status})`);
+
+            const adminRunner = recordingRunner();
+            const adminAnalysis = await handleGrowthCronPost(req("http://localhost/api/growth/cron/analysis", { headers: { authorization: firebaseToken(ADMIN_UID) }, body: {} }), "analysis", adminRunner.runner);
+            s.check(adminAnalysis.status === 200 && adminRunner.calls.length === 1 && adminRunner.calls[0].job === "analysis", `admin session, no body cronSecret -> analysis executed (got ${adminAnalysis.status})`);
+
+            const adminAffiliates = await handleGrowthCronPost(req("http://localhost/api/growth/cron/affiliates", { headers: { authorization: firebaseToken(ADMIN_UID) }, body: {} }), "affiliates", adminRunner.runner);
+            s.check(adminAffiliates.status === 200 && adminRunner.calls.length === 2 && adminRunner.calls[1].job === "affiliates", `admin session, no body cronSecret -> affiliates executed (got ${adminAffiliates.status})`);
 
             const vercelBearer = await handleGrowthCronPost(
                 req("http://localhost/api/growth/cron/reports", { headers: { authorization: `Bearer ${SECRET}` }, body: {} }),
@@ -317,8 +330,15 @@ async function runGrowthDispatchTests(): Promise<boolean> {
         const mkGet = await handleMarketingAgentGet(req("http://localhost/api/growth/cron/marketing-agent", { method: "GET", headers: { authorization: `Bearer ${SECRET}` } }), runner);
         s.check(mkGet.status === 503 && calls.length === 0, `marketing-agent GET with CRON_SECRET unset -> 503, not executed (got ${mkGet.status})`);
 
-        const post = await handleGrowthCronPost(req("http://localhost/api/growth/cron/reports", { headers: { authorization: firebaseToken(ADMIN_UID) }, body: { cronSecret: "anything" } }), "reports", runner);
-        s.check(post.status === 503 && calls.length === 0, `[job] POST admin with CRON_SECRET unset -> 503, not executed (got ${post.status})`);
+        const suppliedSecret = await handleGrowthCronPost(req("http://localhost/api/growth/cron/reports", { headers: { authorization: firebaseToken(ADMIN_UID) }, body: { cronSecret: "anything" } }), "reports", runner);
+        s.check(suppliedSecret.status === 503 && calls.length === 0, `[job] POST admin with a body secret while CRON_SECRET unset -> 503, not executed (got ${suppliedSecret.status})`);
+
+        const unsetRunner = recordingRunner();
+        const adminNoSecret = await handleGrowthCronPost(req("http://localhost/api/growth/cron/analysis", { headers: { authorization: firebaseToken(ADMIN_UID) }, body: {} }), "analysis", unsetRunner.runner);
+        s.check(adminNoSecret.status === 200 && unsetRunner.calls.length === 1, `[job] POST admin with no body secret while CRON_SECRET unset -> admin session authorizes (got ${adminNoSecret.status})`);
+
+        const scheduledUnset = await handleScheduledGrowthJobGet(req("http://localhost/api/growth/cron/analysis", { method: "GET", headers: { authorization: `Bearer ${SECRET}` } }), "analysis", unsetRunner.runner);
+        s.check(scheduledUnset.status === 503 && unsetRunner.calls.length === 1, `[job] GET with CRON_SECRET unset -> 503 even with a bearer (got ${scheduledUnset.status})`);
     });
 
     return s.finish();

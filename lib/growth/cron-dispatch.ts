@@ -6,9 +6,10 @@
  *   - GET (Vercel Cron): the request must present the shared CRON_SECRET as
  *     `Authorization: Bearer` or `x-cron-secret` (lib/security/cron-auth.ts).
  *     No admin session is involved, because Vercel Cron cannot supply one.
- *   - POST (existing operator/UI contract): unchanged. The job is authorized
- *     by an admin session, plus a body `cronSecret` matching CRON_SECRET for
- *     `[job]`; `marketing-agent` also accepts a presented secret header.
+ *   - POST (admin UI/operator contract): authorized by a verified Growth admin
+ *     session. The browser never sends CRON_SECRET. A body `cronSecret` is
+ *     optional; when supplied it must match. `marketing-agent` also accepts a
+ *     presented secret, so scheduled and manual ticks both work.
  *
  * Both paths authenticate and validate the job name before any job runs. The
  * job runner is injectable so tests can exercise authorized paths without
@@ -82,7 +83,14 @@ export async function handleScheduledGrowthJobGet(
     }
 }
 
-/** POST /api/growth/cron/[job] — existing admin-authenticated contract, unchanged. */
+/**
+ * POST /api/growth/cron/[job] — admin-authenticated operator/UI contract.
+ *
+ * Authorization is the verified Growth admin session. A body `cronSecret` is
+ * optional, kept for existing operator scripts; when supplied it must match
+ * the configured secret. A bearer CRON_SECRET is NOT accepted here (see GET
+ * for the scheduled path).
+ */
 export async function handleGrowthCronPost(
     request: NextRequest,
     job: string,
@@ -98,13 +106,14 @@ export async function handleGrowthCronPost(
         const body = await request.json().catch(() => ({}));
         const { payload, cronSecret } = body;
 
-        // Fail closed: a cron job cannot run without CRON_SECRET configured.
-        const expectedSecret = getConfiguredCronSecret();
-        if (!expectedSecret) {
-            return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
-        }
-        if (!cronSecretsMatch(cronSecret, expectedSecret)) {
-            return NextResponse.json({ error: "Invalid cron secret" }, { status: 403 });
+        if (cronSecret !== undefined && cronSecret !== null) {
+            const expected = getConfiguredCronSecret();
+            if (!expected) {
+                return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 503 });
+            }
+            if (!cronSecretsMatch(cronSecret, expected)) {
+                return NextResponse.json({ error: "Invalid cron secret" }, { status: 403 });
+            }
         }
 
         // Unknown job names are rejected by the job registry before any side effect.

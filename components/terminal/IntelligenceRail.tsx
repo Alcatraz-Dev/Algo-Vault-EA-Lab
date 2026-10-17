@@ -75,24 +75,30 @@ function StructureBlock() {
 
     return (
         <div className="flex flex-col gap-1 p-3">
-            <div className="grid grid-cols-2 gap-1">
-                <div className="rounded-full border border-border/70 bg-background px-1 py-0.5.5">
-                    <div className="text-micro uppercase tracking-wide text-muted-foreground">Structure bias</div>
-                    <div
-                        className={cn(
-                            "text-[7px] font-normal capitalize",
-                            bias === "bullish" ? "text-positive" : bias === "bearish" ? "text-negative" : "text-muted-foreground"
-                        )}
-                    >
-                        {bias ?? "unavailable"}
+            <div className="grid grid-cols-2 gap-2">
+                <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 px-3 py-2 shadow-sm">
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl", bias === "bullish" ? "bg-positive" : bias === "bearish" ? "bg-negative" : "bg-muted-foreground/30")} />
+                    <div className="pl-1.5">
+                        <div className="text-[9px] font-normal uppercase tracking-wide text-muted-foreground">Structure bias</div>
+                        <div
+                            className={cn(
+                                "text-[11px] font-semibold capitalize leading-tight",
+                                bias === "bullish" ? "text-positive" : bias === "bearish" ? "text-negative" : "text-muted-foreground"
+                            )}
+                        >
+                            {bias ?? "unavailable"}
+                        </div>
                     </div>
                 </div>
-                <div className="rounded-full border border-border/70 bg-background px-1 py-0.5.5">
-                    <div className="text-micro uppercase tracking-wide text-muted-foreground">Reversal setup</div>
-                    <div className="text-[7px] font-normal text-foreground">
-                        {analysis.structure.reversalSetup.value?.detected
-                            ? `${analysis.structure.reversalSetup.value.priorBias} → ${analysis.structure.reversalSetup.value.currentBias}`
-                            : "none detected"}
+                <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 px-3 py-2 shadow-sm">
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl", analysis.structure.reversalSetup.value?.detected ? "bg-positive" : "bg-muted-foreground/20")} />
+                    <div className="pl-1.5">
+                        <div className="text-[9px] font-normal uppercase tracking-wide text-muted-foreground">Reversal setup</div>
+                        <div className="text-[11px] font-semibold text-foreground leading-tight">
+                            {analysis.structure.reversalSetup.value?.detected
+                                ? `${analysis.structure.reversalSetup.value.priorBias} → ${analysis.structure.reversalSetup.value.currentBias}`
+                                : "none detected"}
+                        </div>
                     </div>
                 </div>
             </div>

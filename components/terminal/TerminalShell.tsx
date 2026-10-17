@@ -483,7 +483,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         <button
                             type="button"
                             onClick={() => setChatOpen(true)}
-                            className="rounded-lg border border-border/60 bg-card/60 px-1 py-0.5.5 text-left text-[10px] text-muted-foreground transition hover:bg-muted"
+                            className="rounded-lg border border-border/60 bg-card/60 px-2 py-2 text-left text-[10px] text-muted-foreground transition hover:bg-muted"
                         >
                             <MessagesSquare className="mr-1.5 inline size-3.5" />
                             Open Trading Chat

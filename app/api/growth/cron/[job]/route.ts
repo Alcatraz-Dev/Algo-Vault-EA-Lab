@@ -7,7 +7,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return handleScheduledGrowthJobGet(request, job);
 }
 
-/** Existing admin-authenticated POST contract (admin session + body cronSecret). */
+/** Admin-session POST contract (verified Growth admin; body cronSecret optional, must match if sent). */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ job: string }> }) {
     const { job } = await params;
     return handleGrowthCronPost(request, job);

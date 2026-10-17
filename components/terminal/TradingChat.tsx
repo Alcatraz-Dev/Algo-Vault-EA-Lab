@@ -96,7 +96,15 @@ export function TradingChat({ now }: { now: number }) {
     const [turns, setTurns] = useState<Turn[]>([]);
     const [sending, setSending] = useState(false);
     const [showActions, setShowActions] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
     const listRef = useRef<HTMLDivElement>(null);
+    const toggleExpanded = (id: string) => {
+        setExpandedIds((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id); else next.add(id);
+            return next;
+        });
+    };
     const idRef = useRef(0);
 
     const lastContext = useMemo(
@@ -169,7 +177,7 @@ export function TradingChat({ now }: { now: number }) {
                             <span className="text-[9px] font-normal uppercase tracking-wide text-foreground">
                                 Trading Chat
                             </span>
-                            <span className="rounded border border-primary/30 px-1 py-px text-micro font-normal tracking-wider text-primary">
+                            <span className="rounded-full border border-primary/30 px-1 py-0.5 text-[9px] font-normal tracking-wider text-primary">
                                 CONTEXT-AWARE
                             </span>
                         </div>
@@ -191,7 +199,7 @@ export function TradingChat({ now }: { now: number }) {
                             type="button"
                             onClick={() => setChatOpen(false)}
                             aria-label="Hide chat"
-                            className="rounded-full border border-border bg-background px-1.5 py-1 text-micro text-muted-foreground transition hover:bg-muted"
+                            className="rounded-full border border-border bg-background px-1 py-0.5 text-[9px] text-muted-foreground transition hover:bg-muted"
                         >
                             Hide
                         </button>
@@ -200,7 +208,7 @@ export function TradingChat({ now }: { now: number }) {
 
                 {showActions ? (
                     <div className="border-b border-border p-2">
-                        <p className="mb-1.5 flex items-center gap-1 text-micro uppercase tracking-wide text-muted-foreground">
+                        <p className="mb-1.5 flex items-center gap-1 text-[9px] uppercase tracking-wide text-muted-foreground">
                             <Sparkles className="size-2.5" />
                             Quick actions
                         </p>
@@ -219,7 +227,7 @@ export function TradingChat({ now }: { now: number }) {
                                             setShowActions(false);
                                         }}
                                         className={cn(
-                                            "rounded border px-1.5 py-1 text-micro font-normal transition",
+                                            "rounded-full border px-1 py-0.5 text-[9px] font-normal transition",
                                             blocked
                                                 ? "cursor-not-allowed border-border text-muted-foreground/60"
                                                 : "border-border text-foreground hover:border-primary/40 hover:bg-primary/5"
@@ -231,7 +239,7 @@ export function TradingChat({ now }: { now: number }) {
                                 );
                             })}
                         </div>
-                        <p className="mt-1.5 text-micro leading-4 text-muted-foreground">
+                        <p className="mt-1.5 text-[9px] leading-4 text-muted-foreground">
                             Analysis actions send the current terminal context. Execution actions stay disabled until an
                             execution adapter is wired — the chat never places orders.
                         </p>
@@ -276,7 +284,7 @@ export function TradingChat({ now }: { now: number }) {
                                     ) : (
                                         <>
                                             {t.missing && t.missing.length > 0 ? (
-                                                <span className="mb-1.5 flex items-start gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-1 text-micro leading-4 text-warning">
+                                                <span className="mb-1.5 flex items-start gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-1 text-[9px] leading-4 text-warning">
                                                     <ShieldAlert className="mt-0.5 size-3 shrink-0 text-warning" />
                                                     <span>
                                                         Unavailable in context: {t.missing.slice(0, 6).join(", ")}
@@ -285,9 +293,23 @@ export function TradingChat({ now }: { now: number }) {
                                                     </span>
                                                 </span>
                                             ) : null}
-                                            <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-numeric [&_code]:text-micro [&_h1]:text-[9px] [&_h1]:font-normal [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-[9px] [&_h2]:font-normal [&_h2]:mt-2 [&_h3]:text-micro [&_h3]:font-normal [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-micro [&_strong]:font-normal [&_table]:w-full [&_table]:text-micro [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
-                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
+                                            <div className={cn(
+                                                "overflow-hidden transition-all",
+                                                !expandedIds.has(t.id) ? "max-h-[10rem]" : "max-h-none"
+                                            )}>
+                                                <div className="[&_a]:text-primary [&_code]:rounded [&_code]:bg-muted [&_code]:px-1 [&_code]:font-numeric [&_code]:text-[9px] [&_h1]:text-[9px] [&_h1]:font-normal [&_h1]:uppercase [&_h1]:tracking-wide [&_h2]:text-[9px] [&_h2]:font-normal [&_h2]:mt-2 [&_h3]:text-[9px] [&_h3]:font-normal [&_li]:text-[12px] [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1 [&_p]:leading-5 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-muted [&_pre]:p-2 [&_pre]:text-[9px] [&_table]:w-full [&_table]:text-[9px] [&_td]:border [&_td]:border-border [&_td]:px-1 [&_th]:border [&_th]:border-border [&_th]:px-1 [&_th]:text-left [&_ul]:list-disc [&_ul]:pl-4">
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{t.content}</ReactMarkdown>
+                                                </div>
                                             </div>
+                                            {(t.content.length > 600 || (t.missing && t.missing.length > 0)) ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleExpanded(t.id)}
+                                                    className="mt-1 rounded-full border border-border bg-background px-2 py-0.5 text-[9px] text-muted-foreground hover:text-foreground transition"
+                                                >
+                                                    {expandedIds.has(t.id) ? "Show less" : "Show more"}
+                                                </button>
+                                            ) : null}
                                         </>
                                     )
                                 ) : (
@@ -319,7 +341,7 @@ export function TradingChat({ now }: { now: number }) {
                                 }}
                                 rows={2}
                                 placeholder={`Ask about ${state.symbol} ${state.timeframe}…`}
-                                className="w-full resize-none rounded-full border border-border bg-background px-1 py-0.5.5 text-[9px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50 placeholder:text-center"
+                                className="w-full resize-none rounded-full border border-border bg-background px-1 py-0.5.5 pt-1.5 pl-2 text-[9px] text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/50 placeholder:text-left placeholder:text-[9px]"
                             />
                         </label>
                         <button

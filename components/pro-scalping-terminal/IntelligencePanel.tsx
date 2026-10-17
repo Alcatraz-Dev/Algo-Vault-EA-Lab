@@ -89,6 +89,7 @@ export function IntelligencePanel({
     pro: boolean;
 }) {
     const [whyOpen, setWhyOpen] = useState(false);
+    const [rationaleOpen, setRationaleOpen] = useState(false);
     const decision = payload?.decision ?? null;
 
     return (
@@ -142,7 +143,18 @@ export function IntelligencePanel({
                             </div>
                         </div>
 
-                        <p className="text-xs leading-snug text-muted-foreground">{decision.rationale}</p>
+                        <div className={cn("overflow-y-auto overflow-x-hidden transition-all", rationaleOpen ? "max-h-[20rem]" : "max-h-[4.5rem]")}>
+                            <p className="text-xs leading-snug text-muted-foreground">{decision.rationale}</p>
+                        </div>
+                        {(decision.rationale?.length ?? 0) > 180 ? (
+                            <button
+                                type="button"
+                                onClick={() => setRationaleOpen((v) => !v)}
+                                className="mt-0.5 text-[9px] font-normal text-muted-foreground hover:text-foreground transition underline underline-offset-2"
+                            >
+                                {rationaleOpen ? "Show less" : "Show more"}
+                            </button>
+                        ) : null}
 
                         <button
                             type="button"
