@@ -30,6 +30,8 @@ import {
     Terminal as TerminalIcon,
     Wifi,
     WifiOff,
+    Minimize2,
+    Maximize2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CandelToolbarButton } from "./CandelToolbar";
@@ -62,7 +64,6 @@ import {
     useCalendar,
     type WatchlistQuote,
 } from "./ProTerminalPanels";
-import { ProTerminalReplay } from "./ProTerminalReplay";
 import { OrderFlowPanel } from "./OrderFlowPanel";
 import { useOrderFlow } from "@/hooks/use-order-flow";
 import { useOrderFlowSettings } from "@/hooks/use-order-flow-settings";
@@ -106,6 +107,9 @@ export function ProScalpingTerminal() {
     const theme: "dark" | "light" = settings.preset === "light" ? "light" : "dark";
     // Viewport reset counter (toolbar Fit) + AI Draw Pro gate.
     const [fitSignal, setFitSignal] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+    const [replayActive, setReplayActive] = useState(false);
     const aiGate = useAiDrawGate({ token });
     const [pollMs, setPollMs] = useState<number>(30_000);
     const [tick, setTick] = useState(0);
@@ -115,6 +119,49 @@ export function ProScalpingTerminal() {
     // Risk calculator inputs (persisted per session only).
     const [balance, setBalance] = useState("10000");
     const [riskPct, setRiskPct] = useState("1");
+
+    // Sync state when the user exits the browser Fullscreen API (e.g. Esc).
+    useEffect(() => {
+        const onChange = () => {
+            if (typeof document === "undefined") return;
+            const doc = document as unknown as { fullscreenElement?: Element | null; webkitFullscreenElement?: Element | null };
+            if (!(doc.fullscreenElement ?? doc.webkitFullscreenElement)) setIsFullscreen(false);
+        };
+        document.addEventListener("fullscreenchange", onChange);
+        document.addEventListener("webkitfullscreenchange", onChange);
+        return () => {
+            document.removeEventListener("fullscreenchange", onChange);
+            document.removeEventListener("webkitfullscreenchange", onChange);
+        };
+    }, []);
+
+    // Toggle fullscreen — calls the Fullscreen API synchronously, since browsers only
+    // allow a fullscreen request inside the user gesture. CSS overlay is the fallback.
+    const toggleFullscreen = useCallback(() => {
+        if (typeof document === "undefined") return;
+        if (!isFullscreen) {
+            const node = document.querySelector<HTMLElement>('[data-pro-scalping-chart-shell="true"]');
+            const requestFn =
+                node?.requestFullscreen ??
+                (node as unknown as { webkitRequestFullscreen?: () => Promise<void> } | null)?.webkitRequestFullscreen;
+            if (node && requestFn) void requestFn.call(node).catch(() => {});
+            setIsFullscreen(true);
+        } else {
+            const doc = document as unknown as { exitFullscreen?: () => Promise<void>; webkitExitFullscreen?: () => Promise<void> };
+            const exitFn = doc.exitFullscreen ?? doc.webkitExitFullscreen;
+            if (document.fullscreenElement && exitFn) void exitFn.call(document);
+            setIsFullscreen(false);
+        }
+    }, [isFullscreen]);
+
+    // Track viewport height so the chart can fill the screen when fullscreen,
+    // including when the browser enters/exits the Fullscreen API (fires resize).
+    useEffect(() => {
+        const sync = () => setViewportHeight(window.innerHeight);
+        sync();
+        window.addEventListener("resize", sync);
+        return () => window.removeEventListener("resize", sync);
+    }, []);
 
     useEffect(() => {
         if (pollMs === 0) return;
@@ -233,7 +280,7 @@ export function ProScalpingTerminal() {
     }
 
     return (
-        <div className="flex min-w-0 flex-col gap-3">
+        <div data-pro-scalping-terminal="true" className="flex min-w-0 flex-col gap-3">
             {/* ── command bar ─────────────────────────────────────────────── */}
             <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
                 {/* Symbol · timeframe · clock */}
@@ -373,7 +420,7 @@ export function ProScalpingTerminal() {
             {/* ── main grid ───────────────────────────────────────────────── */}
             <div className="grid min-w-0 gap-3 xl:grid-cols-[230px_minmax(0,1fr)_330px]">
                 {/* Left rail */}
-                <aside className={cn("flex min-w-0 flex-col gap-3", mobileView === "panels" && "hidden xl:flex")}>
+                <aside className={cn("flex min-w-0 flex-col gap-3", (mobileView === "panels") && "hidden xl:flex")}>
                     <WatchlistPanel
                         quotes={quotes.data?.quotes ?? {}}
                         active={symbol}
@@ -384,10 +431,86 @@ export function ProScalpingTerminal() {
                         quotesLoading={quotes.loading}
                     />
                     <SessionsPanel now={now} />
+                    <SignalsMiniPanel
+                        signals={signals.data?.signals ?? []}
+                        rejected={signals.data?.rejected ?? []}
+                        loading={signals.loading}
+                        now={now}
+                        token={token}
+                    />
+                    <ProTerminalJournal trades={journalTrades} loading={journal.loading} error={journal.error} now={now} />
+
+                    <Panel>
+                        <PanelHeader
+                            icon={pollMs === 0 ? <WifiOff className="size-3.5" /> : <Wifi className="size-3.5" />}
+                            title="Data status"
+                            right={
+                                <Chip tone={pollMs === 0 ? "warning" : "positive"} className="uppercase tracking-wide">
+                                    {pollMs === 0 ? "Paused" : "Live"}
+                                </Chip>
+                            }
+                        />
+                        <ul className="space-y-1 p-3 font-numeric text-micro text-muted-foreground">
+                            <li>quotes · {quotes.lastUpdated ? fmtTime(quotes.lastUpdated) : "—"}</li>
+                            <li>radar · {radar.lastUpdated ? fmtTime(radar.lastUpdated) : "—"}</li>
+                            <li>analysis · {analysis.lastUpdated ? fmtTime(analysis.lastUpdated) : "—"}</li>
+                            <li>signals · {signals.lastUpdated ? fmtTime(signals.lastUpdated) : "—"}</li>
+                            <li>journal · {journal.lastUpdated ? fmtTime(journal.lastUpdated) : "—"}</li>
+                        </ul>
+                    </Panel>
                 </aside>
 
                 {/* Center: chart + engines */}
-                <div className={cn("flex min-w-0 flex-col gap-3", mobileView === "panels" && "hidden xl:flex")}>
+                <div
+                    className={cn(
+                        "flex min-w-0 flex-col gap-3",
+                        mobileView === "panels" && "hidden xl:flex"
+                    )}
+                >
+                    {/* Chart shell — becomes the fullscreen overlay so only the chart (+ its controls) fills the viewport */}
+                    <div
+                        data-pro-scalping-chart-shell="true"
+                        className={cn(
+                            "flex min-w-0 flex-col gap-2",
+                            isFullscreen && "fixed inset-0 z-50 h-screen overflow-hidden bg-background p-3"
+                        )}
+                    >
+                    {/* Top bar: timeframe + fullscreen (mirrors trading page) */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/30 bg-card/70 px-3 py-2 shadow-md">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <span className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-numeric text-[10px] font-bold text-primary tracking-tight" title="Active symbol">
+                                {symbol}
+                            </span>
+                            <div className="flex items-center gap-0.5 rounded-lg border border-border bg-background p-0.5" role="group" aria-label="Timeframe">
+                                {TERMINAL_TIMEFRAMES.map((t) => (
+                                    <button
+                                        key={t}
+                                        type="button"
+                                        aria-pressed={timeframe === t}
+                                        onClick={() => setTimeframe(t)}
+                                        className={cn(
+                                            "rounded-md px-2.5 py-1 font-numeric text-[10px] font-normal transition-all",
+                                            timeframe === t
+                                                ? "bg-primary text-primary-foreground shadow-sm"
+                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        )}
+                                    >
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            aria-pressed={isFullscreen}
+                            onClick={toggleFullscreen}
+                            title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-[10px] font-normal transition hover:bg-muted"
+                        >
+                            {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+                            {isFullscreen ? "Exit" : "Fullscreen"}
+                        </button>
+                    </div>
                     <div className="flex min-w-0 flex-col gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
                             <button
@@ -439,56 +562,39 @@ export function ProScalpingTerminal() {
                         onToggleAiDraw={() => void aiGate.toggle()}
                         aiDrawLocked={aiGate.locked}
                         aiDrawChecking={aiGate.checking}
+                        isFullscreen={isFullscreen}
+                        onToggleFullscreen={toggleFullscreen}
+                        replayActive={replayActive}
+                        onToggleReplay={() => setReplayActive((r) => !r)}
                     />
 
-                    <ProTerminalChart
-                        symbol={symbol}
-                        timeframe={timeframe}
-                        layers={layers}
-                        analysis={analysis.data?.analysis ?? null}
-                        token={token}
-                        height={520}
-                        signals={signals.data?.signals ?? []}
-                        orderFlowSettings={orderFlowSettings.settings}
-                        optionsChain={optionsChain.available ? optionsChain : null}
-                        chartType={chartType}
-                        activeDrawingTool={activeDrawingTool}
-                        drawings={drawings}
-                        onDrawingsChange={setDrawings}
-                        gridVisible={gridVisible}
-                        theme={theme}
-                        settings={settings}
-                        fitSignal={fitSignal}
-                        aiDraw={aiGate.enabled}
-                    />
+                    <div className={cn("min-w-0", isFullscreen && "flex-1 min-h-0")}>
+                        <ProTerminalChart
+                            symbol={symbol}
+                            timeframe={timeframe}
+                            layers={layers}
+                            analysis={analysis.data?.analysis ?? null}
+                            token={token}
+                            height={isFullscreen ? Math.max(600, (viewportHeight ?? (typeof window !== "undefined" ? window.innerHeight : 800)) - 200) : 520}
+                            signals={signals.data?.signals ?? []}
+                            orderFlowSettings={orderFlowSettings.settings}
+                            optionsChain={optionsChain.available ? optionsChain : null}
+                            chartType={chartType}
+                            activeDrawingTool={activeDrawingTool}
+                            drawings={drawings}
+                            onDrawingsChange={setDrawings}
+                            gridVisible={gridVisible}
+                            theme={theme}
+                            settings={settings}
+                            fitSignal={fitSignal}
+                            aiDraw={aiGate.enabled}
+                            replayActive={replayActive}
+                            fullscreen={isFullscreen}
+                        />
+                    </div>
+                    </div>
 
                     <RegimeStrip analysis={analysis.data?.analysis ?? null} loading={analysis.loading} />
-
-                    {/* timeframe picker */}
-                    <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-xs text-muted-foreground">Execution TF</span>
-                        <div className="flex gap-0.5 rounded-full border border-border bg-card p-0.5">
-                            {TERMINAL_TIMEFRAMES.map((t) => (
-                                <button
-                                    key={t}
-                                    type="button"
-                                    onClick={() => setTimeframe(t)}
-                                    aria-pressed={timeframe === t}
-                                    className={cn(
-                                        "rounded-full px-2.5 py-1 font-numeric text-xs transition",
-                                        timeframe === t ? "bg-primary/10 font-bold text-primary" : "text-muted-foreground hover:bg-muted"
-                                    )}
-                                >
-                                    {t}
-                                </button>
-                            ))}
-                        </div>
-                        {analysis.data?.fetchErrors && analysis.data.fetchErrors.length > 0 ? (
-                            <span className="text-micro text-muted-foreground">
-                                {analysis.data.fetchErrors.map((f) => f.timeframe).join(", ")} unavailable from provider
-                            </span>
-                        ) : null}
-                    </div>
 
                     {/* MTF + liquidity */}
                     <div className="grid min-w-0 gap-3 md:grid-cols-2">
@@ -506,8 +612,6 @@ export function ProScalpingTerminal() {
                     />
 
                     <ProTradingViewContextPanel context={tvContextPayload} />
-
-                    <ProTerminalReplay token={token} />
                 </div>
 
                 {/* Right rail */}
@@ -525,33 +629,6 @@ export function ProScalpingTerminal() {
                         pro={!intelligence.error || !/PRO_REQUIRED|UNAUTHENTICATED|403|401/.test(intelligence.error)}
                     />
                     <CrossAssetPanel symbol={symbol} token={token} />
-                    <SignalsMiniPanel
-                        signals={signals.data?.signals ?? []}
-                        rejected={signals.data?.rejected ?? []}
-                        loading={signals.loading}
-                        now={now}
-                        token={token}
-                    />
-                    <ProTerminalJournal trades={journalTrades} loading={journal.loading} error={journal.error} now={now} />
-
-                    <Panel>
-                        <PanelHeader
-                            icon={pollMs === 0 ? <WifiOff className="size-3.5" /> : <Wifi className="size-3.5" />}
-                            title="Data status"
-                            right={
-                                <Chip tone={pollMs === 0 ? "warning" : "positive"} className="uppercase tracking-wide">
-                                    {pollMs === 0 ? "Paused" : "Live"}
-                                </Chip>
-                            }
-                        />
-                        <ul className="space-y-1 p-3 font-numeric text-micro text-muted-foreground">
-                            <li>quotes · {quotes.lastUpdated ? fmtTime(quotes.lastUpdated) : "—"}</li>
-                            <li>radar · {radar.lastUpdated ? fmtTime(radar.lastUpdated) : "—"}</li>
-                            <li>analysis · {analysis.lastUpdated ? fmtTime(analysis.lastUpdated) : "—"}</li>
-                            <li>signals · {signals.lastUpdated ? fmtTime(signals.lastUpdated) : "—"}</li>
-                            <li>journal · {journal.lastUpdated ? fmtTime(journal.lastUpdated) : "—"}</li>
-                        </ul>
-                    </Panel>
                 </aside>
             </div>
 

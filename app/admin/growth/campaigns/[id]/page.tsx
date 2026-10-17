@@ -35,6 +35,8 @@ import { ToggleChip } from "@/components/ui/toggle-chip";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
 import { GrowthStatusBadge } from "@/components/growth/admin/GrowthStatusBadge";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
+import { describeGrowthJobOutcome, type GrowthJobResponse } from "@/components/growth/admin/job-outcome";
 import { CampaignFormDialog, type CampaignFormRow, type CampaignFormValues } from "@/components/growth/admin/CampaignFormDialog";
 import { fmtCurrency, fmtDate, fmtRelative } from "@/components/growth/admin/format";
 import {
@@ -73,7 +75,7 @@ export default function AdminCampaignDetailPage() {
     const [genOpen, setGenOpen] = useState(false);
     const [genForm, setGenForm] = useState({ type: "X_POST", topic: "", tone: "" });
     const [genChannels, setGenChannels] = useState<string[]>([]);
-    const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+    const [notice, setNotice] = useState<{ kind: "ok" | "info" | "error"; text: string } | null>(null);
 
     const campaign = useMemo(() => (campaignFetch.data || []).find((c) => c.id === id) || null, [campaignFetch.data, id]);
 
@@ -93,7 +95,7 @@ export default function AdminCampaignDetailPage() {
         return counts;
     }, [contentForCampaign]);
 
-    const flash = (kind: "ok" | "error", text: string) => {
+    const flash = (kind: "ok" | "info" | "error", text: string) => {
         setNotice({ kind, text });
         window.setTimeout(() => setNotice(null), 5000);
     };
@@ -208,12 +210,17 @@ export default function AdminCampaignDetailPage() {
         setBusyAction("analyze");
         try {
             const periodStart = campaign?.startDate || campaign?.startAt || Date.now() - 30 * 86_400_000;
-            const out = await adminFetch<{ ok: boolean; result?: { summary?: string } }>("/api/growth/cron/analysis", {
+            const out = await adminFetch<GrowthJobResponse>("/api/growth/cron/analysis", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ job: "analysis", payload: { periodStart, periodEnd: Date.now() } }),
             });
-            flash("ok", out.result?.summary || "Analysis snapshot recorded.");
+            const outcome = describeGrowthJobOutcome(out, {
+                success: "Analysis snapshot recorded.",
+                duplicate: "An analysis for this period already completed; nothing was re-run.",
+                failure: "Analysis did not complete.",
+            });
+            flash(outcome.kind, outcome.message);
             audit.refresh();
         } catch (err) {
             flash("error", err instanceof Error ? err.message : "Analysis failed.");
@@ -270,16 +277,7 @@ export default function AdminCampaignDetailPage() {
             </Link>
 
             {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
+                <NoticeBanner variant={notice.kind === "ok" ? "success" : notice.kind === "info" ? "info" : "error"}>{notice.text}</NoticeBanner>
             )}
 
             <PageHeader

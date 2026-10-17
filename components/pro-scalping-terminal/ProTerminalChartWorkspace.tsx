@@ -655,6 +655,7 @@ export function ProTerminalChartWorkspace({
                         aiDraw={aiGate.enabled}
                         fitSignal={fitSignal}
                         replayActive={replayActive}
+                        fullscreen={isFullscreen}
                         focusRequest={focusRequest}
                         onAiPlanChange={onAiPlanChange}
                         onClosePosition={onClosePosition}

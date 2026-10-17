@@ -674,6 +674,7 @@ export function ProTerminalChart({
     aiDraw = false,
     fitSignal = 0,
     replayActive = false,
+    fullscreen = false,
     candles: candlesOverride = null,
     focusRequest = null,
     onAiPlanChange,
@@ -746,6 +747,12 @@ export function ProTerminalChart({
      * feed keeps running for the host but the chart stays frozen on the past.
      */
     replayActive?: boolean;
+    /**
+     * True when the host has the chart in fullscreen. Lifts the replay
+     * transport (and other bottom overlays) off the very bottom edge, where
+     * the browser/OS chrome would otherwise cover them.
+     */
+    fullscreen?: boolean;
     /**
      * Candle override for dedicated replay surfaces. When a non-empty series is
      * supplied the chart draws exactly it and the live feed is switched OFF —
@@ -4167,7 +4174,9 @@ export function ProTerminalChart({
                 {activeDrawingTool !== "select" && !textEdit ? (
                     <div className={cn(
                         "pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-primary/40 bg-background/90 px-2.5 py-1 font-numeric text-micro font-semibold text-primary",
-                        replayActive ? "bottom-14" : "bottom-2"
+                        replayActive
+                            ? (fullscreen ? "bottom-20" : "bottom-14")
+                            : (fullscreen ? "bottom-8" : "bottom-2")
                     )}>
                         {DRAWING_TOOL_HINTS[activeDrawingTool]} · Esc to exit
                     </div>
@@ -4175,7 +4184,10 @@ export function ProTerminalChart({
 
                 {/* Progressive-history status — left edge (Phase 3) */}
                 {olderLoading ? (
-                    <div className="pointer-events-none absolute bottom-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro font-medium text-muted-foreground">
+                    <div className={cn(
+                        "pointer-events-none absolute left-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/40 bg-background/90 px-2 py-0.5 text-micro font-medium text-muted-foreground",
+                        fullscreen ? "bottom-9" : "bottom-3"
+                    )}>
                         <span className="inline-block h-1 w-1 animate-pulse rounded-full bg-primary" aria-hidden />
                         Loading older history…
                     </div>
@@ -4187,7 +4199,10 @@ export function ProTerminalChart({
                     <button
                         type="button"
                         onClick={handleGoLive}
-                        className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-micro font-semibold text-primary shadow-sm transition hover:bg-primary/10"
+                        className={cn(
+                            "absolute right-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-background/90 px-3 py-1 text-micro font-semibold text-primary shadow-sm transition hover:bg-primary/10",
+                            fullscreen ? "bottom-9" : "bottom-3"
+                        )}
                     >
                         <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary animate-pulse" aria-hidden />
                         Go to Live →
@@ -4197,9 +4212,15 @@ export function ProTerminalChart({
                 {/* Bar replay transport — TradingView-style: rewind / step /
                     play-pause / jump / speed plus a position scrubber. Only the
                     revealed history is drawn, so nothing to the right of the
-                    playhead is ever visible. */}
+                    playhead is ever visible. Lifted off the bottom edge while
+                    fullscreen so the browser/OS chrome can't cover it. */}
                 {replayActive ? (
-                    <div className="absolute bottom-2 left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1.5 overflow-x-auto rounded-full border border-border/60 bg-background/95 px-2 py-1 shadow-lg backdrop-blur">
+                    <div
+                        className={cn(
+                            "absolute left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 items-center gap-1.5 overflow-x-auto rounded-full border border-border/60 bg-background/95 px-2 py-1 shadow-lg backdrop-blur",
+                            fullscreen ? "bottom-8" : "bottom-2"
+                        )}
+                    >
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-primary/15 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wide text-primary">
                             <History className="size-3" aria-hidden />
                             Replay

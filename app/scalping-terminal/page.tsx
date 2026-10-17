@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { AppShell, type NavGroup } from "@/components/layout/AppShell";
 import { APP_NAV } from "@/components/layout/app-nav";
 import { ScalpingTerminalClient } from "@/components/scalping/ScalpingTerminalClient";
+import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
 import { AITeamsEntryCard } from "@/components/ai-trading-teams/entry-card";
 import { ToolBadge } from "@/components/tools/tier-ui";
 import Link from "next/link";
@@ -69,6 +70,10 @@ export default function ScalpingTerminalPage() {
                 <AITeamsEntryCard context="Free AI Scalping Terminal" />
             </div>
             <ScalpingTerminalClient />
+
+            <div className="mt-6 rounded-2xl border border-border/60 bg-card/70 p-3 shadow-sm">
+                <ProTerminalChartWorkspace token="" />
+            </div>
         </AppShell>
     );
 }

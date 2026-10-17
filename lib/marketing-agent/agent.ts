@@ -56,6 +56,7 @@ import { getFeature, resolveCtaDestination } from "./product-knowledge";
 import { capabilityMatrix } from "./publishing/capabilities";
 import { registerSocialPublishers } from "./publishing/providers";
 import { executePublishingJob, type PublishingStore } from "./publishing/engine";
+import { productionPublishContextDeps, resolvePublishContext } from "./publishing/guards";
 import { advanceSchedule, isScheduleDue, parseScheduleHint } from "./scheduling";
 import {
   audit,
@@ -995,16 +996,12 @@ const HANDLERS: Record<string, Handler> = {
     }
 
     const store = ctx.runtime.publishingStore ?? rtdbPublishingStore();
+    const deps = await productionPublishContextDeps();
     const results = [];
     for (const job of publishingJobs) {
       if (!job.id) continue;
-      const res = await executePublishingJob(store, job.id, {
-        approvalGranted: true,
-        accountConnected: true,
-        publishingEnabled: ctx.runtime.settings.flags.marketingAgentPublishingEnabled === true,
-        qaPassed: true,
-        now: ctx.now,
-      });
+      const context = await resolvePublishContext(job, deps, ctx.now);
+      const res = await executePublishingJob(store, job.id, context);
       results.push(res);
     }
 
@@ -1230,14 +1227,8 @@ export async function tickSchedules(now = Date.now()): Promise<{ due: string[]; 
         errors += 1;
         continue;
       }
-      const account = true; // account state is validated by the connector itself
-      const result = await executePublishingJob(store, schedule.publishingJobId, {
-        approvalGranted: true,
-        accountConnected: account,
-        publishingEnabled: true,
-        qaPassed: true,
-        now,
-      });
+      const context = await resolvePublishContext(job, await productionPublishContextDeps(), now);
+      const result = await executePublishingJob(store, schedule.publishingJobId, context);
 
       const advanced = advanceSchedule(schedule, now);
       await saveSchedule({

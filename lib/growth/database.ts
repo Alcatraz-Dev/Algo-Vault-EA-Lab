@@ -136,22 +136,54 @@ export async function writeEventIdempotent(
 }
 
 /**
- * Claim a job key atomically: only the first caller wins. Returns true for the
- * winner — this is the core of duplicate-run prevention.
+ * Claim a job key atomically: only the first caller wins. Returns a claim token
+ * for the winner, or null when a live claim already holds the key. Pass the
+ * token to releaseJobClaim if the execution fails before it completes.
  */
-export async function claimJobKey(jobKey: string, ttlMs = 10 * 60 * 1000): Promise<boolean> {
+export async function acquireJobClaim(jobKey: string, ttlMs = 10 * 60 * 1000): Promise<string | null> {
     const path = `${GROWTH_COLLECTIONS.jobs}/_claims/${jobKey}`;
+    const claimId = genId("claim");
     let claimed = false;
     await REF(path).transaction((current) => {
         const now = Date.now();
-        const value = current as { claimedAt?: number } | null;
+        const value = current as { claimedAt?: number; claimId?: string } | null;
         if (value && value.claimedAt && now - value.claimedAt < ttlMs) {
+            claimed = false;
             return value; // still held → not ours
         }
         claimed = true;
-        return { claimedAt: now };
+        return { claimedAt: now, claimId };
     });
-    return claimed;
+    return claimed ? claimId : null;
+}
+
+/**
+ * Release a claim only if it still belongs to this execution. A claim that has
+ * expired and been re-taken by another run is left untouched. Never throws.
+ */
+export async function releaseJobClaim(jobKey: string, claimId: string): Promise<boolean> {
+    const path = `${GROWTH_COLLECTIONS.jobs}/_claims/${jobKey}`;
+    let released = false;
+    try {
+        await REF(path).transaction((current) => {
+            const value = current as { claimId?: string } | null;
+            if (!value || value.claimId !== claimId) {
+                released = false;
+                return undefined; // not ours → abort, keep the newer claim
+            }
+            released = true;
+            return null;
+        });
+    } catch (err) {
+        console.error("[growth:claim]", err);
+        return false;
+    }
+    return released;
+}
+
+/** Boolean form of acquireJobClaim for callers that do not need release. */
+export async function claimJobKey(jobKey: string, ttlMs = 10 * 60 * 1000): Promise<boolean> {
+    return (await acquireJobClaim(jobKey, ttlMs)) !== null;
 }
 
 // ─── Audit logging ───────────────────────────────────────────────────────────

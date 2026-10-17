@@ -28,6 +28,8 @@ import { FormField, FormError } from "@/components/ui/form-field";
 import { FormSection } from "@/components/ui/form-section";
 import { Input } from "@/components/ui/input";
 import { Select, Textarea } from "@/components/ui/select";
+import { NoticeBanner } from "@/components/growth/admin/NoticeBanner";
+import { describeGrowthJobOutcome, type GrowthJobResponse } from "@/components/growth/admin/job-outcome";
 import { Badge } from "@/components/ui/badge";
 import { useAdminFetch } from "@/components/growth/admin/useAdminFetch";
 import { adminFetch } from "@/components/growth/admin/session";
@@ -116,10 +118,10 @@ export default function AdminAffiliatePage() {
     const [form, setForm] = useState<FormState>(blankForm);
     const [busy, setBusy] = useState(false);
     const [err, setErr] = useState<string | null>(null);
-    const [notice, setNotice] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
+    const [notice, setNotice] = useState<{ kind: "ok" | "info" | "error"; text: string } | null>(null);
     const [reconciling, setReconciling] = useState(false);
 
-    const flash = (kind: "ok" | "error", text: string) => {
+    const flash = (kind: "ok" | "info" | "error", text: string) => {
         setNotice({ kind, text });
         window.setTimeout(() => setNotice(null), 6000);
     };
@@ -257,16 +259,17 @@ export default function AdminAffiliatePage() {
         if (reconciling) return;
         setReconciling(true);
         try {
-            const result = await adminFetch<{ ok?: boolean; result?: { summary?: string }; error?: string }>("/api/growth/cron/affiliates", {
+            const result = await adminFetch<GrowthJobResponse>("/api/growth/cron/affiliates", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ job: "affiliates", payload: {} }),
             });
-            if (result.error) {
-                flash("error", result.error);
-            } else {
-                flash("ok", result.result?.summary || "Affiliate counters reconciled from real events.");
-            }
+            const outcome = describeGrowthJobOutcome(result, {
+                success: "Affiliate counters reconciled from real events.",
+                duplicate: "Reconciliation already completed for this period; nothing was re-run.",
+                failure: "Reconciliation did not complete.",
+            });
+            flash(outcome.kind, outcome.message);
             offers.refresh();
             revenue.refresh();
         } catch (e) {
@@ -295,16 +298,7 @@ export default function AdminAffiliatePage() {
             />
 
             {notice && (
-                <div
-                    role="status"
-                    className={`rounded-md border px-3 py-2 text-xs ${
-                        notice.kind === "ok"
-                            ? "border-success/30 bg-success/10 text-success-foreground"
-                            : "border-destructive/30 bg-destructive/10 text-destructive-foreground"
-                    }`}
-                >
-                    {notice.text}
-                </div>
+                <NoticeBanner variant={notice.kind === "ok" ? "success" : notice.kind === "info" ? "info" : "error"}>{notice.text}</NoticeBanner>
             )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">

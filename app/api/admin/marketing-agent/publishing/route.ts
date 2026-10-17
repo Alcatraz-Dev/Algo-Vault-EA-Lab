@@ -1,8 +1,9 @@
 /** Marketing Agent — publishing jobs: list, retry, cancel (§28, §29). */
 
 import { NextRequest } from "next/server";
-import { jsonError, jsonOk, loadSettings, requireAdmin } from "../_runtime";
-import { listPublishingJobs, rtdbPublishingStore } from "@/lib/marketing-agent/storage";
+import { jsonError, jsonOk, requireAdmin } from "../_runtime";
+import { getPublishingJob, listPublishingJobs, rtdbPublishingStore } from "@/lib/marketing-agent/storage";
+import { productionPublishContextDeps, resolvePublishContext } from "@/lib/marketing-agent/publishing/guards";
 import { cancelPublishingJob, retryPublishingJob } from "@/lib/marketing-agent/publishing/engine";
 import { PUBLISHING_STATE_HELP } from "@/lib/marketing-agent/publishing/state-machine";
 import { capabilityMatrix } from "@/lib/marketing-agent/publishing/capabilities";
@@ -37,17 +38,15 @@ export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => ({}))) as { action?: string; jobId?: string };
   if (!body.jobId) return jsonError("jobId is required.", 422);
 
-  const settings = await loadSettings();
   const store = rtdbPublishingStore();
 
   switch (body.action) {
     case "retry": {
-      const result = await retryPublishingJob(store, body.jobId, {
-        approvalGranted: true,
-        accountConnected: true,
-        publishingEnabled: settings.flags.marketingAgentPublishingEnabled === true,
-        qaPassed: true,
-      });
+      // Manual retries get the same live guards as scheduled ones (kill switch, approval, account, QA).
+      const job = await getPublishingJob(body.jobId);
+      if (!job) return jsonError("Publishing job not found.", 404);
+      const context = await resolvePublishContext(job, await productionPublishContextDeps());
+      const result = await retryPublishingJob(store, body.jobId, context);
       return jsonOk({ result });
     }
     case "cancel": {

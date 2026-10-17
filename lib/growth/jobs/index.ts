@@ -6,9 +6,10 @@
  */
 import { COLLECTION_PATHS } from "../paths";
 import {
+    acquireJobClaim,
     adminDatabase,
-    claimJobKey,
     createRecord,
+    releaseJobClaim,
     listCollection,
     writeGrowthAudit,
 } from "../database";
@@ -32,9 +33,24 @@ export type GrowthJobRunnerInput = {
     handler: () => Promise<JobHandlerResult>;
 };
 
-/** Runs one growth job with idempotency + audit. Never throws. */
+const JOB_CLAIM_TTL_MS = 6 * 60 * 60 * 1000;
+
+/**
+ * Runs one growth job with idempotency + audit. Never throws.
+ *
+ * Claim lifecycle:
+ *  - duplicate (live claim held): nothing runs, nothing is released.
+ *  - handler throws and the FAILED status is recorded: the claim is released so
+ *    a legitimate Admin retry can run immediately.
+ *  - handler throws but the FAILED status cannot be recorded: the claim is kept
+ *    (state is uncertain, so blocking is the conservative choice).
+ *  - success: the claim is kept so the job is never run twice for this key.
+ *  - success but the COMPLETED status cannot be recorded: reported as not ok and
+ *    the claim is kept, because the handler's side effects already happened.
+ */
 export async function runGrowthJob(input: GrowthJobRunnerInput): Promise<{ ok: boolean; duplicate: boolean; result?: JobHandlerResult; error?: string; job?: GrowthJob }> {
-    if (!(await claimJobKey(input.jobKey, 6 * 60 * 60 * 1000))) {
+    const claimId = await acquireJobClaim(input.jobKey, JOB_CLAIM_TTL_MS);
+    if (!claimId) {
         return { ok: false, duplicate: true };
     }
     const actor = input.actor ?? "growth:job";
@@ -49,23 +65,54 @@ export async function runGrowthJob(input: GrowthJobRunnerInput): Promise<{ ok: b
     };
     const ref = adminDatabase.ref(COLLECTION_PATHS.jobs).push();
     job.id = ref.key as string;
-    await ref.set(job);
+    try {
+        await ref.set(job);
+    } catch (err) {
+        // The handler has not started, so releasing the claim is safe.
+        await releaseJobClaim(input.jobKey, claimId);
+        const message = err instanceof Error ? err.message : "Failed to record job start.";
+        return { ok: false, duplicate: false, error: message, job: { ...job, status: "FAILED", error: message } };
+    }
+
+    let result: JobHandlerResult;
+    try {
+        result = await input.handler();
+    } catch (err) {
+        const message = err instanceof Error ? err.message : "Job failed.";
+        let failureRecorded = true;
+        try {
+            await ref.update({ status: "FAILED", error: message, finishedAt: Date.now() } as Partial<GrowthJob>);
+        } catch (recordErr) {
+            failureRecorded = false;
+            console.error("[growth:job] failed to record FAILED status", recordErr);
+        }
+        if (failureRecorded) {
+            await releaseJobClaim(input.jobKey, claimId);
+        }
+        await writeGrowthAudit({ actor, action: "auto", targetType: "job", targetId: job.id, detail: { type: input.type, jobKey: input.jobKey, ok: false, error: message } });
+        return { ok: false, duplicate: false, error: message, job: { ...job, status: "FAILED", error: message } };
+    }
 
     try {
-        const result = await input.handler();
         await ref.update({
             status: "COMPLETED",
             result,
             finishedAt: Date.now(),
         } as Partial<GrowthJob>);
-        await writeGrowthAudit({ actor, action: "auto", targetType: "job", targetId: job.id, detail: { type: input.type, jobKey: input.jobKey, ok: true } });
-        return { ok: true, duplicate: false, result, job: { ...job, status: "COMPLETED", result } };
     } catch (err) {
-        const message = err instanceof Error ? err.message : "Job failed.";
-        await ref.update({ status: "FAILED", error: message, finishedAt: Date.now() } as Partial<GrowthJob>);
-        await writeGrowthAudit({ actor, action: "auto", targetType: "job", targetId: job.id, detail: { type: input.type, jobKey: input.jobKey, ok: false, error: message } });
-        return { ok: false, duplicate: false, error: message, job: { ...job, status: "FAILED", error: message } };
+        // Side effects already happened: keep the claim and report the job as not ok.
+        const message = err instanceof Error ? err.message : "Failed to record job completion.";
+        console.error("[growth:job] completed but COMPLETED status not recorded", err);
+        return {
+            ok: false,
+            duplicate: false,
+            result,
+            error: `Job ran but its completion could not be recorded (${message}). It will not be retried automatically.`,
+            job: { ...job, status: "RUNNING" },
+        };
     }
+    await writeGrowthAudit({ actor, action: "auto", targetType: "job", targetId: job.id, detail: { type: input.type, jobKey: input.jobKey, ok: true } });
+    return { ok: true, duplicate: false, result, job: { ...job, status: "COMPLETED", result } };
 }
 
 // ─── Job definitions ─────────────────────────────────────────────────

@@ -1166,18 +1166,13 @@ async function marketingAgentPublish(args: NodeExecutionArgs): Promise<NodeExecu
 
     const { executePublishingJob } = await import("@/lib/marketing-agent/publishing/engine");
     const { rtdbPublishingStore, getPublishingJob } = await import("@/lib/marketing-agent/storage");
-    const { loadSettingsFromRtdb } = await import("@/lib/marketing-agent/settings");
+    const { productionPublishContextDeps, resolvePublishContext } = await import("@/lib/marketing-agent/publishing/guards");
 
     const job = await getPublishingJob(publishingJobId);
     if (!job) return { status: "failed", error: "Publishing job not found." };
 
-    const settings = await loadSettingsFromRtdb();
-    const result = await executePublishingJob(rtdbPublishingStore(), publishingJobId, {
-        approvalGranted: true,
-        accountConnected: true,
-        publishingEnabled: settings.flags.marketingAgentPublishingEnabled === true,
-        qaPassed: true,
-    });
+    const context = await resolvePublishContext(job, await productionPublishContextDeps());
+    const result = await executePublishingJob(rtdbPublishingStore(), publishingJobId, context);
 
     return {
         status: result.ok ? "success" : "failed",

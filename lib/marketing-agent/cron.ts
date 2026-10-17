@@ -11,6 +11,7 @@
 import { tickSchedules } from "./agent";
 import { listPublishingJobs, rtdbPublishingStore, listSocialAccounts, audit } from "./storage";
 import { executePublishingJob } from "./publishing/engine";
+import { productionPublishContextDeps, resolvePublishContext } from "./publishing/guards";
 import { listSocialPublishers, registerSocialPublishers } from "./publishing/providers";
 import { loadSettingsFromRtdb } from "./settings";
 
@@ -42,17 +43,14 @@ export async function runMarketingAgentCron(payload: Record<string, unknown> = {
   let retried = 0;
   let published = 0;
   let verificationRequired = 0;
+  const publishDeps = await productionPublishContextDeps();
 
   for (const job of retryable) {
     if (!job.id) continue;
     if (job.nextAttemptAt && job.nextAttemptAt > now) continue;
-    const result = await executePublishingJob(store, job.id, {
-      approvalGranted: true,
-      accountConnected: true,
-      publishingEnabled: settings.flags.marketingAgentPublishingEnabled === true,
-      qaPassed: true,
-      now,
-    });
+    // Retries re-verify the kill switch, approval, account health and QA live.
+    const context = await resolvePublishContext(job, publishDeps, now);
+    const result = await executePublishingJob(store, job.id, context);
     retried += 1;
     if (result.state === "PUBLISHED") published += 1;
     if (result.state === "PUBLISH_VERIFICATION_REQUIRED") verificationRequired += 1;

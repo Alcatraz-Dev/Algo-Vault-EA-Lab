@@ -26,11 +26,13 @@ interface FakeSnapshot {
 // Fake RTDB reference with the `get`/`set`/`update`/`remove`/`child` shape the
 // guards (and lib/gateway's token helpers) use.
 interface FakeRef {
+    key?: string;
     get(): Promise<FakeSnapshot>;
     set(v: unknown): Promise<void>;
     update(v: unknown): Promise<void>;
     remove(): Promise<void>;
     child(c: string): FakeRef;
+    push(): FakeRef & { key: string };
     transaction(
         update: (current: unknown) => unknown
     ): Promise<{ committed: boolean; snapshot: FakeSnapshot }>;
@@ -121,8 +123,16 @@ function makeFakeRef(path: string): FakeRef {
         child(c: string): FakeRef {
             return makeFakeRef(`${path}/${c}`);
         },
+        // Mirrors RTDB push(): a child with a unique, monotonically ordered key.
+        push(): FakeRef & { key: string } {
+            pushCounter += 1;
+            const key = `-push${String(pushCounter).padStart(6, "0")}`;
+            return Object.assign(makeFakeRef(`${path}/${key}`), { key });
+        },
     };
 }
+
+let pushCounter = 0;
 
 export const adminDatabase: { ref(path: string): FakeRef } = {
     ref: makeFakeRef,

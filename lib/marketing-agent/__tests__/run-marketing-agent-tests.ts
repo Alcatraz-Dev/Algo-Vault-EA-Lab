@@ -23,6 +23,7 @@ import { canTransition, transition, queuePreconditions } from "../publishing/sta
 import { getCapability, capabilityMatrix, captionLimit } from "../publishing/capabilities";
 import { registerSocialPublishers, registerSocialPublisher, getSocialPublisher } from "../publishing/providers";
 import { executePublishingJob, retryPublishingJob, cancelPublishingJob, type PublishingStore } from "../publishing/engine";
+import { resolvePublishContext, type PublishContextDeps } from "../publishing/guards";
 import { buildVariantSpecs, deriveVersionLineage, interpretRemix } from "../production/variants";
 import { directCreative } from "../production/director";
 import { generateScript } from "../production/script";
@@ -401,8 +402,12 @@ class MockPublisher implements SocialPublisher {
   readonly capabilities = getCapability("TIKTOK");
   behavior: MockBehavior = { confirm: "success", postExists: true };
   createCalls = 0;
+  healthOk = true;
 
   async health() {
+    if (!this.healthOk) {
+      return { ok: false as const, state: "AUTH" as const, reason: "Token expired.", errorKind: "AUTH" as const, retryable: false };
+    }
     return { ok: true as const, value: { state: "CONNECTED", permissions: ["video.publish"] } };
   }
   async validatePermissions() {
@@ -589,6 +594,89 @@ async function testPublishing() {
   assert(!disabled.ok && disabled.state === "READY", "engine: publishing flag disabled → job stays READY");
 
   mock.behavior = { confirm: "success", postExists: true };
+}
+
+// ─── Execution-time publish guards (kill switch, approval, account, QA) ────
+
+type GuardState = {
+  enabled: boolean;
+  approval?: string;
+  qaPassed?: boolean;
+  connected: boolean;
+  failRead?: boolean;
+};
+
+const LIVE_GUARDS: GuardState = { enabled: true, approval: "APPROVED", qaPassed: true, connected: true };
+
+function guardDeps(s: GuardState, publisher: SocialPublisher): PublishContextDeps {
+  const read = async <T>(v: T): Promise<T> => {
+    if (s.failRead) throw new Error("store unavailable");
+    return v;
+  };
+  return {
+    loadPublishingEnabled: () => read(s.enabled),
+    getAgentJob: () => read(s.approval === undefined ? null : { approval: { decision: s.approval } }),
+    getVersion: () => read(s.qaPassed === undefined ? null : { qa: { passed: s.qaPassed } }),
+    getPublisher: () => (s.connected ? publisher : undefined),
+  };
+}
+
+async function testPublishGuards() {
+  const mock = new MockPublisher();
+  registerSocialPublisher(mock);
+  mock.behavior = { confirm: "success", postExists: true };
+  const linkedJob = () => makeJob({ jobId: "agent1", accountId: "acct1" });
+
+  const live = await resolvePublishContext(linkedJob(), guardDeps(LIVE_GUARDS, mock), 1);
+  assert(live.publishingEnabled && live.approvalGranted && live.accountConnected && live.qaPassed, "guards: verified live state is publishable");
+
+  const blockedStates: [string, GuardState][] = [
+    ["kill switch off", { ...LIVE_GUARDS, enabled: false }],
+    ["approval missing", { ...LIVE_GUARDS, approval: undefined }],
+    ["approval rejected", { ...LIVE_GUARDS, approval: "REJECTED" }],
+    ["approval still pending", { ...LIVE_GUARDS, approval: "PENDING" }],
+    ["kill switch setting missing", { ...LIVE_GUARDS, enabled: undefined as unknown as boolean }],
+    ["QA never run", { ...LIVE_GUARDS, qaPassed: undefined }],
+    ["QA failed", { ...LIVE_GUARDS, qaPassed: false }],
+    ["no connected account", { ...LIVE_GUARDS, connected: false }],
+    ["verification unavailable", { ...LIVE_GUARDS, failRead: true }],
+  ];
+  for (const [label, state] of blockedStates) {
+    const context = await resolvePublishContext(linkedJob(), guardDeps(state, mock), 1);
+    assert(!context.publishingEnabled || !context.approvalGranted || !context.accountConnected || !context.qaPassed, `guards: ${label} is not publishable`);
+  }
+
+  mock.healthOk = false;
+  const unhealthy = await resolvePublishContext(linkedJob(), guardDeps(LIVE_GUARDS, mock), 1);
+  assert(!unhealthy.accountConnected, "guards: unhealthy account is not connected");
+  mock.healthOk = true;
+
+  const unlinked = await resolvePublishContext(makeJob({ jobId: "agent1" }), guardDeps(LIVE_GUARDS, mock), 1);
+  assert(!unlinked.accountConnected, "guards: job without an account is not connected");
+
+  // Blocked contexts never reach the connector.
+  for (const [label, state] of blockedStates) {
+    const store = new MemoryPublishingStore();
+    const job = linkedJob();
+    job.id = "g1";
+    store.jobs.set("g1", job);
+    const before = mock.createCalls;
+    const context = await resolvePublishContext(job, guardDeps(state, mock), Date.now());
+    const res = await executePublishingJob(store, "g1", context);
+    assert(!res.ok && mock.createCalls === before, `guards: ${label} → no publish submitted`);
+  }
+
+  // Retries re-check live state: a disabled or revoked job is never re-submitted.
+  const retryStore = new MemoryPublishingStore();
+  const retryJob = makeJob({ id: "r1", jobId: "agent1", accountId: "acct1", state: "RETRYING", attempt: 1, nextAttemptAt: Date.now() - 1000 });
+  retryStore.jobs.set("r1", retryJob);
+  const beforeRetry = mock.createCalls;
+  const disabledRetry = await executePublishingJob(retryStore, "r1", await resolvePublishContext(retryJob, guardDeps({ ...LIVE_GUARDS, enabled: false }, mock), Date.now()));
+  assert(!disabledRetry.ok && mock.createCalls === beforeRetry, "guards: scheduled retry blocked by the kill switch");
+  const revokedRetry = await retryPublishingJob(retryStore, "r1", await resolvePublishContext(retryJob, guardDeps({ ...LIVE_GUARDS, approval: "REJECTED" }, mock), Date.now()));
+  assert(!revokedRetry.ok && mock.createCalls === beforeRetry, "guards: manual retry blocked when approval is revoked");
+  const liveRetry = await retryPublishingJob(retryStore, "r1", await resolvePublishContext(retryJob, guardDeps(LIVE_GUARDS, mock), Date.now()));
+  assert(liveRetry.ok && mock.createCalls === beforeRetry + 1, "guards: retry with live verification publishes once");
 }
 
 // ─── Capabilities (§64, §65) ─────────────────────────────────────────────────
@@ -977,6 +1065,7 @@ async function runMarketingAgentTests() {
   testSvml();
   testVersionGate();
   await testPublishing();
+  await testPublishGuards();
 
   console.log(`\n${passed} passed, ${failed} failed`);
   if (failed > 0) {
