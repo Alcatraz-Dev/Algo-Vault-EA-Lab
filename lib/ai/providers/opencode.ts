@@ -3,6 +3,7 @@ import {
     AIChatRequest,
     AIResponse,
     AIModel,
+    AIProviderError,
     StrategyNarrativeInput,
     StrategyNarrative,
     AnalysisSummaryInput,
@@ -10,59 +11,120 @@ import {
     ChatMessageInput,
 } from "../types";
 import { AIConfig } from "../config";
-import { isModelConfirmedFree, assertFreeModelAllowed, KNOWN_FREE_MODELS } from "../models";
+import {
+    isModelConfirmedFree,
+    assertVerifiedFreeModel,
+    KNOWN_FREE_MODELS,
+} from "../models";
 import { normalizeNarrative, normalizeSummary } from "../validate";
 import { extractFinishReason, isTruncated, isAbortError } from "../finish";
+
+interface CatalogCache {
+    models: AIModel[];
+    fetchedAt: number;
+}
+
+/**
+ * Byte-for-byte the reviewed static registry: the ONLY fallback used when
+ * OpenCode's own catalog cannot be read. These entries are explicitly
+ * reviewed, not inferred from an id suffix, so a catalog outage can never turn
+ * an unknown model into a confirmed-free one.
+ */
+function reviewedFreeModels(): AIModel[] {
+    return KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
+}
 
 export class OpenCodeProvider implements AIProvider {
     readonly id = "opencode";
     readonly name = "OpenCode AI (Free Cloud)";
 
+    /** Bounded cache: verification must not cost an extra upstream call per request. */
+    private catalog: CatalogCache | null = null;
+    private catalogFailureAt = 0;
+    private catalogInFlight: Promise<AIModel[]> | null = null;
+
     isAvailable(): boolean {
         return Boolean(AIConfig.opencodeApiKey && AIConfig.opencodeApiKey.trim());
     }
 
-    async getModels(): Promise<AIModel[]> {
-        if (!this.isAvailable()) {
-            return KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
+    /** Last successful catalog, or the reviewed registry when none is fresh. */
+    private usableCatalog(now = Date.now()): AIModel[] {
+        if (this.catalog && now - this.catalog.fetchedAt < AIConfig.opencodeCatalogMaxStaleMs) {
+            return this.catalog.models;
         }
+        return reviewedFreeModels();
+    }
 
-        try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 10000);
+    async getModels(forceRefresh = false): Promise<AIModel[]> {
+        if (!this.isAvailable()) return reviewedFreeModels();
 
-            const res = await fetch(`${AIConfig.opencodeBaseUrl}/models`, {
-                headers: {
-                    Authorization: `Bearer ${AIConfig.opencodeApiKey}`,
-                },
-                signal: controller.signal,
-            }).finally(() => clearTimeout(timer));
-
-            if (!res.ok) {
-                return KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
+        const now = Date.now();
+        if (!forceRefresh) {
+            if (this.catalog && now - this.catalog.fetchedAt < AIConfig.opencodeCatalogTtlMs) {
+                return this.catalog.models;
             }
-
-            const body = (await res.json()) as { data?: Array<{ id: string; name?: string; pricing?: { prompt?: string; completion?: string } }> };
-            if (!Array.isArray(body.data)) {
-                return KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
+            if (
+                this.catalogFailureAt > 0 &&
+                now - this.catalogFailureAt < AIConfig.opencodeCatalogFailureTtlMs
+            ) {
+                return this.usableCatalog(now);
             }
-
-            const freeModels: AIModel[] = body.data
-                .filter((item) => isModelConfirmedFree(item.id, item.pricing))
-                .map((item) => ({
-                    id: item.id,
-                    name: item.name || item.id,
-                    provider: "opencode",
-                    free: true,
-                    confirmedFree: true,
-                    enabled: true,
-                    capabilities: { text: true, structuredOutput: true },
-                }));
-
-            return freeModels.length > 0 ? freeModels : KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
-        } catch {
-            return KNOWN_FREE_MODELS.filter((m) => m.provider === "opencode");
         }
+        if (this.catalogInFlight) return this.catalogInFlight;
+
+        this.catalogInFlight = this.fetchCatalog()
+            .then((models) => {
+                this.catalog = { models, fetchedAt: Date.now() };
+                this.catalogFailureAt = 0;
+                return models;
+            })
+            .catch(() => {
+                // Never cache a failure as a successful catalog. The reviewed
+                // registry (or the last real catalog, inside its max-stale
+                // window) is returned instead; nothing unknown becomes free.
+                this.catalogFailureAt = Date.now();
+                return this.usableCatalog();
+            })
+            .finally(() => {
+                this.catalogInFlight = null;
+            });
+
+        return this.catalogInFlight;
+    }
+
+    private async fetchCatalog(): Promise<AIModel[]> {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10000);
+
+        const res = await fetch(`${AIConfig.opencodeBaseUrl}/models`, {
+            headers: {
+                Authorization: `Bearer ${AIConfig.opencodeApiKey}`,
+            },
+            signal: controller.signal,
+        }).finally(() => clearTimeout(timer));
+
+        if (!res.ok) throw new Error(`OpenCode catalog HTTP ${res.status}`);
+
+        const body = (await res.json()) as {
+            data?: Array<{ id: string; name?: string; pricing?: { prompt?: string; completion?: string } }>;
+        };
+        if (!Array.isArray(body.data)) throw new Error("OpenCode catalog returned an invalid payload.");
+
+        const freeModels: AIModel[] = body.data
+            .filter((item) => isModelConfirmedFree(item.id, item.pricing))
+            .map((item) => ({
+                id: item.id,
+                name: item.name || item.id,
+                provider: "opencode",
+                free: true,
+                confirmedFree: true,
+                enabled: true,
+                capabilities: { text: true, structuredOutput: true },
+            }));
+
+        // An empty free set is a real answer, not a reason to fall back to the
+        // registry: it means OpenCode currently confirms no free model.
+        return freeModels;
     }
 
     async chat(request: AIChatRequest): Promise<AIResponse> {
@@ -74,11 +136,45 @@ export class OpenCodeProvider implements AIProvider {
             };
         }
 
-        const model =
-            request.model && isModelConfirmedFree(request.model) ? request.model : "mimo-v2.5-free";
+        // Resolve the requested id against OpenCode's own catalog. A model is
+        // usable only when that catalog entry is verified free; an id alone is
+        // never enough (no `-free` suffix inference).
+        const requested = request.model?.trim();
+        const catalog = await this.getModels().catch(() => []);
+        if (catalog.length === 0) {
+            throw {
+                code: "NO_FREE_PROVIDER",
+                provider: this.id,
+                model: requested,
+                message:
+                    "No OpenCode model is currently confirmed free; the request was not sent.",
+            } satisfies AIProviderError;
+        }
 
-        // Enforce Free-Only Safety Guard
-        assertFreeModelAllowed(model);
+        let selected = requested
+            ? catalog.find((entry) => entry.id.toLowerCase() === requested.toLowerCase())
+            : catalog[0];
+
+        if (!selected) {
+            if (request.mode === "strict") {
+                throw {
+                    code: "MODEL_UNAVAILABLE",
+                    provider: this.id,
+                    model: requested,
+                    message: `Model "${requested}" is not in the current OpenCode free catalog.`,
+                } satisfies AIProviderError;
+            }
+            // Automatic mode may replace a stale/unknown id, but only with a
+            // catalog entry that is itself confirmed free.
+            selected = catalog[0];
+        }
+
+        const model = selected.id;
+        const substituted =
+            Boolean(requested) && requested!.toLowerCase() !== model.toLowerCase();
+
+        // Dispatch-time guard: the resolved catalog entry must be verified free.
+        assertVerifiedFreeModel(selected, this.id);
 
         const messages: Array<{ role: string; content: string }> = [];
         if (request.systemPrompt) {
@@ -140,6 +236,8 @@ export class OpenCodeProvider implements AIProvider {
                 content,
                 finishReason: extractFinishReason(data),
                 truncated: isTruncated(data),
+                requestedModel: requested,
+                substituted: substituted || undefined,
                 raw: data,
             };
         } catch (err: unknown) {

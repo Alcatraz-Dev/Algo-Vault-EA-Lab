@@ -147,18 +147,16 @@ export default function CandelLibraryPage() {
       }
     >
       <div className="flex flex-col gap-4">
-        <SectionHeader
-          icon={<Bot className="size-4" />}
-          title="Candel library"
-          description="Each Candel is a specialist you own: pick a role, tune its instructions and decide exactly what it may touch."
-          meta={
-            <span className="font-numeric text-xs text-muted-foreground">
-              {candels.filter((c) => c.status !== "archived").length} active
-            </span>
-          }
-        />
+        <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-gradient-to-r from-card to-muted/20 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-border/40">
+          <Bot className="size-5 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-sm font-semibold tracking-tight text-foreground">Candel library</h2>
+            <p className="truncate text-xs text-muted-foreground">Each Candel is a specialist you own.</p>
+          </div>
+          <span className="font-numeric text-xs text-muted-foreground">{candels.filter((c) => c.status !== "archived").length} active</span>
+        </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-gradient-to-r from-card to-muted/20 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ring-1 ring-border/40">
           <div className="relative min-w-56 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input

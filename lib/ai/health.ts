@@ -203,7 +203,9 @@ export function resolveAIProviderHealth(
     if (!input.credentialsConfigured) {
         state = "unavailable";
         gate = "credentials";
-        detail = "No API key configured, so the gateway never considers it.";
+        detail = input.provider === "ollama"
+            ? "Local AI is not enabled on this server, so the gateway never considers it."
+            : "No API key configured, so the gateway never considers it.";
     } else if (!input.available) {
         state = "unavailable";
         gate = "policy";
@@ -328,11 +330,19 @@ export const PROVIDER_CREDENTIAL_ENV: Readonly<Record<string, string>> = {
     codecraft: "CODECRAFT_API_KEY",
     bai: "BAI_API_KEY",
     bytez: "BYTEZ_API_KEY",
+    // Not a credential: this is the server-side enable flag for local
+    // inference. It is listed here so the health report can distinguish
+    // "local AI disabled" from "Ollama is configured but unreachable".
+    ollama: "ALGOVAULT_LOCAL_AI",
 };
 
 /** True when the provider's credential env var holds a non-empty value. */
 export function hasProviderCredential(providerId: string): boolean {
-    const env = PROVIDER_CREDENTIAL_ENV[String(providerId ?? "").trim().toLowerCase()];
+    const id = String(providerId ?? "").trim().toLowerCase();
+    if (id === "ollama") {
+        return process.env.ALGOVAULT_LOCAL_AI === "1" || process.env.OLLAMA_ENABLED === "true";
+    }
+    const env = PROVIDER_CREDENTIAL_ENV[id];
     if (!env) return false;
     return Boolean((process.env[env] || "").trim());
 }

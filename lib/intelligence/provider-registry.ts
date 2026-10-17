@@ -62,8 +62,8 @@ const REGISTRY: RegistryEntry[] = [
         capabilities: ["text", "structuredOutput", "vision", "toolCalling", "longContext"],
         models: [],
         apiKeyEnvVar: "OPENROUTER_API_KEY",
-        freeTier: ":free-suffixed models",
-        rateLimits: { requestsPerMinute: 20, requestsPerDay: 1000 },
+        freeTier: "Zero-priced models; 50 requests/day (1,000 after $10 of credits)",
+        rateLimits: { requestsPerMinute: 20, requestsPerDay: 50 },
         health: "unknown",
         costClass: "freemium",
         commercialUse: true,
@@ -302,6 +302,24 @@ const REGISTRY: RegistryEntry[] = [
         allowPaidUse: true,
     },
     {
+        id: "ollama",
+        name: "Ollama (local)",
+        type: "local",
+        capabilities: ["text"],
+        models: [],
+        freeTier: "Local compute — no cloud API",
+        health: "unknown",
+        costClass: "free",
+        // Model licences vary; do not claim commercial suitability at the
+        // provider level.
+        commercialUse: false,
+        regionRestrictions: "Runs on the user's machine via a loopback endpoint.",
+        enabled: true,
+        priority: 90,
+        verified: true,
+        disabledEnvVar: "AI_PROVIDER_OLLAMA_DISABLED",
+    },
+    {
         id: "local",
         name: "Local Heuristic Engine",
         type: "local",
@@ -345,9 +363,11 @@ function flagEnabled(entry: RegistryEntry): boolean {
  * PRESENCE of the env var — the value itself never enters any return value.
  */
 function withRuntimeState(entry: RegistryEntry): RegistryEntry {
-    const credentialsConfigured = entry.apiKeyEnvVar
-        ? Boolean(process.env[entry.apiKeyEnvVar])
-        : true; // local provider needs no credential
+    const credentialsConfigured = entry.id === "ollama"
+        ? process.env.ALGOVAULT_LOCAL_AI === "1" || process.env.OLLAMA_ENABLED === "true"
+        : entry.apiKeyEnvVar
+          ? Boolean(process.env[entry.apiKeyEnvVar])
+          : true; // local provider needs no credential
     return {
         ...entry,
         enabled: flagEnabled(entry),

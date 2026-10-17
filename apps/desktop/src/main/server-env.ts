@@ -40,6 +40,12 @@ export function buildNextServerEnv({
     if (source[key]) env[key] = source[key];
   }
 
+  // The embedded server is always loopback-only. Local AI is enabled for the
+  // desktop shell on both packaged and unpackaged runs; the endpoint is a fixed
+  // loopback constant, never copied from the user's environment.
+  env.ALGOVAULT_LOCAL_AI = '1';
+  env.OLLAMA_BASE_URL = 'http://127.0.0.1:11434';
+
   // app.isPackaged comes from Electron, not process.env. An inherited flag (or
   // any other ordinary environment variable) cannot override this boundary.
   const selfHosted = isPackaged === false && source.ALGOVAULT_SELF_HOSTED === '1';

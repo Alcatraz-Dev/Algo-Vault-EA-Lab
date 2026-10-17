@@ -67,10 +67,12 @@ export function useIntelligenceOS(refreshKey = 0) {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (mountedRef.current) {
       void load();
-    }, 0);
-    return () => clearTimeout(timer);
+    }
+    return () => {
+      // no timer cleanup needed for immediate load
+    };
   }, [refreshKey, load]);
 
   return state;

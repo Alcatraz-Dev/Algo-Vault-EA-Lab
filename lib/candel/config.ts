@@ -33,7 +33,7 @@ export const CANDEL_LIMITS = {
   name: 60,
   description: 400,
   instructions: 6_000,
-  avatar: 8,
+  avatar: 2000,
   model: 80,
   maxTools: 64,
   maxCapabilities: 64,

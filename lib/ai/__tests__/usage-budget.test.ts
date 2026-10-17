@@ -138,10 +138,12 @@ interface FetchRecorder {
 /**
  * A single mock for every provider.
  *
- * `/models` returns an empty catalog so a provider never reaches a network
- * lookup, and chat completions return OpenAI-shaped `usage` so token accounting
- * has something real to read. `failProviders` makes a named provider's chat
- * return 500, which is how a fallback is provoked.
+ * `/models` returns an empty catalog for every provider EXCEPT OpenRouter,
+ * which publishes the one zero-priced entry these tests actually request (its
+ * provider verifies pricing before dispatch, so an empty catalog now means
+ * "refuse", not "proceed"). Chat completions return OpenAI-shaped `usage` so
+ * token accounting has something real to read. `failProviders` makes a named
+ * provider's chat return 500, which is how a fallback is provoked.
  */
 function mockProviders(options?: {
     usage?: Record<string, unknown>;
@@ -161,7 +163,21 @@ function mockProviders(options?: {
 
     const impl = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
         const url = String(input);
-        if (url.includes("/models")) return jsonResponse({ object: "list", data: [] });
+        if (url.includes("/models")) {
+            if (url.includes("openrouter")) {
+                return jsonResponse({
+                    object: "list",
+                    data: [
+                        {
+                            id: FREE_MODEL,
+                            name: "OpenRouter Free Router",
+                            pricing: { prompt: "0", completion: "0" },
+                        },
+                    ],
+                });
+            }
+            return jsonResponse({ object: "list", data: [] });
+        }
         if (!url.includes("/chat/completions")) return jsonResponse({});
 
         let body: Record<string, unknown> = {};
@@ -1178,7 +1194,8 @@ export async function runAIUsageBudgetTests(): Promise<boolean> {
 
             check(
                 failEvents.some((e) => e.status === "error" && e.provider === "openrouter" &&
-                    e.errorCode === "INVALID_API_KEY" || e.errorCode === "UNKNOWN_ERROR" || e.errorCode === "QUOTA_EXCEEDED"),
+                    (e.errorCode === "INVALID_API_KEY" || e.errorCode === "UNKNOWN_ERROR" ||
+                        e.errorCode === "QUOTA_EXCEEDED" || e.errorCode === "PROVIDER_UNAVAILABLE")),
                 "Usage: a failed provider attempt is recorded as an error event with its error code"
             );
             check(

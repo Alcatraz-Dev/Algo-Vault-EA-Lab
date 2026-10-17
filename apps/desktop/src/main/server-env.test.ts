@@ -120,6 +120,25 @@ test('trusted unpackaged operator mode explicitly forwards only allowlisted Admi
   assert.equal(env.STRIPE_SECRET_KEY, undefined);
 });
 
+test('desktop local AI is fixed to loopback and never inherits provider secrets', () => {
+  const env = buildNextServerEnv({
+    source: {
+      ALGOVAULT_LOCAL_AI: '0',
+      OLLAMA_BASE_URL: 'https://attacker.example:11434',
+      OLLAMA_ENABLED: 'false',
+      OPENROUTER_API_KEY: 'must-not-cross',
+      GEMINI_API_KEY: 'must-not-cross',
+    },
+    isPackaged: true,
+  });
+
+  assert.equal(env.ALGOVAULT_LOCAL_AI, '1');
+  assert.equal(env.OLLAMA_BASE_URL, 'http://127.0.0.1:11434');
+  assert.equal(env.OLLAMA_ENABLED, undefined);
+  assert.equal(env.OPENROUTER_API_KEY, undefined);
+  assert.equal(env.GEMINI_API_KEY, undefined);
+});
+
 test('missing Admin configuration keeps the explicit server-side error', () => {
   assert.throws(
     () => getFirebaseAdminConfig({}),

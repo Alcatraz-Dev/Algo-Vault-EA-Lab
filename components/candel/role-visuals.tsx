@@ -88,13 +88,19 @@ export function CandelAvatar({
     <span
       aria-hidden
       className={cn(
-        "inline-flex shrink-0 items-center justify-center ring-1",
+        "inline-flex shrink-0 items-center justify-center ring-1 overflow-hidden",
         sizes[size],
         accent.avatar,
         className,
       )}
     >
-      {avatar ? <span className="leading-none">{avatar}</span> : <RoleIcon role={role} className={size === "lg" ? "size-6" : "size-4"} />}
+      {avatar ? (
+        typeof avatar === "string" && (avatar.startsWith("http") || avatar.startsWith("data:")) ? (
+          <img src={avatar} alt="avatar" className="h-full w-full object-cover rounded-lg block" />
+        ) : (
+          <span className="leading-none">{avatar}</span>
+        )
+      ) : <RoleIcon role={role} className={size === "lg" ? "size-6" : "size-4"} />}
     </span>
   );
 }

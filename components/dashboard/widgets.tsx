@@ -938,7 +938,7 @@ function MarketScoreWidget({ user, refreshKey, config }: WidgetProps) {
                 <div className="flex flex-col items-end gap-1.5">
                     <span
                         className={cn(
-                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-micro font-medium capitalize",
+                            "inline-flex items-center rounded-full border px-1.5 py-0.5 text-[11px] font-medium capitalize",
                             biasTone === "positive" && "border-positive/30 bg-positive/10 text-positive",
                             biasTone === "negative" && "border-negative/30 bg-negative/10 text-negative",
                             biasTone === "muted" && "border-border bg-muted text-muted-foreground"

@@ -31,17 +31,29 @@ export async function requireAdmin(request: NextRequest) {
     }
 }
 
+/**
+ * Verify a raw Firebase ID token through the existing Admin SDK wrapper.
+ *
+ * Shared by `authenticate()` and by callers that parse the Authorization
+ * header themselves. Any verification failure (expired, revoked, malformed,
+ * Admin SDK unavailable) fails closed with null.
+ */
+export async function authenticateToken(token: string) {
+    if (typeof token !== "string" || token.trim() === "") return null;
+    try {
+        return await adminAuth.verifyIdToken(token);
+    } catch {
+        return null;
+    }
+}
+
 export async function authenticate(request: NextRequest) {
     const authorization = request.headers.get("authorization") ?? "";
     if (!authorization.startsWith("Bearer ")) {
         return null;
     }
 
-    try {
-        return await adminAuth.verifyIdToken(authorization.slice(7));
-    } catch {
-        return null;
-    }
+    return authenticateToken(authorization.slice(7));
 }
 
 /**

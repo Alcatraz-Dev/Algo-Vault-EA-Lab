@@ -89,6 +89,10 @@ requirements; never treat them as specs for new work.
   fixed and single-meaning.
 - **Reference stack:** reuse → shadcn primitive → ReUI composed (`@reui` registry, not
   an npm package) → Aceternity effect (marketing/hero only) → custom.
+- **AI providers:** one gateway (`lib/ai`); OpenRouter free models are discovered from
+  the live public catalog (never a hard-coded list); Ollama is local, loopback-only,
+  explicit-selection only, and never an automatic fallback; paid inference is never
+  selected automatically.
 - **Numbers** use `font-numeric` (tabular figures); 11px is the type floor; data
   surfaces stay solid (blur only on scrims); marketing surfaces may use the
   spotlight/aurora light system within the ambient budget.

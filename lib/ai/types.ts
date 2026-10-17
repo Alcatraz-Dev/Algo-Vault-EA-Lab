@@ -7,6 +7,8 @@ export interface AIMessage {
     content: string;
 }
 
+export type AIProviderMode = "auto" | "strict";
+
 export interface AIChatRequest {
     messages: AIMessage[];
     systemPrompt?: string;
@@ -15,6 +17,14 @@ export interface AIChatRequest {
     responseFormat?: "text" | "json_object";
     model?: string;
     provider?: string;
+    /**
+     * "auto" preserves the gateway's existing free-first fallback chain.
+     * "strict" uses only `provider` and throws instead of substituting another
+     * provider or model. Default is "auto" for backward compatibility.
+     */
+    mode?: AIProviderMode;
+    /** Client cancellation signal, propagated to the provider request. */
+    signal?: AbortSignal;
 }
 
 export interface AIResponse {
@@ -22,6 +32,11 @@ export interface AIResponse {
     provider: string;
     model: string;
     content: string;
+    /** Provider/model the caller explicitly asked for, when one was given. */
+    requestedProvider?: string;
+    requestedModel?: string;
+    /** True when the provider replaced an unavailable model with a free one. */
+    substituted?: boolean;
     /**
      * Provider-reported finish reason (e.g. "stop" | "length").
      * When "length" the response was cut off at the token limit and must
@@ -47,6 +62,8 @@ export interface AIModelCapabilities {
     vision?: boolean;
     tools?: boolean;
     structuredOutput?: boolean;
+    reasoning?: boolean;
+    streaming?: boolean;
 }
 
 /**
@@ -56,6 +73,8 @@ export interface AIModelCapabilities {
 export interface AIModelPricing {
     prompt?: string | number;
     completion?: string | number;
+    /** Per-request price, when the provider reports one. */
+    request?: string | number;
 }
 
 export interface AIModel {
@@ -67,6 +86,10 @@ export interface AIModel {
     enabled: boolean;
     capabilities?: AIModelCapabilities;
     contextLength?: number;
+    /** Provider-reported expiry, when the catalog exposes one. */
+    expiresAt?: string;
+    /** True when the catalog marks the model as no longer routed. */
+    deprecated?: boolean;
     /** Absent when the provider does not expose pricing. */
     pricing?: AIModelPricing;
 }
@@ -76,6 +99,7 @@ export type AIErrorCode =
     | "QUOTA_EXCEEDED"
     | "MODEL_UNAVAILABLE"
     | "PROVIDER_UNAVAILABLE"
+    | "RESOURCE_EXHAUSTED"
     | "TIMEOUT"
     | "INVALID_API_KEY"
     | "INVALID_REQUEST"
@@ -89,6 +113,10 @@ export interface AIProviderError {
     provider: string;
     message: string;
     status?: number;
+    /** Provider-requested wait before retrying, in milliseconds. */
+    retryAfterMs?: number;
+    /** Model involved in the failure, when one was selected. */
+    model?: string;
 }
 
 // Legacy Strategy Lab compatibility types
@@ -152,8 +180,20 @@ export interface ChatMessageInput {
 export interface AIProvider {
     readonly id: string;
     readonly name: string;
+    /** Local, on-device inference. Such providers are never cloud-substituted. */
+    readonly isLocal?: boolean;
+    /** False when automatic routing must not select this provider. */
+    readonly autoSelectable?: boolean;
+    /**
+     * True when `chat()` resolves the effective model against the provider's
+     * own live catalog and verifies its current pricing before dispatch. The
+     * router then delegates the free-only decision to that provider instead of
+     * applying its id-based guard (whose heuristics cannot resolve such ids).
+     */
+    readonly verifiesModelPricing?: boolean;
     isAvailable(): Promise<boolean> | boolean;
-    getModels(): Promise<AIModel[]>;
+    /** `forceRefresh` is a hint; providers without a cache may ignore it. */
+    getModels(forceRefresh?: boolean): Promise<AIModel[]>;
     chat(request: AIChatRequest): Promise<AIResponse>;
 
     // Legacy interface support:

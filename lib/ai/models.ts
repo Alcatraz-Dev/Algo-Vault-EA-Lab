@@ -3,62 +3,13 @@ import { AIConfig } from "./config";
 
 export type { AIModelPricing };
 
-// Known catalog of free cloud models across OpenRouter, OpenCode, and B.AI
+// Hard-coded free catalog for providers whose model ids are stable and whose
+// discovery endpoint is not required for a safe fallback.
+//
+// OpenRouter is deliberately absent: its catalog changes frequently and five of
+// the six ids that used to live here disappeared from the live API. OpenRouter
+// models are discovered at runtime by OpenRouterProvider.getModels().
 export const KNOWN_FREE_MODELS: AIModel[] = [
-    {
-        id: "openrouter/free",
-        name: "OpenRouter Free Router Auto",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
-    {
-        id: "google/gemma-2-9b-it:free",
-        name: "Google Gemma 2 9B (Free)",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
-    {
-        id: "meta-llama/llama-3.3-70b-instruct:free",
-        name: "Meta Llama 3.3 70B Instruct (Free)",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
-    {
-        id: "deepseek/deepseek-r1:free",
-        name: "DeepSeek R1 (Free)",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
-    {
-        id: "qwen/qwen-2.5-coder-32b-instruct:free",
-        name: "Qwen 2.5 Coder 32B (Free)",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
-    {
-        id: "mistralai/mistral-7b-instruct:free",
-        name: "Mistral 7B Instruct (Free)",
-        provider: "openrouter",
-        free: true,
-        confirmedFree: true,
-        enabled: true,
-        capabilities: { text: true, structuredOutput: true },
-    },
     // OpenCode Zen Free Models (https://opencode.ai/docs/zen/)
     {
         id: "mimo-v2.5-free",
@@ -113,43 +64,81 @@ export const KNOWN_FREE_MODELS: AIModel[] = [
     // entirely (see BAIProvider.isAvailable).
 ];
 
+/** Parse a provider price without ever treating an absent value as zero. */
+function parsePrice(value: string | number | undefined): number | null {
+    if (typeof value === "number") {
+        return Number.isFinite(value) && value >= 0 ? value : null;
+    }
+    if (typeof value === "string" && value.trim() !== "") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+    }
+    return null;
+}
+
 export function isModelConfirmedFree(modelId: string, pricing?: AIModelPricing): boolean {
     if (!modelId) return false;
 
-    // Check pricing metadata if provided
+    // Authoritative pricing wins, absolutely. If the provider reported a price
+    // block, only an all-zero price is free: an id ending in `:free`/`-free`
+    // can never override paid, malformed, or non-zero pricing. A per-request
+    // fee is part of the price too.
     if (pricing) {
-        const promptCost = typeof pricing.prompt === "number" ? pricing.prompt : parseFloat(pricing.prompt || "1");
-        const completionCost = typeof pricing.completion === "number" ? pricing.completion : parseFloat(pricing.completion || "1");
+        const promptCost = parsePrice(pricing.prompt);
+        const completionCost = parsePrice(pricing.completion);
+        const requestCost = pricing.request === undefined ? 0 : parsePrice(pricing.request);
 
-        if (promptCost === 0 && completionCost === 0) {
-            return true;
-        }
+        return promptCost === 0 && completionCost === 0 && requestCost === 0;
     }
 
-    // Check explicit free suffix / prefix / provider markers.
-    // NOTE: there is deliberately NO provider-name rule here. An earlier
-    // `lower.startsWith("codecraft")` branch claimed free access purely from
-    // the provider name; a live /models check proved every real CodeCraft model
-    // is metered, so that inference was wrong and has been removed. Free status
-    // now comes only from zero pricing or an explicit `-free`/`:free` marker.
+    // No pricing at all is NOT proof of free. The only remaining confirmation
+    // is an explicitly reviewed entry in KNOWN_FREE_MODELS (a closed, static
+    // list — never a name-pattern inference).
     const lower = modelId.toLowerCase();
-    if (
-        lower.endsWith(":free") ||
-        lower.endsWith("-free") ||
-        lower.includes("/free") ||
-        lower === "openrouter/free"
-    ) {
-        return true;
-    }
-
-    // Check known registered free models
     const found = KNOWN_FREE_MODELS.find((m) => m.id.toLowerCase() === lower);
-    if (found && found.confirmedFree) {
-        return true;
-    }
+    return Boolean(found?.confirmedFree);
+}
 
-    // Strict rule: Unknown pricing must be treated as NOT FREE.
-    return false;
+/**
+ * Whether a provider catalog entry is verified free.
+ *
+ * A provider may assert `confirmedFree` when it verified that status itself
+ * (Bytez probes every id before listing it; OpenCode only exposes free-tier
+ * models). That assertion is only trusted when the catalog entry actually
+ * carries it; an id suffix is never consulted. When pricing is present it is
+ * authoritative and the assertion is ignored in favour of the price check.
+ */
+export function isVerifiedFreeModel(
+    model: Pick<AIModel, "id" | "confirmedFree"> & { pricing?: AIModelPricing },
+): boolean {
+    if (model.pricing) return isModelConfirmedFree(model.id, model.pricing);
+    return model.confirmedFree === true;
+}
+
+/** Shared refusal used by both free-only guards. */
+function paidModelError(modelId: string, providerId?: string): Error {
+    const key = providerId?.trim().toLowerCase() ?? "";
+    const base = `[AI Cost Protection] Paid AI model "${modelId}" blocked by free-only policy.`;
+    const envVar = key ? PROVIDER_METERED_ENV[key] : undefined;
+    return new Error(envVar ? `${base} Set ${envVar}=true to allow metered models for ${key} only.` : base);
+}
+
+/**
+ * Assert that a resolved provider catalog entry may be served under the
+ * current cost policy. Used where the provider's own discovery has already
+ * established free status (pricing or an explicit verified assertion).
+ */
+export function assertVerifiedFreeModel(
+    model: Pick<AIModel, "id" | "confirmedFree"> & { pricing?: AIModelPricing },
+    providerId?: string,
+): void {
+    if (!AIConfig.freeOnly) return;
+    if (isVerifiedFreeModel(model)) return;
+
+    const key = providerId?.trim().toLowerCase() ?? "";
+    if (key && isProviderMeteredAllowed(key)) return;
+
+    throw paidModelError(model.id, providerId);
 }
 
 /**
@@ -224,7 +213,5 @@ export function assertFreeModelAllowed(modelId: string, pricing?: AIModelPricing
     const key = providerId?.trim().toLowerCase() ?? "";
     if (key && isProviderMeteredAllowed(key)) return;
 
-    const base = `[AI Cost Protection] Paid AI model "${modelId}" blocked by free-only policy.`;
-    const envVar = key ? PROVIDER_METERED_ENV[key] : undefined;
-    throw new Error(envVar ? `${base} Set ${envVar}=true to allow metered models for ${key} only.` : base);
+    throw paidModelError(modelId, providerId);
 }

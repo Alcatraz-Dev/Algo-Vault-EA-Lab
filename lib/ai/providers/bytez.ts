@@ -10,7 +10,7 @@ import {
     ChatMessageInput,
 } from "../types";
 import { AIConfig } from "../config";
-import { assertFreeModelAllowed } from "../models";
+import { assertFreeModelAllowed, assertVerifiedFreeModel } from "../models";
 import { normalizeNarrative, normalizeSummary } from "../validate";
 import { extractFinishReason, isTruncated, isAbortError } from "../finish";
 
@@ -157,24 +157,23 @@ export class BytezProvider implements AIProvider {
         const models = await this.getModels();
         const freeModels = models.filter((m) => m.confirmedFree && m.enabled);
 
-        // Explicit model: enforce the canonical free-only guard, then only pass
-        // a model that Bytez actually exposes; otherwise fall back to a
-        // discovered free model rather than sending a foreign model id.
-        if (request.model) {
-            assertFreeModelAllowed(request.model);
-        }
-
+        // Resolve the effective model from Bytez's own verified catalog. The
+        // raw requested id is never trusted on its own: only an entry Bytez
+        // actually verified is usable.
         let model: string;
+        let resolved: AIModel | undefined;
         if (request.model) {
-            const match = models.find((m) => m.id.toLowerCase() === request.model!.toLowerCase());
-            model = match ? match.id : freeModels[0]?.id ?? "";
+            resolved = models.find((m) => m.id.toLowerCase() === request.model!.toLowerCase());
+            model = resolved ? resolved.id : freeModels[0]?.id ?? "";
         } else if (!AIConfig.freeOnly) {
             // A paid budget is allowed: default to Bytez's first enabled
             // discovered model so the credit-based capacity is usable, not
             // just the `*-free` subset.
-            model = models.find((m) => m.enabled)?.id ?? "";
+            resolved = models.find((m) => m.enabled);
+            model = resolved?.id ?? "";
         } else {
-            model = freeModels[0]?.id ?? "";
+            resolved = freeModels[0];
+            model = resolved?.id ?? "";
         }
 
         if (!model) {
@@ -194,9 +193,10 @@ export class BytezProvider implements AIProvider {
             };
         }
 
-        // Defense-in-depth: the canonical free-only guard on the resolved model
-        // (redundant when it came from `freeModels`, required for the paid path).
-        assertFreeModelAllowed(model);
+        // Defense-in-depth: the resolved catalog entry must itself be verified
+        // free under the current cost policy.
+        if (resolved) assertVerifiedFreeModel(resolved, this.id);
+        else assertFreeModelAllowed(model, undefined, this.id);
 
         const messages: Array<{ role: string; content: string }> = [];
         if (request.systemPrompt) {

@@ -172,6 +172,9 @@ export class UnifiedLLMRouter {
         for (const id of Array.from(this.adapters.keys())) {
             const provider = this.adapters.get(id);
             if (!provider) continue;
+            // Local inference is explicit-selection only. Automatic task routing
+            // must never silently move work onto the user's machine.
+            if (provider.autoSelectable === false) continue;
             const descriptor = getProviderDescriptor(id);
             if (descriptor && !descriptor.enabled) continue; // admin kill switch
             const snap = health.snapshot(id);

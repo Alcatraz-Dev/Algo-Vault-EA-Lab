@@ -25,13 +25,13 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
   }
 
   return (
-    <section className="space-y-4" data-guide="home-intelligence-os">
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-primary" />
+    <section className="space-y-3" data-guide="home-intelligence-os">
+      <header className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <ShieldAlert className="h-4 w-4 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold text-foreground">AlgoVault Intelligence OS</h2>
-            <p className="text-xs text-muted-foreground">{
+            <h2 className="text-base font-semibold text-foreground">AlgoVault Intelligence OS</h2>
+            <p className="text-[11px] text-muted-foreground">{
               context?.research?.activeMissions.some((m: any) => m.status === "running") ? "Research in progress — research-forward view active." : "Context-aware trading dashboard."
             }</p>
           </div>
@@ -42,7 +42,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </header>
 
       {/* MARKET PULSE */}
-      <section className="rounded-lg border border-border bg-card p-4" data-guide="market-pulse">
+      <section className="rounded-lg border border-border/60 bg-gradient-to-b from-card to-muted/20 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-guide="market-pulse">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Market Pulse</h3>
@@ -58,7 +58,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* WHAT MATTERS NOW */}
-      <section className="rounded-lg border border-border bg-card p-4" data-guide="what-matters-now">
+      <section className="rounded-lg border border-border/60 bg-gradient-to-b from-card to-muted/20 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-guide="what-matters-now">
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">What Matters Now</h3>
@@ -77,7 +77,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* ACTIVE SETUPS */}
-      <section className="rounded-lg border border-border bg-card p-4" data-guide="active-setups">
+      <section className="rounded-lg border border-border/60 bg-gradient-to-b from-card to-muted/20 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-guide="active-setups">
         <div className="flex items-center gap-2">
           <Settings className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Active Setups</h3>
@@ -103,7 +103,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
       </section>
 
       {/* STRATEGY HEALTH */}
-      <section className="rounded-lg border border-border bg-card p-4" data-guide="strategy-health">
+      <section className="rounded-lg border border-border/60 bg-gradient-to-b from-card to-muted/20 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04)]" data-guide="strategy-health">
         <div className="flex items-center gap-2">
           <GitBranch className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Strategy Health</h3>
@@ -151,7 +151,7 @@ export function HomeIntelligenceOS({ refreshKey }: { refreshKey: number }) {
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Risk</h3>
-          <span className={cn("ml-auto uppercase", riskClass(context?.risk?.status))}>{context?.risk?.status ?? "unknown"}</span>
+          <span className={cn("ml-auto text-[10px] uppercase font-medium", riskClass(context?.risk?.status))}>{context?.risk?.status ?? "unknown"}</span>
         </div>
         <p className="mt-2 text-xs text-muted-foreground">
           {context?.risk?.account?.balance != null ? `Balance ${context.risk.account.balance}` : "No balance"}{" "}

@@ -1178,13 +1178,15 @@ export async function runCodeCraftTests(): Promise<boolean> {
         //     output propagation, fallback and error handling.
         {
             const order: string[] = [];
+            // Catalog reads are not inference: record only dispatch order, so a
+            // provider's verification traffic cannot be mistaken for a step.
             global.fetch = mockFetch(
-                async () => {
-                    order.push("codecraft");
+                async (url) => {
+                    if (url.includes("/chat/completions")) order.push("codecraft");
                     return chatContent("STEP-PAYLOAD");
                 },
-                async () => {
-                    order.push("opencode");
+                async (url) => {
+                    if (url.includes("/chat/completions")) order.push("opencode");
                     return chatContent("STEP-PAYLOAD");
                 }
             );
@@ -1205,12 +1207,12 @@ export async function runCodeCraftTests(): Promise<boolean> {
             // Fallback mid-workflow: step 3 CodeCraft fails, step 3 still returns content.
             const fallbackOrder: string[] = [];
             global.fetch = mockFetch(
-                async () => {
-                    fallbackOrder.push("codecraft");
+                async (url) => {
+                    if (url.includes("/chat/completions")) fallbackOrder.push("codecraft");
                     return new Response("boom", { status: 500 });
                 },
-                async () => {
-                    fallbackOrder.push("opencode");
+                async (url) => {
+                    if (url.includes("/chat/completions")) fallbackOrder.push("opencode");
                     return chatContent("STEP3-FALLBACK");
                 }
             );
@@ -1456,15 +1458,17 @@ export async function runCodeCraftTests(): Promise<boolean> {
             // Case B is CodeCraft-specific: no other provider may gain it, and
             // every provider keeps its own pre-existing selection logic.
             const providerSubstitutions: Array<[string, RegExp]> = [
-                ["openrouter", /request\.model && isModelConfirmedFree\(request\.model\) \? request\.model : "openrouter\/free"/],
-                ["opencode", /request\.model && isModelConfirmedFree\(request\.model\) \? request\.model : "mimo-v2\.5-free"/],
+                // OpenRouter now resolves against its live free catalog and
+                // allows substitution only to the free router, never a paid id.
+                ["openrouter", /request\.mode === "strict"[\s\S]{0,2500}substituted = Boolean\(explicit\)/],
+                ["opencode", /entry\.id\.toLowerCase\(\) === requested\.toLowerCase\(\)[\s\S]{0,700}assertVerifiedFreeModel\(selected/],
                 ["bytez", /models\.find\(\(m\) => m\.id\.toLowerCase\(\) === request\.model!\.toLowerCase\(\)\)/],
             ];
             for (const [name, pattern] of providerSubstitutions) {
                 const src = stripComments((await readFileSafe(`lib/ai/providers/${name}.ts`)) ?? "");
                 check(
                     pattern.test(src),
-                    `Case B: the ${name} provider keeps its own model-selection logic unchanged`
+                    `Case B: the ${name} provider keeps a provider-scoped model-selection path`
                 );
                 check(
                     !/not advertised by CodeCraft/.test(src),
@@ -1538,7 +1542,9 @@ export async function runCodeCraftTests(): Promise<boolean> {
                     !/CODECRAFT_ALLOW_METERED|isProviderMeteredAllowed/.test(src),
                     `F2: the ${other} provider does not reference the CodeCraft metered opt-in`
                 );
-                if (/assertFreeModelAllowed\(/.test(src)) guardCallers.push(other);
+                // Both guards are the same cost policy: the id-based guard and
+                // the catalog-entry guard (`assertVerifiedFreeModel`).
+                if (/assertFreeModelAllowed\(|assertVerifiedFreeModel\(/.test(src)) guardCallers.push(other);
             }
             check(
                 guardCallers.join(",") === "openrouter,opencode,bai,bytez",

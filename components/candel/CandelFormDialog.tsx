@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Loader2, RotateCcw, ShieldCheck, Wrench } from "lucide-react";
 import {
   Dialog,
@@ -149,13 +150,13 @@ export function CandelFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{editing ? "Customize Candel" : "New Candel"}</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="sm:max-w-xl rounded-2xl border-border/60 bg-gradient-to-b from-card to-muted/20 shadow-2xl">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-lg font-semibold tracking-tight">{editing ? "Customize Candel" : "New Candel"}</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
             {editing
-              ? "Change the role, instructions and enabled tools. Tools can only be narrowed — the template is the ceiling."
-              : "Pick a template, give it a role and name, then tune what it may touch. Nothing can trade on its own."}
+              ? "Change the role, instructions and enabled tools."
+              : "Pick a template, give it a role and name, then tune what it may touch."}
           </DialogDescription>
         </DialogHeader>
 
@@ -237,35 +238,43 @@ export function CandelFormDialog({
             />
           </FormField>
 
-          <FormField label="Avatar" description="Optional emoji shown instead of the role icon.">
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                value={form.avatar}
-                maxLength={8}
-                placeholder="🧠"
-                className="w-20"
-                onChange={(event) => setForm({ ...form, avatar: event.target.value })}
-              />
-              {AVATAR_PICKS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setForm({ ...form, avatar: emoji })}
-                  className="size-8 rounded-md border border-border text-base transition hover:bg-muted"
-                >
-                  {emoji}
-                </button>
-              ))}
-              {form.avatar ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => setForm({ ...form, avatar: "" })}
-                >
-                  Clear
-                </Button>
-              ) : null}
+          <FormField label="Avatar" description="Upload or pick a cute character:">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="inline-flex items-center gap-2 cursor-pointer rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted transition-colors">
+                <span>Upload</span>
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0]; if (!file) return;
+                  try { const r = new FileReader(); r.onload = () => setForm({ ...form, avatar: String(r.result) }); r.readAsDataURL(file); } catch {}
+                }} />
+              </label>
+              <div className="grid grid-cols-6 gap-2">
+                {[
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Milo",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Sara",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Leo",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Ava",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Finn",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Noah",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Ruby",
+                  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jasper",
+                ].map((url) => (
+                  <button
+                    key={url}
+                    type="button"
+                    onClick={() => setForm({ ...form, avatar: url })}
+                    className={cn(
+                      "h-10 w-10 rounded-lg overflow-hidden ring-2 transition-colors",
+                      form.avatar === url ? "ring-primary" : "ring-transparent hover:ring-border"
+                    )}
+                  >
+                    <img src={url} alt="char" className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
             </div>
           </FormField>
 

@@ -728,17 +728,17 @@ export function AutomationsPanel({ candelId }: { candelId: string }) {
       >
         {list.length === 0 ? null : (
           <ul className="divide-y divide-border rounded-lg border border-border">
-            {list.map((automation) => {
+            {list.map((automation, idx) => {
               const active = automation.status === "active";
               const busy = busyId === automation.id;
               return (
-                <li key={automation.id} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
+                <li key={String(automation.id ? automation.id + "-" + idx : "auto-" + idx)} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
                   <div className="min-w-40 flex-1">
                     <p className="truncate text-sm text-foreground">{automation.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {automation.trigger.kind === "cron"
-                        ? `cron ${automation.trigger.cron ?? ""}`
-                        : `on ${automation.trigger.event ?? ""}`}
+                      {automation.trigger?.kind === "cron"
+                        ? `cron ${automation.trigger?.cron ?? ""}`
+                        : `on ${automation.trigger?.event ?? ""}`}
                       {automation.updatedAt ? ` · updated ${timeAgo(automation.updatedAt)}` : ""}
                     </p>
                   </div>

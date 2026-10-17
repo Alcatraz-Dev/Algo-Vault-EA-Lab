@@ -451,7 +451,7 @@ export default function DashboardBuilderPage() {
         >
             <div className="flex flex-col gap-4" data-guide="dashboard">
                 {/* Controls */}
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="controls">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-gradient-to-r from-card to-muted/30 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ring-1 ring-border/40 transition-shadow" data-guide="controls">
                     <Button
                         type="button"
                         variant="outline"
@@ -532,7 +532,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Account selector — account-scoped widgets follow this choice. */}
                 {accounts.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="account-selector">
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-gradient-to-r from-card to-muted/30 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ring-1 ring-border/40 transition-shadow" data-guide="account-selector">
                         <label
                             htmlFor="dashboard-account"
                             className="text-micro uppercase tracking-wide text-muted-foreground"
@@ -560,7 +560,7 @@ export default function DashboardBuilderPage() {
                 )}
 
                 {/* Market selector — every symbol-scoped widget follows this choice. */}
-                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]" data-guide="market-selector">
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-gradient-to-r from-card to-muted/30 px-4 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.04)] ring-1 ring-border/40 transition-shadow" data-guide="market-selector">
                     <label htmlFor="dashboard-symbol" className="text-micro uppercase tracking-wide text-muted-foreground">
                         Market
                     </label>
@@ -604,7 +604,7 @@ export default function DashboardBuilderPage() {
                 {layoutError && (
                     <div
                         role="alert"
-                        className="flex items-start gap-2.5 rounded-xl border border-negative/30 bg-negative-muted p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                        className="flex items-start gap-2.5 rounded-xl border border-negative/30 bg-gradient-to-br from-negative-muted to-card px-4 py-4 shadow-[0_4px_16px_rgba(220,38,38,0.06)] ring-1 ring-negative/10"
                     >
                         <AlertTriangle size={15} className="mt-0.5 shrink-0 text-negative" />
                         <div className="min-w-0 flex-1">
@@ -641,7 +641,7 @@ export default function DashboardBuilderPage() {
                 {/* Widgets */}
                 {layoutLoading && widgets.length === 0 ? (
                     <div
-                        className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                        className="flex flex-col gap-3 rounded-xl border border-border/60 bg-gradient-to-b from-card to-muted/20 p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] ring-1 ring-border/30"
                         role="status"
                         aria-label="Loading widgets"
                     >
@@ -660,7 +660,7 @@ export default function DashboardBuilderPage() {
                         <span className="text-xs text-muted-foreground">Loading widgets…</span>
                     </div>
                 ) : widgets.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-card px-6 py-14 text-center shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                    <div className="rounded-xl border border-dashed border-border/70 bg-gradient-to-b from-card to-muted/20 px-6 py-14 text-center shadow-[0_4px_16px_rgba(0,0,0,0.04)] ring-1 ring-border/30">
                         <p className="text-sm font-medium text-foreground">No widgets yet</p>
                         <p className="mx-auto mt-1 max-w-[46ch] text-xs text-muted-foreground">
                             {editMode
@@ -679,7 +679,7 @@ export default function DashboardBuilderPage() {
                         )}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-guide="widgets">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" data-guide="widgets">
                         {widgets.map((widget) => {
                             const spec = WIDGET_SPEC_BY_TYPE[widget.type];
                             const Icon = spec?.icon ?? WidgetsFallbackIcon;
@@ -695,37 +695,38 @@ export default function DashboardBuilderPage() {
                                     }}
                                     onDragEnd={() => setDraggingId(null)}
                                     className={cn(
-                                        "flex animate-page-enter flex-col rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] transition-colors",
+                                        "flex animate-page-enter flex-col rounded-xl border border-border/70 bg-gradient-to-b from-card to-muted/20 shadow-[0_1px_3px_rgba(0,0,0,0.06),0_8px_24px_rgba(0,0,0,0.04)] transition-all duration-300 ease-out",
                                         widget.h === 2 && "sm:row-span-2",
                                         SPAN_BY_WIDTH[widget.w] ?? "sm:col-span-1",
                                         editMode && "border-dashed border-primary/40",
-                                        draggingId === widget.id && "opacity-50"
+                                        draggingId === widget.id && "opacity-50",
+                                        !draggingId && !editMode && "hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] hover:border-border"
                                     )}
                                 >
-                                    <header className="flex items-center gap-2 border-b border-border px-4 py-3">
+                                    <header className="flex items-center gap-2.5 border-b border-border/60 px-3 py-2">
                                         {editMode && (
                                             <GripVertical
-                                                size={13}
+                                                size={14}
                                                 className="shrink-0 cursor-grab text-muted-foreground"
                                                 aria-label="Drag to reorder"
                                             />
                                         )}
                                         {spec?.live ? (
                                             <span
-                                                className="relative flex h-1.5 w-1.5 shrink-0"
+                                                className="relative flex h-2 w-2 shrink-0"
                                                 title="Polling live data"
                                             >
                                                 <span
                                                     aria-hidden="true"
-                                                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60"
+                                                    className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-70"
                                                 />
-                                                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-positive" />
+                                                <span className="relative inline-flex h-2 w-2 rounded-full bg-positive" />
                                             </span>
                                         ) : null}
-                                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-border bg-muted/50 text-muted-foreground [&_svg]:size-3.5">
-                                            <Icon size={14} className="shrink-0 text-primary" />
+                                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border bg-gradient-to-br from-muted/60 to-muted/30 text-muted-foreground shadow-sm [&_svg]:size-4">
+                                            <Icon size={15} className="shrink-0 text-primary" />
                                         </span>
-                                        <h2 className="min-w-0 flex-1 truncate text-[13px] font-semibold tracking-tight text-foreground">
+                                        <h2 className="min-w-0 flex-1 truncate text-xs font-semibold tracking-tight text-foreground">
                                             {widget.title}
                                         </h2>
                                         {editMode ? (
@@ -793,7 +794,7 @@ export default function DashboardBuilderPage() {
                                         )}
                                     </header>
 
-                                    <div className="flex-1 p-4">
+                                    <div className="flex-1 p-3">
                                         <WidgetBody
                                             type={widget.type}
                                             user={user}
@@ -812,7 +813,7 @@ export default function DashboardBuilderPage() {
 
                 {/* Catalogue reference, doubles as discovery while editing */}
                 {editMode && (
-                    <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                    <div className="rounded-xl border border-border/60 bg-gradient-to-b from-card to-muted/20 px-5 py-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] ring-1 ring-border/30 transition-shadow">
                         <h3 className="text-[10px] font-semibold text-foreground">
                             Available widgets ({WIDGET_CATALOG.length})
                         </h3>

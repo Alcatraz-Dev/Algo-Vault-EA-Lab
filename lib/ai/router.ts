@@ -11,7 +11,11 @@ import {
     ChatMessageInput,
 } from "./types";
 import { AIConfig } from "./config";
-import { assertFreeModelAllowed, KNOWN_FREE_MODELS, isModelConfirmedFree } from "./models";
+import {
+    assertFreeModelAllowed,
+    KNOWN_FREE_MODELS,
+    isModelConfirmedFree,
+} from "./models";
 import { isAbortError } from "./finish";
 import { OpenRouterProvider } from "./providers/openrouter";
 import { OpenCodeProvider } from "./providers/opencode";
@@ -19,6 +23,7 @@ import { BAIProvider } from "./providers/bai";
 import { GeminiProvider } from "./providers/gemini";
 import { BytezProvider } from "./providers/bytez";
 import { CodeCraftProvider } from "./providers/codecraft";
+import { OllamaProvider } from "./providers/ollama";
 import { LocalStrategyAIProvider } from "./local";
 import {
     AIRequestContext,
@@ -58,6 +63,7 @@ export class AIRouter {
         const codecraft = new CodeCraftProvider();
         const bai = new BAIProvider();
         const bytez = new BytezProvider();
+        const ollama = new OllamaProvider();
 
         this.providers.set(gemini.id, gemini);
         this.providers.set(openrouter.id, openrouter);
@@ -65,6 +71,10 @@ export class AIRouter {
         this.providers.set(codecraft.id, codecraft);
         this.providers.set(bai.id, bai);
         this.providers.set(bytez.id, bytez);
+        // Local inference is registered for explicit selection and catalog
+        // discovery only. `autoSelectable = false` keeps it out of the automatic
+        // cloud fallback chain in both this router and the unified router.
+        this.providers.set(ollama.id, ollama);
 
         // The model catalog is the only source of pricing for cost estimation.
         // It is snapshotted in the background and read from memory, so no AI
@@ -176,7 +186,7 @@ export class AIRouter {
             this.providers.get("codecraft"),
             this.providers.get("bai"),
             this.providers.get("bytez"),
-        ];
+        ].filter((provider): provider is AIProvider => Boolean(provider && provider.autoSelectable !== false));
 
         let providers = baseOrder;
         if (preferredProviderId) {
@@ -221,28 +231,82 @@ export class AIRouter {
      * being handed an unsupported model.
      */
     async chat(request: AIChatRequest, context?: AIRequestContext): Promise<AIResponse> {
+        const mode = request.mode ?? "auto";
+        if (mode !== "auto" && mode !== "strict") {
+            throw {
+                code: "INVALID_REQUEST",
+                provider: "gateway",
+                message: `Unsupported provider mode "${String(mode)}". Use "auto" or "strict".`,
+            } satisfies AIProviderError;
+        }
+
+        const providerId = request.provider?.trim().toLowerCase();
+        if (mode === "strict" && !providerId) {
+            throw {
+                code: "INVALID_REQUEST",
+                provider: "gateway",
+                message: "Strict provider mode requires an explicit provider.",
+            } satisfies AIProviderError;
+        }
+
+        const localRequest = providerId === "ollama" || providerId === "local-heuristic";
+
         // Enforce hard free-only check if model specified. `request.provider` is
         // passed through so a provider-scoped metered opt-in (e.g.
         // CODECRAFT_ALLOW_METERED) can relax the guard for that provider ONLY.
-        // A request with no explicit provider is still checked strictly.
-        if (request.model) {
-            assertFreeModelAllowed(request.model, undefined, request.provider);
+        // A local model is not a cloud model and is exempt from the cloud price
+        // policy. A request with no explicit provider is still checked strictly.
+        //
+        // A provider that resolves the effective model against its own live
+        // catalog before dispatch (`verifiesModelPricing`) owns this decision:
+        // its free ids carry no suffix this router could trust, and asking it
+        // here would force an upstream catalog fetch for every call, mutating a
+        // shared cache mid-request. Such a provider either verifies the model or
+        // refuses the request — it never dispatches an unverified one.
+        const selectedProvider = providerId ? this.providers.get(providerId) : undefined;
+        const providerVerifiesPricing = selectedProvider?.verifiesModelPricing === true;
+        if (request.model && !localRequest && !providerVerifiesPricing) {
+            try {
+                assertFreeModelAllowed(request.model, undefined, request.provider);
+            } catch (err) {
+                throw {
+                    code: "PAID_MODEL_BLOCKED",
+                    provider: providerId || "gateway",
+                    message: err instanceof Error ? err.message : String(err),
+                } satisfies AIProviderError;
+            }
         }
 
-        // NOTE: the pricing catalog is deliberately NOT refreshed from here.
-        // Priming it would call every provider's getModels() concurrently with
-        // this request's own model resolution, and those methods mutate a shared
-        // cache — a failed refresh would blank it, which changes CodeCraft's
-        // model resolution for an unrelated in-flight request. Cost estimation
-        // therefore reads whatever snapshot is already warm (populated by the
-        // admin usage/budget endpoints, and by any caller of getAllModels), and
-        // reports "unknown" rather than a guess until then.
+        const available = await this.getAvailableCloudProviders(providerId);
+        const explicitLocal = providerId === "ollama" || providerId === "local-heuristic";
+        const candidateOrder = mode === "strict" || explicitLocal
+            ? available.filter((provider) => provider.id === providerId)
+            : available;
 
-        const candidateOrder = await this.getAvailableCloudProviders(request.provider);
+        const lastErrors: AIProviderError[] = [];
+
+        if (candidateOrder.length === 0 && mode === "strict") {
+            throw {
+                code: "PROVIDER_UNAVAILABLE",
+                provider: providerId || "gateway",
+                message: `Provider "${providerId}" is not available.`,
+            } satisfies AIProviderError;
+        }
+
+        // Automatic mode with an explicitly selected provider still falls back
+        // (existing behaviour), but the degradation must be visible: without
+        // this entry an unavailable local model would look like a normal answer
+        // from a different engine.
+        if (candidateOrder.length === 0 && providerId) {
+            lastErrors.push({
+                code: "PROVIDER_UNAVAILABLE",
+                provider: providerId,
+                message: `Provider "${providerId}" is not available; the request was not sent to it.`,
+            });
+        }
 
         let attempts = 0;
         const maxAttempts = Math.min(AIConfig.maxAttempts, candidateOrder.length);
-        const lastErrors: AIProviderError[] = [];
         const budgetBlockedProviders: string[] = [];
         let budgetBlockedReason = "";
 
@@ -264,13 +328,17 @@ export class AIRouter {
             //     cannot lower the global total, and cannot skip its check.
             // The loop visits each provider once and the attempt counter is
             // capped by maxAttempts, so there is no path to an infinite loop.
-            const budget = await evaluateBudgetSafely({
-                provider: provider.id,
-                model: request.model,
-                userId: context?.userId,
-                source: context?.source,
-                sourceId: context?.sourceId,
-            });
+            // Local inference has no provider cost. A cloud budget must never
+            // block or shape local usage.
+            const budget = provider.isLocal
+                ? { decision: "ALLOW" as const, reason: "" }
+                : await evaluateBudgetSafely({
+                      provider: provider.id,
+                      model: request.model,
+                      userId: context?.userId,
+                      source: context?.source,
+                      sourceId: context?.sourceId,
+                  });
             if (budget.decision === "BLOCK") {
                 budgetBlockedProviders.push(provider.id);
                 if (!budgetBlockedReason) budgetBlockedReason = budget.reason;
@@ -312,14 +380,20 @@ export class AIRouter {
                     latencyMs: Date.now() - attemptStartedAt,
                     status: "success",
                     context,
+                    // Local inference is free by construction, not by an
+                    // estimated price.
+                    forcedCostUsd: provider.isLocal ? 0 : undefined,
                 });
                 // Provider-to-provider fallback must stay observable: without
                 // this, a failed attempt (e.g. CodeCraft 401 -> next provider
                 // succeeds) is only visible in a server log and disappears from
                 // the response the type says carries `fallbackErrors`.
-                return lastErrors.length > 0
+                const enriched = lastErrors.length > 0
                     ? { ...res, fallbackErrors: [...lastErrors, ...(res.fallbackErrors ?? [])] }
                     : res;
+                enriched.requestedProvider = request.provider;
+                enriched.requestedModel = request.model;
+                return enriched;
             } catch (err: unknown) {
                 const isAbort = isAbortError(err);
                 const provErr = isAbort
@@ -342,7 +416,21 @@ export class AIRouter {
             }
         }
 
-        // If no cloud free providers succeeded or were available, check local fallback strategy provider
+        // Strict mode never falls back. Returning the provider's own error is
+        // the only honest outcome when the selected provider cannot serve.
+        if (mode === "strict") {
+            const last = lastErrors[lastErrors.length - 1];
+            if (last) throw last;
+            throw {
+                code: "PROVIDER_UNAVAILABLE",
+                provider: providerId || "gateway",
+                message: `Provider "${providerId}" did not serve the request.`,
+            } satisfies AIProviderError;
+        }
+
+        // If no cloud free providers succeeded or were available, check local fallback strategy provider.
+        // An explicit Ollama request may fall back to the deterministic local
+        // heuristic, but never to a cloud provider.
         console.log("[AI] Utilizing local heuristic free AI provider fallback.");
         const fallbackStartedAt = Date.now();
         const fallback = await this.localProvider.chat(request);
@@ -361,6 +449,8 @@ export class AIRouter {
         const enriched: AIResponse = lastErrors.length > 0
             ? { ...fallback, fallbackErrors: lastErrors }
             : fallback;
+        enriched.requestedProvider = request.provider;
+        enriched.requestedModel = request.model;
 
         // When every candidate was refused by the budget, the caller gets a
         // clear, structured signal. The local heuristic is returned rather than

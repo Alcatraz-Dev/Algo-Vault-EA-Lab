@@ -8,6 +8,7 @@ import {
     Bell,
     CheckCircle2,
     ChevronRight,
+    Cpu,
     ExternalLink,
     Globe,
     HardDrive,
@@ -39,6 +40,7 @@ import { auth, database } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import { TradingViewIntegrationCard } from "@/components/account/TradingViewIntegrationCard";
 import { OrderFlowSettingsCard } from "@/components/account/OrderFlowSettingsCard";
+import { AIProviderSettingsCard } from "@/components/account/AIProviderSettingsCard";
 
 type Mt5AccountItem = {
     id: string;
@@ -83,7 +85,7 @@ type UserSettings = {
     updatedAt?: number;
 };
 
-type TabType = "profile" | "mt5" | "security" | "risk" | "notifications" | "integrations";
+type TabType = "profile" | "mt5" | "security" | "risk" | "notifications" | "integrations" | "ai";
 
 type NotificationRecord = {
     id: string;
@@ -713,7 +715,7 @@ export default function AccountSettingsPage() {
         const t = setTimeout(() => {
             const params = new URLSearchParams(window.location.search);
             const requested = params.get("tab");
-            const valid: TabType[] = ["profile", "mt5", "security", "risk", "notifications", "integrations"];
+            const valid: TabType[] = ["profile", "mt5", "security", "risk", "notifications", "integrations", "ai"];
             if (valid.includes(requested as TabType)) {
                 setActiveTab(requested as TabType);
             }
@@ -888,6 +890,19 @@ export default function AccountSettingsPage() {
                             <Plug size={16} />
                             <span>Integrations</span>
                         </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setActiveTab("ai")}
+                            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                                activeTab === "ai"
+                                    ? "border-black text-foreground"
+                                    : "border-transparent text-muted-foreground hover:text-foreground"
+                            }`}
+                        >
+                            <Cpu size={16} />
+                            <span>AI Providers</span>
+                        </button>
                     </div>
 
                 {/* Main Content Area */}
@@ -911,6 +926,11 @@ export default function AccountSettingsPage() {
                             <span>{toastMessage.text}</span>
                         </div>
                     </div>
+                )}
+
+                {/* TAB: AI PROVIDERS */}
+                {activeTab === "ai" && (
+                    <AIProviderSettingsCard user={user} />
                 )}
 
                 {/* TAB: INTEGRATIONS (TradingView MCP) */}

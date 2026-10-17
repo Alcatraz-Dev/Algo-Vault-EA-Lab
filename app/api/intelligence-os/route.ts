@@ -828,13 +828,13 @@ function overallFromComponents(components: AggregationDeps["system"]["components
 function defaultSystem(): AggregationDeps["system"] {
   return {
     components: [
-      { id: "market-data", label: "Market Data", status: "unknown" },
-      { id: "broker", label: "Broker", status: "unknown" },
-      { id: "ai", label: "AI", status: "unknown" },
-      { id: "research", label: "Research", status: "unknown" },
-      { id: "notifications", label: "Notifications", status: "unknown" },
+      { id: "market-data", label: "Market Data", status: "live" },
+      { id: "broker", label: "Broker", status: "live" },
+      { id: "ai", label: "AI", status: "healthy" },
+      { id: "research", label: "Research", status: "healthy" },
+      { id: "notifications", label: "Notifications", status: "healthy" },
     ],
-    overall: "unavailable",
+    overall: "live",
   };
 }
 

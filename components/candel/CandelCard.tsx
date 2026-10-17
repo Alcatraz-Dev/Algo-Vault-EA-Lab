@@ -39,83 +39,59 @@ export function CandelCard({
 
   return (
     <Card
-      className="group h-full cursor-pointer transition-colors hover:border-foreground/20"
+      className="group h-full cursor-pointer rounded-xl border border-border/60 bg-gradient-to-b from-card to-muted/10 shadow-[0_1px_3px_rgba(0,0,0,0.05),0_8px_16px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:border-border/80"
       onClick={() => onOpen(instance.id)}
     >
       <CardContent className="flex h-full flex-col gap-3">
-        <div className="flex items-start gap-3">
-          <CandelAvatar role={role} avatar={instance.customization?.avatar} />
+        <div className="flex items-start gap-3 relative">
+          {instance.customization?.avatar ? (
+            <img
+              src={instance.customization.avatar}
+              alt=""
+              className="inline-flex shrink-0 size-14 rounded-xl ring-1 ring-border object-cover block"
+            />
+          ) : (
+            <CandelAvatar role={role} avatar={instance.customization?.avatar} size="lg" />
+          )}
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="truncate font-heading text-sm font-semibold text-foreground">
-                {instance.displayName || instance.name}
-              </h3>
-              {busy ? <Loader2 className="size-3.5 animate-spin text-muted-foreground" /> : null}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="truncate font-heading text-base font-semibold text-foreground leading-tight">
+                  {instance.displayName || instance.name}
+                </h3>
+                <div className="mt-1 flex items-center gap-1.5">
+                  <RoleChip role={role} />
+                  <span className="text-[10px] text-muted-foreground">{templateName ? `${templateName} template` : instance.templateId}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Button type="button" variant="ghost" size="icon-xs" aria-label="Customize" title="Customize" onClick={(e) => { e.stopPropagation(); onCustomize(instance); }} className="hover:bg-muted">
+                  <Settings2 size={14} />
+                </Button>
+                <Button type="button" variant="ghost" size="icon-xs" aria-label="Delete" title="Delete" onClick={(e) => { e.stopPropagation(); onDelete(instance); }} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                  <Trash2 size={14} />
+                </Button>
+              </div>
             </div>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {templateName ? `${templateName} template` : instance.templateId}
-            </p>
-          </div>
-          <div
-            className="flex items-center gap-1"
-            onClick={(event) => event.stopPropagation()}
-            role="presentation"
-          >
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button type="button" variant="ghost" size="icon-sm" aria-label="Candel actions" />
-                }
-              >
-                <Settings2 />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => onOpen(instance.id)}>
-                  <MessagesSquare className="mr-1.5 size-3.5" /> Open chat
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onCustomize(instance)}>
-                  <Settings2 className="mr-1.5 size-3.5" /> Customize
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {instance.status === "active" ? (
-                  <DropdownMenuItem onSelect={() => onSetStatus(instance.id, "paused")}>
-                    <Pause className="mr-1.5 size-3.5" /> Pause
-                  </DropdownMenuItem>
-                ) : !archived ? (
-                  <DropdownMenuItem onSelect={() => onSetStatus(instance.id, "active")}>
-                    <Play className="mr-1.5 size-3.5" /> Resume
-                  </DropdownMenuItem>
-                ) : (
-                  <DropdownMenuItem onSelect={() => onSetStatus(instance.id, "active")}>
-                    <Play className="mr-1.5 size-3.5" /> Restore
-                  </DropdownMenuItem>
-                )}
-                {!archived && (
-                  <DropdownMenuItem onSelect={() => onArchive(instance.id)}>
-                    <Archive className="mr-1.5 size-3.5" /> Archive
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive"
-                  onSelect={() => onDelete(instance)}
-                >
-                  <Trash2 className="mr-1.5 size-3.5" /> Delete permanently
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 
-        <p className="line-clamp-2 min-h-8 text-xs text-muted-foreground">
+        <p className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
           {instance.description || spec.tagline}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-2">
-          <RoleChip role={role} />
-          <CandelStatusBadge status={instance.status} />
-          <span className="ml-auto text-xs text-muted-foreground">
-            {timeAgo(instance.updatedAt)}
+        <div className="mt-auto flex items-center gap-2 pt-2 border-t border-border/40">
+          <Button type="button" size="xs" variant="outline" onClick={(e) => { e.stopPropagation(); onOpen(instance.id); }} className="h-6 gap-1 text-[10px] px-1.5">
+            <MessagesSquare size={10} /> Chat
+          </Button>
+          {!archived && (
+            <Button type="button" size="xs" variant="outline" onClick={(e) => { e.stopPropagation(); onArchive(instance.id); }} className="h-6 gap-1 text-[10px] px-1.5">
+              <Archive size={10} /> Archive
+            </Button>
+          )}
+          <span className="ml-auto flex items-center gap-1.5">
+            <CandelStatusBadge status={instance.status} />
+            <span className="text-[10px] text-muted-foreground tabular-nums">{timeAgo(instance.updatedAt)}</span>
           </span>
         </div>
       </CardContent>
