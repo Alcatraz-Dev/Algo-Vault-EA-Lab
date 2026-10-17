@@ -103,7 +103,7 @@ export function TradingProviderStatus() {
   const isDemo = connection?.environment === "DEMO";
 
   return (
-    <div className="border border-border px-3 py-2" aria-label="Trading provider">
+    <div className="border border-border px-3 py-1" aria-label="Trading provider">
       <div className="flex items-center gap-2">
         {loading ? (
           <Loader2 className="size-3 animate-spin text-muted-foreground" />
@@ -113,14 +113,14 @@ export function TradingProviderStatus() {
           <WifiOff className="size-3 text-negative" />
         )}
         <span className={cn("size-1.5 rounded-full", DOT[state])} aria-hidden />
-        <span className="text-micro font-medium">{connection?.provider ?? "NO PROVIDER"}</span>
+        <span className="text-micro font-normal">{connection?.provider ?? "NO PROVIDER"}</span>
         <span className="text-micro text-muted-foreground">
           {executable ? STATE_LABEL[state] : STATE_LABEL[state]}
         </span>
         {connection?.environment ? (
           <span
             className={cn(
-              "rounded border px-1 py-px text-micro font-semibold tracking-wide",
+              "rounded-full border px-0.5 py-px text-[9px] font-normal tracking-wide",
               isDemo
                 ? "border-info/40 bg-info/10 text-info"
                 : "border-negative/40 bg-negative/10 text-negative"
@@ -146,7 +146,7 @@ export function TradingProviderStatus() {
       ) : null}
 
       {!executable ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-warning">
+        <p className="mt-1.5 flex items-start gap-1 text-micro text-warning">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>
             {state === "STALE"
@@ -157,14 +157,14 @@ export function TradingProviderStatus() {
       ) : null}
 
       {!isDemo && connection ? (
-        <p className="mt-1.5 flex items-start gap-1.5 text-micro text-negative">
+        <p className="mt-1.5 flex items-start gap-1 text-micro text-negative">
           <ShieldAlert className="mt-px size-3 shrink-0" />
           <span>Live (real-money) execution is disabled platform-wide.</span>
         </p>
       ) : null}
 
       {connection?.error ? (
-        <p className="mt-1 flex items-center gap-1.5 text-micro text-muted-foreground">
+        <p className="mt-1 flex items-center gap-1 text-micro text-muted-foreground">
           <Activity className="size-2.5" />
           {connection.error.code}
         </p>

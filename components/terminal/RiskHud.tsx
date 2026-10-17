@@ -37,10 +37,10 @@ export function RiskHud() {
     const { risk, riskError, riskLoading } = useTerminalData();
 
     return (
-        <section className="rounded-lg border border-border bg-card p-3" aria-label="Risk">
+        <section className="rounded-2xl border border-border bg-card p-2" aria-label="Risk">
             <PanelErrorBoundary name="Risk" compact>
                 <div className="flex items-start justify-between gap-2">
-                    <h2 className="flex items-center gap-1.5 text-micro font-semibold uppercase tracking-wide text-foreground">
+                    <h2 className="flex items-center gap-1 text-micro font-normal uppercase tracking-wide text-foreground">
                         <Shield className="size-3 text-primary" />
                         Risk
                     </h2>
@@ -48,11 +48,11 @@ export function RiskHud() {
                 </div>
 
                 {riskError ? (
-                    <p className="mt-2 text-micro leading-4 text-warning">
+                    <p className="mt-2 text-[8px] leading-3 text-warning">
                         Risk state unavailable — trading status cannot be verified.
                     </p>
                 ) : !risk || !risk.status ? (
-                    <p className="mt-2 text-micro leading-4 text-muted-foreground">
+                    <p className="mt-2 text-[8px] leading-3 text-muted-foreground">
                         No connected account — no risk state to report.
                     </p>
                 ) : (
@@ -62,7 +62,7 @@ export function RiskHud() {
                             return (
                                 <div
                                     className={cn(
-                                        "mt-2 flex items-center justify-center gap-1.5 rounded-md border py-1.5 text-xs font-bold tracking-wider",
+                                        "mt-2 flex items-center justify-center gap-1 rounded-md border py-1.5 text-[10px] font-normal tracking-wider",
                                         STATUS_STYLE[risk.status] ?? "border-border text-muted-foreground"
                                     )}
                                     role="status"
@@ -73,7 +73,7 @@ export function RiskHud() {
                             );
                         })()}
 
-                        <dl className="mt-2 grid grid-cols-2 gap-1.5">
+                        <dl className="mt-2 grid grid-cols-2 gap-1">
                             <Cell label="Daily loss" value={pct(risk.metrics?.dailyLossPct)} />
                             <Cell label="Drawdown" value={pct(risk.metrics?.drawdownPct)} />
                             <Cell
@@ -114,14 +114,14 @@ export function RiskHud() {
                         {risk.reasons.length > 0 ? (
                             <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                                 {risk.reasons.map((r) => (
-                                    <li key={r} className="text-micro leading-4 text-warning">
+                                    <li key={r} className="text-[8px] leading-3 text-warning">
                                         • {r}
                                     </li>
                                 ))}
                             </ul>
                         ) : null}
 
-                        <p className="mt-2 border-t border-border pt-1.5 text-micro leading-4 text-muted-foreground">
+                        <p className="mt-2 border-t border-border pt-1.5 text-[8px] leading-3 text-muted-foreground">
                             Evaluated by the AlgoVault canonical Risk Engine. Limits shown as “—” are not configured on
                             this account, not zero.
                         </p>
@@ -135,11 +135,11 @@ export function RiskHud() {
 function Cell({ label, value }: { label: string; value: string }) {
     const unavailable = value === "—";
     return (
-        <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
-            <div className="text-micro uppercase tracking-wide text-muted-foreground">{label}</div>
+        <div className="rounded-md border border-border/70 bg-background px-1 py-0.5.5">
+            <div className="text-[8px] uppercase tracking-wide text-muted-foreground">{label}</div>
             <div
                 className={cn(
-                    "font-numeric text-micro font-medium tabular-nums",
+                    "font-numeric text-micro font-normal tabular-nums",
                     unavailable ? "italic text-muted-foreground/70" : "text-foreground"
                 )}
             >

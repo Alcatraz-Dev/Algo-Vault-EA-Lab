@@ -32,8 +32,9 @@ import {
 import { POST as jobPost } from "@/app/api/growth/cron/[job]/route";
 import { POST as marketingAgentPost } from "@/app/api/growth/cron/marketing-agent/route";
 import { POST as tradeManagementPost } from "@/app/api/trade-management/monitor/route";
-import { POST as proSignalsPost } from "@/app/api/pro-signals/auto-update/route";
-import { POST as signalsPost } from "@/app/api/signals/auto-update/route";
+import { GET as proSignalsGet, POST as proSignalsPost } from "@/app/api/pro-signals/auto-update/route";
+import { GET as signalsGet, POST as signalsPost } from "@/app/api/signals/auto-update/route";
+import { GET as schedulerGet, POST as schedulerPost } from "@/app/api/workflows/scheduler/tick/route";
 import { GET as pluginTickGet } from "@/app/api/plugins/runtime/tick/route";
 import { GET as botStudioGet, POST as botStudioPost } from "@/app/api/bot-studio/cron/tick/route";
 import { GET as alertsGet } from "@/app/api/alerts/check/route";
@@ -283,6 +284,64 @@ async function runCronAuthTests(): Promise<boolean> {
         s.check(alerts.status === 401, `alerts/check with unset CRON_SECRET -> 401 (got ${alerts.status})`);
         const plugin = await pluginTickGet(req("http://localhost/api/plugins/runtime/tick", { method: "GET", headers: bearer }));
         s.check(plugin.status === 401, `plugins/runtime/tick with nothing configured -> 401 (got ${plugin.status})`);
+    });
+
+    s.section("5. Authorized paths (empty store: no price fetch, no scheduled side effects)");
+    rtDbStore.clear();
+    await withEnv({ CRON_SECRET: SECRET, PLUGIN_RUNTIME_CRON_SECRET: PLUGIN_SECRET }, async () => {
+        const bearer = { authorization: `Bearer ${SECRET}` };
+        const xSecret = { "x-cron-secret": SECRET };
+        const adminFirebase = { authorization: `Bearer ${firebaseToken(ADMIN_UID)}` };
+
+        const sigGet = await signalsGet(req("http://localhost/api/signals/auto-update", { method: "GET", headers: bearer }));
+        const sigBody = (await sigGet.json()) as { success?: boolean; checked?: number };
+        s.check(sigGet.status === 200 && sigBody.success === true && sigBody.checked === 0, `signals GET with cron bearer -> 200 (got ${sigGet.status})`);
+
+        const sigPost = await signalsPost(req("http://localhost/api/signals/auto-update", { headers: xSecret }));
+        s.check(sigPost.status === 200, `signals POST with x-cron-secret -> 200 (got ${sigPost.status})`);
+
+        const sigFb = await signalsPost(req("http://localhost/api/signals/auto-update", { headers: adminFirebase }));
+        s.check(sigFb.status === 200, `signals POST with valid Firebase identity -> 200 (got ${sigFb.status})`);
+
+        const proGet = await proSignalsGet(req("http://localhost/api/pro-signals/auto-update", { method: "GET", headers: bearer }));
+        s.check(proGet.status === 200, `pro-signals GET with cron bearer -> 200 (got ${proGet.status})`);
+
+        const proPost = await proSignalsPost(req("http://localhost/api/pro-signals/auto-update", { headers: adminFirebase }));
+        s.check(proPost.status === 200, `pro-signals POST with valid Firebase identity -> 200 (got ${proPost.status})`);
+
+        const schedGet = await schedulerGet(req("http://localhost/api/workflows/scheduler/tick", { method: "GET", headers: bearer }));
+        s.check(schedGet.status === 200, `workflows scheduler GET with cron bearer -> 200 (got ${schedGet.status})`);
+        const schedPost = await schedulerPost(req("http://localhost/api/workflows/scheduler/tick", { headers: xSecret }));
+        s.check(schedPost.status === 200, `workflows scheduler POST with x-cron-secret -> 200 (got ${schedPost.status})`);
+
+        s.section("5b. Workflow scheduler rejects query-string and forged credentials");
+        const qs = await schedulerGet(req(`http://localhost/api/workflows/scheduler/tick?secret=${SECRET}`, { method: "GET", headers: { "user-agent": VERCEL_UA } }));
+        s.check(qs.status === 401, `scheduler query-string secret -> 401 (got ${qs.status})`);
+        const none = await schedulerGet(req("http://localhost/api/workflows/scheduler/tick", { method: "GET", headers: { "user-agent": VERCEL_UA } }));
+        s.check(none.status === 401, `scheduler UA spoof without secret -> 401 (got ${none.status})`);
+        const wrong = await schedulerPost(req("http://localhost/api/workflows/scheduler/tick", { headers: { authorization: "Bearer wrong-value" } }));
+        s.check(wrong.status === 401, `scheduler wrong bearer -> 401 (got ${wrong.status})`);
+        const forgedFb = await schedulerGet(req("http://localhost/api/workflows/scheduler/tick", { method: "GET", headers: { authorization: "Bearer forged" } }));
+        s.check(forgedFb.status === 401, `scheduler forged Firebase token -> 401 (got ${forgedFb.status})`);
+    });
+
+    s.section("5c. Plugin runtime tick: plugin-specific secret and admin-token fallback");
+    await withEnv({ CRON_SECRET: SECRET, PLUGIN_RUNTIME_CRON_SECRET: PLUGIN_SECRET }, async () => {
+        const pluginBearer = await pluginTickGet(req("http://localhost/api/plugins/runtime/tick", { method: "GET", headers: { authorization: `Bearer ${PLUGIN_SECRET}` } }));
+        s.check(pluginBearer.status === 200, `plugin tick with PLUGIN_RUNTIME_CRON_SECRET bearer -> 200 (got ${pluginBearer.status})`);
+    });
+    await withEnv({ CRON_SECRET: undefined, PLUGIN_RUNTIME_CRON_SECRET: undefined }, async () => {
+        seedUser(ADMIN_UID, "admin");
+        const admin = await pluginTickGet(req("http://localhost/api/plugins/runtime/tick", { method: "GET", headers: { authorization: `Bearer ${firebaseToken(ADMIN_UID)}` } }));
+        s.check(admin.status === 200, `plugin tick, no cron secret configured, admin Firebase token -> 200 (got ${admin.status})`);
+        seedUser(CUSTOMER_UID, "customer");
+        const customer = await pluginTickGet(req("http://localhost/api/plugins/runtime/tick", { method: "GET", headers: { authorization: `Bearer ${firebaseToken(CUSTOMER_UID)}` } }));
+        s.check(customer.status === 401, `plugin tick, no cron secret configured, non-admin Firebase token -> 401 (got ${customer.status})`);
+    });
+
+    await withEnv({ CRON_SECRET: undefined, PLUGIN_RUNTIME_CRON_SECRET: undefined }, async () => {
+        const unset = await schedulerGet(req("http://localhost/api/workflows/scheduler/tick", { method: "GET", headers: { authorization: `Bearer ${SECRET}` } }));
+        s.check(unset.status === 401, `scheduler with CRON_SECRET unset fails closed (got ${unset.status})`);
     });
 
     return s.finish();

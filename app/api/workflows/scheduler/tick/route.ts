@@ -1,12 +1,15 @@
 import { NextRequest } from "next/server";
 import { runDueScheduledWorkflows } from "@/lib/workflows/scheduler";
-import { getGlobalSettings } from "@/lib/workflows/database";
+import { isCronRequest } from "@/lib/security/cron-auth";
 
+/**
+ * Workflow scheduler tick. Authenticated only by the shared CRON_SECRET,
+ * presented as `Authorization: Bearer` or `x-cron-secret` (see
+ * lib/security/cron-auth.ts). Query-string secrets are never accepted, and an
+ * unset CRON_SECRET fails closed.
+ */
 export async function GET(request: NextRequest) {
-    // Gate with a shared secret from env (mirrors /api/plugins/runtime/tick pattern).
-    const secret = request.nextUrl.searchParams.get("secret") ?? request.headers.get("x-cron-secret") ?? "";
-    const expected = process.env.CRON_SECRET;
-    if (!expected || secret !== expected) {
+    if (!isCronRequest(request)) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
     const summary = await runDueScheduledWorkflows();

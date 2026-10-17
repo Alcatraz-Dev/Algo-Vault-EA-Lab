@@ -99,7 +99,7 @@ export function AccountPanel() {
 
     return (
         <section className="flex min-w-0 flex-col rounded-lg border border-border bg-card" aria-label="Account">
-            <header className="flex flex-wrap items-center gap-1 border-b border-border px-2 py-1.5">
+            <header className="flex flex-wrap items-center gap-1 border-b border-border px-1 py-0.5.5">
                 {TABS.map((t) => {
                     const Icon = t.icon;
                     const active = tab === t.id;
@@ -110,7 +110,7 @@ export function AccountPanel() {
                             onClick={() => setTab(t.id)}
                             aria-pressed={active}
                             className={cn(
-                                "inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition",
+                                "inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-[12px] font-normal transition",
                                 active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                             )}
                         >
@@ -125,10 +125,10 @@ export function AccountPanel() {
                     );
                 })}
 
-                <span className="ml-auto flex items-center gap-1.5">
+                <span className="ml-auto flex items-center gap-1">
                     <span
                         className={cn(
-                            "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
+                            "rounded-full border px-1 py-0.5 text-micro font-normal text-[8px] tracking-wider",
                             state.accountMode === "live"
                                 ? "border-negative/40 bg-negative-muted text-negative-foreground"
                                 : state.accountMode === "paper"
@@ -141,7 +141,7 @@ export function AccountPanel() {
                     {!hasAccount && !data.accountLoading ? (
                         <Link
                             href="/account/trading-access"
-                            className="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-micro text-muted-foreground transition hover:bg-muted"
+                            className="inline-flex items-center gap-1 rounded-full border border-border px-1 py-0.5 text-micro text-muted-foreground transition hover:bg-muted"
                         >
                             Connect account <ExternalLink className="size-2.5" />
                         </Link>
@@ -152,19 +152,19 @@ export function AccountPanel() {
             <div className="min-h-[9rem] p-3">
                 <PanelErrorBoundary name="Account">
                     {data.accountLoading ? (
-                        <p className="flex items-center gap-2 py-6 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-2 py-6 text-[12px] text-muted-foreground">
                             <Loader2 className="size-3.5 animate-spin" />
                             Loading account state…
                         </p>
                     ) : !hasAccount ? (
-                        <p className="flex items-center gap-2 py-6 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-2 py-6 text-[12px] text-muted-foreground">
                             <Lock className="size-3.5" />
                             No connected account. Positions and orders are unavailable — nothing is simulated here.
                         </p>
                     ) : (
                         <>
                             {actionError ? (
-                                <div className="mb-3 flex items-start justify-between gap-2 rounded-lg border border-warning/30 bg-warning-muted px-3 py-2 text-xs text-warning-foreground">
+                                <div className="mb-3 flex items-start justify-between gap-2 rounded-lg border border-warning/30 bg-warning-muted px-3 py-1 text-[12px] text-warning-foreground">
                                     <span>{actionError}</span>
                                     <button
                                         type="button"

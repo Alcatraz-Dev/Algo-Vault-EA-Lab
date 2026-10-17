@@ -459,10 +459,10 @@ export function ProTerminalChartWorkspace({
             data-pro-terminal-workspace
         >
             {/* ── Professional top toolbar ─────────────────────────────────── */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border/50 bg-card/80 px-4 py-2.5 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/30 bg-card/70 px-3 py-2 shadow-md">
                 <div className="flex flex-wrap items-center gap-3">
                     <span
-                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-numeric text-base font-bold text-primary tracking-tight"
+                        className="rounded-md border border-primary/40 bg-primary/10 px-3 py-1 font-numeric text-[10px] font-bold text-primary tracking-tight"
                         title="Active symbol"
                     >
                         {cleanSymbol}
@@ -475,7 +475,7 @@ export function ProTerminalChartWorkspace({
                                 onClick={() => selectTimeframe(tf)}
                                 aria-pressed={timeframe === tf}
                                 className={cn(
-                                    "rounded-md px-2.5 py-1 font-numeric text-xs font-semibold transition-all",
+                                    "rounded-md px-2.5 py-1 font-numeric text-[10px] font-normal transition-all",
                                     timeframe === tf
                                         ? "bg-primary text-primary-foreground shadow-sm"
                                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -499,7 +499,7 @@ export function ProTerminalChartWorkspace({
                         type="button"
                         onClick={() => setLayersOpen((o) => !o)}
                         aria-expanded={layersOpen}
-                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium transition hover:bg-muted"
+                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-background px-3 text-[10px] font-normal transition hover:bg-muted"
                     >
                         <Layers className="size-4" />
                         <span className="hidden sm:inline">Indicators</span>
@@ -524,7 +524,7 @@ export function ProTerminalChartWorkspace({
                                 setIsFullscreen((f) => !f);
                             }}
                             aria-pressed={isFullscreen}
-                            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium transition hover:bg-muted"
+                            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-[10px] font-normal transition hover:bg-muted"
                             title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
                         >
                             {isFullscreen ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
@@ -574,7 +574,7 @@ export function ProTerminalChartWorkspace({
                     <div className="mb-4 flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <Layers className="size-4 text-primary" />
-                            <h3 className="text-sm font-semibold text-foreground">Technical Indicators &amp; Overlays</h3>
+                            <h3 className="text-[10px] font-normal text-foreground">Technical Indicators &amp; Overlays</h3>
                         </div>
                         <button
                             type="button"
@@ -612,7 +612,7 @@ export function ProTerminalChartWorkspace({
             ) : null}
 
             {aiGate.error ? (
-                <div role="alert" className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs">
+                <div role="alert" className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-[10px]">
                     <AlertTriangle className="size-3.5 shrink-0 text-warning" />
                     <span className="text-warning">{aiGate.error}</span>
                 </div>
@@ -698,7 +698,7 @@ function ChartInfo({
         <div className="hidden items-center gap-2 rounded-lg border border-border/60 bg-background px-2.5 py-1 font-numeric text-micro text-muted-foreground md:flex">
             <span className="inline-flex items-center gap-1.5">
                 <Icon className="size-3 text-primary" />
-                <span className="font-semibold text-foreground">{chartType.toUpperCase()}</span>
+                <span className="font-normal text-foreground">{chartType.toUpperCase()}</span>
             </span>
             <span className="text-muted-foreground">·</span>
             <span className="text-muted-foreground">{timeframe}</span>
@@ -737,17 +737,17 @@ function ChartInfoCard({
     onClearLayers: () => void;
 }) {
     return (
-        <div className="rounded-lg border border-border bg-card p-3 text-xs shadow-sm">
+        <div className="rounded-lg border border-border bg-card p-3 text-[10px] shadow-sm">
             <div className="flex items-center gap-1.5 border-b border-border pb-1.5">
                 <Layers className="size-3.5 text-muted-foreground" />
-                <h3 className="font-semibold uppercase tracking-wide text-foreground">Chart Info</h3>
+                <h3 className="font-normal uppercase tracking-wide text-foreground">Chart Info</h3>
             </div>
             {layers === 0 ? (
                 <div className="mt-2 space-y-2">
                     <div className="flex items-start gap-2 rounded-md bg-primary/5 p-2 text-micro">
                         <Box className="mt-0.5 size-3.5 text-primary shrink-0" />
                         <div>
-                            <p className="text-foreground font-medium">Clean chart — no overlays</p>
+                            <p className="text-foreground font-normal">Clean chart — no overlays</p>
                             <p className="text-muted-foreground mt-0.5">
                                 Click the Indicators button above to add technical analysis layers.
                             </p>
@@ -774,7 +774,7 @@ function ChartInfoCard({
                             type="button"
                             onClick={onClearDrawings}
                             disabled={drawings === 0}
-                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-normal text-foreground transition hover:bg-muted disabled:opacity-50"
                             title="Clear all drawings on the active chart"
                         >
                             <Ruler className="size-3" />
@@ -784,7 +784,7 @@ function ChartInfoCard({
                             type="button"
                             onClick={onClearLayers}
                             disabled={layers === 0}
-                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-medium text-foreground transition hover:bg-muted disabled:opacity-50"
+                            className="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-micro font-normal text-foreground transition hover:bg-muted disabled:opacity-50"
                             title="Reset overlays to defaults"
                         >
                             <Layers className="size-3" />

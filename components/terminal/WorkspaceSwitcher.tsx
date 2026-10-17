@@ -28,7 +28,7 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                 onClick={() => setOpen((o) => !o)}
                 aria-expanded={open}
                 aria-haspopup="listbox"
-                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[9px] font-normal text-foreground transition hover:bg-muted"
             >
                 <LayoutTemplate className="size-3.5 text-primary" />
                 <span className="max-w-[9rem] truncate">{active.label}</span>
@@ -65,21 +65,21 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                                             setOpen(false);
                                         }}
                                         className={cn(
-                                            "w-full rounded-lg px-2.5 py-2 text-left transition",
+                                            "w-full rounded-lg px-2.5 py-1 text-left transition",
                                             selected ? "bg-primary/10" : "hover:bg-muted"
                                         )}
                                     >
-                                        <span className="flex items-center gap-1.5">
+                                        <span className="flex items-center gap-1">
                                             <span
                                                 className={cn(
-                                                    "text-xs font-semibold",
+                                                    "text-[9px] font-normal",
                                                     selected ? "text-primary" : "text-foreground"
                                                 )}
                                             >
                                                 {p.label}
                                             </span>
                                             {p.pro ? (
-                                                <span className="inline-flex items-center gap-0.5 rounded border border-primary/30 px-1 py-px text-micro font-bold tracking-wider text-primary">
+                                                <span className="inline-flex items-center gap-0.5 rounded border border-primary/30 px-1 py-px text-micro font-normal tracking-wider text-primary">
                                                     <Crown className="size-2.5" />
                                                     PRO
                                                 </span>
@@ -106,23 +106,23 @@ export function WorkspaceSwitcher({ isPro }: { isPro: boolean }) {
                     {upsell ? (
                         <div className="absolute left-0 z-40 mt-1 w-72 rounded-lg border border-primary/40 bg-card p-2.5 shadow-xl">
                             <p className="text-micro leading-4 text-foreground">
-                                <span className="font-semibold">{upsell}</span> is a Pro workspace.
+                                <span className="font-normal">{upsell}</span> is a Pro workspace.
                             </p>
                             <p className="mt-1 text-micro leading-4 text-muted-foreground">
                                 Free keeps the terminal, watchlist, chart, basic Smart Money, basic chat and paper
                                 trading.
                             </p>
-                            <div className="mt-2 flex gap-1.5">
+                            <div className="mt-2 flex gap-1">
                                 <a
                                     href="/pricing"
-                                    className="rounded-md bg-primary px-2 py-1 text-micro font-semibold text-primary-foreground transition hover:bg-primary/90"
+                                    className="rounded-md bg-primary px-1 py-0.5 text-micro font-normal text-primary-foreground transition hover:bg-primary/90"
                                 >
                                     View plans
                                 </a>
                                 <button
                                     type="button"
                                     onClick={() => setUpsell(null)}
-                                    className="rounded-md border border-border px-2 py-1 text-micro text-muted-foreground transition hover:bg-muted"
+                                    className="rounded-md border border-border px-1 py-0.5 text-micro text-muted-foreground transition hover:bg-muted"
                                 >
                                     Not now
                                 </button>

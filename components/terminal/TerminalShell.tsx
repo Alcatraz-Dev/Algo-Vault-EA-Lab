@@ -352,13 +352,13 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     if (!hydrated) {
         return (
             <div className="flex min-h-[50vh] items-center justify-center rounded-lg border border-border bg-card">
-                <p className="text-sm text-muted-foreground">Loading workspace…</p>
+                <p className="text-[10px] text-muted-foreground">Loading workspace…</p>
             </div>
         );
     }
 
     return (
-        <div className="flex min-w-0 flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-[1600px] min-w-0 flex-col gap-2.5 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-3">
             <TerminalTopBar now={now} isPro={isPro} />
 
             {/* workspace + panel controls */}
@@ -368,7 +368,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     type="button"
                     onClick={() => setPanelsOpen((o) => !o)}
                     aria-expanded={panelsOpen}
-                    className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-xs font-medium text-foreground transition hover:bg-muted"
+                    className="inline-flex h-8 items-center gap-1 rounded-md border border-border bg-background px-2.5 text-[10px] font-normal text-foreground transition hover:bg-muted"
                 >
                     <SlidersHorizontal className="size-3.5" />
                     Panels
@@ -379,7 +379,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             </div>
 
             {panelsOpen ? (
-                <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-2">
+                <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border/60 bg-card/60 px-1 py-0.5.5">
                     <LayoutList className="size-3.5 text-muted-foreground" />
                     {PANEL_TOGGLE.map((p) => (
                         <button
@@ -388,7 +388,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             onClick={() => togglePanel(p.id)}
                             aria-pressed={visible(p.id)}
                             className={cn(
-                                "rounded border px-2 py-1 text-micro font-medium transition",
+                                "rounded-full border px-1 py-0.5 text-[10px] font-normal transition",
                                 visible(p.id)
                                     ? "border-primary/40 bg-primary/10 text-primary"
                                     : "border-border text-muted-foreground hover:bg-muted"
@@ -413,7 +413,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             aria-selected={active}
                             onClick={() => setMobileTab(t.id)}
                             className={cn(
-                                "flex-1 rounded-md px-2 py-1.5 text-micro font-medium transition",
+                                "flex-1 rounded-md px-1 py-0.5.5 text-micro font-normal transition",
                                 active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                             )}
                         >
@@ -425,7 +425,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
             </div>
 
             {/* desktop grid */}
-            <div className="hidden min-w-0 grid-cols-[minmax(0,var(--rail-l,260px))_minmax(0,1fr)_minmax(0,var(--rail-r,340px))] gap-3 xl:grid"
+            <div className="hidden min-w-0 grid-cols-1 md:grid-cols-[minmax(0,220px)_minmax(0,1fr)] lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)_minmax(0,300px)] gap-3 xl:grid"
                  style={
                      {
                          "--rail-l": `${(state.panels.watchlist.size || 1) * 240}px`,
@@ -434,7 +434,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                  }
             >
                 {visible("watchlist") ? (
-                    <aside className="flex min-w-0 flex-col gap-3">
+                    <aside className="flex min-w-0 flex-col gap-2.5">
                         <PanelErrorBoundary name="Watchlist">
                             <WatchlistRail now={now} />
                         </PanelErrorBoundary>
@@ -448,40 +448,40 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                     <div />
                 )}
 
-                <main className="flex min-w-0 flex-col gap-3">
+                <main className="flex min-w-0 flex-col gap-2.5">
                     {chartNode}
                     {selectedPositionTicket ? (
-                        <p className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+                        <p className="flex items-center gap-2 rounded-lg border border-border/60 bg-card/60 px-1 py-0.5.5 text-[10px] text-muted-foreground">
                             <span>
                                 Position{" "}
-                                <span className="font-numeric font-semibold text-foreground">{selectedPositionTicket}</span>{" "}
+                                <span className="font-numeric font-normal text-foreground">{selectedPositionTicket}</span>{" "}
                                 selected on the chart — manage it in the account panel below.
                             </span>
                             <button
                                 type="button"
                                 onClick={() => setSelectedPositionTicket(null)}
-                                className="ml-auto rounded border border-border px-1.5 py-0.5 text-micro transition hover:bg-muted"
+                                className="ml-auto rounded border border-border px-1 py-0.5 text-micro transition hover:bg-muted"
                             >
                                 Dismiss
                             </button>
                         </p>
                     ) : null}
                     {actionError ? (
-                        <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning dark:text-warning">
+                        <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-1 text-[10px] text-warning dark:text-warning">
                             {actionError}
                         </p>
                     ) : null}
                     {visible("account") ? <AccountPanel /> : null}
                 </main>
 
-                <aside className="flex min-w-0 flex-col gap-3">
+                <aside className="flex min-w-0 flex-col gap-2.5">
                     <RiskHud />
                     {visible("intelligence") ? <IntelligenceRail now={now} /> : null}
                     {visible("chat") && state.chatOpen ? <TradingChat now={now} /> : null}
                     {visible("chat") && !state.chatOpen ? (
                         <button
                             type="button"
-                            className="rounded-lg border border-border bg-card px-3 py-2 text-left text-xs text-muted-foreground transition hover:bg-muted"
+                            className="rounded-lg border border-border/60 bg-card/60 px-1 py-0.5.5 text-left text-[10px] text-muted-foreground transition hover:bg-muted"
                         >
                             <MessagesSquare className="mr-1.5 inline size-3.5" />
                             Open Trading Chat
@@ -508,7 +508,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 {mobileTab === "account" ? (
                     <>
                         {actionError ? (
-                            <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning dark:text-warning">
+                            <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-1 text-[10px] text-warning dark:text-warning">
                                 {actionError}
                             </p>
                         ) : null}

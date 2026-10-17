@@ -8,6 +8,11 @@ import { isCronRequest } from "@/lib/security/cron-auth";
 
 const MAX_SIGNALS_TO_CHECK = 200;
 
+/** Vercel Cron invokes scheduled paths with GET; both methods share the same auth gate. */
+export async function GET(request: NextRequest) {
+    return POST(request);
+}
+
 /**
  * Pro signal auto-update sweep — invoked by a cron/worker (vercel.json, every
  * 5 min) OR by an authenticated user from the Pro Signals page ("Scan" button,

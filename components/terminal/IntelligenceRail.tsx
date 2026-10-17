@@ -63,33 +63,33 @@ function StructureBlock() {
     const bias = analysis?.structure.trend.value ?? null;
 
     if (analysisError) {
-        return <p className="p-3 text-xs text-warning">{analysisError}</p>;
+        return <p className="p-3 text-[7px] text-warning">{analysisError}</p>;
     }
     if (!analysis) {
         return (
-            <p className="p-3 text-xs italic text-muted-foreground">
+            <p className="p-3 text-[7px] italic text-muted-foreground">
                 {analysisLoading ? "Running the structure engine…" : "No structure analysis for this symbol yet."}
             </p>
         );
     }
 
     return (
-        <div className="flex flex-col gap-2 p-3">
-            <div className="grid grid-cols-2 gap-1.5">
-                <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
+        <div className="flex flex-col gap-1 p-3">
+            <div className="grid grid-cols-2 gap-1">
+                <div className="rounded-md border border-border/70 bg-background px-1 py-0.5.5">
                     <div className="text-micro uppercase tracking-wide text-muted-foreground">Structure bias</div>
                     <div
                         className={cn(
-                            "text-xs font-semibold capitalize",
+                            "text-[7px] font-normal capitalize",
                             bias === "bullish" ? "text-positive" : bias === "bearish" ? "text-negative" : "text-muted-foreground"
                         )}
                     >
                         {bias ?? "unavailable"}
                     </div>
                 </div>
-                <div className="rounded-md border border-border/70 bg-background px-2 py-1.5">
+                <div className="rounded-md border border-border/70 bg-background px-1 py-0.5.5">
                     <div className="text-micro uppercase tracking-wide text-muted-foreground">Reversal setup</div>
-                    <div className="text-xs font-semibold text-foreground">
+                    <div className="text-[7px] font-normal text-foreground">
                         {analysis.structure.reversalSetup.value?.detected
                             ? `${analysis.structure.reversalSetup.value.priorBias} → ${analysis.structure.reversalSetup.value.currentBias}`
                             : "none detected"}
@@ -98,21 +98,21 @@ function StructureBlock() {
             </div>
 
             <div className="rounded-md border border-border/70">
-                <div className="border-b border-border/60 px-2 py-1 text-micro uppercase tracking-wide text-muted-foreground">
+                <div className="border-b border-border/60 px-1 py-0.5 text-micro uppercase tracking-wide text-muted-foreground">
                     Recent breaks
                 </div>
                 {events.length === 0 ? (
-                    <p className="px-2 py-1.5 text-xs italic text-muted-foreground">
+                    <p className="px-1 py-0.5.5 text-[7px] italic text-muted-foreground">
                         No BOS/CHOCH events in the analysed window.
                     </p>
                 ) : (
                     <ul className="divide-y divide-border/50">
                         {events.map((e) => (
-                            <li key={e.id} className="flex items-center justify-between gap-2 px-2 py-1 text-xs">
-                                <span className="flex min-w-0 items-center gap-1.5">
+                            <li key={e.id} className="flex items-center justify-between gap-1 px-1 py-0.5 text-[7px]">
+                                <span className="flex min-w-0 items-center gap-1">
                                     <span
                                         className={cn(
-                                            "rounded border px-1 font-numeric text-micro font-bold",
+                                            "rounded border px-1 font-numeric text-micro font-normal",
                                             e.type === "BOS" ? "border-info/40 text-info" : "border-warning/40 text-warning"
                                         )}
                                     >
@@ -169,7 +169,7 @@ function SetupCard() {
 
     if (active.length === 0) {
         return (
-            <p className="p-3 text-xs italic text-muted-foreground">
+            <p className="p-3 text-[7px] italic text-muted-foreground">
                 No validated setup on {state.symbol}. The scanner only reports a setup once its confidence and R:R
                 gates pass.
             </p>
@@ -177,7 +177,7 @@ function SetupCard() {
     }
 
     return (
-        <div className="flex flex-col gap-2 p-3">
+        <div className="flex flex-col gap-1 p-3">
             {active.map((s) => {
                 const idx = lifecycleIndex(s.status);
                 const invalid = idx < 0;
@@ -185,16 +185,16 @@ function SetupCard() {
                 return (
                     <article
                         key={s.id}
-                        className="rounded-lg border border-border/70 bg-background p-2.5"
+                        className="rounded-lg border border-border/70 bg-background p-1.5.5"
                         aria-label={`${s.symbol} ${s.timeframe} setup`}
                     >
-                        <header className="flex items-center justify-between gap-2">
-                            <span className="font-numeric text-micro font-bold text-foreground">
+                        <header className="flex items-center justify-between gap-1">
+                            <span className="font-numeric text-micro font-normal text-foreground">
                                 {s.symbol} {s.timeframe}
                             </span>
                             <span
                                 className={cn(
-                                    "rounded border px-1.5 py-0.5 text-micro font-bold tracking-wider",
+                                    "rounded border px-1 py-0.5 text-micro font-normal tracking-wider",
                                     invalid
                                         ? "border-negative/50 text-negative"
                                         : s.direction === "long"
@@ -237,7 +237,7 @@ function SetupCard() {
 
                         <ul className="mt-2 space-y-0.5 border-t border-border pt-1.5">
                             {s.evidence.slice(0, 4).map((ev, i) => (
-                                <li key={i} className="flex gap-1.5 text-micro leading-4 text-muted-foreground">
+                                <li key={i} className="flex gap-1 text-micro leading-4 text-muted-foreground">
                                     <span className="text-positive">✓</span>
                                     <span className="min-w-0">{ev}</span>
                                 </li>
@@ -250,7 +250,7 @@ function SetupCard() {
                                 <span key={stage} className="flex items-center gap-1">
                                     <span
                                         className={cn(
-                                            "rounded px-1 py-0.5 text-[8px] font-bold tracking-wide",
+                                            "rounded px-1 py-0.5 text-[7px] font-normal tracking-wide",
                                             !invalid && i <= idx
                                                 ? "bg-primary/15 text-primary"
                                                 : "bg-muted text-muted-foreground/60"
@@ -260,7 +260,7 @@ function SetupCard() {
                                         {stage}
                                     </span>
                                     {i < LIFECYCLE.length - 1 ? (
-                                        <span className="text-[8px] text-muted-foreground/50">→</span>
+                                        <span className="text-[7px] text-muted-foreground/50">→</span>
                                     ) : null}
                                 </span>
                             ))}
@@ -279,10 +279,10 @@ function SetupCard() {
 
 function RiskSummary() {
     const { risk, riskError, riskLoading } = useTerminalData();
-    if (riskError) return <p className="p-3 text-xs text-warning">{riskError}</p>;
-    if (riskLoading && !risk) return <p className="p-3 text-xs italic text-muted-foreground">Loading risk state…</p>;
+    if (riskError) return <p className="p-3 text-[7px] text-warning">{riskError}</p>;
+    if (riskLoading && !risk) return <p className="p-3 text-[7px] italic text-muted-foreground">Loading risk state…</p>;
     if (!risk || !risk.status) {
-        return <p className="p-3 text-xs italic text-muted-foreground">No connected account — risk state unavailable.</p>;
+        return <p className="p-3 text-[7px] italic text-muted-foreground">No connected account — risk state unavailable.</p>;
     }
     const m = risk.metrics;
     const rows: Array<[string, string]> = [
@@ -295,10 +295,10 @@ function RiskSummary() {
         ["Daily loss limit", risk.limits?.maxDailyLossPercent !== null && risk.limits?.maxDailyLossPercent !== undefined ? `${risk.limits.maxDailyLossPercent}%` : "not configured"],
     ];
     return (
-        <div className="flex flex-col gap-2 p-3">
+        <div className="flex flex-col gap-1 p-3">
             <div
                 className={cn(
-                    "rounded-md border px-2 py-1.5 text-center text-xs font-bold tracking-wider",
+                    "rounded-md border px-1 py-0.5.5 text-center text-[7px] font-normal tracking-wider",
                     risk.status === "SAFE" && "border-positive/40 bg-positive/10 text-positive",
                     risk.status === "WARNING" && "border-warning/40 bg-warning/10 text-warning",
                     risk.status === "RESTRICTED" && "border-warning/40 bg-warning/10 text-warning",
@@ -309,7 +309,7 @@ function RiskSummary() {
             </div>
             <dl className="space-y-1 text-micro">
                 {rows.map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-2">
+                    <div key={k} className="flex justify-between gap-1">
                         <dt className="text-muted-foreground">{k}</dt>
                         <dd className={cn("font-numeric tabular-nums", v === "unavailable" || v === "not configured" ? "italic text-muted-foreground" : "text-foreground")}>
                             {v}
@@ -356,8 +356,8 @@ export function IntelligenceRail({ now }: { now: number }) {
     const mode = state.intelligenceMode;
 
     return (
-        <section className="flex min-w-0 flex-col gap-2" aria-label="Intelligence">
-            <div className="rounded-lg border border-border bg-card p-2">
+        <section className="flex min-w-0 flex-col gap-1" aria-label="Intelligence">
+            <div className="rounded-2xl border border-border/60 bg-card/60 p-1">
                 <div className="flex flex-wrap gap-1" role="tablist" aria-label="Intelligence mode">
                     {TABS.map((t) => {
                         const Icon = t.icon;
@@ -370,7 +370,7 @@ export function IntelligenceRail({ now }: { now: number }) {
                                 aria-selected={active}
                                 onClick={() => setIntelligenceMode(t.id)}
                                 className={cn(
-                                    "inline-flex items-center gap-1 rounded-md px-2 py-1 text-micro font-medium transition",
+                                    "inline-flex items-center gap-1 rounded-full px-1 py-0.5 text-[12px] font-normal transition",
                                     active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted"
                                 )}
                             >
@@ -384,9 +384,9 @@ export function IntelligenceRail({ now }: { now: number }) {
 
             <PanelErrorBoundary name="Intelligence">
                 <div className="rounded-lg border border-border bg-card">
-                    <div className="border-b border-border px-3 py-2">
-                        <h2 className="flex items-center justify-between text-micro font-semibold uppercase tracking-wide text-foreground">
-                            <span className="flex items-center gap-1.5">
+                    <div className="border-b border-border px-3 py-1">
+                        <h2 className="flex items-center justify-between text-micro font-normal uppercase tracking-wide text-foreground">
+                            <span className="flex items-center gap-1">
                                 {mode === "ai" ? <Sparkles className="size-3 text-primary" /> : <ListChecks className="size-3 text-primary" />}
                                 {TABS.find((t) => t.id === mode)?.label}
                             </span>
@@ -414,7 +414,7 @@ export function IntelligenceRail({ now }: { now: number }) {
 
                     {mode === "signals" ? (
                         signalsError ? (
-                            <p className="p-3 text-xs text-warning">{signalsError}</p>
+                            <p className="p-3 text-[7px] text-warning">{signalsError}</p>
                         ) : (
                             <SignalsMiniPanel signals={signals} rejected={[]} loading={signals.length === 0} now={now} token={token} />
                         )
