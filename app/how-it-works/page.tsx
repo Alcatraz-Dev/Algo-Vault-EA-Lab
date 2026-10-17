@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Download, Monitor, Apple } from "lucide-react";
+import { Monitor, Apple } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "How AlgoVault Works — Trading Platform & Desktop App",
@@ -128,7 +128,7 @@ export default function HowItWorksPage() {
         <section aria-label="Desktop apps" id="desktop">
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Use AlgoVault on Desktop</h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Download the desktop application for Windows and macOS. The desktop build embeds the production Next.js workspace inside a native Electron shell with custom chrome, native menus, tray icon, connection overlay, and persistent preferences. Builds are available as preview releases; final stable releases will be published after CI verification and signing.
+            Download the desktop application for Windows x64 and macOS Apple Silicon (ARM64). The desktop build embeds the production Next.js workspace inside a native Electron shell with custom chrome, native menus, tray icon, connection overlay, and persistent preferences. Preview installers are published now; stable releases will follow once code signing is configured.
           </p>
           <div className="mt-6 grid gap-6 sm:grid-cols-2">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -139,19 +139,19 @@ export default function HowItWorksPage() {
                   <p className="text-xs text-muted-foreground">x64 · Windows 10+</p>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Native window chrome, menus, tray, and connection overlay. Download the .exe installer once the preview build completes verification.</p>
-              <Link href="/downloads/releases.json" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-4">View release manifest →</Link>
+              <p className="mt-3 text-sm text-muted-foreground">Native window chrome, menus, tray, and connection overlay. Preview .exe installer is published; Windows SmartScreen may warn because it is not code-signed.</p>
+              <Link href="/#desktop" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-4">Download for Windows →</Link>
             </div>
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3">
                 <Apple className="h-8 w-8 text-primary" />
                 <div>
                   <h3 className="font-bold text-foreground">macOS App</h3>
-                  <p className="text-xs text-muted-foreground">Apple Silicon + Intel · macOS 13+</p>
+                  <p className="text-xs text-muted-foreground">Apple Silicon (ARM64) · macOS 13+</p>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">Universal .dmg package with embedded workspace. Preview status; final package produced after macOS runner verification.</p>
-              <Link href="/downloads/releases.json" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-4">View release manifest →</Link>
+              <p className="mt-3 text-sm text-muted-foreground">ARM64 .dmg package with embedded workspace. Preview build; unsigned and unnotarized, so Gatekeeper prompts once on first launch.</p>
+              <Link href="/#desktop" className="mt-4 inline-block text-sm font-semibold text-primary hover:text-primary/80 underline underline-offset-4">Download for macOS →</Link>
             </div>
           </div>
         </section>
@@ -166,7 +166,7 @@ export default function HowItWorksPage() {
               "Open the Pro Terminal at /live to review charts and indicators.",
               "Run a backtest at /backtests or review historical validation.",
               "Connect your MT5 account through the gateway when ready.",
-              "Download the desktop app from the homepage download section once preview builds are verified."
+              "Download the desktop app (preview) from the homepage download section."
             ].map((step, i) => (
               <li key={i} className="flex gap-4 rounded-xl border border-border bg-card p-5 shadow-sm">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-extrabold text-primary">{i + 1}</span>
@@ -185,10 +185,10 @@ export default function HowItWorksPage() {
           <dl className="mt-6 space-y-6">
             {[
               { q: "Is AlgoVault financial advice?", a: "No. AlgoVault provides research tooling, validation, and execution interfaces. It does not provide financial advice or guarantee results." },
-              { q: "What platforms does it support?", a: "Web browsers, Windows (x64 desktop app), and macOS (Apple Silicon + Intel desktop app). MT5 gateway integration is supported; universal broker compatibility is not claimed." },
+              { q: "What platforms does it support?", a: "Web browsers, Windows (x64 desktop app), and macOS (Apple Silicon ARM64 desktop app; Intel Macs are not supported by the current build). MT5 gateway integration is supported; universal broker compatibility is not claimed." },
               { q: "Is the desktop app required?", a: "No. The full workspace is available in the web app. The desktop app provides native chrome, persistent preferences, and offline-resilient connection states." },
               { q: "How are desktop builds published?", a: "The desktop-release CI workflow builds on windows-latest and macos-latest runners. Artifacts are published as GitHub Releases; the homepage connects to the release manifest at /downloads/releases.json." },
-              { q: "What does Preview mean?", a: "Preview builds have passed local packaging but may not have completed full CI verification or signing. Stable releases require verified artifacts, signing credentials, and completed CI checks." },
+              { q: "What does Preview mean?", a: "Preview builds are produced by the release CI and published as GitHub prereleases, but are not code-signed. macOS Gatekeeper and Windows SmartScreen may warn on first launch. Stable releases require signing credentials and notarization." },
             ].map((item, i) => (
               <div key={i} className="rounded-xl border border-border bg-card p-5 shadow-sm">
                 <dt className="font-semibold text-foreground">{item.q}</dt>

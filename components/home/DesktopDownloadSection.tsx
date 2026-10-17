@@ -3,35 +3,38 @@
 import { useEffect, useState } from "react";
 import { useReducedMotion, motion } from "motion/react";
 import { Monitor, Apple, Download, ExternalLink, Cpu, Shield, Zap, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/reui/badge";
 import { CardSpotlight } from "@/components/ui/card-spotlight";
 import { Separator } from "@/components/ui/separator";
 
-interface ReleaseInfo {
-  version: string;
-  channel: string;
-  platforms: Record<string, {
-    label: string;
-    os: string;
-    arch: string[];
-    min_version: string;
-    status: "available" | "preview" | "building" | "unavailable";
-    download_url: string;
-    release_notes_url?: string;
-    file_size_human: string;
-    build_target: string;
-    notes: string;
-  }>;
+interface PlatformRelease {
+  label: string;
+  os: string;
+  arch: string[];
+  min_version: string;
+  status: "available" | "preview" | "building" | "unavailable";
+  download_url?: string;
+  release_notes_url?: string;
+  file_name?: string;
+  file_size_bytes?: number;
+  file_size_human?: string;
+  checksum_sha256?: string;
+  build_target?: string;
+  supported_processors?: string[];
+  notes?: string;
 }
 
-const STATUS_BADGE_MAP: Record<string, { variant: "success-light" | "warning-light" | "info-light" | "outline"; label: string }> = {
-  available: { variant: "success-light", label: "Available" },
-  preview: { variant: "warning-light", label: "Preview" },
-  building: { variant: "info-light", label: "Building" },
-  unavailable: { variant: "outline", label: "Unavailable" },
-};
+interface ReleaseInfo {
+  version: string;
+  channel?: string;
+  prerelease?: boolean;
+  tag?: string;
+  published?: string;
+  source?: string;
+  platforms: Record<string, PlatformRelease>;
+}
 
 const FEATURES = [
   { icon: Zap, label: "Native performance" },
@@ -39,20 +42,49 @@ const FEATURES = [
   { icon: Cpu, label: "Hardware-accelerated charts" },
 ];
 
+/** Format a date-only value without shifting it across timezones. */
+function formatPublishedDate(iso?: string): string | null {
+  if (!iso) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!match) return null;
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export default function DesktopDownloadSection() {
   const [release, setRelease] = useState<ReleaseInfo | null>(null);
   const [error, setError] = useState(false);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    fetch("/downloads/releases.json")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data: ReleaseInfo) => setRelease(data))
-      .catch(() => setError(true));
+    let cancelled = false;
+
+    fetch("/downloads/releases.json", { cache: "no-cache" })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data: ReleaseInfo) => {
+        if (!cancelled) setRelease(data);
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const windows = release?.platforms?.windows;
   const macos = release?.platforms?.macos;
+  const isLoading = !release && !error;
+  const isPreview = Boolean(release && release.channel !== "stable");
+  const publishedLabel = formatPublishedDate(release?.published);
 
   const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -76,7 +108,11 @@ export default function DesktopDownloadSection() {
         };
 
   return (
-    <section aria-label="Desktop downloads" className="relative overflow-hidden border-y border-border bg-background">
+    <section
+      id="desktop"
+      aria-label="Desktop downloads"
+      className="relative overflow-hidden border-y border-border bg-background"
+    >
       {/* Subtle ambient glow */}
       <div
         aria-hidden
@@ -113,6 +149,25 @@ export default function DesktopDownloadSection() {
               </span>
             ))}
           </div>
+
+          {/* Release line */}
+          <p className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+            <span className="font-numeric font-semibold text-foreground">
+              {release
+                ? `Version ${release.version}`
+                : error
+                  ? "Version unavailable"
+                  : "Checking release…"}
+            </span>
+            <span aria-hidden>·</span>
+            <span>{release?.channel === "preview" ? "Preview channel" : "Desktop release"}</span>
+            {publishedLabel && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="font-numeric">Published {publishedLabel}</span>
+              </>
+            )}
+          </p>
         </motion.div>
 
         {/* Platform cards */}
@@ -122,15 +177,16 @@ export default function DesktopDownloadSection() {
             <PlatformCard
               icon={<Monitor size={28} strokeWidth={1.8} className="text-foreground" />}
               title="Windows App"
+              subtitle="Windows x64"
+              platformKey="windows"
               platform={windows}
-              version={release?.version ?? "0.1.0-preview"}
+              version={release?.version}
+              publishedLabel={publishedLabel}
+              loading={isLoading}
+              error={error}
+              isPreview={isPreview}
               description="Dedicated Windows application with embedded production Next.js workspace, native window chrome, tray, and connection overlay."
-              specs={[
-                { label: "Architecture", value: "x64" },
-                { label: "Minimum", value: "Windows 10+" },
-                { label: "Package", value: "Not available for download" },
-              ]}
-              ciNote="Build is prepared by the desktop-release CI workflow on a Windows runner. Final artifact publishes to GitHub Releases once verified."
+              installHint="First run: if Windows SmartScreen appears, choose More info → Run anyway. This preview installer is not code-signed."
             />
           </motion.div>
 
@@ -139,15 +195,16 @@ export default function DesktopDownloadSection() {
             <PlatformCard
               icon={<Apple size={28} strokeWidth={1.8} className="text-foreground" />}
               title="macOS App"
+              subtitle="Apple Silicon (ARM64)"
+              platformKey="macos"
               platform={macos}
-              version={release?.version ?? "0.1.0-preview"}
+              version={release?.version}
+              publishedLabel={publishedLabel}
+              loading={isLoading}
+              error={error}
+              isPreview={isPreview}
               description="Native macOS application for Apple Silicon Macs, with native menus, dark/light theme, tray icon, and persistent preferences."
-              specs={[
-                { label: "Architecture", value: "Apple Silicon ARM64" },
-                { label: "Minimum", value: "macOS 13+" },
-                { label: "Package", value: "Not available for download" },
-              ]}
-              ciNote="Build is prepared by the desktop-release CI workflow on a macOS runner. Final .dmg and .zip publish to GitHub Releases once verified."
+              installHint="First launch: open the app from Applications with right-click → Open, or allow it in System Settings → Privacy & Security. This preview build is unsigned and unnotarized."
             />
           </motion.div>
         </div>
@@ -156,25 +213,44 @@ export default function DesktopDownloadSection() {
         <motion.div {...staggerChild(0.3)}>
           <Card variant="default" className="mt-8 bg-secondary/40 border-border">
             <CardContent className="text-xs leading-relaxed text-muted-foreground">
-              <strong className="text-foreground">Release process:</strong>{" "}
-              Windows x64 and macOS ARM64 builds are configured in{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-                apps/desktop/package.json
-              </code>{" "}
-              via electron-builder. The desktop-release CI workflow runs on{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-                windows-latest
-              </code>{" "}
-              and{" "}
-              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-                macos-latest
-              </code>{" "}
-              runners. Code signing / notarization credentials are{" "}
-              <strong className="text-foreground">not configured</strong>; they must be
-              added as repository secrets before stable releases publish. Until
-              artifacts are verified, downloads are marked{" "}
-              <Badge variant="warning-light" size="xs">Preview</Badge>{" "}
-              with release notes linked.
+              {!release ? (
+                isLoading ? (
+                  <p>Loading release information…</p>
+                ) : (
+                  <p>
+                    <strong className="text-foreground">Release information unavailable.</strong>{" "}
+                    The download manifest could not be loaded, so installers are hidden
+                    rather than linked to unverified files. Refresh the page to try again.
+                  </p>
+                )
+              ) : (
+                <p>
+                  <strong className="text-foreground">About this release:</strong>{" "}
+                  {isPreview ? "This is a preview build" : "This is a desktop release"} of{" "}
+                  <span className="font-numeric">v{release.version}</span>{" "}
+                  for Windows x64 and macOS Apple Silicon (ARM64). Downloads point to the
+                  published GitHub Release assets and include the published checksum, so
+                  you can verify each file before installing.
+                  {isPreview && (
+                    <>
+                      {" "}
+                      <Badge variant="warning-light" size="xs">Preview</Badge> builds may
+                      be unsigned, which is expected for this channel. Intel Macs are not
+                      supported by this build.
+                    </>
+                  )}{" "}
+                  {release.source && (
+                    <a
+                      href={release.source}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                    >
+                      View release notes
+                    </a>
+                  )}
+                </p>
+              )}
             </CardContent>
           </Card>
         </motion.div>
@@ -188,22 +264,51 @@ export default function DesktopDownloadSection() {
 function PlatformCard({
   icon,
   title,
+  subtitle,
+  platformKey,
   platform,
   version,
+  publishedLabel,
+  loading,
+  error,
+  isPreview,
   description,
-  specs,
-  ciNote,
+  installHint,
 }: {
   icon: React.ReactNode;
   title: string;
-  platform?: ReleaseInfo["platforms"][string];
-  version: string;
+  subtitle: string;
+  platformKey: "windows" | "macos";
+  platform?: PlatformRelease;
+  version?: string;
+  publishedLabel: string | null;
+  loading: boolean;
+  error: boolean;
+  isPreview: boolean;
   description: string;
-  specs: { label: string; value: string }[];
-  ciNote: string;
+  installHint: string;
 }) {
-  const status = platform?.status ?? "unavailable";
-  const badge = STATUS_BADGE_MAP[status] ?? STATUS_BADGE_MAP.unavailable;
+  const downloadUrl = platform?.download_url?.trim();
+  const hasDownload = Boolean(downloadUrl);
+  const releaseNotesUrl = platform?.release_notes_url ?? undefined;
+
+  const badge = loading
+    ? { variant: "info-light" as const, label: "Checking" }
+    : error
+      ? { variant: "outline" as const, label: "Unavailable" }
+      : hasDownload
+        ? isPreview
+          ? { variant: "warning-light" as const, label: "Preview" }
+          : { variant: "success-light" as const, label: "Available" }
+        : platform?.status === "building"
+          ? { variant: "info-light" as const, label: "Building" }
+          : { variant: "outline" as const, label: "Unavailable" };
+
+  const packageLabel = hasDownload
+    ? platform?.file_name ?? `${title.replace(" App", "")} installer`
+    : platform?.status === "building"
+      ? "Awaiting CI build"
+      : "Not available for download";
 
   return (
     <CardSpotlight className="h-full p-0 border-border bg-card transition-colors hover:border-primary/30">
@@ -211,85 +316,124 @@ function PlatformCard({
         {/* Icon + title row */}
         <div className="flex items-start gap-4">
           {/* Icon — no background, just the raw icon */}
-          <div className="shrink-0 mt-0.5">
-            {icon}
-          </div>
+          <div className="shrink-0 mt-0.5">{icon}</div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-bold tracking-tight text-foreground">
-              {title}
-            </h3>
-            <div className="mt-1.5 flex items-center gap-2">
+            <h3 className="text-lg font-bold tracking-tight text-foreground">{title}</h3>
+            <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+            <div className="mt-2 flex items-center gap-2">
               <Badge variant={badge.variant} size="sm">
                 {badge.label}
               </Badge>
-              <span className="font-numeric text-xs text-muted-foreground">
-                v{version}
-              </span>
+              {version && (
+                <span className="font-numeric text-xs text-muted-foreground">v{version}</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Description */}
-        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{description}</p>
 
         {/* Specs table */}
         <div className="mt-5 space-y-2">
-          {specs.map(({ label, value }) => (
-            <div key={label} className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{label}</span>
-              <span className="font-medium text-foreground">{value}</span>
-            </div>
-          ))}
+          <div className="flex items-center justify-between gap-4 text-xs">
+            <span className="text-muted-foreground">Architecture</span>
+            <span className="text-right font-medium text-foreground">
+              {platform?.arch?.length ? platform.arch.join(", ") : subtitle}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 text-xs">
+            <span className="text-muted-foreground">Minimum</span>
+            <span className="text-right font-medium text-foreground">
+              {platform?.min_version ?? "—"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-4 text-xs">
+            <span className="text-muted-foreground">Download size</span>
+            <span className="text-right font-medium text-foreground">
+              {hasDownload ? platform?.file_size_human ?? "—" : "—"}
+            </span>
+          </div>
         </div>
 
         <Separator className="my-5" />
 
         {/* CTA */}
         <div className="mt-auto">
-          {status === "available" ? (
+          {loading ? (
+            <Button variant="outline" size="lg" className="w-full" disabled>
+              Checking latest release…
+            </Button>
+          ) : hasDownload ? (
             <Button
               size="lg"
               className="w-full"
-              render={
-                <a href={platform!.download_url} download />
-              }
+              render={<a href={downloadUrl} download={platform?.file_name} />}
             >
               <Download size={16} data-icon="inline-start" />
               Download for {title.replace(" App", "")}
             </Button>
-          ) : status === "preview" ? (
-            <Button
-              variant="outline"
-              size="lg"
-              className="w-full border-warning/20 text-warning-foreground hover:bg-warning/5"
-              render={
-                <a
-                  href={platform?.release_notes_url ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                />
-              }
-            >
-              <ExternalLink size={16} data-icon="inline-start" />
-              Preview Build
-              <ArrowRight size={14} className="ml-auto opacity-50" />
-            </Button>
-          ) : status === "building" ? (
+          ) : platform?.status === "building" ? (
             <Button variant="outline" size="lg" className="w-full" disabled>
               Building — check back soon
             </Button>
           ) : (
             <Button variant="outline" size="lg" className="w-full" disabled>
-              Installer not yet available
+              Installer not available yet
             </Button>
           )}
 
-          {status !== "available" && (
-            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-              {ciNote}
+          {/* Package + verification line */}
+          <p className="mt-3 break-all text-[11px] leading-relaxed text-muted-foreground">
+            <span className="font-medium text-foreground/80">{packageLabel}</span>
+            {hasDownload && publishedLabel && (
+              <>
+                {" · "}
+                <span className="font-numeric">Published {publishedLabel}</span>
+              </>
+            )}
+            {hasDownload && platform?.checksum_sha256 && (
+              <>
+                <br />
+                <span className="font-numeric" title={platform.checksum_sha256}>
+                  SHA-256 {platform.checksum_sha256.slice(0, 12)}…{platform.checksum_sha256.slice(-8)}
+                </span>
+              </>
+            )}
+          </p>
+
+          {/* Install guidance for preview builds */}
+          {hasDownload && isPreview && (
+            <p className="mt-3 rounded-lg border border-border bg-secondary/50 px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+              {installHint}
             </p>
+          )}
+
+          {/* Release notes link for non-downloadable previews */}
+          {!hasDownload && !loading && !error && releaseNotesUrl && (
+            <a
+              href={releaseNotesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+            >
+              <ExternalLink size={12} />
+              See release notes
+              <ArrowRight size={12} aria-hidden />
+            </a>
+          )}
+
+          {hasDownload && releaseNotesUrl && (
+            <a
+              href={releaseNotesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+            >
+              <ExternalLink size={12} />
+              Release notes for {platformKey === "macos" ? "macOS" : "Windows"}
+              <ArrowRight size={12} aria-hidden />
+            </a>
           )}
         </div>
       </div>

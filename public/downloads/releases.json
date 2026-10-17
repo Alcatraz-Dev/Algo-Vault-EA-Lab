@@ -1,46 +1,60 @@
 {
   "version": "0.1.0-preview",
   "channel": "preview",
-  "published": "2026-10-13",
-  "source": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
+  "prerelease": true,
+  "tag": "v0.1.0-preview",
+  "published": "2026-10-17",
+  "source": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
   "platforms": {
     "windows": {
       "label": "Windows App",
       "os": "windows",
-      "arch": ["x64"],
+      "arch": [
+        "x64"
+      ],
       "min_version": "Windows 10",
-      "status": "preview",
-      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
-      "download_url": "",
-      "file_size_bytes": 0,
-      "file_size_human": "Not available — installer has not been produced.",
+      "status": "available",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
+      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-Setup-0.1.0-preview-x64.exe",
+      "file_name": "AlgoVault-Setup-0.1.0-preview-x64.exe",
+      "file_size_bytes": 222987283,
+      "file_size_human": "223 MB",
+      "checksum_sha256": "2fb64413c1362afcf3ac82c7615937fc8d5b92e78ad87388d676d4ba9b7f0a93",
       "build_target": "nsis",
-      "supported_processors": ["x64"],
-      "notes": "Preview only. No verified Windows installer or release asset exists; no download URL is advertised."
+      "supported_processors": [
+        "x64"
+      ],
+      "notes": "Preview build. The installer is not code-signed, so Windows SmartScreen may warn on first run."
     },
     "macos": {
       "label": "macOS App",
       "os": "macos",
-      "arch": ["Apple Silicon ARM64"],
+      "arch": [
+        "Apple Silicon ARM64"
+      ],
       "min_version": "macOS 13",
-      "status": "preview",
-      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases",
-      "download_url": "",
-      "file_size_bytes": 0,
-      "file_size_human": "Not available — the local ARM64 package is unsigned for distribution.",
+      "status": "available",
+      "release_notes_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/tag/v0.1.0-preview",
+      "download_url": "https://github.com/Alcatraz-Dev/Algo-Vault-EA-Lab/releases/download/v0.1.0-preview/AlgoVault-0.1.0-preview-arm64.dmg",
+      "file_name": "AlgoVault-0.1.0-preview-arm64.dmg",
+      "file_size_bytes": 291113157,
+      "file_size_human": "291 MB",
+      "checksum_sha256": "1237b47f24193847b94ba62b90f6dd0c59a82de7ed65fcc297a63dd66fe6d7cd",
       "build_target": "dmg",
-      "supported_processors": ["Apple Silicon ARM64"],
-      "notes": "Preview only. A local ARM64 package exists but is not Developer ID signed or notarized; the 134-byte public Git LFS pointer is not a usable archive. No download URL is advertised."
+      "supported_processors": [
+        "Apple Silicon ARM64"
+      ],
+      "notes": "Preview build. Apple Silicon (ARM64) only. The app is unsigned and unnotarized, so macOS Gatekeeper blocks the first launch until you allow it."
     }
   },
   "next_stable_version": "0.1.0",
   "release_notes": {
     "0.1.0-preview": [
-      "Initial desktop application for Windows and macOS.",
+      "Initial desktop application for Windows x64 and macOS Apple Silicon (ARM64).",
       "Embedded production Next.js app with native window chrome, menus, tray, and connection overlay.",
       "Dark/light theme support and persistent non-sensitive preferences.",
       "Account authentication and subscription entitlement support.",
-      "Preview status: builds configured; final artifacts produced after CI verification."
+      "Preview status: unsigned and unnotarized builds; expect macOS Gatekeeper and Windows SmartScreen warnings."
     ]
   }
 }

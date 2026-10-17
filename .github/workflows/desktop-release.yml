@@ -15,7 +15,7 @@ on:
         required: true
         default: 'preview'
       prerelease:
-        description: 'Mark as GitHub prerelease'
+        description: 'Mark as GitHub prerelease (must match channel: stable=false, preview/beta=true)'
         required: false
         default: true
         type: boolean
@@ -27,7 +27,33 @@ env:
   NODE_OPTIONS: '--max-old-space-size=4096'
 
 jobs:
+  # Fail before any long build starts when the version, channel, and
+  # prerelease flag disagree. This is the single source of truth for the
+  # release label used by the build and publish jobs.
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
+      channel: ${{ steps.release.outputs.channel }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
+      release_name: ${{ steps.release.outputs.release_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve and validate release channel
+        id: release
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          INPUT_CHANNEL: ${{ github.event.inputs.channel }}
+          INPUT_PRERELEASE: ${{ github.event.inputs.prerelease }}
+        run: node scripts/release-channel.mjs >> "$GITHUB_OUTPUT"
+
   build:
+    needs: validate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -81,15 +107,8 @@ jobs:
       - name: Resolve package version
         shell: bash
         env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
-        run: |
-          VERSION="${INPUT_VERSION#v}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
-            echo "Invalid release version: $VERSION" >&2
-            exit 1
-          fi
-          npm version "$VERSION" --no-git-tag-version --workspace=algovault-desktop
-          echo "RELEASE_VERSION=$VERSION" >> "$GITHUB_ENV"
+          VERSION: ${{ needs.validate.outputs.version }}
+        run: npm version "$VERSION" --no-git-tag-version --workspace=algovault-desktop
 
       - name: Validate public Firebase build variables
         shell: bash
@@ -201,6 +220,31 @@ jobs:
           fi
           ls -la artifacts/
 
+      # ── Record the signing configuration that actually built this artifact ──
+      # The publish job turns these files into release-note wording, so notes
+      # never claim a build is signed unless this metadata says it was.
+
+      - name: Record macOS signing status
+        if: matrix.target == 'mac'
+        shell: bash
+        env:
+          CAN_SIGN: ${{ steps.signing.outputs.can_sign }}
+        run: |
+          set -euo pipefail
+          if [[ "${CAN_SIGN:-false}" == "true" ]]; then
+            printf '{"signed":true,"notarized":true}\n' > artifacts/build-meta-macos.json
+          else
+            printf '{"signed":false,"notarized":false}\n' > artifacts/build-meta-macos.json
+          fi
+
+      - name: Record Windows signing status
+        if: matrix.target == 'win'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This workflow never configures Windows code signing.
+          printf '{"signed":false}\n' > artifacts/build-meta-windows.json
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -209,21 +253,11 @@ jobs:
           retention-days: 30
 
   publish:
-    needs: build
+    needs: [validate, build]
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
-
-      - name: Resolve release version
-        id: version
-        shell: bash
-        env:
-          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
-        run: |
-          VERSION="${INPUT_VERSION#v}"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -255,57 +289,24 @@ jobs:
       - name: Generate release notes
         shell: bash
         env:
-          VERSION: ${{ steps.version.outputs.version }}
+          VERSION: ${{ needs.validate.outputs.version }}
+          CHANNEL: ${{ needs.validate.outputs.channel }}
         run: |
-          cat > release-notes.md <<'NOTES'
-          ## AlgoVault Desktop Preview vVERSION_PLACEHOLDER
-
-          This is a **preview release** for testing and feedback. It is not a stable production release.
-
-          ### Downloads
-
-          | Platform | Architecture | File |
-          |----------|-------------|------|
-          | macOS | Apple Silicon (ARM64) | `AlgoVault-{version}-arm64.dmg` |
-          | Windows | x64 | `AlgoVault-Setup-{version}-x64.exe` |
-
-          ### ⚠️ macOS Security Warning
-
-          The macOS DMG is **unsigned and unnotarized**. When you open it for the first time:
-
-          1. macOS Gatekeeper will show "AlgoVault cannot be opened because it is from an unidentified developer."
-          2. To open it: right-click (or Control-click) the app → **Open** → confirm **Open** in the dialog. This is required only once.
-          3. Alternatively: System Settings → Privacy & Security → scroll down → click **Open Anyway**.
-          4. This is expected for preview builds without an Apple Developer ID certificate.
-
-          A signed and notarized macOS build will be available in a future release once Apple Developer credentials are configured.
-
-          ### Windows
-
-          The Windows installer is not code-signed. Windows SmartScreen may show a warning. Click **More info** → **Run anyway** to proceed.
-
-          ### Known Limitations
-
-          - macOS: unsigned, unnotarized — Gatekeeper warning on first launch (see above).
-          - Windows: unsigned installer — SmartScreen warning.
-          - Intel (x64) macOS is not yet supported. Apple Silicon (ARM64) only for this preview.
-          - Auto-updater is configured but inert until a stable release channel is published.
-
-          ---
-          *This is prerelease software. Use at your own risk.*
-          NOTES
-
-          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/g" release-notes.md
+          node scripts/release-notes.mjs \
+            --version "$VERSION" \
+            --channel "$CHANNEL" \
+            --assets-dir release-assets \
+            --out release-notes.md
           echo "Generated release notes:"
           cat release-notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: AlgoVault Desktop Preview v${{ steps.version.outputs.version }}
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: ${{ needs.validate.outputs.release_name }} v${{ needs.validate.outputs.version }}
           body_path: release-notes.md
-          prerelease: ${{ github.event.inputs.prerelease != 'false' }}
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
           files: |
             release-assets/*.dmg
             release-assets/*.exe
@@ -313,3 +314,29 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Keep the website download manifest accurate ──
+      # The homepage renders install buttons only from
+      # public/downloads/releases.json. Regenerate it from the assets that were
+      # actually uploaded, so publishing a release can never leave the site
+      # pointing at stale or missing installers.
+      - name: Sync website download manifest
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.validate.outputs.tag }}
+          CHANNEL: ${{ needs.validate.outputs.channel }}
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout -B main origin/main
+          node scripts/desktop-release-manifest.mjs --tag "$TAG" --channel "$CHANNEL" --write
+          if git diff --quiet -- public/downloads/releases.json; then
+            echo "Website download manifest already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/downloads/releases.json
+          git commit -m "chore: sync desktop download manifest for ${TAG}"
+          git push origin HEAD:main

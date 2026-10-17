@@ -46,6 +46,10 @@
     "test:e2e-viewport": "chrome-extension/node_modules/.bin/playwright test -c e2e/playwright.config.ts e2e/pro-terminal-viewport.smoke.spec.ts",
     "test:mobile": "node scripts/jiti-tsrun.mjs tests/mobile/phase11.test.ts",
     "test:dashboard-charts": "node scripts/jiti-tsrun.mjs tests/dashboard/trend-projection.test.ts",
+    "test:desktop-downloads": "node scripts/jiti-tsrun.mjs tests/desktop-downloads.test.ts",
+    "test:release-channel": "node scripts/jiti-tsrun.mjs tests/release-channel.test.ts",
+    "test:release-notes": "node scripts/jiti-tsrun.mjs tests/release-notes.test.ts",
+    "desktop:release-manifest": "node scripts/desktop-release-manifest.mjs",
     "test:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti tests/run-seo-security-tests.ts",
     "validate:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti scripts/validate-seo-ai.ts"
   },
