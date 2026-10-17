@@ -42,11 +42,11 @@ import {
     BarChart,
     CartesianGrid,
     Cell,
-    ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 
 import { auth, database as rtdb } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
@@ -796,7 +796,7 @@ export default function LivePerformancePage() {
                         {((chartType === "equity" || chartType === "drawdown") && equityCurve.length > 0 ||
                             chartType === "weekday" && weekdayData.length > 0 ||
                             chartType === "session" && sessionData.length > 0) && (
-                            <ResponsiveContainer width="100%" height="100%">
+                            <MeasuredResponsiveContainer width="100%" height="100%">
                                 {chartType === "equity" ? (
                                     <AreaChart data={equityCurve}>
                                         <defs>
@@ -865,7 +865,7 @@ export default function LivePerformancePage() {
                                         <Bar dataKey="profit" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                                     </BarChart>
                                 )}
-                            </ResponsiveContainer>
+                            </MeasuredResponsiveContainer>
                         )}
                     </div>
                 </div>

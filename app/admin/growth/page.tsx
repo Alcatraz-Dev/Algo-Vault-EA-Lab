@@ -18,7 +18,8 @@ import {
     Users,
     Wallet,
 } from "lucide-react";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -266,7 +267,7 @@ export default function AdminGrowthOverviewPage() {
                                 <PieChart size={15} className="text-muted-foreground" />
                             </div>
                             <div className="h-[200px] w-full">
-                                <ResponsiveContainer>
+                                <MeasuredResponsiveContainer>
                                     <LineChart data={revenueChartData}>
                                         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                         <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
@@ -278,7 +279,7 @@ export default function AdminGrowthOverviewPage() {
                                         />
                                         <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
                                     </LineChart>
-                                </ResponsiveContainer>
+                                </MeasuredResponsiveContainer>
                             </div>
                         </div>
                     )}

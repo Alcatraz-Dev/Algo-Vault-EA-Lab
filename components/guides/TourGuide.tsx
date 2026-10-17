@@ -24,6 +24,11 @@ function expandToContainer(el: HTMLElement): HTMLElement {
     const rect = el.getBoundingClientRect();
     if (rect.height >= 160 && rect.width >= 400) return el;
 
+    // Never grow the spotlight into something that fills the viewport: a full-page
+    // cutout reads as "no target" rather than a focused highlight, so a small header
+    // stays highlighted at its own size instead of expanding to the whole page.
+    const maxHeight = window.innerHeight * 0.7;
+
     // Walk up to find a meaningful card/section container
     const selectors = [
         "[data-guide]",
@@ -45,8 +50,8 @@ function expandToContainer(el: HTMLElement): HTMLElement {
         const container = el.closest<HTMLElement>(sel);
         if (container && container !== el && container !== document.body) {
             const cRect = container.getBoundingClientRect();
-            // Must be meaningfully larger than the source element
-            if (cRect.width >= 280 && cRect.height >= 100) {
+            // Must be meaningfully larger than the source element, and still fit the viewport
+            if (cRect.width >= 280 && cRect.height >= 100 && cRect.height <= maxHeight) {
                 return container;
             }
         }
@@ -77,7 +82,22 @@ function resolveTarget(step: TourStep | undefined, stepIndex: number): HTMLEleme
 
     // 1. Explicit data-guide selector (highest priority)
     if (step.target) {
-        const el = document.querySelector<HTMLElement>(step.target);
+        const matches = Array.from(document.querySelectorAll<HTMLElement>(step.target));
+
+        // AppShell / AdminShell also mark their sticky topbar with the same anchors and
+        // sit first in the DOM. When that topbar actually renders a page title it *is*
+        // the page header and should keep the spotlight; when it is only bare chrome
+        // (the sidebar-only layout renders no title), it must not steal the spotlight
+        // from the page's own header card. A page-level header is a visible match
+        // outside the chrome `<header>` that is not itself a container — a section
+        // wrapper holding other `[data-guide]` markers is page content, not a header.
+        const shellHeader = matches.find((el) => el.closest("header"));
+        const shellIsTitled = Boolean(shellHeader?.querySelector("h1"));
+        const pageHeader = matches.find(
+            (el) => !el.closest("header") && isVisible(el) && !el.querySelector("[data-guide]")
+        );
+
+        const el = (shellIsTitled ? shellHeader : pageHeader ?? shellHeader) ?? matches[0];
         if (el && isVisible(el) && isElementInViewport(el, 200)) {
             return expandToContainer(el);
         }

@@ -4,11 +4,13 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import {
-    Loader2, Shield, Plus, Target, CheckCircle, Clock, Trash2, X, TrendingUp,
-    ArrowLeft, Trophy, Flame, CalendarDays, Pencil,
+    Loader2, Shield, Plus, Target, CheckCircle, Trash2, X, TrendingUp,
+    Trophy, Flame, CalendarDays, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import ModernPageHeader from "@/components/ui/modern-page-header";
+import { Button } from "@/components/ui/button";
 
 type TradingGoal = {
     id: string; type: string; title: string; target: number; current: number; unit: string; deadline: number; achieved: boolean; createdAt: number;
@@ -260,22 +262,18 @@ export default function GoalsPage() {
             <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/account" className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                        <ArrowLeft size={12} /> Back to Account
-                    </Link>
-                    <div className="flex items-center justify-between" data-guide="page-header">
-                        <div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Trading Goals</h1>
-                            <p className="mt-1.5 text-sm text-muted-foreground">Set targets, track progress, and achieve consistency</p>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowCreate(true)}
-                            className="flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-semibold text-white shadow-lg  transition-all"
-                        >
-                            <Plus size={16} /> New Goal
-                        </button>
-                    </div>
+                    <ModernPageHeader
+                        backHref="/account"
+                        backLabel="Back to Account"
+                        eyebrow="Goals"
+                        title="Trading Goals"
+                        subtitle="Set targets, track progress, and achieve consistency"
+                        actions={
+                            <Button type="button" onClick={() => setShowCreate(true)} className="gap-2">
+                                <Plus size={16} /> New Goal
+                            </Button>
+                        }
+                    />
                 </div>
 
                 {/* Stats Row */}
@@ -289,7 +287,7 @@ export default function GoalsPage() {
                         </div>
                         <p className="text-2xl font-bold font-numeric text-foreground">{goals.length}</p>
                     </div>
-                    <div className="rounded-lg border border-positive/10 bg-positive/[0.03] p-4">
+                    <div className="rounded-xl border border-positive/10 bg-positive/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-positive/10">
                                 <CheckCircle size={14} className="text-positive" />
@@ -298,7 +296,7 @@ export default function GoalsPage() {
                         </div>
                         <p className="text-2xl font-bold font-numeric text-positive">{achievedCount}</p>
                     </div>
-                    <div className="rounded-lg border border-warning/10 bg-warning/[0.03] p-4">
+                    <div className="rounded-xl border border-warning/10 bg-warning/[0.03] p-4">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-warning/10">
                                 <Flame size={14} className="text-warning" />

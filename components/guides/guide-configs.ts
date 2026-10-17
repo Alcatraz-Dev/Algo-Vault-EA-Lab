@@ -63,6 +63,7 @@ const GUIDES: GuideConfig[] = [
         match: (p) => p === "/account/tradingview" || p === "/admin/tradingview" || p === "/trading",
         legacySeenKeys: ["algovault-studio-guide-v1"],
         steps: [
+            { target: "[data-guide='page-header']", title: "Trading Studio", body: "Your Pine workspace hub — build strategies visually, write code directly, and save or download your scripts." },
             { target: "[data-guide='palette']", title: "Build from the palette", body: "Drag any node onto the canvas, or click to add it. Indicators, conditions, entries and risk tools all live here." },
             { target: "[data-guide='ai-builder']", title: "AI Strategy Builder", body: "Describe your strategy in plain English — e.g. 'Buy when EMA crosses RSI below 70 with 1% stop loss' — and AI will auto-build the full node graph for you." },
             { target: "[data-guide='canvas']", title: "Connect the flow", body: "Click the output dot (right side) of a node, then the input dot (left side) of the next node to wire the logic together." },
@@ -107,6 +108,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "AI Signals",
         match: (p) => p === "/signals",
         steps: [
+            { target: "[data-guide='page-header']", title: "Live AI Signals", body: "Institutional-grade signals across forex, gold, indices and crypto, powered by multi-factor confidence scoring." },
             { target: "[data-guide='scan']", title: "Scan the markets", body: "Click Scan for Signals to generate fresh AI trading ideas across forex, gold, indices and crypto." },
             { target: "[data-guide='daily-limit']", title: "Daily usage tracker", body: "Free accounts get 3 signals a day, Pro up to 10. Upgrade to unlock more scans and priority alerts." },
             { target: "[data-guide='top-signals']", title: "Top opportunities", body: "The highest-confidence signals are ranked first, each with entry, stop-loss and take-profit levels." },
@@ -141,6 +143,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "Live Trading",
         match: (p) => p === "/live",
         steps: [
+            { target: "[data-guide='page-header']", title: "AlgoVault Live", body: "Real-time trading intelligence around the world — market analysis, smart money and AI signals aggregated safely at country level." },
             { target: "[data-guide='account-selector']", title: "Live account overview", body: "Pick the licensed product and MT5 account you want to inspect — live performance loads instantly." },
             { target: "[data-guide='metrics']", title: "Key real-time metrics", body: "Balance, equity, total profit, drawdown, win rate and profit factor are all tracked in real time." },
             { target: "[data-guide='date-range']", title: "Change date range", body: "Switch between 1D, 1W, 1M, 3M, 1Y or All to filter the equity chart and stats." },
@@ -231,6 +234,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "Backtesting",
         match: exactOrPrefix("/backtests"),
         steps: [
+            { target: "[data-guide='page-header']", title: "Backtest Reports", body: "Verified MT5 strategy tester metrics, multi-timeframe analytics, risk-of-ruin breakdown and live execution benchmarking." },
             { target: "[data-guide='bot-selector']", title: "Select a strategy", body: "Choose the bot or strategy to review — its real logo, platform and symbol populate automatically." },
             { target: "[data-guide='modes']", title: "Switch report types", body: "Move between Myfxbook-style analytics, the MT5 Strategy Tester report, verified trade log, and live benchmarking." },
             { target: "[data-guide='metrics']", title: "Key performance metrics", body: "Total return, win rate, profit factor, max drawdown and recovery factor are summarised at a glance." },
@@ -270,6 +274,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "Alert Center",
         match: (p) => p === "/alert-center" || p === "/alerts",
         steps: [
+            { target: "[data-guide='page-header']", title: "Alert Center", body: "Trade events, target hits and management notifications collected into a single feed." },
             { target: "[data-guide='stats']", title: "Alert metrics", body: "See unread counts, target hits and risk events at a glance so you always know what needs attention." },
             { target: "[data-guide='filters']", title: "Filter alert feeds", body: "Switch between All, Unread, Trades, Targets and Risk filters to zero in on the alerts that matter." },
             { target: "[data-guide='notifications']", title: "Your notification feed", body: "Click an unread alert to mark it as read, or use Mark all read to clear the badge in one tap." },
@@ -377,6 +382,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "Marketplace",
         match: exactOrPrefix("/marketplace"),
         steps: [
+            { target: "[data-guide='page-header']", title: "Marketplace", body: "Expert Advisors, indicators and automated trading tools for MT5, MT4 and TradingView." },
             { target: "[data-guide='search']", title: "Search products", body: "Find strategies, indicators and set files by name, symbol or platform using the search box." },
             { target: "[data-guide='filters']", title: "Filter by category", body: "Narrow the catalogue to Expert Advisors, Indicators, Pine Strategies, MT5/MT4/TradingView or free/paid products." },
             { target: "[data-guide='products']", title: "Verified product cards", body: "Each card shows key stats and pricing — open it for the full description, reviews and author info." },
@@ -497,6 +503,7 @@ const GUIDES: GuideConfig[] = [
         pageTitle: "Equity Curve",
         match: exactOrPrefix("/equity-curve"),
         steps: [
+            { target: "[data-guide='page-header']", title: "Equity Curve", body: "Track equity and balance over time for every connected account." },
             { target: "[data-guide='curves']", title: "Choose an account", body: "Every connected account has its own equity curve — use the tabs to pick the one you want to inspect." },
             { target: "[data-guide='stats']", title: "Performance summary", body: "Net P/L, return percentage, max drawdown and data points are summarised for the selected account." },
             { target: "[data-guide='chart']", title: "Equity & balance over time", body: "The chart plots equity and balance history — hover any point for the exact value on that day." },

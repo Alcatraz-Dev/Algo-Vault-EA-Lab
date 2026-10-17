@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, YAxis } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import { Activity } from "lucide-react";
 
 const TOTAL = 30;
@@ -67,7 +68,7 @@ export default function HeroConsoleChart() {
             </div>
 
             <div className="mt-2 h-24">
-                <ResponsiveContainer width="100%" height="100%">
+                <MeasuredResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                         <defs>
                             <linearGradient id="heroEquityGradient" x1="0" y1="0" x2="0" y2="1">
@@ -92,7 +93,7 @@ export default function HeroConsoleChart() {
                             isAnimationActive={!reduceMotion}
                         />
                     </AreaChart>
-                </ResponsiveContainer>
+                </MeasuredResponsiveContainer>
             </div>
 
             <div className="mt-1 flex items-center justify-between text-micro text-muted-foreground">

@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { BarChart3, Download, FileBarChart2, FileText, Plus, RefreshCw } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -308,7 +309,7 @@ export default function AdminGrowthReportsPage() {
                                     </div>
                                     {section.key === "revenue" && viewing.rawData?.revenue && (
                                         <div className="mt-3 h-[180px]">
-                                            <ResponsiveContainer>
+                                            <MeasuredResponsiveContainer>
                                                 <BarChart data={viewing.rawData.revenue.map((e: { recordedAt: number; amount: number }) => ({
                                                     date: new Date(e.recordedAt).toISOString().slice(0, 10),
                                                     revenue: e.amount,
@@ -323,7 +324,7 @@ export default function AdminGrowthReportsPage() {
                                                     <Legend />
                                                     <Bar dataKey="revenue" fill="hsl(var(--primary))" name="Revenue" />
                                                 </BarChart>
-                                            </ResponsiveContainer>
+                                            </MeasuredResponsiveContainer>
                                         </div>
                                     )}
                                     {(section.items || []).length > 0 && (

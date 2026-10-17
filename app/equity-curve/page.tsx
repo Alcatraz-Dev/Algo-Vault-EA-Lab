@@ -5,7 +5,8 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2, Shield, ArrowLeft, TrendingUp, TrendingDown, DollarSign, Activity, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 
 type CurvePoint = { time: number; equity: number; balance: number };
 type Curve = { accountId: string; accountName: string; data: CurvePoint[] };
@@ -130,7 +131,7 @@ export default function EquityCurvePage() {
                     <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5" data-guide="chart">
                         <h2 className="mb-4 text-sm font-semibold text-foreground">Equity & Balance Over Time</h2>
                         <div className="h-96">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <MeasuredResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={activeCurve.data.map((d) => ({ ...d, date: new Date(d.time).toLocaleDateString(undefined, { month: "short", day: "numeric" }) }))}>
                                     <defs>
                                         <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
@@ -153,7 +154,7 @@ export default function EquityCurvePage() {
                                     <Area type="monotone" dataKey="equity" stroke="var(--chart-1)" strokeWidth={3} fill="url(#equityGrad)" />
                                     <Area type="monotone" dataKey="balance" stroke="var(--chart-2)" strokeWidth={2} fill="url(#balanceGrad)" strokeDasharray="5 5" />
                                 </AreaChart>
-                            </ResponsiveContainer>
+                            </MeasuredResponsiveContainer>
                         </div>
                         <div className="mt-3 flex items-center gap-4 text-micro text-muted-foreground">
                             <span className="flex items-center gap-1.5"><span className="h-0.5 w-4 rounded bg-chart-1" /> Equity</span>

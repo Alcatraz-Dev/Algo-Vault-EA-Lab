@@ -19,7 +19,10 @@ export default function ModernPageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border bg-card/60 shadow-[0_1px_3px_rgb(0_0_0/0.05)]">
+    <section
+      data-guide="page-header"
+      className="relative overflow-hidden rounded-2xl border border-border bg-card/60 shadow-[0_1px_3px_rgb(0_0_0/0.05)]"
+    >
       {/* Aceternity-style subtle gradient glow behind header */}
       <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />

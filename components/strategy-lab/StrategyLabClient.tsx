@@ -34,7 +34,6 @@ import {
     Wand2,
 } from "lucide-react";
 import {
-    ResponsiveContainer,
     AreaChart,
     Area,
     XAxis,
@@ -42,6 +41,7 @@ import {
     Tooltip,
     CartesianGrid,
 } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 
 import { strategyLabApi } from "@/lib/strategy-lab/client-api";
 import type { AnalysisApiResponse } from "@/lib/strategy-lab/client-api";
@@ -825,7 +825,7 @@ function EquityCurve({ equity }: { equity: { time: number; balance: number; equi
                 <span className="text-xs font-normal text-muted-foreground">— balance vs equity incl. open risk</span>
             </div>
             <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <MeasuredResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="eq" x1="0" y1="0" x2="0" y2="1">
@@ -840,7 +840,7 @@ function EquityCurve({ equity }: { equity: { time: number; balance: number; equi
                         <Area type="monotone" dataKey="balance" stroke="#f59e0b" strokeWidth={2} fill="url(#eq)" name="Balance" />
                         <Area type="monotone" dataKey="equity" stroke="#818cf8" strokeWidth={1} fillOpacity={0} name="Equity" />
                     </AreaChart>
-                </ResponsiveContainer>
+                </MeasuredResponsiveContainer>
             </div>
         </div>
     );

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ArrowRight, Check, Copy, Play, FileCheck, Settings, Shield } from "lucide-react";
 import { StepSlider } from "../step-slider/components/step-slider";
 import { useReducedMotion } from "motion/react";
-import { Area, AreaChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, Line, LineChart, Tooltip, XAxis, YAxis } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import { Terminal } from "@/components/ui/terminal";
 import type { HomeData } from "@/lib/home-data";
 import { Button } from "@/components/ui/button";
@@ -364,7 +365,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                         </div>
                                         {tab === "pine" ? (
                                             <div className="h-32 w-full rounded-lg overflow-hidden my-auto">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <MeasuredResponsiveContainer width="100%" height="100%">
                                                     <AreaChart data={cardData.chartData}>
                                                         <defs>
                                                             <linearGradient id="fill-curve" x1="0" y1="0" x2="0" y2="1">
@@ -374,7 +375,7 @@ export default function CodeSection({ data }: { data: HomeData }) {
                                                         </defs>
                                                         <Area type="monotone" dataKey="v" stroke={cardData.color} strokeWidth={2} fill="url(#fill-curve)" dot={false} />
                                                     </AreaChart>
-                                                </ResponsiveContainer>
+                                                </MeasuredResponsiveContainer>
                                             </div>
                                         ) : tab === "mql5" ? (
                                             <div className="space-y-4 my-auto py-1">

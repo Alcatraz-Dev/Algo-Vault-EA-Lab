@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { Plus, FlaskConical, Trophy, Play, Pause, Archive, MoreVertical } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -445,7 +446,7 @@ function ExperimentDetailDialog({
                     </div>
 
                     <div className="h-[200px]">
-                        <ResponsiveContainer>
+                        <MeasuredResponsiveContainer>
                             <BarChart data={variantData} layout="vertical" margin={{ left: 80 }}>
                                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                 <XAxis type="number" tick={{ fontSize: 10 }} />
@@ -458,7 +459,7 @@ function ExperimentDetailDialog({
                                 <Bar dataKey="impressions" fill="hsl(var(--accent))" name="Impressions" radius={[0, 4, 4, 0]} />
                                 <Bar dataKey="conversions" fill="hsl(var(--primary))" name="Conversions" radius={[0, 4, 4, 0]} />
                             </BarChart>
-                        </ResponsiveContainer>
+                        </MeasuredResponsiveContainer>
                     </div>
 
                     <p className="text-xs text-muted-foreground">

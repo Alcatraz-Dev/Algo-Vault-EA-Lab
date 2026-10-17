@@ -9,11 +9,11 @@ import {
     ComposedChart,
     Line,
     ReferenceLine,
-    ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 import {
     ArrowRight,
     Database,
@@ -186,7 +186,7 @@ export default function EvidenceAnalytics({
                                     </div>
                                     <div className="px-3 py-4">
                                         <div className="h-52">
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <MeasuredResponsiveContainer width="100%" height="100%">
                                                 <AreaChart data={equityData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="recordedEquity" x1="0" y1="0" x2="0" y2="1">
@@ -200,7 +200,7 @@ export default function EvidenceAnalytics({
                                                     <Tooltip cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
                                                     <Area type="monotone" dataKey="equity" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#recordedEquity)" />
                                                 </AreaChart>
-                                            </ResponsiveContainer>
+                                            </MeasuredResponsiveContainer>
                                         </div>
                                     </div>
                                     <div className="border-t border-border px-5 py-3 text-xs text-muted-foreground">
@@ -217,7 +217,7 @@ export default function EvidenceAnalytics({
                                     </div>
                                     <div className="px-3 py-4">
                                         <div className="h-52">
-                                            <ResponsiveContainer width="100%" height="100%">
+                                            <MeasuredResponsiveContainer width="100%" height="100%">
                                                 <ComposedChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                                                     <defs>
                                                         <linearGradient id="winRateGradient" x1="0" y1="0" x2="0" y2="1">
@@ -233,7 +233,7 @@ export default function EvidenceAnalytics({
                                                     <Bar dataKey="winRate" name="Win rate" fill="url(#winRateGradient)" radius={[4, 4, 0, 0]} maxBarSize={28} />
                                                     <Line type="monotone" dataKey="maxDrawdown" name="Max drawdown" stroke="var(--negative)" strokeWidth={2} dot={{ r: 3, fill: "var(--negative)", strokeWidth: 0 }} activeDot={{ r: 5 }} />
                                                 </ComposedChart>
-                                            </ResponsiveContainer>
+                                            </MeasuredResponsiveContainer>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between border-t border-border px-5 py-3 text-xs text-muted-foreground">

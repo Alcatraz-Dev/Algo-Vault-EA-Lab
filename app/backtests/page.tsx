@@ -41,7 +41,6 @@ import { onValue, ref } from "firebase/database";
 import { auth, database } from "@/lib/firebase";
 
 import {
-    ResponsiveContainer,
     AreaChart,
     Area,
     BarChart,
@@ -55,6 +54,7 @@ import {
     Tooltip,
     CartesianGrid,
 } from "recharts";
+import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
 
 import ProGate from "@/components/subscription/ProGate";
 import ModernPageHeader from "@/components/ui/modern-page-header";
@@ -852,7 +852,7 @@ export default function BacktestsPage() {
                                     <div className="flex h-full items-center justify-center text-sm text-muted-foreground">No trade data available for session analysis.</div>
                                 )}
                                 {((chartType === "equity" || chartType === "drawdown") && equityCurve.length > 0 || chartType === "weekday" && weekdayData.length > 0 || chartType === "session" && sessionData.length > 0) && (
-                                <ResponsiveContainer width="100%" height="100%">
+                                <MeasuredResponsiveContainer width="100%" height="100%">
                                     {chartType === "equity" ? (
                                         <AreaChart data={equityCurve}>
                                             <defs>
@@ -941,7 +941,7 @@ export default function BacktestsPage() {
                                             <Bar dataKey="profit" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                                         </BarChart>
                                     )}
-                                </ResponsiveContainer>
+                                </MeasuredResponsiveContainer>
                                 )}
                             </div>
                         </div>
