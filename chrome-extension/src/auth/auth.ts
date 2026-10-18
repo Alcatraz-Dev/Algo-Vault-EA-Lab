@@ -36,10 +36,13 @@ export async function signInWithEmail(email: string, password: string): Promise<
       throw new Error("Cannot reach AlgoVault server");
     }
 
-    const { initializeApp } = await import("firebase/app");
+    const { initializeApp, getApps, getApp } = await import("firebase/app");
     const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
 
-    const app = initializeApp({
+    // Reuse the initialized app across retries in the same popup session —
+    // a second initializeApp() throws duplicate-app and would turn a simple
+    // password retry into a generic "Authentication failed".
+    const firebaseConfig = {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
       authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
       databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
@@ -47,7 +50,8 @@ export async function signInWithEmail(email: string, password: string): Promise<
       storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
       messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
       appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    });
+    };
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     const auth = getAuth(app);
     firebaseAuth = auth;
 

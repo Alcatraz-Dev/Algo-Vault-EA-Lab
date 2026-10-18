@@ -16,12 +16,12 @@ export async function getSettings(): Promise<ExtensionSettings> {
   return new Promise((resolve) => {
     chrome.storage.local.get("settings", (result) => {
       const stored = (result.settings ?? {}) as Partial<ExtensionSettings>;
-      // Heal stale URLs: (1) dev builds produced before the production
-      // default persisted http://localhost:3000 — users must never silently
-      // keep talking to a local server; (2) builds pointed at algovault.dev —
-      // that domain does not resolve (NXDOMAIN, verified 2026-10-01), so any
-      // stored reference to it can never be reached and must be dropped so the
-      // build's own default takes over.
+      // Heal stale URLs: (1) dev builds persisted http://localhost:3000 —
+      // users must never silently keep talking to a local server;
+      // (2) builds pointed at algovault.dev — that domain does not resolve
+      // (NXDOMAIN, verified 2026-10-01/18), so any stored reference to it
+      // can never be reached and must be dropped so the build's own default
+      // (PRODUCTION_ALGOVAULT_URL) takes over.
       const storedUrl = typeof stored.algovaultUrl === "string" ? stored.algovaultUrl : "";
       if (
         (!import.meta.env?.DEV && /localhost|127\.0\.0\.1/.test(storedUrl)) ||

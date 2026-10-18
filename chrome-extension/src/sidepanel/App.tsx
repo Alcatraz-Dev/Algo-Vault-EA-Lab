@@ -38,7 +38,7 @@ import {
   Command,
 } from "lucide-react";
 import { checkHealth, getGatewayStatus } from "@/api/algovault";
-import { getAlgoVaultUrl } from "@/config/environment";
+import { getAlgoVaultUrl, PRODUCTION_ALGOVAULT_URL } from "@/config/environment";
 import { getAuthToken, getCachedContext, getUser } from "@/storage/storage";
 import type { TradingViewContext } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
@@ -741,12 +741,11 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
 
 function getAlgoVaultUrlSafe(): string {
   try {
-    return (
-      (typeof import.meta !== "undefined" &&
-        (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_ALGOVAULT_URL) ||
-      "https://algovault.dev"
-    );
+    // Single source of truth lives in @/config/environment (production
+    // default + VITE override). This wrapper only guards non-module
+    // contexts where import.meta may be unavailable.
+    return getAlgoVaultUrl();
   } catch {
-    return "https://algovault.dev";
+    return PRODUCTION_ALGOVAULT_URL;
   }
 }

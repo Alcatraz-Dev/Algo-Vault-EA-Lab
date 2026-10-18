@@ -75,6 +75,23 @@ export default function PrivacyPolicyPage() {
                                     and error logs to improve the platform.
                                 </p>
                             </div>
+                            <div>
+                                <h3 className="font-medium text-foreground">Browser Extension Data</h3>
+                                <p>
+                                    Our Chrome extension (AlgoVault Trading Intelligence) runs alongside
+                                    TradingView charts. When you use it, the extension reads the active
+                                    chart&apos;s symbol, timeframe, and visible price context so it can show
+                                    market analysis, and it transmits that chart context plus your
+                                    authentication token to our servers to generate AI analysis, signals,
+                                    and alerts. AI copilot conversations, price alerts, and extension
+                                    settings are stored locally in your browser (chrome.storage); a random
+                                    install identifier is synced via your Chrome profile solely to enforce
+                                    the free daily-signal quota across reinstalls. The extension never
+                                    reads your browsing history outside TradingView tabs, and never
+                                    handles broker passwords or API secrets &mdash; trade execution is
+                                    authenticated with your AlgoVault session and validated server-side.
+                                </p>
+                            </div>
                         </div>
                     </section>
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowDownUp, Crosshair, RefreshCw, RotateCcw, Wallet } from "lucide-react";
 import { getGatewayStatus, getRiskAnalysis } from "@/api/algovault";
 import {
@@ -109,10 +109,17 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
   /* Raw text is kept so partial input like "5." or "500" is never clobbered
      while typing; parse only for math. */
 
+  /* Honors Settings → "Confirm before execution" (previously stored but never
+     read — the toggle had no effect). Off means the primary button sends the
+     validated ticket directly; the payload, idempotency and outcome handling
+     are identical either way. Defaults to confirming. */
+  const [confirmBeforeSend, setConfirmBeforeSend] = useState(true);
+
   /* ── load settings + gateway accounts, then pull REAL capital ────────── */
   useEffect(() => {
     getSettings().then((s) => {
       setRiskPercent(String(s.defaultRiskPercent ?? 1));
+      setConfirmBeforeSend(s.confirmBeforeExecution !== false);
       if (!s.accountSize || s.accountSize <= 0) return;
       // Manual fallback only — shown when no gateway account is connected.
       setManualAccountSize(String(s.accountSize));
@@ -243,12 +250,19 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
     setSl(slPrice.toFixed(slPrice >= 100 ? 2 : 5));
   };
 
+  /* Re-entrancy guard: rapid double-clicks (Send + Retry) must not fire two
+     concurrent submissions for the same ticket. The server would dedupe via
+     the idempotency key, but the UI would race two outcomes. */
+  const submitInFlight = useRef(false);
+
   /**
    * Submits ONE execution request and renders the server's verdict.
    * The idempotency key is NOT regenerated here: a retry of this same logical
    * order always carries the same `clientRequestId`.
    */
   const handleConfirm = async () => {
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
     setLoading(true);
     try {
       // Re-pull capital so the confirm sheet reflects the account at send time.
@@ -270,6 +284,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
       setShowConfirm(false);
     } finally {
       setLoading(false);
+      submitInFlight.current = false;
     }
   };
 
@@ -638,8 +653,11 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
           />
         )}
 
-        <PrimaryButton onClick={() => setShowConfirm(true)} disabled={!canPreview || !gatewayReady}>
-          Review Order
+        <PrimaryButton
+          onClick={() => (confirmBeforeSend ? setShowConfirm(true) : void handleConfirm())}
+          disabled={!canPreview || !gatewayReady || loading}
+        >
+          {loading ? "Sending…" : confirmBeforeSend ? "Review Order" : `Send ${direction} — no confirmation`}
         </PrimaryButton>
       </div>
 
