@@ -51,6 +51,7 @@ import {
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 /* ── Pro status payload (server answer) ───────────────────────────────── */
@@ -230,17 +231,13 @@ export default function ProTradingExtensionPage() {
             title="Pro Trading Extension"
             subtitle="The premium AlgoVault TradingView companion — an AI-powered intelligence terminal that lives directly beside your chart."
             eyebrow={
-                <span
-                    className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-micro font-semibold uppercase tracking-wider",
-                        isPro
-                            ? "border-primary/30 bg-primary/10 text-primary"
-                            : "border-border bg-card text-muted-foreground"
-                    )}
+                <Badge
+                    variant={isPro ? "default" : "secondary"}
+                    className="px-2 font-semibold uppercase tracking-wider"
                 >
                     <Lock size={10} />
                     {isPro ? "Pro Active" : "Pro Gated"}
-                </span>
+                </Badge>
             }
         >
             <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
@@ -332,17 +329,13 @@ export default function ProTradingExtensionPage() {
                                             <div className="flex h-9 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                                 <Icon size={18} />
                                             </div>
-                                            <span
-                                                className={cn(
-                                                  "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
-                                                    live
-                                                        ? "border-positive/30 bg-positive/10 text-positive"
-                                                        : "border-border bg-muted text-muted-foreground"
-                                                )}
+                                            <Badge
+                                                variant={live ? "success" : "secondary"}
+                                                className="font-semibold uppercase tracking-wider"
                                             >
                                                 <span className={cn("h-1.5 w-1.5 rounded-full", live ? "bg-positive animate-pulse" : "bg-muted-foreground")} />
                                                 {live ? "Live" : "Soon"}
-                                            </span>
+                                            </Badge>
                                         </div>
                                         <h3 className="mt-3 text-sm font-semibold">{f.title}</h3>
                                         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{f.description}</p>
@@ -475,17 +468,13 @@ export default function ProTradingExtensionPage() {
                     <section className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
                         <header className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold">Browser extension</h3>
-                            <span
-                                className={cn(
-                                  "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wider",
-                                    extensionConnected
-                                        ? "border-positive/30 bg-positive/10 text-positive"
-                                        : "border-border bg-muted text-muted-foreground"
-                                )}
+                            <Badge
+                                variant={extensionConnected ? "success" : "secondary"}
+                                className="font-semibold uppercase tracking-wider"
                             >
                                 <span className={cn("h-1.5 w-1.5 rounded-full", extensionConnected ? "bg-positive animate-pulse" : "bg-muted-foreground")} />
                                 {extensionConnected ? "Detected" : "Not installed"}
-                            </span>
+                            </Badge>
                         </header>
                         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
                             {extensionConnected

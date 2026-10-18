@@ -325,19 +325,29 @@ export function OrderTicket({
                 <div className="grid grid-cols-2 gap-2">
                     <Button
                         size="sm"
-                        variant={side === "long" ? "default" : "outline"}
+                        variant="outline"
                         disabled={disabled}
                         onClick={() => setSide("long")}
-                        className={side === "long" ? "bg-positive text-background" : ""}
+                        className={cn(
+                            "font-semibold",
+                            side === "long"
+                                ? "border-positive/50 bg-positive/15 text-positive shadow-sm ring-1 ring-positive/20 hover:border-positive/70 hover:bg-positive/25"
+                                : "text-muted-foreground"
+                        )}
                     >
                         <ArrowUpRight className="h-3.5 w-3.5" /> Long
                     </Button>
                     <Button
                         size="sm"
-                        variant={side === "short" ? "default" : "outline"}
+                        variant="outline"
                         disabled={disabled}
                         onClick={() => setSide("short")}
-                        className={side === "short" ? "bg-negative text-background" : ""}
+                        className={cn(
+                            "font-semibold",
+                            side === "short"
+                                ? "border-negative/50 bg-negative/15 text-negative shadow-sm ring-1 ring-negative/20 hover:border-negative/70 hover:bg-negative/25"
+                                : "text-muted-foreground"
+                        )}
                     >
                         <ArrowDownRight className="h-3.5 w-3.5" /> Short
                     </Button>
@@ -374,7 +384,7 @@ export function OrderTicket({
                 <div className="space-y-2 rounded-md border border-border bg-background/60 p-3">
                     <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">Position size</span>
-                        <div className="inline-flex rounded-md border border-border p-0.5" role="group" aria-label="Sizing mode">
+                        <div className="inline-flex rounded-md border border-border p-0.5 text-micro" role="group" aria-label="Sizing mode">
                             {(["risk", "lots"] as const).map((mode) => (
                                 <button
                                     key={mode}
@@ -392,7 +402,7 @@ export function OrderTicket({
                                     }}
                                     disabled={disabled}
                                     className={cn(
-                                        "rounded px-2 py-0.5 text-micro font-medium capitalize transition",
+                                        "rounded px-2 py-0.5 font-medium capitalize transition",
                                         sizingMode === mode ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"
                                     )}
                                 >
@@ -502,7 +512,12 @@ export function OrderTicket({
                 ) : null}
 
                 <Button
-                    className={cn("w-full", side === "long" ? "bg-positive text-background" : "bg-negative text-background")}
+                    className={cn(
+                        "w-full font-semibold shadow-sm",
+                        side === "long"
+                            ? "border-positive/50 bg-positive/15 text-positive hover:border-positive/70 hover:bg-positive/25"
+                            : "border-negative/50 bg-negative/15 text-negative hover:border-negative/70 hover:bg-negative/25"
+                    )}
                     disabled={!canSubmit}
                     onClick={() => void submit()}
                 >

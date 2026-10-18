@@ -714,7 +714,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                     type="button"
                                     size="sm"
                                     onClick={() => openTrade("LONG")}
-                                    className="h-8 bg-positive hover:bg-positive text-background font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
+                                    className="h-8 border-positive/50 bg-positive hover:bg-positive text-background font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
                                     <TrendingUp size={13} className="mr-1" /> Buy Long
                                 </Button>
@@ -722,7 +722,7 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                                     type="button"
                                     size="sm"
                                     onClick={() => openTrade("SHORT")}
-                                    className="h-8 bg-negative hover:bg-negative text-background font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
+                                    className="h-8 border-negative/50 bg-negative hover:bg-negative text-background font-semibold text-micro tracking-wider uppercase px-3 rounded-lg shadow-xs shrink-0"
                                 >
                                     <TrendingDown size={13} className="mr-1" /> Sell Short
                                 </Button>

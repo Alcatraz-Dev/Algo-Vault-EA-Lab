@@ -158,7 +158,7 @@ export default function AdminLiveMapPage() {
 
         {/* Map + panels */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <section className="lg:col-span-8" aria-label="World activity map">
+          <section className="lg:col-span-12" aria-label="World activity map">
             <LiveWorldMap
               clusters={clusters}
               hoveredCountry={hoveredCountry}
@@ -167,7 +167,7 @@ export default function AdminLiveMapPage() {
               sessions={sessions}
             />
           </section>
-          <aside className="lg:col-span-4 grid grid-cols-1 gap-4">
+          <aside className="lg:col-span-12 grid grid-cols-1 gap-4">
             <LiveActivityFeed activities={activities} />
             <GlobalActivity clusters={clusters} />
             <MarketActivity activities={activities} />
