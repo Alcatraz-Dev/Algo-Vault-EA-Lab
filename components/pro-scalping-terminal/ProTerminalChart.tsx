@@ -77,6 +77,14 @@ import {
     type ChartTradeFill,
 } from "./chart-settings";
 import {
+    paramColor,
+    paramNumber,
+    paramWidth,
+    resolveIndicatorParams,
+    type IndicatorParams,
+    type IndicatorSettings,
+} from "./indicator-params";
+import {
     MAGNET_TOOLS,
     hitTestDrawing,
     positionPrices,
@@ -425,13 +433,16 @@ const PINE_PANE_STRETCH = 0.35;
   */
 const MA_LAYER_SERIES: Record<
     string,
-    { core: "ema" | "sma"; period: number; color: string }
+    { core: "ema" | "sma" | "wma"; period: number; color: string }
 > = {
     ema50: { core: "ema", period: 50, color: "#fb7185" },
     ema200: { core: "ema", period: 200, color: "#f59e0b" },
     sma20: { core: "sma", period: 20, color: "#94a3b8" },
     sma50: { core: "sma", period: 50, color: "#22d3ee" },
     sma200: { core: "sma", period: 200, color: "#60a5fa" },
+    // Weighted MA: same core-engine slot, same create/ feed / remove path as
+    // the rest of the family (registry id "wma", default length 20).
+    wma: { core: "wma", period: 20, color: "#f472b6" },
 };
 
 /** Layers (ChartLayerId keys) whose series are managed by MA_LAYER_SERIES. */
@@ -788,6 +799,38 @@ export function ProTerminalChart({
     const cfgRef = useRef(cfg);
     useEffect(() => { cfgRef.current = cfg; }, [cfg]);
 
+    // ── per-indicator parameters (schema defaults + the user's overrides) ──
+    // Resolved once per settings identity; every consumer (indicator data feed,
+    // layer-sync effect, live-tail commits) reads these, so a length / level /
+    // colour edit reaches the chart without re-deriving anything per candle.
+    const ip = useMemo(() => {
+        const s: IndicatorSettings | undefined = cfg.indicators;
+        const ma: Record<string, IndicatorParams> = {};
+        for (const layerId of MA_LAYER_IDS) ma[layerId] = resolveIndicatorParams(layerId, s);
+        return {
+            bb: resolveIndicatorParams("bollingerBands", s),
+            kc: resolveIndicatorParams("keltnerChannels", s),
+            dc: resolveIndicatorParams("donchianChannels", s),
+            supertrend: resolveIndicatorParams("supertrend", s),
+            rsi: resolveIndicatorParams("rsiPane", s),
+            macd: resolveIndicatorParams("macdPane", s),
+            stoch: resolveIndicatorParams("stochasticPane", s),
+            atr: resolveIndicatorParams("atrPane", s),
+            adx: resolveIndicatorParams("adxPane", s),
+            ao: resolveIndicatorParams("awesomeOscillator", s),
+            obv: resolveIndicatorParams("obvPane", s),
+            ichimoku: resolveIndicatorParams("ichimokuCloud", s),
+            vwap: resolveIndicatorParams("vwap", s),
+            ema9: resolveIndicatorParams("ema9", s),
+            ema20: resolveIndicatorParams("ema20", s),
+            ma,
+        };
+    }, [cfg.indicators]);
+    // Declared ahead of the data/commit effects so those effects (which run in
+    // declaration order) always read the current parameters.
+    const ipRef = useRef(ip);
+    useEffect(() => { ipRef.current = ip; }, [ip]);
+
     const containerRef = useRef<HTMLDivElement>(null);
     const chartRef = useRef<IChartApi | null>(null);
     const candleSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -827,8 +870,13 @@ export function ProTerminalChart({
     // EMA/SMA overlays, Ichimoku cloud edges, stochastic & ATR panes.
     const maLayerSeriesRef = useRef<Record<string, ISeriesApi<"Line">> | null>(null);
     const ichiSeriesRef = useRef<{ spanA: ISeriesApi<"Line">; spanB: ISeriesApi<"Line"> } | null>(null);
-    const stochSeriesRef = useRef<{ k: ISeriesApi<"Line">; d: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
+    const stochSeriesRef = useRef<{ k: ISeriesApi<"Line">; d: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[]; levels: number[] } | null>(null);
     const atrSeriesRef = useRef<{ line: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    // Three more core-engine panes (ADX/DMI, Awesome Oscillator, on-balance
+    // volume) — same create-once / toggle semantics as the ATR pane above.
+    const adxSeriesRef = useRef<{ adx: ISeriesApi<"Line">; plus: ISeriesApi<"Line">; minus: ISeriesApi<"Line">; pane: number | null } | null>(null);
+    const awesomeSeriesRef = useRef<{ hist: ISeriesApi<"Histogram">; pane: number | null } | null>(null);
+    const obvSeriesRef = useRef<{ line: ISeriesApi<"Line">; pane: number | null } | null>(null);
     // Parabolic SAR — dot markers on the candle series, rebuilt with the data
     // feed while the layer is on and emptied when it is off.
     const psarMarkersRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
@@ -842,7 +890,7 @@ export function ProTerminalChart({
     const lastPushedBarRef = useRef<{ time: number; open: number; high: number; low: number; close: number } | null>(null);
     const lastPushedCandlesRef = useRef<Candle[]>([]);
     const haSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
-    const rsiSeriesRef = useRef<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>(null);
+    const rsiSeriesRef = useRef<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[]; levels: number[] } | null>(null);
     const macdSeriesRef = useRef<{ macd: ISeriesApi<"Line">; signal: ISeriesApi<"Line">; pane: number | null } | null>(null);
     // Panes created by these layers — remembered so the pane can be removed
     // again when the layer is switched off.
@@ -851,6 +899,9 @@ export function ProTerminalChart({
     const macdPaneOwnedRef = useRef<number | null>(null);
     const stochPaneOwnedRef = useRef<number | null>(null);
     const atrPaneOwnedRef = useRef<number | null>(null);
+    const adxPaneOwnedRef = useRef<number | null>(null);
+    const awesomePaneOwnedRef = useRef<number | null>(null);
+    const obvPaneOwnedRef = useRef<number | null>(null);
     // Estimated delta pane (candle-direction proxy — clearly labelled, never
     // presented as bid/ask delta).
     const deltaPaneOwnedRef = useRef<number | null>(null);
@@ -975,6 +1026,12 @@ export function ProTerminalChart({
                 stochasticPane: stochPaneOwnedRef,
                 atr: atrSeriesRef,
                 atrPane: atrPaneOwnedRef,
+                adx: adxSeriesRef,
+                adxPane: adxPaneOwnedRef,
+                awesome: awesomeSeriesRef,
+                awesomePane: awesomePaneOwnedRef,
+                obv: obvSeriesRef,
+                obvPane: obvPaneOwnedRef,
                 delta: deltaSeriesRef,
                 deltaPane: deltaPaneOwnedRef,
         })
@@ -1668,10 +1725,56 @@ export function ProTerminalChart({
     // layer state — including a hydrated "on" state from localStorage. The
     // data feed keeps the hidden series warm, so a toggle paints instantly.
     useEffect(() => {
-        vwapSeriesRef.current?.applyOptions({ visible: isLayerOn(layers, "vwap") });
-        ema9Ref.current?.applyOptions({ visible: isLayerOn(layers, "ema9") });
-        ema20Ref.current?.applyOptions({ visible: isLayerOn(layers, "ema20") });
-    }, [layers.vwap, layers.ema9, layers.ema20]);
+        // Visible + identity appearance in one place: these three series are
+        // parent-owned (created once at chart init), so a colour/width setting
+        // has to reach the live series here — the creation values above only
+        // cover the very first mount.
+        vwapSeriesRef.current?.applyOptions({
+            visible: isLayerOn(layers, "vwap"),
+            color: paramColor(ip.vwap, "color", "#f59e0b"),
+            lineWidth: paramWidth(ip.vwap, "lineWidth", 1),
+        });
+        ema9Ref.current?.applyOptions({
+            visible: isLayerOn(layers, "ema9"),
+            color: paramColor(ip.ema9, "color", "#38bdf8"),
+            lineWidth: paramWidth(ip.ema9, "lineWidth", 1),
+        });
+        ema20Ref.current?.applyOptions({
+            visible: isLayerOn(layers, "ema20"),
+            color: paramColor(ip.ema20, "color", "#a78bfa"),
+            lineWidth: paramWidth(ip.ema20, "lineWidth", 1),
+        });
+    }, [layers.vwap, layers.ema9, layers.ema20, ip]);
+
+    // ── EMA 9 / EMA 20 lengths are settings: a change rewrites the series ──
+    // The live-tail and full-commit paths below only run with candle commits
+    // (the tail path appends the newest bars), so a length edit has to derive
+    // the whole history itself. Guarded on "the length actually changed" —
+    // ordinary candle commits return immediately, and a commit that arrives
+    // while the data is still empty retries on the next one.
+    const ema9Period = paramNumber(ip.ema9, "period", 9);
+    const ema20Period = paramNumber(ip.ema20, "period", 20);
+    const emaPeriodsRef = useRef({ ema9Period, ema20Period });
+    useEffect(() => {
+        const prev = emaPeriodsRef.current;
+        if (prev.ema9Period === ema9Period && prev.ema20Period === ema20Period) return;
+        const e9 = ema9Ref.current;
+        const e20 = ema20Ref.current;
+        if (!e9 || !e20 || candles.length === 0) return;
+        emaPeriodsRef.current = { ema9Period, ema20Period };
+        const closes = candles.map((c) => c.close);
+        const setData = (series: ISeriesApi<"Line">, period: number) => {
+            const vals = ema(closes, period);
+            const data: Array<{ time: UTCTimestamp; value: number }> = [];
+            candles.forEach((c, i) => {
+                const v = vals[i];
+                if (v !== null) data.push({ time: Math.floor(c.timestamp / 1000) as UTCTimestamp, value: v });
+            });
+            series.setData(data);
+        };
+        setData(e9, ema9Period);
+        setData(e20, ema20Period);
+    }, [ema9Period, ema20Period, candles]);
 
     // ── Resize observer — track container dimensions for SVG overlay ──────
     useEffect(() => {
@@ -2532,8 +2635,10 @@ export function ProTerminalChart({
                 }
             };
             pushLineTail(vw, vwapVals);
-            pushLineTail(e9, ema(closes, 9));
-            pushLineTail(e20, ema(closes, 20));
+            // Live EMA lengths read the user's settings (a length change
+            // rewrites the whole series in the effect above).
+            pushLineTail(e9, ema(closes, paramNumber(ipRef.current.ema9, "period", 9)));
+            pushLineTail(e20, ema(closes, paramNumber(ipRef.current.ema20, "period", 20)));
             // A new bar appended at the tail: keep the live edge while
             // following; a user-panned viewport receives no mutating call.
             // Forming-candle-only updates (same bar count) touch nothing.
@@ -2593,8 +2698,8 @@ export function ProTerminalChart({
             });
             series.setData(data);
         };
-        pushEma(e9, 9);
-        pushEma(e20, 20);
+        pushEma(e9, paramNumber(ipRef.current.ema9, "period", 9));
+        pushEma(e20, paramNumber(ipRef.current.ema20, "period", 20));
 
         // ── viewport classification for this commit (Phase 2) ───────────────
         // fitContent happens ONLY via the initial-fit policy on a context
@@ -3490,20 +3595,26 @@ export function ProTerminalChart({
     // is on. Declared AFTER the Pine-study effect so a study pane present at
     // mount stacks above the indicator panes exactly as before.
     useEffect(() => {
+        // Identity appearance (colour / width) for the MA family, resolved from
+        // the same per-indicator settings the data feed reads — one source for
+        // "what this line looks like", so an edit reaches the live series.
+        const maLayers: Record<string, { color: string; lineWidth?: 1 | 2 | 3 }> = {};
+        for (const layerId of MA_LAYER_IDS) {
+            const spec = MA_LAYER_SERIES[layerId];
+            maLayers[layerId] = {
+                color: paramColor(ip.ma[layerId], "color", spec.color),
+                lineWidth: paramWidth(ip.ma[layerId], "lineWidth", 1),
+            };
+        }
         indicatorRenderer.syncLayers({
             layers: layers as Partial<Record<ChartLayerId, boolean>>,
             colors: cfg.colors,
             pricePrecision: symbolPrecision(symbol),
-            maLayers: {
-                ema50: { color: MA_LAYER_SERIES.ema50.color },
-                ema200: { color: MA_LAYER_SERIES.ema200.color },
-                sma20: { color: MA_LAYER_SERIES.sma20.color },
-                sma50: { color: MA_LAYER_SERIES.sma50.color },
-                sma200: { color: MA_LAYER_SERIES.sma200.color },
-            },
+            maLayers,
+            params: cfg.indicators,
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.delta, layers.cumulativeDelta, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, symbol]);
+    }, [layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.delta, layers.cumulativeDelta, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.wma, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, layers.adxPane, layers.awesomeOscillator, layers.obvPane, ip, symbol]);
 
     // Data feed for the indicator layers — the parent keeps the indicator
     // mathematics (same kernels, same per-family guards) and hands the renderer
@@ -3513,22 +3624,39 @@ export function ProTerminalChart({
         const closes = candles.map((c) => c.close);
         const highs = candles.map((c) => c.high);
         const lows = candles.map((c) => c.low);
+        const toSec = (ts: number) => Math.floor(ts / 1000) as UTCTimestamp;
         const payload: IndicatorSeriesData = { candles };
 
         if (bbSeriesRef.current) {
-            const [basis, upper, lower] = TA.bb(closes, 20, 2);
+            const [basis, upper, lower] = TA.bb(
+                closes,
+                paramNumber(ip.bb, "period", 20),
+                paramNumber(ip.bb, "mult", 2)
+            );
             payload.bollinger = { basis, upper, lower };
         }
         if (kcSeriesRef.current) {
-            const [mid, upper, lower] = TA.keltner(highs, lows, closes, 20, 2);
+            const [mid, upper, lower] = TA.keltner(
+                highs,
+                lows,
+                closes,
+                paramNumber(ip.kc, "period", 20),
+                paramNumber(ip.kc, "mult", 2)
+            );
             payload.keltner = { mid, upper, lower };
         }
         if (dcSeriesRef.current) {
-            const [upper, lower, mid] = TA.donchian(highs, lows, 20);
+            const [upper, lower, mid] = TA.donchian(highs, lows, paramNumber(ip.dc, "period", 20));
             payload.donchian = { upper, lower, mid };
         }
         if (stSeriesRef.current) {
-            const [line] = TA.supertrend(highs, lows, closes, 10, 3);
+            const [line] = TA.supertrend(
+                highs,
+                lows,
+                closes,
+                paramNumber(ip.supertrend, "period", 10),
+                paramNumber(ip.supertrend, "mult", 3)
+            );
             payload.supertrend = line;
         }
         if (haSeriesRef.current) {
@@ -3541,10 +3669,15 @@ export function ProTerminalChart({
             payload.heikinAshi = { open: ho, high: hh, low: hl, close: hc };
         }
         if (rsiSeriesRef.current) {
-            payload.rsi = TA.rsi(closes, 14);
+            payload.rsi = TA.rsi(closes, paramNumber(ip.rsi, "period", 14));
         }
         if (macdSeriesRef.current) {
-            const [macdLine, signalLine] = TA.macd(closes, 12, 26, 9);
+            const [macdLine, signalLine] = TA.macd(
+                closes,
+                paramNumber(ip.macd, "fast", 12),
+                paramNumber(ip.macd, "slow", 26),
+                paramNumber(ip.macd, "signal", 9)
+            );
             payload.macd = { macd: macdLine, signal: signalLine };
         }
         // ── Phase 0 layer feeds ──
@@ -3557,21 +3690,26 @@ export function ProTerminalChart({
                 const spec = MA_LAYER_SERIES[layerId];
                 ma[layerId] = alignedIndicatorSeries(
                     candles,
-                    { id: spec.core, params: { period: spec.period } },
+                    // The user's length (schema default = the shipped one),
+                    // still computed by the ONE core indicator engine.
+                    { id: spec.core, params: { period: paramNumber(ip.ma[layerId], "period", spec.period) } },
                     "value"
                 );
             }
             payload.ma = ma;
         }
         // Ichimoku cloud edges from the same highest/lowest primitives the
-        // Pine runtime plots with (tenkan 9 / kijun 26 / span B 52).
+        // Pine runtime plots with (tenkan / kijun / span B lengths are settings).
         if (ichiSeriesRef.current) {
-            const tenkanH = TA.highest(highs, 9);
-            const tenkanL = TA.lowest(lows, 9);
-            const kijunH = TA.highest(highs, 26);
-            const kijunL = TA.lowest(lows, 26);
-            const spanBH = TA.highest(highs, 52);
-            const spanBL = TA.lowest(lows, 52);
+            const tenkanN = paramNumber(ip.ichimoku, "tenkan", 9);
+            const kijunN = paramNumber(ip.ichimoku, "kijun", 26);
+            const spanBN = paramNumber(ip.ichimoku, "senkouB", 52);
+            const tenkanH = TA.highest(highs, tenkanN);
+            const tenkanL = TA.lowest(lows, tenkanN);
+            const kijunH = TA.highest(highs, kijunN);
+            const kijunL = TA.lowest(lows, kijunN);
+            const spanBH = TA.highest(highs, spanBN);
+            const spanBL = TA.lowest(lows, spanBN);
             const spanA: Array<number | null> = candles.map((_, i) => {
                 const t = (tenkanH[i] + tenkanL[i]) / 2;
                 const k = (kijunH[i] + kijunL[i]) / 2;
@@ -3583,15 +3721,62 @@ export function ProTerminalChart({
             });
             payload.ichimoku = { spanA, spanB };
         }
-        // Stochastic %K/%D and ATR — core engine outputs.
+        // Stochastic %K/%D and ATR — core engine outputs, lengths from settings.
         if (stochSeriesRef.current) {
+            const stochParams = {
+                kPeriod: paramNumber(ip.stoch, "kPeriod", 14),
+                kSmooth: paramNumber(ip.stoch, "kSmooth", 3),
+                dSmooth: paramNumber(ip.stoch, "dSmooth", 3),
+            };
             payload.stochastic = {
-                k: alignedIndicatorSeries(candles, { id: "stochastic" }, "k"),
-                d: alignedIndicatorSeries(candles, { id: "stochastic" }, "d"),
+                k: alignedIndicatorSeries(candles, { id: "stochastic", params: stochParams }, "k"),
+                d: alignedIndicatorSeries(candles, { id: "stochastic", params: stochParams }, "d"),
             };
         }
         if (atrSeriesRef.current) {
-            payload.atr = alignedIndicatorSeries(candles, { id: "atr" }, "value");
+            payload.atr = alignedIndicatorSeries(
+                candles,
+                { id: "atr", params: { period: paramNumber(ip.atr, "period", 14) } },
+                "value"
+            );
+        }
+        // ── New core-engine panes (registry-backed: adx / awesome / obv) ──
+        if (adxSeriesRef.current) {
+            const adxParams = { period: paramNumber(ip.adx, "period", 14) };
+            payload.adx = {
+                adx: alignedIndicatorSeries(candles, { id: "adx", params: adxParams }, "adx"),
+                plus: alignedIndicatorSeries(candles, { id: "adx", params: adxParams }, "plusDI"),
+                minus: alignedIndicatorSeries(candles, { id: "adx", params: adxParams }, "minusDI"),
+            };
+        }
+        if (awesomeSeriesRef.current) {
+            const vals = alignedIndicatorSeries(
+                candles,
+                {
+                    id: "awesome",
+                    params: {
+                        fast: paramNumber(ip.ao, "fast", 5),
+                        slow: paramNumber(ip.ao, "slow", 34),
+                    },
+                },
+                "value"
+            );
+            // Signed histogram: colour follows the sign (green above zero, red
+            // below) — semantic, fixed, never a user-selectable hue.
+            const hist: Array<{ time: UTCTimestamp; value: number; color: string }> = [];
+            candles.forEach((c, i) => {
+                const v = vals[i];
+                if (v === null || v === undefined || !Number.isFinite(v)) return;
+                hist.push({
+                    time: toSec(c.timestamp),
+                    value: v,
+                    color: v >= 0 ? "rgba(52, 211, 153, 0.55)" : "rgba(251, 113, 133, 0.55)",
+                });
+            });
+            payload.awesome = { hist };
+        }
+        if (obvSeriesRef.current) {
+            payload.obv = alignedIndicatorSeries(candles, { id: "obv" }, "value");
         }
         // Estimated delta pane: per-bar directional volume histogram +
         // cumulative line (documented ESTIMATED candle-direction proxy).
@@ -3623,7 +3808,7 @@ export function ProTerminalChart({
 
         indicatorRenderer.setData(payload);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [candles, layers.delta, layers.cumulativeDelta, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, orderFlow.estimatedDelta]);
+    }, [candles, layers.delta, layers.cumulativeDelta, layers.bollingerBands, layers.keltnerChannels, layers.donchianChannels, layers.supertrend, layers.heikinAshi, layers.rsiPane, layers.macdPane, layers.ema50, layers.ema200, layers.sma20, layers.sma50, layers.sma200, layers.wma, layers.ichimokuCloud, layers.stochasticPane, layers.atrPane, layers.adxPane, layers.awesomeOscillator, layers.obvPane, ip, orderFlow.estimatedDelta]);
 
     // ── Parabolic SAR dots (Phase 0) ────────────────────────────────
     // Values come from the SAME `TA.psar` kernel the Pine runtime executes,

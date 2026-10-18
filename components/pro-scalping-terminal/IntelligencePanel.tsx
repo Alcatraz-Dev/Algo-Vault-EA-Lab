@@ -33,6 +33,12 @@ export interface TerminalIntelligencePayload {
         validationStatus: string;
     } | null;
     error?: string;
+    /**
+     * When the server produced this decision (ms epoch). Present on both fresh
+     * and cached responses — a `cachedAt` close to arrival means the LLM spend
+     * just happened; an older one is a cache hit (see terminal-ai-status.ts).
+     */
+    cachedAt?: number;
 }
 
 const STATE_TONES: Record<string, ChipTone> = {

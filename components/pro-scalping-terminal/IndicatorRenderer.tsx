@@ -109,6 +109,14 @@ import {
 import type { RefObject } from "react";
 import { isLayerOn, type ChartLayerId } from "./chart-layers";
 import type { ChartSettings } from "./chart-settings";
+import {
+    paramColor,
+    paramNumber,
+    paramWidth,
+    withAlpha,
+    type IndicatorParams,
+    type IndicatorSettings,
+} from "./indicator-params";
 import type { Candle } from "./ProTerminalChart";
 
 /** One aligned indicator series: same length as the candle array, NaN/null = no plot. */
@@ -133,7 +141,7 @@ export type IndicatorSeriesRefs = {
     /** Heikin-Ashi candles (main pane). */
     heikinAshi: RefObject<ISeriesApi<"Candlestick"> | null>;
     /** RSI line, its pane and its guide price lines. */
-    rsi: RefObject<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>;
+    rsi: RefObject<{ rsi: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[]; levels: number[] } | null>;
     rsiPane: RefObject<number | null>;
     /** MACD + signal lines and their pane. */
     macd: RefObject<{ macd: ISeriesApi<"Line">; signal: ISeriesApi<"Line">; pane: number | null } | null>;
@@ -143,11 +151,20 @@ export type IndicatorSeriesRefs = {
     /** Ichimoku cloud edges (span A / span B). */
     ichimoku: RefObject<{ spanA: ISeriesApi<"Line">; spanB: ISeriesApi<"Line"> } | null>;
     /** Stochastic %K/%D, its pane and its guide price lines. */
-    stochastic: RefObject<{ k: ISeriesApi<"Line">; d: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[] } | null>;
+    stochastic: RefObject<{ k: ISeriesApi<"Line">; d: ISeriesApi<"Line">; pane: number | null; lines: IPriceLine[]; levels: number[] } | null>;
     stochasticPane: RefObject<number | null>;
     /** ATR line + its pane. */
     atr: RefObject<{ line: ISeriesApi<"Line">; pane: number | null } | null>;
     atrPane: RefObject<number | null>;
+    /** ADX line + the directional-movement lines, and their pane. */
+    adx: RefObject<{ adx: ISeriesApi<"Line">; plus: ISeriesApi<"Line">; minus: ISeriesApi<"Line">; pane: number | null } | null>;
+    adxPane: RefObject<number | null>;
+    /** Awesome Oscillator histogram (signed bars) + its pane. */
+    awesome: RefObject<{ hist: ISeriesApi<"Histogram">; pane: number | null } | null>;
+    awesomePane: RefObject<number | null>;
+    /** On-balance volume line + its pane. */
+    obv: RefObject<{ line: ISeriesApi<"Line">; pane: number | null } | null>;
+    obvPane: RefObject<number | null>;
     /** Estimated-delta pane: per-bar histogram + cumulative line. */
     delta: RefObject<{ hist: ISeriesApi<"Histogram">; line: ISeriesApi<"Line"> } | null>;
     deltaPane: RefObject<number | null>;
@@ -164,9 +181,16 @@ export type IndicatorLayerOptions = {
     /**
      * MA-overlay vocabulary owned by the parent: layer id → series color. The
      * parent also uses this table to pick the core-indicator calculation, so it
-     * stays its single definition.
+     * stays its single definition. `lineWidth` is optional (the schema default
+     * is 1) and is re-applied whenever the user changes it.
      */
-    maLayers: Record<string, { color: string }>;
+    maLayers: Record<string, { color: string; lineWidth?: 1 | 2 | 3 }>;
+    /**
+     * Per-indicator user parameters (identity colour / width + numeric inputs),
+     * already schema-resolved by the parent. Applied to the series that exist,
+     * not only at creation, so a settings change reaches the live chart.
+     */
+    params?: IndicatorSettings;
 };
 
 /**
@@ -189,6 +213,12 @@ export type IndicatorSeriesData = {
     ichimoku?: { spanA: IndicatorValues; spanB: IndicatorValues };
     stochastic?: { k: IndicatorValues; d: IndicatorValues };
     atr?: IndicatorValues;
+    /** ADX line + directional-movement lines (+DI / −DI). */
+    adx?: { adx: IndicatorValues; plus: IndicatorValues; minus: IndicatorValues };
+    /** Awesome Oscillator bars, already colour-signed by the parent (semantic). */
+    awesome?: { hist: Array<{ time: UTCTimestamp; value: number; color: string }> };
+    /** On-balance volume (empty while the feed carries no volume at all). */
+    obv?: IndicatorValues;
     delta?: {
         hist: Array<{ time: UTCTimestamp; value: number; color: string }>;
         line: Array<{ time: UTCTimestamp; value: number }>;
@@ -203,6 +233,9 @@ const PANE_STRETCH = {
     stochastic: 0.3,
     atr: 0.25,
     delta: 0.25,
+    adx: 0.25,
+    awesome: 0.25,
+    obv: 0.25,
 } as const;
 
 export class IndicatorRenderer {
@@ -252,6 +285,12 @@ export class IndicatorRenderer {
         this.refs.stochasticPane.current = null;
         this.refs.atr.current = null;
         this.refs.atrPane.current = null;
+        this.refs.adx.current = null;
+        this.refs.adxPane.current = null;
+        this.refs.awesome.current = null;
+        this.refs.awesomePane.current = null;
+        this.refs.obv.current = null;
+        this.refs.obvPane.current = null;
         this.refs.delta.current = null;
         this.refs.deltaPane.current = null;
     }
@@ -269,6 +308,8 @@ export class IndicatorRenderer {
         const chart = this.chart;
         if (!chart) return;
         const { layers } = options;
+        // Schema-resolved per-indicator parameters (absent → every default).
+        const params = options.params ?? {};
 
         const removeIf = (ref: RefObject<Record<string, ISeriesApi<"Line"> | ISeriesApi<"Candlestick">> | null>) => {
             const group = ref.current;
@@ -411,8 +452,14 @@ export class IndicatorRenderer {
             }
             const rsi = this.addHiddenLine(chart, paneIndex, "#c084fc");
             // 30/70 guides are part of the layer itself — created once with
-            // the series, never recreated per tick.
-            const guides = [30, 70].map((v) =>
+            // the series, never recreated per tick. The levels come from the
+            // user's RSI settings (schema default 30/70) so the layer is born
+            // with the configured guides; later edits reconcile in place.
+            const levels = [
+                paramNumber(params.rsiPane, "lower", 30),
+                paramNumber(params.rsiPane, "upper", 70),
+            ];
+            const guides = levels.map((v) =>
                 rsi.createPriceLine({
                     price: v,
                     color: "rgba(148, 163, 184, 0.6)",
@@ -422,7 +469,7 @@ export class IndicatorRenderer {
                     title: `RSI ${v}`,
                 })
             );
-            this.refs.rsi.current = { rsi, pane: paneIndex, lines: guides };
+            this.refs.rsi.current = { rsi, pane: paneIndex, lines: guides, levels };
         }
 
         // ── Estimated delta pane (histogram + cumulative line) ──
@@ -528,7 +575,7 @@ export class IndicatorRenderer {
                 }
                 delete maGroup[layerId];
             } else if (on && !maGroup[layerId]) {
-                maGroup[layerId] = this.addHiddenLine(chart, 0, spec.color);
+                maGroup[layerId] = this.addHiddenLine(chart, 0, spec.color, spec.lineWidth ?? 1);
             }
         }
         this.refs.ma.current = maGroup;
@@ -593,7 +640,13 @@ export class IndicatorRenderer {
             }
             const k = this.addHiddenLine(chart, paneIndex, "#38bdf8");
             const d = this.addHiddenLine(chart, paneIndex, "#f59e0b");
-            const guides = [20, 80].map((v) =>
+            // 20/80 guides ship with the layer; the levels come from the user's
+            // Stochastic settings and are reconciled in place afterwards.
+            const levels = [
+                paramNumber(params.stochasticPane, "lower", 20),
+                paramNumber(params.stochasticPane, "upper", 80),
+            ];
+            const guides = levels.map((v) =>
                 k.createPriceLine({
                     price: v,
                     color: "rgba(148, 163, 184, 0.6)",
@@ -603,7 +656,7 @@ export class IndicatorRenderer {
                     title: `STOCH ${v}`,
                 })
             );
-            this.refs.stochastic.current = { k, d, pane: paneIndex, lines: guides };
+            this.refs.stochastic.current = { k, d, pane: paneIndex, lines: guides, levels };
         }
 
         // ── ATR pane (volatility, own pane) ──
@@ -638,6 +691,286 @@ export class IndicatorRenderer {
             const line = this.addHiddenLine(chart, paneIndex, "#a78bfa", 2);
             this.refs.atr.current = { line, pane: paneIndex };
         }
+
+        // ── ADX pane (trend strength + directional movement, own pane) ──
+        // +DI/−DI carry the fixed bullish/bearish semantic colours; only the
+        // ADX line itself takes the user's identity colour.
+        if (!layers.adxPane) {
+            if (this.refs.adx.current) {
+                try {
+                    chart.removeSeries(this.refs.adx.current.adx);
+                    chart.removeSeries(this.refs.adx.current.plus);
+                    chart.removeSeries(this.refs.adx.current.minus);
+                } catch {
+                    // already gone
+                }
+                this.refs.adx.current = null;
+            }
+            if (this.refs.adx.current === null && this.refs.adxPane.current !== null) {
+                try {
+                    chart.removePane(this.refs.adxPane.current);
+                } catch {
+                    // pane may hold other series
+                }
+                this.refs.adxPane.current = null;
+            }
+        } else if (!this.refs.adx.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                this.refs.adxPane.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(PANE_STRETCH.adx);
+            } catch {
+                paneIndex = 0;
+                this.refs.adxPane.current = null;
+            }
+            const adx = this.addHiddenLine(chart, paneIndex, "#38bdf8");
+            const plus = this.addHiddenLine(chart, paneIndex, "#34d399");
+            const minus = this.addHiddenLine(chart, paneIndex, "#f472b6");
+            this.refs.adx.current = { adx, plus, minus, pane: paneIndex };
+        }
+
+        // ── Awesome Oscillator pane (signed histogram, own pane) ──
+        // Bar colours follow the sign (above zero / below zero) — semantic, so
+        // this family exposes lengths only, not a colour control.
+        if (!layers.awesomeOscillator) {
+            if (this.refs.awesome.current) {
+                try {
+                    chart.removeSeries(this.refs.awesome.current.hist);
+                } catch {
+                    // already gone
+                }
+                this.refs.awesome.current = null;
+            }
+            if (this.refs.awesome.current === null && this.refs.awesomePane.current !== null) {
+                try {
+                    chart.removePane(this.refs.awesomePane.current);
+                } catch {
+                    // pane may hold other series
+                }
+                this.refs.awesomePane.current = null;
+            }
+        } else if (!this.refs.awesome.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                this.refs.awesomePane.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(PANE_STRETCH.awesome);
+            } catch {
+                paneIndex = 0;
+                this.refs.awesomePane.current = null;
+            }
+            const hist = chart.addSeries(
+                HistogramSeries,
+                {
+                    priceLineVisible: false,
+                    lastValueVisible: false,
+                },
+                paneIndex
+            );
+            this.refs.awesome.current = { hist, pane: paneIndex };
+        }
+
+        // ── On-balance volume pane (own pane) ──
+        // The core OBV kernel reports null while the feed carries no volume at
+        // all, so an empty series (not a fabricated zero line) is the honest
+        // result on a volume-less feed.
+        if (!layers.obvPane) {
+            if (this.refs.obv.current) {
+                try {
+                    chart.removeSeries(this.refs.obv.current.line);
+                } catch {
+                    // already gone
+                }
+                this.refs.obv.current = null;
+            }
+            if (this.refs.obv.current === null && this.refs.obvPane.current !== null) {
+                try {
+                    chart.removePane(this.refs.obvPane.current);
+                } catch {
+                    // pane may hold other series
+                }
+                this.refs.obvPane.current = null;
+            }
+        } else if (!this.refs.obv.current) {
+            let paneIndex = 0;
+            try {
+                paneIndex = chart.panes().length;
+                chart.addPane();
+                this.refs.obvPane.current = paneIndex;
+                chart.panes()[paneIndex]?.setStretchFactor(PANE_STRETCH.obv);
+            } catch {
+                paneIndex = 0;
+                this.refs.obvPane.current = null;
+            }
+            const line = this.addHiddenLine(chart, paneIndex, "#a78bfa");
+            this.refs.obv.current = { line, pane: paneIndex };
+        }
+
+        // ── appearance: colour / width / guide levels from settings ──
+        // Series are created once and reused, so the create paths above only
+        // cover first creation — a settings change has to reach the live
+        // series here (idempotent, runs on layer toggles and settings edits,
+        // never on data ticks).
+        this.applyAppearance(options, params);
+    }
+
+    /**
+     * Push the user's per-indicator appearance onto the series that exist:
+     * identity colours, line widths and the guide levels that the schema lets
+     * them edit. Colours the design system fixes (semantic directional bands,
+     * the neutral Bollinger basis) are never re-coloured here.
+     */
+    private applyAppearance(options: IndicatorLayerOptions, params: IndicatorSettings): void {
+        const p = (id: ChartLayerId): IndicatorParams | undefined => params[id];
+        const style = (s: ISeriesApi<"Line"> | null | undefined, color: string, width: 1 | 2 | 3) => {
+            if (!s) return;
+            try {
+                s.applyOptions({ color, lineWidth: width });
+            } catch {
+                // series detached with the chart
+            }
+        };
+
+        // MA overlays: colour/width resolved by the parent into maLayers.
+        const maGroup = this.refs.ma.current;
+        if (maGroup) {
+            for (const layerId of Object.keys(options.maLayers)) {
+                const spec = options.maLayers[layerId];
+                const series = maGroup[layerId];
+                if (series) style(series, spec.color, spec.lineWidth ?? 1);
+            }
+        }
+
+        const bb = this.refs.bb.current;
+        if (bb) {
+            const w = paramWidth(p("bollingerBands"), "lineWidth", 1);
+            const c = paramColor(p("bollingerBands"), "color", "#60a5fa");
+            style(bb.upper, c, w);
+            style(bb.lower, c, w);
+            style(bb.basis, "#94a3b8", w); // neutral basis stays neutral
+        }
+
+        const kc = this.refs.kc.current;
+        if (kc) {
+            const w = paramWidth(p("keltnerChannels"), "lineWidth", 1);
+            const c = paramColor(p("keltnerChannels"), "color", "#f97316");
+            style(kc.mid, c, w);
+            style(kc.upper, withAlpha(c, 55), w);
+            style(kc.lower, withAlpha(c, 55), w);
+        }
+
+        const dc = this.refs.dc.current;
+        if (dc) {
+            const w = paramWidth(p("donchianChannels"), "lineWidth", 1);
+            const c = paramColor(p("donchianChannels"), "color", "#22d3ee");
+            style(dc.upper, c, w);
+            style(dc.lower, c, w);
+            style(dc.mid, withAlpha(c, 50), w);
+        }
+
+        const st = this.refs.supertrend.current;
+        if (st) {
+            style(
+                st.line,
+                paramColor(p("supertrend"), "color", "#f472b6"),
+                paramWidth(p("supertrend"), "lineWidth", 2),
+            );
+        }
+
+        const rsi = this.refs.rsi.current;
+        if (rsi) {
+            style(rsi.rsi, paramColor(p("rsiPane"), "color", "#c084fc"), paramWidth(p("rsiPane"), "lineWidth", 1));
+            this.reconcileGuides(
+                rsi.rsi,
+                rsi,
+                [paramNumber(p("rsiPane"), "lower", 30), paramNumber(p("rsiPane"), "upper", 70)],
+                "RSI",
+            );
+        }
+
+        const macd = this.refs.macd.current;
+        if (macd) {
+            const w = paramWidth(p("macdPane"), "lineWidth", 1);
+            style(macd.macd, paramColor(p("macdPane"), "color", "#38bdf8"), w);
+            style(macd.signal, paramColor(p("macdPane"), "signalColor", "#f59e0b"), w);
+        }
+
+        const stoch = this.refs.stochastic.current;
+        if (stoch) {
+            const w = paramWidth(p("stochasticPane"), "lineWidth", 1);
+            style(stoch.k, paramColor(p("stochasticPane"), "kColor", "#38bdf8"), w);
+            style(stoch.d, paramColor(p("stochasticPane"), "dColor", "#f59e0b"), w);
+            this.reconcileGuides(
+                stoch.k,
+                stoch,
+                [paramNumber(p("stochasticPane"), "lower", 20), paramNumber(p("stochasticPane"), "upper", 80)],
+                "STOCH",
+            );
+        }
+
+        const atr = this.refs.atr.current;
+        if (atr) {
+            style(atr.line, paramColor(p("atrPane"), "color", "#a78bfa"), paramWidth(p("atrPane"), "lineWidth", 2));
+        }
+
+        const adx = this.refs.adx.current;
+        if (adx) {
+            style(adx.adx, paramColor(p("adxPane"), "color", "#38bdf8"), paramWidth(p("adxPane"), "lineWidth", 1));
+            // +DI / −DI are semantic: fixed bullish/bearish hues, width only.
+            const w = paramWidth(p("adxPane"), "lineWidth", 1);
+            style(adx.plus, "#34d399", w);
+            style(adx.minus, "#f472b6", w);
+        }
+
+        const obv = this.refs.obv.current;
+        if (obv) {
+            style(obv.line, paramColor(p("obvPane"), "color", "#a78bfa"), paramWidth(p("obvPane"), "lineWidth", 1));
+        }
+
+        // Heikin-Ashi, Ichimoku, delta and the Awesome histogram keep their
+        // preset/semantic colours: their colours carry meaning, not identity.
+    }
+
+    /**
+     * Reconcile one series' guide price lines with the configured levels.
+     * Unchanged levels are left alone (the common case — nothing is recreated
+     * on a data tick); a changed set is rebuilt so the guides always show the
+     * values the settings promise, and the group records what it now carries.
+     */
+    private reconcileGuides(
+        series: ISeriesApi<"Line">,
+        group: { lines: IPriceLine[]; levels: number[] },
+        levels: number[],
+        titlePrefix: string,
+    ): void {
+        const sorted = [...levels].sort((a, b) => a - b);
+        // `?? []`: a group seeded before settings existed may carry no
+        // recorded levels yet — that is simply "unknown ⇒ rebuild".
+        const existing = [...(group.levels ?? [])].sort((a, b) => a - b);
+        const same = existing.length === sorted.length && existing.every((v, i) => v === sorted[i]);
+        if (same) return;
+
+        for (const line of group.lines ?? []) {
+            try {
+                series.removePriceLine(line);
+            } catch {
+                // already gone
+            }
+        }
+        group.lines = sorted.map((v) =>
+            series.createPriceLine({
+                price: v,
+                color: "rgba(148, 163, 184, 0.6)",
+                lineWidth: 1,
+                lineStyle: LineStyle.Dashed,
+                axisLabelVisible: false,
+                title: `${titlePrefix} ${v}`,
+            }),
+        );
+        group.levels = sorted;
     }
 
     // ── data ────────────────────────────────────────────────────────────────
@@ -734,6 +1067,23 @@ export class IndicatorRenderer {
             this.feedLine(atr.line, candles, data.atr);
         }
 
+        const adx = this.refs.adx.current;
+        if (adx && data.adx) {
+            this.feedLine(adx.adx, candles, data.adx.adx);
+            this.feedLine(adx.plus, candles, data.adx.plus);
+            this.feedLine(adx.minus, candles, data.adx.minus);
+        }
+
+        const awesome = this.refs.awesome.current;
+        if (awesome && data.awesome) {
+            awesome.hist.setData(data.awesome.hist);
+        }
+
+        const obv = this.refs.obv.current;
+        if (obv && data.obv) {
+            this.feedLine(obv.line, candles, data.obv);
+        }
+
         const delta = this.refs.delta.current;
         if (delta && data.delta) {
             delta.hist.setData(data.delta.hist);
@@ -747,7 +1097,7 @@ export class IndicatorRenderer {
      * `addHiddenLine`, unchanged (color, width, no price line, no last value,
      * no crosshair marker).
      */
-    private addHiddenLine(chart: IChartApi, paneIndex = 0, color = "#94a3b8", width: 1 | 2 = 1): ISeriesApi<"Line"> {
+    private addHiddenLine(chart: IChartApi, paneIndex = 0, color = "#94a3b8", width: 1 | 2 | 3 = 1): ISeriesApi<"Line"> {
         return chart.addSeries(
             LineSeries,
             {

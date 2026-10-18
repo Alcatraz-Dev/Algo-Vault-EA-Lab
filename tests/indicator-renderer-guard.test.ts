@@ -306,7 +306,14 @@ check("the parent detaches the renderer in the chart effect cleanup", () => {
 
 check("detach drops every indicator handle and the chart binding", () => {
     const body = methodBody(RENDER_CODE, "detach(): void {");
-    assertEqual(count(body, ".current = null"), 18, "all eighteen indicator handles are cleared");
+    // 12 original families + 3 new panes (adx/awesome/obv: series + pane each)
+    // = 18 series-ish handles + 6 pane-orphan refs… count what is actually
+    // cleared: every handle handed in from the parent.
+    const cleared = count(body, ".current = null");
+    assert(cleared >= 18, `all indicator handles are cleared (got ${cleared})`);
+    for (const ref of ["adx", "adxPane", "awesome", "awesomePane", "obv", "obvPane"]) {
+        assert(body.includes(`${ref}.current = null`), `${ref} is cleared on detach`);
+    }
     assert(body.includes("this.chart = null"), "the chart binding is dropped");
 });
 
@@ -333,14 +340,30 @@ check("IndicatorRenderer imports no calculation engine", () => {
 });
 
 check("the parent keeps the indicator mathematics and its per-family guards", () => {
+    // Kernels still live in the parent…
     for (const call of [
-        "TA.bb(closes, 20, 2)", "TA.keltner(highs, lows, closes, 20, 2)", "TA.donchian(highs, lows, 20)",
-        "TA.supertrend(highs, lows, closes, 10, 3)", "TA.heikinashi(", "TA.rsi(closes, 14)", "TA.macd(closes, 12, 26, 9)",
-        "TA.highest(highs, 9)", "TA.lowest(lows, 52)", "alignedIndicatorSeries(",
+        "TA.bb(", "TA.keltner(", "TA.donchian(", "TA.supertrend(", "TA.heikinashi(",
+        "TA.rsi(", "TA.macd(", "TA.highest(", "TA.lowest(", "alignedIndicatorSeries(",
     ]) {
         assert(PRO_CODE.includes(call), `the parent still computes ${call}`);
     }
-    for (const guard of ["if (bbSeriesRef.current)", "if (kcSeriesRef.current)", "if (dcSeriesRef.current)", "if (stSeriesRef.current)", "if (haSeriesRef.current)", "if (rsiSeriesRef.current)", "if (macdSeriesRef.current)", "if (ichiSeriesRef.current)", "if (stochSeriesRef.current)", "if (atrSeriesRef.current)", "if (deltaSeriesRef.current)"]) {
+    // …parametrised by the schema, with the shipped defaults as fallbacks
+    // (an untouched workspace must compute exactly what it did before).
+    for (const param of [
+        'paramNumber(ip.bb, "period", 20)', 'paramNumber(ip.bb, "mult", 2)',
+        'paramNumber(ip.kc, "period", 20)', 'paramNumber(ip.kc, "mult", 2)',
+        'paramNumber(ip.dc, "period", 20)',
+        'paramNumber(ip.supertrend, "period", 10)', 'paramNumber(ip.supertrend, "mult", 3)',
+        'paramNumber(ip.rsi, "period", 14)',
+        'paramNumber(ip.macd, "fast", 12)', 'paramNumber(ip.macd, "slow", 26)', 'paramNumber(ip.macd, "signal", 9)',
+        'paramNumber(ip.ichimoku, "tenkan", 9)', 'paramNumber(ip.ichimoku, "kijun", 26)', 'paramNumber(ip.ichimoku, "senkouB", 52)',
+        'paramNumber(ip.stoch, "kPeriod", 14)', 'paramNumber(ip.atr, "period", 14)',
+        'paramNumber(ip.adx, "period", 14)',
+        'paramNumber(ip.ao, "fast", 5)', 'paramNumber(ip.ao, "slow", 34)',
+    ]) {
+        assert(PRO_CODE.includes(param), `the parent reads ${param} before the kernel`);
+    }
+    for (const guard of ["if (bbSeriesRef.current)", "if (kcSeriesRef.current)", "if (dcSeriesRef.current)", "if (stSeriesRef.current)", "if (haSeriesRef.current)", "if (rsiSeriesRef.current)", "if (macdSeriesRef.current)", "if (ichiSeriesRef.current)", "if (stochSeriesRef.current)", "if (atrSeriesRef.current)", "if (deltaSeriesRef.current)", "if (adxSeriesRef.current)", "if (awesomeSeriesRef.current)", "if (obvSeriesRef.current)"]) {
         assert(PRO_CODE.includes(guard), `the parent keeps the ${guard} guard`);
     }
     assert(PRO_CODE.includes("indicatorRenderer.setData(payload)"), "the parent hands the aligned arrays over in one commit");

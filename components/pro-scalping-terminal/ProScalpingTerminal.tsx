@@ -18,7 +18,7 @@
  * and aborts superseded requests.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import {
     AlertTriangle,
@@ -32,9 +32,17 @@ import {
     WifiOff,
     Minimize2,
     Maximize2,
+    Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CandelToolbarButton } from "./CandelToolbar";
+import { CandelPanel, CandelToolbarButton } from "./CandelToolbar";
+import { isMarketOpen } from "@/lib/analytics/sessions";
+import {
+    candelActionRequest,
+    candelObservations,
+    isFreshLlmDecision,
+    terminalAiStatus,
+} from "./terminal-ai-status";
 import { RADAR_SYMBOLS } from "@/lib/ai/scalping/watchlist";
 import type { RadarResult, TerminalSignal } from "@/lib/ai/scalping/radar";
 import type { AdvancedAnalysisResult } from "@/lib/ai/analysis/intelligence";
@@ -72,6 +80,7 @@ import { useLayerAvailability } from "@/hooks/use-layer-availability";
 import { useChartSettings } from "@/hooks/use-chart-settings";
 import { useAiDrawGate } from "@/hooks/use-ai-draw-gate";
 import { withPreset } from "./chart-settings";
+import { withIndicatorParam, withoutIndicatorParams } from "./indicator-params";
 import type { MarketCandle } from "@/lib/market-data/types";
 import { ProTerminalJournal } from "./ProTerminalJournal";
 import { ProTerminalChart } from "./ProTerminalChart";
@@ -207,6 +216,22 @@ export function ProScalpingTerminal() {
     const intelligenceUrl = token ? `/api/scalping/intelligence?symbol=${symbol}&timeframe=${timeframe}&t=${intelligenceTick}` : null;
     const intelligence = useThrottledAuthedFetch<TerminalIntelligencePayload>(intelligenceUrl, { minIntervalMs: 180_000, enabled: !!token });
 
+    // ── AI status: count the AI spend that ACTUALLY happened ───────────────
+    // A decision whose `cachedAt` sits within the fresh window was produced
+    // moments ago → the server just spent LLM quota for this symbol/timeframe
+    // (counted once per distinct decision). An older `cachedAt` is a cache
+    // hit: real spend, but not this session's, so the chip doesn't claim it.
+    const [llmDecisions, setLlmDecisions] = useState(0);
+    const intelligenceCachedAt = intelligence.data?.cachedAt ?? null;
+    const countedLlmAtRef = useRef<number | null>(null);
+    useEffect(() => {
+        if (!intelligence.data?.decision?.llm) return;
+        if (!isFreshLlmDecision(intelligenceCachedAt, intelligence.lastUpdated)) return;
+        if (countedLlmAtRef.current === intelligenceCachedAt) return;
+        countedLlmAtRef.current = intelligenceCachedAt;
+        setLlmDecisions((n) => n + 1);
+    }, [intelligence.data, intelligence.lastUpdated, intelligenceCachedAt]);
+
     const accessError = [radar.error, analysis.error, signals.error].find((e) => e && /license|subscription|plan|access/i.test(e));
 
     const refreshAll = useCallback(() => {
@@ -267,6 +292,99 @@ export function ProScalpingTerminal() {
         setLayers((prev) => ({ ...prev, [id]: !prev[id] }));
     }, []);
 
+    // ── Candel: the real panel behind the toolbar button ───────────────────
+    // Quick actions POST to /api/ai/analyze (unified router, compact context
+    // only). A completed response is real AI spend and bumps the session
+    // counter the header chip reports; failures land in the panel's
+    // limitations — nothing here fabricates a reply. The ref, not state,
+    // guards double-dispatch (state would lag a rapid second click).
+    const [candelOpen, setCandelOpen] = useState(false);
+    const [candelCalls, setCandelCalls] = useState(0);
+    const candelBusyRef = useRef(false);
+    const [candelResponse, setCandelResponse] = useState<{
+        summary: string;
+        observations: Array<{ type: string; text: string }>;
+        limitations: string[];
+    } | null>(null);
+
+    const runCandelAction = useCallback(async (action: string) => {
+        const req = candelActionRequest(action, symbol, timeframe);
+        if (!req || !token || candelBusyRef.current) return;
+        candelBusyRef.current = true;
+        setCandelOpen(true);
+        try {
+            const res = await fetch("/api/ai/analyze", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    task: req.task,
+                    question: req.question,
+                    context: {
+                        symbol,
+                        timeframe,
+                        price: lastPrice ?? undefined,
+                        decision: intelligence.data?.decision
+                            ? {
+                                  state: intelligence.data.decision.state,
+                                  direction: intelligence.data.decision.direction,
+                                  confidence: intelligence.data.decision.confidence,
+                                  validationStatus: intelligence.data.decision.validationStatus,
+                              }
+                            : undefined,
+                    },
+                }),
+            });
+            const json = (await res.json().catch(() => null)) as {
+                success?: boolean;
+                content?: string;
+                provider?: string;
+                model?: string;
+                error?: string;
+                message?: string;
+            } | null;
+            if (res.ok && json?.success && typeof json.content === "string") {
+                setCandelCalls((n) => n + 1);
+                setCandelResponse({
+                    summary: json.content,
+                    observations: [],
+                    limitations: [
+                        `Generated by ${json.provider ?? "ai"}/${json.model ?? "unknown"} — advisory narrative over the same deterministic facts, not measurement data.`,
+                    ],
+                });
+            } else {
+                setCandelResponse({
+                    summary: "",
+                    observations: [],
+                    limitations: [
+                        json?.error === "AI_UNAVAILABLE"
+                            ? "No AI provider could serve this request. Deterministic features remain available."
+                            : (json?.message ?? json?.error ?? `AI request failed (${res.status}).`),
+                    ],
+                });
+            }
+        } catch {
+            setCandelResponse({
+                summary: "",
+                observations: [],
+                limitations: ["Could not reach the intelligence gateway."],
+            });
+        } finally {
+            candelBusyRef.current = false;
+        }
+    }, [token, symbol, timeframe, lastPrice, intelligence.data]);
+
+    // The header chip's live status: deterministic core vs AI-backed surfaces.
+    const aiStatus = useMemo(
+        () =>
+            terminalAiStatus({
+                llmDecisions,
+                candelCalls,
+                aiDrawEnabled: aiGate.enabled,
+                decisionLayer: intelligence.error ? "unavailable" : intelligence.data ? "ok" : "loading",
+            }),
+        [llmDecisions, candelCalls, aiGate.enabled, intelligence.error, intelligence.data],
+    );
+
 
     if (!token) {
         return (
@@ -317,7 +435,7 @@ export function ProScalpingTerminal() {
                     <CandelToolbarButton
                         symbol={symbol}
                         timeframe={timeframe}
-                        openPanel={() => {}}
+                        openPanel={() => setCandelOpen(true)}
                     />
 
                     {/* Separator */}
@@ -544,14 +662,23 @@ export function ProScalpingTerminal() {
                                     {Object.values(layers).filter(Boolean).length}
                                 </span>
                             </button>
-                            <Chip title="This terminal runs the deterministic measurement pipeline. It makes no LLM calls and consumes no AI budget.">
-                                <Cpu className="size-3" />
-                                Deterministic · 0 AI spend
+                            <Chip tone={aiStatus.tone} title={aiStatus.tooltip}>
+                                {aiStatus.aiActive ? <Sparkles className="size-3" /> : <Cpu className="size-3" />}
+                                {aiStatus.label}
                             </Chip>
                         </div>
                         {layersOpen ? (
                             <div className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                                <LayerPicker layers={layers} availability={layerAvailability} onToggle={toggleLayer} />
+                                <LayerPicker
+                                    layers={layers}
+                                    availability={layerAvailability}
+                                    onToggle={toggleLayer}
+                                    params={settings.indicators}
+                                    onParamsChange={(id, key, value) =>
+                                        updateSettings((prev) => ({ ...prev, indicators: withIndicatorParam(prev.indicators, id, key, value) }))}
+                                    onParamsReset={(id) =>
+                                        updateSettings((prev) => ({ ...prev, indicators: withoutIndicatorParams(prev.indicators, id) }))}
+                                />
                             </div>
                         ) : null}
                     </div>
@@ -659,6 +786,20 @@ export function ProScalpingTerminal() {
                 is external research context only — it may be delayed and is never used for execution. Nothing here is
                 financial advice.
             </p>
+
+            {/* Candel — right-rail panel (chart stays dominant); quick actions
+                run real /api/ai/analyze calls and feed the AI-status chip. */}
+            <CandelPanel
+                symbol={symbol}
+                timeframe={timeframe}
+                accountLabel={null}
+                marketStatus={isMarketOpen(new Date(now)) ? "open" : "closed"}
+                intelligence={candelObservations(intelligence.data)}
+                analysisResponse={candelResponse}
+                onAction={(action) => void runCandelAction(action)}
+                open={candelOpen}
+                onClose={() => setCandelOpen(false)}
+            />
         </div>
     );
 }

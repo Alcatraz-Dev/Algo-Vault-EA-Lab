@@ -206,7 +206,7 @@ const RIGHT_OFFSET_BARS = 6;
 /** Mirrors `PINE_PANE_STRETCH` in ProTerminalChart. */
 const PINE_PANE_STRETCH = 0.35;
 /** Mirrors `PANE_STRETCH` in IndicatorRenderer. */
-const PANE_STRETCH = { supertrend: 0.25, rsi: 0.3, delta: 0.25, macd: 0.3, stochastic: 0.3, atr: 0.25 };
+const PANE_STRETCH = { supertrend: 0.25, rsi: 0.3, delta: 0.25, macd: 0.3, stochastic: 0.3, atr: 0.25, adx: 0.25, awesome: 0.25, obv: 0.25 };
 
 type SeriesKind = "candlestick" | "histogram" | "line" | "area" | "baseline" | "bar" | "unknown";
 
@@ -571,13 +571,21 @@ function makeIndicatorRefs() {
     const atrPane = slot<number>();
     const delta = slot<{ hist: MockSeries; line: MockSeries }>();
     const deltaPane = slot<number>();
+    const adx = slot<{ adx: MockSeries; plus: MockSeries; minus: MockSeries; pane: number | null; lines: MockPriceLine[] }>();
+    const adxPane = slot<number>();
+    const awesome = slot<{ hist: MockSeries; pane: number | null }>();
+    const awesomePane = slot<number>();
+    const obv = slot<{ line: MockSeries; pane: number | null }>();
+    const obvPane = slot<number>();
     const refs = {
         bb, kc, dc, supertrend, supertrendPane, heikinAshi, rsi, rsiPane, macd, macdPane,
         ma, ichimoku, stochastic, stochasticPane, atr, atrPane, delta, deltaPane,
+        adx, adxPane, awesome, awesomePane, obv, obvPane,
     } as unknown as IndicatorSeriesRefs;
     return {
         refs, bb, kc, dc, supertrend, supertrendPane, heikinAshi, rsi, rsiPane, macd, macdPane,
         ma, ichimoku, stochastic, stochasticPane, atr, atrPane, delta, deltaPane,
+        adx, adxPane, awesome, awesomePane, obv, obvPane,
     };
 }
 

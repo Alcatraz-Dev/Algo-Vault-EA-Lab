@@ -86,6 +86,7 @@ import {
     type ChartPendingOrderView,
     type ChartTradeFill,
 } from "./chart-settings";
+import { withIndicatorParam, withoutIndicatorParams } from "./indicator-params";
 import type { AiDrawPlan } from "@/lib/chart-engine/ai-draw";
 
 // ── persistent per-symbol storage helpers ───────────────────────────────────
@@ -592,7 +593,11 @@ export function ProTerminalChartWorkspace({
                         layers={layers}
                         availability={layerAvailability}
                         onToggle={toggleLayer}
-                        compact={false}
+                        params={settings.indicators}
+                        onParamsChange={(id, key, value) =>
+                            updateSettings((prev) => ({ ...prev, indicators: withIndicatorParam(prev.indicators, id, key, value) }))}
+                        onParamsReset={(id) =>
+                            updateSettings((prev) => ({ ...prev, indicators: withoutIndicatorParams(prev.indicators, id) }))}
                     />
                     {activeLayerCount > 0 && (
                         <div className="mt-3 flex items-center justify-between border-t border-border pt-3">

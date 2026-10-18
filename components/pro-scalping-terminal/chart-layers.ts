@@ -45,6 +45,13 @@ export type ChartLayerId =
     | "atrPane"
     | "parabolicSar"
     | "ichimokuCloud"
+    // More core-engine indicators (registry-backed, no new math): weighted MA,
+    // trend strength + directional movement, momentum histogram, on-balance
+    // volume.
+    | "wma"
+    | "adxPane"
+    | "awesomeOscillator"
+    | "obvPane"
     // Order Flow & Market Microstructure Intelligence — candle-grade layers
     // are available now; trade/L2/options-grade layers are declared with
     // available: false until a provider supplies that data class (honest
@@ -106,6 +113,13 @@ export const CHART_LAYERS: ChartLayerDef[] = [
     { id: "atrPane", label: "ATR pane", defaultOn: false, available: true },
     { id: "parabolicSar", label: "Parabolic SAR", defaultOn: false, available: true },
     { id: "ichimokuCloud", label: "Ichimoku Cloud", defaultOn: false, available: true },
+    // Registry-backed indicators the core engine already computes
+    // (lib/market-core/indicators/definitions.ts: wma / adx / awesome / obv),
+    // so availability is a promise the chart keeps.
+    { id: "wma", label: "WMA 20", defaultOn: false, available: true },
+    { id: "adxPane", label: "ADX pane", defaultOn: false, available: true },
+    { id: "awesomeOscillator", label: "AO pane", defaultOn: false, available: true },
+    { id: "obvPane", label: "OBV pane", defaultOn: false, available: true },
     // Order Flow layers. Availability mirrors the capability model
     // (lib/order-flow/capabilities.ts): OHLCV can honestly render the volume
     // profile, behavioural events, and the ESTIMATED candle-direction delta

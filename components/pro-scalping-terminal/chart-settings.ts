@@ -16,6 +16,8 @@
  * UI (partial-close lot math, execution-log mapping) so they stay testable.
  */
 
+import { mergeIndicatorSettings, type IndicatorSettings } from "./indicator-params";
+
 // ── settings model ─────────────────────────────────────────────────────────
 
 export type ChartPresetId = "midnight" | "graphite" | "light";
@@ -100,6 +102,12 @@ export interface ChartSettings {
     colors: ChartSettingsColors;
     display: ChartDisplaySettings;
     tools: ChartToolSettings;
+    /**
+     * Per-indicator parameters (lengths, multipliers, levels, identity
+     * colours, widths). A layer absent here uses the schema defaults in
+     * `indicator-params.ts`, so this stays minimal and "reset" = "absent".
+     */
+    indicators: IndicatorSettings;
 }
 
 // ── presets ────────────────────────────────────────────────────────────────
@@ -217,6 +225,8 @@ export function defaultChartSettings(preset: ChartPresetId = DARK_PRESET): Chart
             fiboLevels: [...DEFAULT_FIBO_LEVELS],
             candleWidth: 0, // 0 = auto-width (traditional candle look)
         },
+        // Every indicator starts at its schema default (no overrides stored).
+        indicators: {},
     };
 }
 
@@ -297,7 +307,11 @@ export function mergeChartSettings(input: unknown): ChartSettings {
     // Preset wins for colors unless the stored copy carries custom colors.
     const colors = raw.colors ? mergeColors(base.colors, raw.colors) : base.colors;
 
-    return { preset, colors, display, tools };
+    // Indicator parameters are schema-validated and clamped, so corrupt or
+    // outdated persisted input degrades to defaults instead of breaking maths.
+    const indicators = mergeIndicatorSettings(raw.indicators);
+
+    return { preset, colors, display, tools, indicators };
 }
 
 export function loadChartSettings(): ChartSettings {
