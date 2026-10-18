@@ -167,6 +167,7 @@ export function xToTime(x: number, seriesLength: number, lastCandleTime: number,
  *   any ──reset("symbol"|"timeframe")──▶ RESETTING_* ──initialFit()──▶ FITTING
  *   capture()/prependStarted()──▶ RESTORING|PREPENDING ──restore()──▶ evaluated
  *   focus()──▶ FOCUSING ──▶ FOLLOWING_LIVE | USER_PANNED (explicit)
+ *   holdPlayhead()──▶ FOCUSING ──▶ USER_PANNED (replay owns the window)
  *
  * While a programmatic phase is in flight (RESETTING_*, FITTING, RESTORING,
  * PREPENDING, FOCUSING) incoming range events update the cached range but do
@@ -241,6 +242,14 @@ export const LIVE_EDGE_TOLERANCE_BARS = 1.5;
 
 /** Bars kept on each side of a focus target (matches the legacy ±12-bar view). */
 export const FOCUS_HALF_BARS = 12;
+
+/**
+ * Fraction of the visible window kept as breathing room to the RIGHT of the
+ * replay playhead (see holdPlayhead). The window is only moved once the
+ * playhead crosses into this margin, so replaying does not drag the chart
+ * along bar by bar.
+ */
+export const PLAYHEAD_RIGHT_MARGIN_RATIO = 0.25;
 
 /**
  * Is the viewport sufficiently close to the latest logical bar for live
@@ -597,6 +606,48 @@ export class ViewportController {
         ts.setVisibleLogicalRange(range);
         this.lastRange = range;
         this.evaluate(range);
+        return true;
+    }
+
+    // ── replay playhead ─────────────────────────────────────────────────────
+
+    /**
+     * Replay playhead policy — the ONE sanctioned way for bar replay to drive
+     * the viewport.
+     *
+     * The playhead (the newest revealed candle) is placed with the same room on
+     * both sides and the window is then HELD there: while the playhead still has
+     * `marginRatio` of the visible window to its right, the visible range is
+     * left completely untouched, so each revealed bar simply fills the empty
+     * space to the right instead of dragging the whole chart along (which is
+     * what live follow does, and what makes replay look like an endless
+     * auto-scroll). The window only moves when the playhead would leave the
+     * visible range, and it is re-centred at the current zoom — never fitted.
+     *
+     * Replay deliberately ends up in USER_PANNED: appends then perform zero
+     * mutating viewport calls between re-centres, and the chart holds still
+     * even while the dataset grows.
+     *
+     * `opts.epoch` rejects stale generations after a context reset.
+     */
+    holdPlayhead(index: number, opts?: { epoch?: number; marginRatio?: number }): boolean {
+        if (opts?.epoch !== undefined && opts.epoch !== this.epoch) return false;
+        const ts = this.ts;
+        if (!ts || !Number.isFinite(index)) return false;
+        const visible = ts.getVisibleLogicalRange();
+        const bars = Math.max(4, visible ? Math.round(visible.to - visible.from) : FOCUS_HALF_BARS * 2);
+        const margin = Math.max(2, Math.round(bars * (opts?.marginRatio ?? PLAYHEAD_RIGHT_MARGIN_RATIO)));
+        // Still inside the window with room to spare: the user's view (and the
+        // replay's own space) is preserved exactly — no mutating call at all.
+        if (visible && index >= visible.from && index <= visible.to - margin) return false;
+        const half = Math.round(bars / 2);
+        const range: LogicalRange = { from: Math.round(index) - half, to: Math.round(index) + half };
+        this.phase = "FOCUSING";
+        ts.setVisibleLogicalRange(range);
+        this.lastRange = range;
+        // Replay owns the playhead: never follow live, or the next append would
+        // yank the window back to the right edge.
+        this.leaveLiveFollow();
         return true;
     }
 

@@ -15,6 +15,7 @@
 import {
     FOCUS_HALF_BARS,
     LIVE_EDGE_TOLERANCE_BARS,
+    PLAYHEAD_RIGHT_MARGIN_RATIO,
     ViewportController,
     isNearLiveEdge,
     type ViewportSnapshot,
@@ -484,6 +485,101 @@ check("17b. focus by timestamp resolves against the candle series", () => {
     const ok = h.vp.focus({ timeMs: target, bars, intervalMs: HOUR * 1000 });
     assert(ok, "focus resolved");
     assertEqual(h.ts.getVisibleLogicalRange(), { from: 200 - FOCUS_HALF_BARS, to: 200 + FOCUS_HALF_BARS }, "centre bar index found by timestamp");
+});
+
+console.log("Bar replay playhead");
+check("37. replay centres the playhead once and never fits", () => {
+    const h = harness();
+    h.vp.initialFit();
+    atRest(h); // the live rest position: newest bar pinned near the right edge
+    // Replay start: the freshest 120 bars are hidden, so the series is 280 bars
+    // and the playhead is the last revealed candle.
+    h.vp.handleDataMutation(280);
+    h.setBars(280);
+    h.ts.resetCalls();
+    assert(h.vp.holdPlayhead(279), "the playhead is placed — it had no room left to its right");
+    assertEqual(h.ts.calls.fitContent, 0, "re-centring never fits: the zoom is kept");
+    const range = h.ts.getVisibleLogicalRange();
+    assert(range, "a window is readable");
+    assertEqual(range.to - 279, 279 - range.from, "the playhead sits in the middle of the screen");
+    assert(range.to > 279, "room is left to the right for the bars still to be revealed");
+    assert(!h.vp.isFollowingLive(), "replay owns the window, not live follow");
+    assertEqual(h.vp.getPhase(), "USER_PANNED", "explicit end state (never stuck in FOCUSING)");
+    assertEqual(PLAYHEAD_RIGHT_MARGIN_RATIO, 0.25, "the right margin is a named, testable fraction of the window");
+});
+check("38. stepping forward with room to spare performs zero viewport calls", () => {
+    const h = harness();
+    h.vp.initialFit();
+    atRest(h);
+    h.vp.handleDataMutation(280);
+    h.setBars(280);
+    h.vp.holdPlayhead(279);
+    const held = h.ts.getVisibleLogicalRange();
+    h.ts.resetCalls();
+    // One bar revealed: the playhead still has room in the right margin.
+    h.vp.handleDataAppend(280, 281);
+    h.setBars(281);
+    assert(!h.vp.holdPlayhead(280), "the window is left exactly where it is");
+    assertEqual(h.ts.mutatingCalls(), 0, "no fit, no scroll, no range write — replay does not auto-scroll");
+    assertEqual(h.ts.getVisibleLogicalRange(), held, "the revealed bar fills the empty space to the right");
+});
+check("39. replay re-centres only once the playhead reaches the right margin", () => {
+    const h = harness();
+    h.vp.initialFit();
+    atRest(h);
+    h.vp.handleDataMutation(280);
+    h.setBars(280);
+    h.vp.holdPlayhead(279); // → a 100-bar window centred on 279
+    h.ts.resetCalls();
+    assert(!h.vp.holdPlayhead(303), "still inside the right margin → untouched");
+    assertEqual(h.ts.mutatingCalls(), 0, "no call while there is room");
+    assert(h.vp.holdPlayhead(305), "past the margin → the window moves");
+    assertEqual(h.ts.getVisibleLogicalRange(), { from: 255, to: 355 }, "re-centred at the same zoom and window size");
+    assertEqual(h.ts.calls.fitContent, 0, "never fits");
+});
+check("40. a playhead left of the window (restart / scrub) is brought back into view", () => {
+    const h = harness();
+    h.vp.initialFit();
+    atRest(h);
+    h.vp.handleDataMutation(280);
+    h.setBars(280);
+    h.ts.resetCalls();
+    assert(h.vp.holdPlayhead(1), "Restart moves the window back to the first revealed bar");
+    assertEqual(h.ts.getVisibleLogicalRange(), { from: 1 - 50, to: 1 + 50 }, "centred on the playhead again");
+    assertEqual(h.ts.calls.fitContent, 0, "never fits");
+});
+check("41. leaving replay hands the viewport back to live follow", () => {
+    const h = harness();
+    h.vp.initialFit();
+    atRest(h);
+    h.vp.handleDataMutation(280);
+    h.setBars(280);
+    h.ts.resetCalls();
+    h.vp.holdPlayhead(279);
+    // Replay ends: the dataset is whole again. The append alone must NOT
+    // re-engage follow (replay left the viewport user-panned) — the renderer
+    // then makes the single sanctioned live-edge call.
+    h.vp.handleDataAppend(280, 400);
+    h.setBars(400);
+    assert(!h.vp.isFollowingLive(), "an append from a replay-held viewport stays held");
+    h.vp.enterLiveFollow();
+    assert(h.vp.isFollowingLive(), "following live again");
+    assertEqual(h.vp.getPhase(), "FOLLOWING_LIVE", "explicit end state");
+    assertEqual(h.ts.getVisibleLogicalRange(), { from: 399 + RIGHT_OFFSET_BARS - 100, to: 399 + RIGHT_OFFSET_BARS }, "back at the latest area with the configured right offset");
+    assertEqual(h.ts.calls.fitContent, 0, "the hand-back never fits");
+});
+check("42. stale generations and detached charts receive no playhead calls", () => {
+    const h = harness();
+    h.vp.initialFit();
+    const epoch = h.vp.getEpoch();
+    h.vp.reset("symbol");
+    h.ts.resetCalls();
+    assert(!h.vp.holdPlayhead(10, { epoch }), "a stale generation is rejected");
+    assertEqual(h.ts.mutatingCalls(), 0, "no viewport call for a stale generation");
+    h.vp.detach();
+    h.ts.resetCalls();
+    assert(!h.vp.holdPlayhead(10), "a detached chart is a no-op");
+    assertEqual(h.ts.mutatingCalls(), 0, "nothing is written to a detached chart");
 });
 
 console.log("Symbol / timeframe reset");

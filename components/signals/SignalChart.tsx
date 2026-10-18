@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { AISignal } from "@/lib/ai-signals/types";
 import { useLiveCandles } from "@/hooks/useLiveCandles";
+import { PLAYHEAD_RIGHT_MARGIN_RATIO } from "@/lib/chart-engine/viewport";
 import { cn } from "@/lib/utils";
 
 interface SignalChartProps {
@@ -144,6 +145,32 @@ function useAppTheme(): ThemeName {
 const SPEEDS = [600, 300, 150, 75] as const; // 0.5x, 1x, 2x, 4x at base 300
 const SPEED_LABEL: Record<number, string> = { 600: "0.5×", 300: "1×", 150: "2×", 75: "4×" };
 
+/**
+ * Replay playhead policy — the only viewport call bar replay is allowed to
+ * make.
+ *
+ * The newest revealed bar (the playhead) is placed in the middle of the window
+ * the first time, and the window is then LEFT COMPLETELY ALONE while the
+ * playhead still has room to its right: each revealed bar simply fills the
+ * empty space to the right of the playhead instead of dragging the whole chart
+ * along, which is what `scrollToRealTime()` did on every single step and what
+ * made replay look like an endless auto-scroll to the end of the screen. The
+ * window is re-centred (at the current zoom — never fitted) only when the
+ * playhead would otherwise leave the visible range.
+ */
+function holdReplayPlayhead(chart: IChartApi | null, barCount: number): void {
+    if (!chart || barCount <= 0) return;
+    const timeScale = chart.timeScale();
+    const playhead = barCount - 1;
+    const visible = timeScale.getVisibleLogicalRange();
+    const span = visible ? Math.round(visible.to - visible.from) : 0;
+    const bars = span > 1 ? span : 100;
+    const margin = Math.max(2, Math.round(bars * PLAYHEAD_RIGHT_MARGIN_RATIO));
+    if (visible && playhead >= visible.from && playhead <= visible.to - margin) return;
+    const half = Math.round(bars / 2);
+    timeScale.setVisibleLogicalRange({ from: playhead - half, to: playhead + half });
+}
+
 export default function SignalChart({
     signal,
     height = 400,
@@ -159,6 +186,8 @@ export default function SignalChart({
     const priceLineRefs = useRef<IPriceLine[]>([]);
     const seededRef    = useRef(false);
     const userScrolledRef = useRef(false);
+    /** True while this component writes the viewport itself — never a user pan. */
+    const programmaticRangeRef = useRef(false);
     const totalBarsRef = useRef(0);
     const [noData, setNoData] = useState(false);
 
@@ -496,6 +525,9 @@ export default function SignalChart({
         const ts = chart.timeScale();
         const handler = (range: { from: number; to: number } | null) => {
             if (!range) return;
+            // Our own series/playhead writes are not user pans: a shrinking
+            // replay window must never be mistaken for the user browsing back.
+            if (programmaticRangeRef.current) return;
             // User scrolled away from the live edge → remember so feed updates
             // preserve their viewport instead of snapping back to the right.
             userScrolledRef.current = range.to < totalBarsRef.current - 3;
@@ -532,22 +564,28 @@ export default function SignalChart({
         if (bars.length === 0) return;
 
         // Preserve the user's viewport when they've scrolled back to browse
-        // history; otherwise keep the replay cursor pinned to the right edge.
+        // history; otherwise hold the playhead in the middle of the window so
+        // replay runs without the chart auto-scrolling to the end on every bar.
         const chart = chartRef.current;
         const savedRange = userScrolledRef.current ? chart?.timeScale().getVisibleRange() : null;
 
-        series.setData(bars.map((b) => ({
-            time: b.time, open: b.open, high: b.high, low: b.low, close: b.close,
-        })));
-        volSeries.setData(bars.map((b) => ({
-            time: b.time, value: b.vol,
-            color: b.close >= b.open ? "rgba(48,214,151,0.4)" : "rgba(255,100,95,0.4)",
-        })));
-        totalBarsRef.current = bars.length;
-        if (savedRange) {
-            try { chart?.timeScale().setVisibleRange(savedRange); } catch { /* ignore */ }
-        } else {
-            chart?.timeScale().scrollToRealTime();
+        programmaticRangeRef.current = true;
+        try {
+            series.setData(bars.map((b) => ({
+                time: b.time, open: b.open, high: b.high, low: b.low, close: b.close,
+            })));
+            volSeries.setData(bars.map((b) => ({
+                time: b.time, value: b.vol,
+                color: b.close >= b.open ? "rgba(48,214,151,0.4)" : "rgba(255,100,95,0.4)",
+            })));
+            totalBarsRef.current = bars.length;
+            if (savedRange) {
+                try { chart?.timeScale().setVisibleRange(savedRange); } catch { /* ignore */ }
+            } else {
+                holdReplayPlayhead(chart, bars.length);
+            }
+        } finally {
+            programmaticRangeRef.current = false;
         }
     }, [isReplay, usingFallback, fallbackBars, preBars, replayBars, cursor]);
 

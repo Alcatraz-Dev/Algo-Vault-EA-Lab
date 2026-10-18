@@ -2621,16 +2621,28 @@ export function ProTerminalChart({
         lastPushedCandlesRef.current = candles.map((c) => ({ ...c }));
     }, [candles, symbol, timeframe, viewport, seriesRenderer]);
 
-    // ── replay follow ───────────────────────────────────────────────────
-    // Keep the playhead at the right edge while replay drives the dataset, the
-    // way TradingView bar replay does. This is the controller's own
-    // enterLiveFollow() — the single sanctioned live-edge call — so the
-    // viewport policy stays owned by ViewportController and no logic is
-    // duplicated here. It runs AFTER the data commit above, so it pins the view
-    // to the freshly-revealed last bar rather than the previous one.
+    // ── replay viewport policy ──────────────────────────────────────────
+    // Replay owns the playhead: the newest revealed candle is centred in the
+    // view and the window is then HELD there, so stepping forward fills the
+    // empty space to the right instead of pinning the bar to the right edge
+    // and dragging the chart along on every bar (the endless auto-scroll that
+    // live follow produces). The controller only re-centres once the playhead
+    // would leave the visible window, and it deliberately leaves live-follow,
+    // so the data commit above performs zero mutating viewport calls while
+    // replay plays. It runs AFTER the data commit, so it places the
+    // freshly-revealed last bar — never the previous one — and hands the
+    // viewport back to live follow the moment replay ends.
+    const replayWasBusyRef = useRef(false);
     useEffect(() => {
-        if (!replayBusy) return;
-        viewport.enterLiveFollow();
+        if (replayBusy) {
+            replayWasBusyRef.current = true;
+            viewport.holdPlayhead(replayCursor - 1);
+            return;
+        }
+        if (replayWasBusyRef.current) {
+            replayWasBusyRef.current = false;
+            viewport.enterLiveFollow();
+        }
     }, [replayBusy, replayCursor, viewport]);
 
     // ── Pine study overlays ─────────────────────────────────────────────
