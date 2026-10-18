@@ -15,8 +15,8 @@ interface HeaderProps {
 
 export function Header({ isHealthy, gatewayConnected, userEmail, onBack, onSettings }: HeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-edge bg-card px-3 py-2">
-      <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between border-b border-edge/70 bg-card px-3 py-2.5">
+      <div className="flex items-center gap-2.5">
         {onBack && (
           <button
             onClick={onBack}
@@ -26,9 +26,11 @@ export function Header({ isHealthy, gatewayConnected, userEmail, onBack, onSetti
             <ArrowLeft size={15} />
           </button>
         )}
-        <div className="flex items-center gap-1.5">
-          <img src={LOGO_URL} alt="AlgoVault" className="h-5 w-5 object-contain rounded-sm" />
-          <span className="text-sm font-semibold tracking-tight text-ink">AlgoVault</span>
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-6 shrink-0 place-items-center rounded-md border border-edge/70 bg-raised/50">
+            <img src={LOGO_URL} alt="AlgoVault" className="h-4 w-4 object-contain" />
+          </span>
+          <span className="text-sm font-semibold tracking-tight">AlgoVault</span>
         </div>
       </div>
       <div className="flex items-center gap-2">

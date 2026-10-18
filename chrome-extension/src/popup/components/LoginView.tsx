@@ -45,19 +45,21 @@ export function LoginView({ onAuth }: LoginViewProps) {
     <div className="flex min-h-screen flex-col bg-base px-6 py-8">
       <div className="mx-auto w-full max-w-[300px]">
         <div className="flex items-center gap-2.5">
-          <img
-            src={LOGO_URL}
-            alt="AlgoVault logo"
-            className="h-8 w-8 rounded-md object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
+          <span className="grid size-8 place-items-center rounded-lg border border-edge/70 bg-raised/50">
+            <img
+              src={LOGO_URL}
+              alt="AlgoVault logo"
+              className="h-5 w-5 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </span>
           <div>
-            <h1 className="text-sm font-semibold tracking-tight text-ink">AlgoVault</h1>
+            <h1 className="text-sm font-semibold tracking-tight">AlgoVault</h1>
             <p className="text-[11px] text-ink-mute">Trading Intelligence</p>
           </div>
         </div>
 
-        <h2 className="mt-6 text-base font-semibold tracking-tight text-ink">Sign in</h2>
+        <h2 className="mt-6 text-base font-semibold tracking-tight">Sign in</h2>
         <p className="mt-1 text-[11px] leading-snug text-ink-mute">
           Use your AlgoVault account to access analysis, signals, and trading tools.
         </p>

@@ -376,40 +376,45 @@ export default function App() {
   return (
     <div className="flex h-full flex-col bg-base text-ink">
       {/* header */}
-      <div className="flex items-center gap-1.5 border-b border-edge bg-card px-2.5 py-2">
-        <img
-          src={chrome.runtime.getURL("icons/icon32.png")}
-          alt="AlgoVault"
-          className="h-4 w-4 object-contain rounded-sm"
-        />
-        <span className="text-xs font-bold tracking-tight">AlgoVault</span>
-        {isPro ? (
-          <span className="bg-brand-500/20 text-brand-400 border border-brand-500/40 rounded px-1.5 py-0.5 text-[9px] font-extrabold flex items-center gap-0.5">
-            <Sparkles size={9} /> PRO
-          </span>
-        ) : (
-          <span className="bg-raised text-ink-mute border border-edge rounded px-1 py-0.5 text-[9px] font-medium">
-            FREE
-          </span>
-        )}
-
-        <span className="ml-0.5 truncate rounded bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute max-w-[90px]">
-          {activeSymbol ? `${activeSymbol} · ${activeTimeframe}` : "no chart"}
+      <div className="flex items-center gap-2.5 border-b border-edge/70 bg-card px-3 py-2.5">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-edge/70 bg-raised/50">
+          <img
+            src={chrome.runtime.getURL("icons/icon32.png")}
+            alt="AlgoVault"
+            className="h-4 w-4 object-contain rounded-sm"
+          />
         </span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h1 className="truncate text-[13px] font-semibold tracking-tight">AlgoVault</h1>
+          {isPro ? (
+            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-brand-500/40 bg-brand-500/10 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-brand-400">
+              <Sparkles size={8} /> PRO
+            </span>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-edge/60 bg-raised/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute">
+              FREE
+            </span>
+          )}
+          <span className="truncate rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 font-mono text-[9px] text-ink-mute max-w-[100px]">
+            {activeSymbol ? `${activeSymbol} · ${activeTimeframe}` : "no chart"}
+          </span>
+        </div>
 
         <div className="ml-auto flex items-center gap-1.5">
           <span
-            className={`inline-block h-1.5 w-1.5 rounded-full ${statusColor(
-              isHealthy ? "ok" : "off"
-            )}`}
+            className="inline-flex items-center gap-1 rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 text-[9px] text-ink-mute"
             title="AlgoVault API"
-          />
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${statusColor(isHealthy ? "ok" : "off")}`} />
+            API
+          </span>
           <span
-            className={`inline-block h-1.5 w-1.5 rounded-full ${statusColor(
-              gatewayConnected ? "ok" : "off"
-            )}`}
+            className="inline-flex items-center gap-1 rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 text-[9px] text-ink-mute"
             title="Gateway"
-          />
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${statusColor(gatewayConnected ? "ok" : "off")}`} />
+            GW
+          </span>
           <button
             onClick={() => setCommandBarOpen(true)}
             className="flex items-center gap-1 rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-neutral-500 transition-colors"
@@ -644,21 +649,21 @@ export default function App() {
       </div>
 
       {/* tab bar */}
-      <nav className="flex border-t border-edge bg-card overflow-x-auto no-scrollbar">
+      <nav className="flex border-t border-edge/70 bg-card overflow-x-auto no-scrollbar">
         {TABS.map((t) => {
           const isActive = tab === t.id;
           return (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`flex flex-1 min-w-[44px] flex-col items-center justify-center py-1.5 px-0.5 transition-colors relative ${
-                isActive ? "text-brand-500 font-semibold" : "text-ink-faint hover:text-ink-mute"
+              className={`flex flex-1 min-w-[48px] flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 transition-colors relative ${
+                isActive ? "text-ink" : "text-ink-faint hover:text-ink-mute"
               }`}
             >
-              {t.icon}
-              <span className="text-[8.5px] tracking-tighter truncate max-w-full">{t.label}</span>
+              <span className={`grid size-5 place-items-center rounded-md transition-colors ${isActive ? "bg-brand-500/15 text-brand-400" : "text-ink-faint hover:text-ink-mute"}`}>{t.icon}</span>
+              <span className={`text-[9px] tracking-tight truncate max-w-full ${isActive ? "font-semibold" : "font-medium"}`}>{t.label}</span>
               {t.isPro && !isPro && (
-                <span className="absolute top-1 right-1 w-1 h-1 rounded-full bg-brand-500" title="Pro Feature" />
+                <span className="absolute top-1 right-1 h-1 w-1 rounded-full bg-brand-500" title="Pro Feature" />
               )}
             </button>
           );
@@ -711,19 +716,21 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
     <div className="flex h-full flex-col bg-base p-6">
       <div className="mx-auto flex w-full max-w-[280px] flex-1 flex-col justify-center">
         <div className="flex items-center gap-2.5">
-          <img
-            src={chrome.runtime.getURL("logos/logo.png")}
-            alt="AlgoVault logo"
-            className="h-8 w-8 rounded-md object-contain"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-          />
+          <span className="grid size-8 place-items-center rounded-lg border border-edge/70 bg-raised/50">
+            <img
+              src={chrome.runtime.getURL("logos/logo.png")}
+              alt="AlgoVault logo"
+              className="h-5 w-5 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </span>
           <div>
-            <p className="text-sm font-semibold tracking-tight text-ink">AlgoVault</p>
+            <p className="text-sm font-semibold tracking-tight">AlgoVault</p>
             <p className="text-[11px] text-ink-mute">Trading Intelligence</p>
           </div>
         </div>
 
-        <h2 className="mt-6 text-base font-semibold tracking-tight text-ink">Sign in</h2>
+        <h2 className="mt-6 text-base font-semibold tracking-tight">Sign in</h2>
         <p className="mt-1 text-[11px] leading-snug text-ink-mute">
           Use your AlgoVault account for AI access and intelligence services.
         </p>
