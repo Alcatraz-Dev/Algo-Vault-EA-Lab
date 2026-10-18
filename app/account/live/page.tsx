@@ -141,7 +141,7 @@ export default function AccountLivePage() {
           </p>
           <Link
             href="/login?redirect=/account/live"
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-sm font-bold text-background hover:bg-black/80 transition"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition"
           >
             Sign in <ArrowUpRight size={14} />
           </Link>

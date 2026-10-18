@@ -998,7 +998,7 @@ export default function ProductDetailsPage() {
                                 disabled={
                                     creatingOrder
                                 }
-                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-black px-5 py-3.5 text-sm font-semibold text-background transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-10 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
                             >
 
                                 {isFree ? (
