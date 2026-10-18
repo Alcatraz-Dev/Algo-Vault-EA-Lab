@@ -1,9 +1,15 @@
 /**
- * AlgoVault UI kit — small, consistent building blocks shared by every popup
+ * AlgoVault UI kit — shadcn-style building blocks shared by every popup
  * view. Surfaces map to the platform palette (base #0f0f0f, card #181818,
- * raised #232323) and the single brand accent is AlgoVault orange #ff4d00.
+ * raised #232323) and the single brand accent is AlgoVault orange #de661c.
+ *
+ * Conventions (shadcn/ui): variant-driven components composed with `clsx`,
+ * `rounded-md`/`rounded-lg` radii, `border-edge` outlines, `ring-brand`
+ * focus states, and no decorative animation — state changes use plain
+ * color transitions only.
  */
 import React from "react";
+import { clsx } from "clsx";
 import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, Loader2, Minus, Plus, Radio, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 
 /* ── semantic direction styling ──────────────────────────────────────── */
@@ -68,16 +74,117 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
   );
 }
 
-/* ── buttons ─────────────────────────────────────────────────────────── */
+/* ── shadcn-style primitives ─────────────────────────────────────────── */
+
+type ButtonVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
+type ButtonSize = "sm" | "md" | "lg" | "icon";
+
+const buttonVariants: Record<ButtonVariant, string> = {
+  default: "bg-brand-500 text-white hover:bg-brand-400",
+  secondary: "border border-edge bg-raised text-ink hover:border-neutral-500 hover:text-ink",
+  outline: "border border-edge bg-transparent text-ink-mute hover:bg-raised hover:text-ink",
+  ghost: "text-ink-mute hover:bg-raised hover:text-ink",
+  destructive: "bg-rose-600 text-white hover:bg-rose-500",
+};
+
+const buttonSizes: Record<ButtonSize, string> = {
+  sm: "h-8 px-3 text-[11px]",
+  md: "h-9 px-4 text-xs",
+  lg: "h-10 px-4 text-xs",
+  icon: "h-8 w-8",
+};
+
+export function Button({
+  variant = "default",
+  size = "md",
+  className = "",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}) {
+  return (
+    <button
+      {...props}
+      className={clsx(
+        "inline-flex items-center justify-center gap-2 rounded-lg font-semibold",
+        "transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+        buttonVariants[variant],
+        buttonSizes[size],
+        className,
+      )}
+    />
+  );
+}
+
+export function Input({
+  className = "",
+  ...props
+}: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={clsx(
+        "w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink",
+        "outline-none transition-colors placeholder:text-ink-faint",
+        "focus:border-brand-500 disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+    />
+  );
+}
+
+export function Label({
+  className = "",
+  ...props
+}: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return (
+    <label
+      {...props}
+      className={clsx("mb-1 block text-[11px] font-medium text-ink-mute", className)}
+    />
+  );
+}
+
+type AlertVariant = "default" | "success" | "error" | "warning" | "brand";
+
+const alertVariants: Record<AlertVariant, { icon: React.ReactNode; cls: string }> = {
+  default: { icon: <AlertCircle size={13} />, cls: "border-edge bg-raised text-ink-mute" },
+  success: { icon: <CheckCircle2 size={13} />, cls: "border-emerald-500/25 bg-emerald-500/10 text-emerald-500" },
+  error: { icon: <AlertCircle size={13} />, cls: "border-rose-500/25 bg-rose-500/10 text-rose-500" },
+  warning: { icon: <AlertCircle size={13} />, cls: "border-amber-500/25 bg-amber-500/10 text-amber-600" },
+  brand: { icon: <AlertCircle size={13} />, cls: "border-brand-500/30 bg-brand-500/10 text-brand-600" },
+};
+
+export function Alert({
+  variant = "default",
+  className = "",
+  children,
+}: {
+  variant?: AlertVariant;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const v = alertVariants[variant];
+  return (
+    <div className={clsx("flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-snug", v.cls, className)}>
+      <span className="mt-0.5 shrink-0">{v.icon}</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
+export function Separator({ className = "" }: { className?: string }) {
+  return <div className={clsx("h-px w-full bg-edge", className)} role="separator" />;
+}
+
+/* ── buttons (legacy wrappers — prefer `Button` for new code) ────────── */
 /**
- * Press-scale feedback so every actionable control feels snappy under the
- * thumb. `disabled` and `loading` shortcuts so callers don't repeat the
- * wiring on every confirm / submit.
+ * Disabled-state helper shared by legacy buttons. State changes are plain
+ * color transitions; there is intentionally no press-scale animation.
  */
 function pressCls(disabled?: boolean): string {
-  return disabled
-    ? "cursor-not-allowed opacity-30"
-    : "active:scale-[0.97] active:brightness-90 transition-all duration-150";
+  return disabled ? "cursor-not-allowed opacity-30" : "transition-colors";
 }
 
 export function PrimaryButton({
@@ -196,7 +303,7 @@ export function BackButton({
       title={label}
       className={`group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 ${
         iconOnly ? "w-8 px-0" : "px-2.5"
-      } text-[11px] font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95 shadow-xs ${pressCls(false)} ${className}`}
+      } text-[11px] font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink ${pressCls(false)} ${className}`}
     >
       <ArrowLeft size={13} className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5" strokeWidth={2.2} />
       {!iconOnly && <span className="tracking-wide truncate">{label}</span>}
@@ -232,15 +339,15 @@ export function ConfirmActionRow({
       <button
         type="button"
         onClick={onCancel}
-        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95 ${pressCls(false)}`}
+        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink ${pressCls(false)}`}
       >
         <span className="truncate">{cancelLabel}</span>
       </button>
       <button
         type="button"
         onClick={onConfirm}
-        className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white transition-all duration-150 hover:brightness-110 active:scale-95 shadow-sm ${pressCls(false)} ${
-          destructive ? "bg-rose-600 hover:bg-rose-500 shadow-rose-950/30" : "bg-brand-500 hover:bg-brand-400"
+        className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white transition-colors ${pressCls(false)} ${
+          destructive ? "bg-rose-600 hover:bg-rose-500" : "bg-brand-500 hover:bg-brand-400"
         }`}
       >
         {confirmIcon}
@@ -271,9 +378,9 @@ export function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(o.value)}
             title={o.title}
-            className={`flex-1 select-none rounded-md ${padding} font-semibold uppercase tracking-wider transition-all duration-150 ${pressCls(false)} ${
+            className={`flex-1 select-none rounded-md ${padding} font-semibold uppercase tracking-wider transition-colors ${pressCls(false)} ${
               active
-                ? "bg-brand-500/15 text-brand-400 shadow-[inset_0_0_0_1px_rgba(255,77,0,0.3)]"
+                ? "bg-brand-500/15 text-brand-400 ring-1 ring-inset ring-brand-500/40"
                 : "text-ink-mute hover:bg-raised hover:text-ink"
             }`}
           >
@@ -328,7 +435,7 @@ export function Stepper({
           onChange(Number.isFinite(raw) ? clamp(raw) : min);
         }}
         onBlur={(e) => onChange(clamp(parseFloat(e.target.value) || min))}
-        className="w-full min-w-0 border-x border-edge bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-ink outline-none focus:bg-[#2a2a2a]"
+        className="w-full min-w-0 border-x border-edge bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-ink outline-none focus:bg-edge"
       />
       <button
         type="button"
@@ -384,8 +491,8 @@ export function MiniBar({
   return (
     <div>
       {label != null && <div className="mb-0.5 flex items-center justify-between text-[9px] text-ink-faint">{label}</div>}
-      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-800">
-        <div className={`h-full ${color} transition-all duration-300`} style={{ width: `${safe}%` }} />
+      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-500/20">
+        <div className={`h-full ${color}`} style={{ width: `${safe}%` }} />
       </div>
     </div>
   );
@@ -421,10 +528,10 @@ export function ConfidenceMeter({ score, direction }: { score: number; direction
   const bull = direction === "bullish";
   const barColor = bull ? "bg-emerald-400" : direction === "bearish" ? "bg-rose-400" : "bg-neutral-500";
   return (
-    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
-      <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-600" />
+    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-neutral-500/20">
+      <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-500/50" />
       <div
-        className={`absolute inset-y-0 ${barColor} rounded-full transition-all duration-500`}
+        className={`absolute inset-y-0 ${barColor} rounded-full`}
         style={bull ? { left: "50%", width: `${pct}%` } : { right: "50%", width: `${pct}%` }}
       />
     </div>
@@ -560,7 +667,7 @@ export function ChartSyncBadge({
         onClick={onRefresh}
         disabled={refreshing}
         title={subline}
-        className={`flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[9px] transition-all duration-150 active:scale-95 ${palette} ${pressCls(refreshing)}`}
+        className={`flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[9px] transition-colors ${palette} ${pressCls(refreshing)}`}
       >
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
         <span className="font-sans font-semibold uppercase tracking-wider">{label}</span>

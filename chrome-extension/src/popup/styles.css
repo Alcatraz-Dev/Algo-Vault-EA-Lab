@@ -78,20 +78,31 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
 .fixed.inset-0.z-50 { animation: overlayIn 0.15s ease-out; }
 
-/* Subtle press feedback for any element using `active:scale-95` (utility). */
-.active\:scale-95:active { transform: scale(0.95); }
-.active\:scale-\[0\.97\]:active { transform: scale(0.97); }
-.active\:scale-90:active { transform: scale(0.9); }
+
 
 /* Tabular numerals everywhere we show money / PnL — keeps digits aligned
    when they tick over. */
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-/* Focus ring consistency */
+/* Focus ring consistency — brand orange, visible on both themes */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-button:focus-visible {
-  outline: 2px solid rgba(255, 77, 0, 0.4);
-  outline-offset: -1px;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(222, 102, 28, 0.55);
+  outline-offset: 1px;
+}
+
+/* Respect reduced-motion preferences: status dots and view transitions
+   render in their final state with no animation. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-pulse-dot,
+  .animate-slide-up {
+    animation: none;
+  }
+  .fixed.inset-0.z-50 {
+    animation: none;
+  }
 }

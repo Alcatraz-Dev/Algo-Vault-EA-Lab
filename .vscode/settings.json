@@ -35,5 +35,8 @@
     "**/dist/**": true,
     "**/build/**": true
   },
-  "search.useIgnoreFiles": true
+  "search.useIgnoreFiles": true,
+  "tailwindCSS.experimental.configFile": {
+    "chrome-extension/tailwind.config.js": "chrome-extension/src/**/*.{html,js,ts,jsx,tsx}"
+  }
 }

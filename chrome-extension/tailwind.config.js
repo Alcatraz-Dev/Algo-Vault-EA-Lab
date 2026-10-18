@@ -1,7 +1,7 @@
 /**
  * AlgoVault extension design tokens.
  * Mirrors the main platform (app/globals.css): #0f0f0f background, #181818
- * cards, signature orange #ff4d00 as the single brand accent. Light mode
+ * cards, signature orange #de661c as the single brand accent. Light mode
  * mirrors the platform's `.light` palette (#f9f9f9 / #ffffff / #262626).
  *
  * Surfaces and text resolve from CSS custom properties declared in
@@ -18,12 +18,12 @@ export default {
       colors: {
         // ── brand (identical in both themes, like the platform) ──
         brand: {
-          300: "#ff8a5c",
-          400: "#ff6b26",
-          500: "#ff4d00", // signature AlgoVault orange
-          600: "#e64500",
-          700: "#c23c00",
-          100: "#ffe6db",
+          300: "#f0995c",
+          400: "#e67e2e",
+          500: "#de661c", // signature AlgoVault orange
+          600: "#bc5415",
+          700: "#96410f",
+          100: "#fbe3cf",
         },
         // ── surfaces (theme-aware via CSS vars) ──
         base: "var(--av-base)",

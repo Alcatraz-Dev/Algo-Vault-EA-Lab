@@ -598,14 +598,14 @@ export const ProTradeTicketView: React.FC<Props> = ({
               <button
                 onClick={() => setShowConfirm(false)}
                 disabled={submitting}
-                className="flex-1 rounded-lg border border-slate-700 bg-slate-800 py-2.5 text-[11px] text-slate-300 transition-all hover:bg-slate-700 active:scale-[0.97] disabled:opacity-50"
+                className="flex-1 rounded-lg border border-slate-700 bg-slate-800 py-2.5 text-[11px] text-slate-300 transition-all hover:bg-slate-700 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmAndExecute}
                 disabled={!gating.canConfirm || submitting}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                   side === "BUY" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-600 hover:bg-rose-500"
                 }`}
               >

@@ -68,7 +68,17 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-button:focus-visible {
-  outline: 2px solid rgba(255, 77, 0, 0.4);
-  outline-offset: -1px;
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid rgba(222, 102, 28, 0.55);
+  outline-offset: 1px;
+}
+
+/* Respect reduced-motion preferences: status dots and view transitions
+   render in their final state with no animation. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-pulse-dot {
+    animation: none;
+  }
 }

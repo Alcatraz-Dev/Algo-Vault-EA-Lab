@@ -348,7 +348,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <button
                 key={d}
                 onClick={() => flipDirection(d)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-bold transition-all duration-150 active:scale-[0.97] ${palette}`}
+                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${palette}`}
               >
                 <span>{d}</span>
                 <span className="flex flex-col items-end">
@@ -372,7 +372,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-edge hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-colors hover:bg-edge hover:text-ink disabled:opacity-30"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -418,7 +418,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <button
                 onClick={() => void refreshCapital()}
                 disabled={capitalLoading}
-                className="flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-medium text-ink-mute transition-all duration-150 hover:border-brand-500/40 hover:text-brand-400 active:scale-95 disabled:opacity-40"
+                className="flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:border-brand-500/40 hover:text-brand-400 disabled:opacity-40"
               >
                 <RefreshCw size={9} className={capitalLoading ? "animate-spin" : ""} />
                 Refresh
@@ -495,7 +495,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               type="button"
               onClick={() => setQuickRisk(usd)}
               disabled={calc.entryNum <= 0}
-              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-all duration-150 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-30"
             >
               ${usd}
             </button>
@@ -515,7 +515,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <button
                 key={s.r}
                 onClick={() => setTp(s.price.toFixed(s.price >= 100 ? 2 : 5))}
-                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-all duration-150 hover:bg-emerald-500/20 active:scale-95"
+                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-colors hover:bg-emerald-500/20"
               >
                 {s.r}R · {fmt(s.price)}
               </button>
@@ -629,7 +629,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                   type="button"
                   onClick={() => void handleConfirm()}
                   disabled={loading || !gatewayReady}
-                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-all duration-150 hover:text-ink active:scale-95 disabled:opacity-40"
+                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:text-ink disabled:opacity-40"
                 >
                   Retry — same request
                 </button>
@@ -637,7 +637,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 <button
                   type="button"
                   onClick={startNewTicket}
-                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-all duration-150 hover:text-ink active:scale-95"
+                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:text-ink"
                 >
                   New Ticket
                 </button>
@@ -675,7 +675,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink"
             title="Reset ticket fields to defaults"
           >
             <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
@@ -725,14 +725,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink-mute transition-all duration-150 hover:bg-edge active:scale-[0.97]"
+                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink-mute transition-colors hover:bg-edge"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-all duration-150 active:scale-[0.97] disabled:opacity-50 ${
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-colors disabled:opacity-50 ${
                   direction === "BUY" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-600 hover:bg-rose-500"
                 }`}
               >

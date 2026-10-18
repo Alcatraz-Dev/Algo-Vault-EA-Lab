@@ -37,7 +37,7 @@ export function DataConsentNotice({
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff4d00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+          className="mt-0.5 h-4 w-4 shrink-0 accent-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         />
         <Info size={12} className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
         <p className="text-[11px] leading-snug text-ink-mute">

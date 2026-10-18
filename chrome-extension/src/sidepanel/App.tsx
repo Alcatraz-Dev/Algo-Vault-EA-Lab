@@ -18,6 +18,11 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
+  AlertCircle,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Loader2,
   Zap,
   RefreshCw,
   MessageSquareText,
@@ -678,6 +683,7 @@ export default function App() {
 function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -703,53 +709,98 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
   };
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 p-6 bg-base">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500/15">
-        <Zap size={18} className="text-brand-500" />
+    <div className="flex h-full flex-col bg-base p-6">
+      <div className="mx-auto flex w-full max-w-[280px] flex-1 flex-col justify-center">
+        <div className="flex items-center gap-2.5">
+          <img
+            src={chrome.runtime.getURL("logos/logo.png")}
+            alt="AlgoVault logo"
+            className="h-8 w-8 rounded-md object-contain"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+          />
+          <div>
+            <p className="text-sm font-semibold tracking-tight text-ink">AlgoVault</p>
+            <p className="text-[11px] text-ink-mute">Trading Intelligence</p>
+          </div>
+        </div>
+
+        <h2 className="mt-6 text-base font-semibold tracking-tight text-ink">Sign in</h2>
+        <p className="mt-1 text-[11px] leading-snug text-ink-mute">
+          Use your AlgoVault account for AI access and intelligence services.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label htmlFor="av-sidepanel-email" className="mb-1 block text-[11px] font-medium text-ink-mute">
+              Email
+            </label>
+            <input
+              id="av-sidepanel-email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              type="email"
+              autoComplete="email"
+              className="w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500"
+            />
+          </div>
+          <div>
+            <label htmlFor="av-sidepanel-password" className="mb-1 block text-[11px] font-medium text-ink-mute">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="av-sidepanel-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && submit()}
+                placeholder="••••••••"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                className="w-full rounded-lg border border-edge bg-raised px-3 py-2 pr-9 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-faint transition-colors hover:text-ink"
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
+            </div>
+          </div>
+          {error && (
+            <div className="flex items-start gap-2 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-[11px] leading-snug text-rose-500">
+              <AlertCircle size={13} className="mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          <DataConsentNotice
+            checked={consent}
+            onChange={setConsent}
+            privacyUrl={`${getAlgoVaultUrlSafe()}${PRIVACY_POLICY_PATH}`}
+            id="av-data-consent-sidepanel"
+          />
+          <button
+            onClick={submit}
+            disabled={!canSubmit}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            {loading ? "Signing in…" : "Sign in"}
+          </button>
+        </div>
+
+        <a
+          href={`${getAlgoVaultUrlSafe()}/login`}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-ink-mute transition-colors hover:text-ink"
+        >
+          Sign in on the AlgoVault website
+          <ExternalLink size={10} />
+        </a>
       </div>
-      <p className="text-sm font-semibold text-ink">Sign in to AlgoVault Pro</p>
-      <p className="text-center text-[10px] text-ink-mute">
-        The extension uses your AlgoVault Pro account for AI access and intelligence services.
-      </p>
-      <input
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        type="email"
-        className="w-full max-w-[260px] rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none focus:border-brand-500"
-      />
-      <input
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        onKeyDown={(e) => e.key === "Enter" && submit()}
-        placeholder="Password"
-        type="password"
-        className="w-full max-w-[260px] rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none focus:border-brand-500"
-      />
-      {error && <p className="text-[10px] text-rose-400">{error}</p>}
-      <div className="w-full max-w-[260px]">
-        <DataConsentNotice
-          checked={consent}
-          onChange={setConsent}
-          privacyUrl={`${getAlgoVaultUrlSafe()}${PRIVACY_POLICY_PATH}`}
-          id="av-data-consent-sidepanel"
-        />
-      </div>
-      <button
-        onClick={submit}
-        disabled={!canSubmit}
-        className="w-full max-w-[260px] rounded-lg bg-brand-500 py-2 text-xs font-semibold text-white transition-opacity hover:bg-brand-400 disabled:opacity-40"
-      >
-        {loading ? "Signing in…" : "Sign in"}
-      </button>
-      <a
-        href={`${getAlgoVaultUrlSafe()}/login`}
-        target="_blank"
-        rel="noreferrer"
-        className="text-[10px] text-brand-400 hover:text-brand-300"
-      >
-        Open AlgoVault web login ↗
-      </a>
     </div>
   );
 }

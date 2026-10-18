@@ -287,7 +287,7 @@ export function MainView({
             <button
               key={a.id}
               onClick={a.run}
-              className={`group flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all active:scale-[0.97] ${
+              className={`group flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
                 a.accent
                   ? "border-brand-500/30 bg-brand-500/10 hover:bg-brand-500/20"
                   : "border-edge bg-card hover:border-brand-500/25 hover:bg-raised"

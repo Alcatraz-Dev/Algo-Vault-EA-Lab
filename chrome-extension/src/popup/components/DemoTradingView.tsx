@@ -383,7 +383,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               <button
                 key={v}
                 onClick={() => setCapitalInput(String(v))}
-                className={`rounded-md border px-2.5 py-1 font-mono text-[10px] transition-all duration-150 active:scale-95 ${
+                className={`rounded-md border px-2.5 py-1 font-mono text-[10px] transition-colors ${
                   capitalInput === String(v)
                     ? "border-brand-500/50 bg-brand-500/15 text-brand-400 shadow-[inset_0_0_0_1px_rgba(255,77,0,0.25)]"
                     : "border-edge bg-card text-ink-mute hover:bg-raised hover:text-ink"
@@ -534,7 +534,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               <button
                 key={d}
                 onClick={() => flipDirection(d)}
-                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-bold transition-all duration-150 active:scale-[0.97] ${palette}`}
+                className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs font-bold transition-colors ${palette}`}
               >
                 <span>{d}</span>
                 <span className="flex flex-col items-end">
@@ -558,7 +558,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-edge hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-colors hover:bg-edge hover:text-ink disabled:opacity-30"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -617,7 +617,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               type="button"
               onClick={() => setQuickRisk(usd)}
               disabled={calc.entryNum <= 0}
-              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-all duration-150 hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-30"
             >
               ${usd}
             </button>
@@ -637,7 +637,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               <button
                 key={s.r}
                 onClick={() => setTp(s.price.toFixed(s.price >= 100 ? 2 : 5))}
-                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-all duration-150 hover:bg-emerald-500/20 active:scale-95"
+                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-colors hover:bg-emerald-500/20"
               >
                 {s.r}R · {fmt(s.price)}
               </button>
@@ -804,7 +804,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink"
             title={`Reset test capital to $${demo.startingCapital.toLocaleString()} and clear positions`}
           >
             <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
@@ -899,14 +899,14 @@ function PositionRow({
       <button
         onClick={onDuplicate}
         title="Duplicate this order"
-        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-all duration-150 hover:border-brand-500/40 hover:text-brand-400 active:scale-90"
+        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-brand-500/40 hover:text-brand-400"
       >
         <Copy size={10} />
       </button>
       <button
         onClick={onCancel}
         title="Cancel order"
-        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-all duration-150 hover:border-rose-500/40 hover:text-rose-400 active:scale-90"
+        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-rose-500/40 hover:text-rose-400"
       >
         <X size={10} />
       </button>
@@ -999,7 +999,7 @@ function HistoryRow({
         <button
           onClick={onDuplicate}
           title="Duplicate this trade"
-          className="rounded border border-edge bg-raised p-0.5 text-ink-faint opacity-0 transition-all duration-150 hover:border-brand-500/40 hover:text-brand-400 active:scale-90 group-hover:opacity-100"
+          className="rounded border border-edge bg-raised p-0.5 text-ink-faint opacity-0 transition-colors hover:border-brand-500/40 hover:text-brand-400 group-hover:opacity-100"
         >
           <Copy size={9} />
         </button>

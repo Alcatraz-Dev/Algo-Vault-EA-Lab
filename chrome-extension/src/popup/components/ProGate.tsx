@@ -71,8 +71,8 @@ export function ProGate({
 function ProUpgradePrompt({ featureName }: { featureName: string }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-6 text-center animate-fade-in">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-500/30 bg-brand-500/10">
-        <Lock size={20} className="text-brand-400" />
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
+        <Lock size={18} className="text-brand-500" />
       </div>
       <div>
         <p className="text-sm font-semibold text-ink">Pro required</p>
@@ -83,7 +83,7 @@ function ProUpgradePrompt({ featureName }: { featureName: string }) {
       <div className="flex flex-col gap-2 w-full max-w-[240px]">
         <button
           onClick={openPricing}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-400 active:scale-95"
+          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-400"
         >
           Upgrade to Pro <ArrowRight size={11} />
         </button>
@@ -98,8 +98,8 @@ function ProUpgradePrompt({ featureName }: { featureName: string }) {
 function FeatureNotEnabledPrompt({ featureName }: { featureName: string }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-3 px-4 py-6 text-center animate-fade-in">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-edge bg-raised">
-        <ShieldCheck size={20} className="text-ink-mute" />
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-edge bg-raised">
+        <ShieldCheck size={18} className="text-ink-mute" />
       </div>
       <div>
         <p className="text-sm font-semibold text-ink">Coming soon</p>
