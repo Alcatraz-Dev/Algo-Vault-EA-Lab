@@ -282,7 +282,7 @@ export function ProScalpingTerminal() {
     return (
         <div data-pro-scalping-terminal="true" className="flex min-w-0 flex-col gap-3">
             {/* ── command bar ─────────────────────────────────────────────── */}
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm">
                 {/* Symbol · timeframe · clock */}
                 <div className="flex min-w-0 items-center gap-1.5 text-sm">
                     <span className="font-semibold tracking-tight text-foreground">{symbol}</span>
@@ -312,8 +312,8 @@ export function ProScalpingTerminal() {
                     </div>
                 ) : null}
 
-                {/* Right-side controls */}
-                <div className="ml-auto flex items-center gap-1.5">
+                {/* Right-side controls — own row until there is room for one line */}
+                <div className="flex w-full flex-wrap items-center gap-1.5 lg:ml-auto lg:w-auto lg:justify-end">
                     <CandelToolbarButton
                         symbol={symbol}
                         timeframe={timeframe}
@@ -321,7 +321,7 @@ export function ProScalpingTerminal() {
                     />
 
                     {/* Separator */}
-                    <div className="h-4 w-px bg-border" />
+                    <div className="hidden h-4 w-px shrink-0 bg-border sm:block" />
 
                     {/* Live / Paused toggle */}
                     <button
@@ -364,12 +364,17 @@ export function ProScalpingTerminal() {
                         Refresh
                     </button>
 
-                    {/* Risk */}
+                    {/* Risk — active state mirrors the open drawer */}
                     <button
                         type="button"
                         onClick={() => setRiskOpen((o) => !o)}
                         aria-expanded={riskOpen}
-                        className="inline-flex h-7 items-center rounded-md border border-border bg-background px-2 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        className={cn(
+                            "inline-flex h-7 items-center rounded-md border px-2 text-xs font-medium transition",
+                            riskOpen
+                                ? "border-primary/40 bg-primary/10 text-primary"
+                                : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+                        )}
                     >
                         Risk
                     </button>
@@ -400,7 +405,7 @@ export function ProScalpingTerminal() {
             ) : null}
 
             {/* ── mobile view switch ──────────────────────────────────────── */}
-            <div className="flex gap-1 rounded-xl border border-border bg-card p-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)] lg:hidden">
+            <div className="flex gap-1 rounded-xl border border-border bg-card p-1 shadow-[0_1px_2px_rgb(0_0_0/0.05)] xl:hidden">
                 {(["chart", "panels"] as const).map((v) => (
                     <button
                         key={v}
@@ -418,9 +423,23 @@ export function ProScalpingTerminal() {
             </div>
 
             {/* ── main grid ───────────────────────────────────────────────── */}
-            <div className="grid min-w-0 gap-3 xl:grid-cols-[230px_minmax(0,1fr)_330px]">
-                {/* Left rail */}
-                <aside className={cn("flex min-w-0 flex-col gap-3", (mobileView === "panels") && "hidden xl:flex")}>
+            <div
+                className={cn(
+                    "grid min-w-0 gap-3",
+                    // Chart view: rail + chart from lg, full three-column workspace at xl.
+                    // Panels view: both rails side by side once there is room, otherwise stacked.
+                    mobileView === "chart"
+                        ? "lg:grid-cols-[minmax(0,234px)_minmax(0,1fr)] xl:grid-cols-[minmax(0,297px)_minmax(0,1fr)_minmax(0,297px)]"
+                        : "lg:grid-cols-2 xl:grid-cols-[minmax(0,297px)_minmax(0,1fr)_minmax(0,297px)]"
+                )}
+            >
+                {/* Left rail — paired with the right rail at equal width (xl) */}
+                <aside
+                    className={cn(
+                        "min-w-0 flex-col gap-3",
+                        mobileView === "panels" ? "flex" : "hidden lg:flex"
+                    )}
+                >
                     <WatchlistPanel
                         quotes={quotes.data?.quotes ?? {}}
                         active={symbol}
@@ -680,35 +699,35 @@ function RiskCalculator({
     }
 
     return (
-        <div className="flex flex-wrap items-end gap-x-4 gap-y-2 text-xs">
-            <label className="flex flex-col gap-0.5">
+        <div className="grid w-full gap-2 text-center text-xs sm:grid-cols-2 sm:text-left md:grid-cols-3 xl:grid-cols-6">
+            <label className="flex flex-col items-center gap-0.5 sm:items-start">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Balance</span>
                 <input
                     value={balance}
                     onChange={(e) => setBalance(e.target.value)}
                     inputMode="decimal"
-                    className="w-24 rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
+                    className="w-full max-w-[10rem] rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
                 />
             </label>
-            <label className="flex flex-col gap-0.5">
+            <label className="flex flex-col items-center gap-0.5 sm:items-start">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Risk %</span>
                 <input
                     value={riskPct}
                     onChange={(e) => setRiskPct(e.target.value)}
                     inputMode="decimal"
-                    className="w-16 rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
+                    className="w-full max-w-[10rem] rounded-md border border-border bg-card px-2 py-1 font-numeric tabular-nums outline-none focus:border-primary/50"
                 />
             </label>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col items-center gap-0.5 sm:items-start">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Entry (live)</span>
                 <span className="font-numeric tabular-nums text-foreground">{price !== null ? price.toFixed(price >= 100 ? 2 : 5) : "—"}</span>
             </div>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col items-center gap-0.5 sm:items-start">
                 <span className="text-micro uppercase tracking-wide text-muted-foreground">Stop (nearest S)</span>
                 <span className="font-numeric tabular-nums text-foreground">{stop !== null ? stop.toFixed(stop >= 100 ? 2 : 5) : "—"}</span>
             </div>
             {sizing ? (
-                <div className="flex flex-col gap-0.5">
+                <div className="flex flex-col items-center gap-0.5 sm:col-span-2 sm:items-start xl:col-span-2">
                     <span className="text-micro uppercase tracking-wide text-muted-foreground">Suggested size</span>
                     <span className="font-numeric font-semibold tabular-nums text-foreground">
                         {sizing.lots < 0.01 ? `${(sizing.lots * 100).toFixed(2)} mini-lots` : `${sizing.lots.toFixed(2)} lots`}
@@ -718,13 +737,13 @@ function RiskCalculator({
                     </span>
                 </div>
             ) : (
-                <p className="text-micro text-muted-foreground">
+                <p className="text-micro text-muted-foreground sm:col-span-2 xl:col-span-2">
                     {nearestSupport === null
                         ? "No structural support level available for a stop reference."
                         : "Nearest support is above the live price — no long sizing suggestion."}
                 </p>
             )}
-            <p className="w-full text-micro text-muted-foreground">
+            <p className="col-span-full text-micro text-muted-foreground">
                 Sizing uses standard contract conventions (XAUUSD 100 oz/lot). Verify contract specs with your broker — this is a
                 calculation aid, not an order ticket.
             </p>
