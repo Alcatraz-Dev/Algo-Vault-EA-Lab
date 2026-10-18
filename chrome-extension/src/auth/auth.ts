@@ -82,6 +82,36 @@ export async function checkServerReachable(rawBaseUrl: string): Promise<string> 
   return url;
 }
 
+/**
+ * Map a Firebase Authentication failure to a safe, user-facing message.
+ * Mirrors the website login page's mapping. Raw SDK messages (e.g.
+ * "Firebase: Error (auth/invalid-credential).") are never surfaced — they
+ * leak implementation detail and confuse traders. Only the Firebase
+ * sign-in step uses this; probe/network errors keep their own messages.
+ */
+export function mapFirebaseAuthError(err: unknown): string {
+  const code =
+    typeof err === "object" && err !== null && "code" in err
+      ? String((err as { code?: unknown }).code)
+      : "";
+  switch (code) {
+    case "auth/invalid-credential":
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+      return "Incorrect email or password.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/too-many-requests":
+      return "Too many login attempts. Please try again later.";
+    case "auth/network-request-failed":
+      return "Network error. Please check your internet connection.";
+    case "auth/operation-not-allowed":
+      return "Email/password sign-in is not enabled. Please contact support.";
+    default:
+      return "Authentication failed. Please try again.";
+  }
+}
+
 export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
   try {
     const settings = await getSettings();
@@ -108,7 +138,14 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const auth = getAuth(app);
     firebaseAuth = auth;
 
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    let cred;
+    try {
+      cred = await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      // Firebase step only: map SDK codes to safe messages. Probe errors
+      // above already carry precise messages and must pass through untouched.
+      throw new Error(mapFirebaseAuthError(err));
+    }
     const token = await cred.user.getIdToken();
 
     const validationRes = await fetch(`${baseUrl}/api/trading/gateway/status`, {
