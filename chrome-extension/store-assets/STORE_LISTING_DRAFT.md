@@ -106,11 +106,11 @@ chart. Every item below is strictly necessary to it (2026 Limited Use).
 | Third parties | Firebase/Google (auth + database) only. No analytics SDKs in the extension (verified by grep). Discord/Telegram delivery only if the user connects them on the backend |
 | Local deletion | Setup view wipes copilot threads/memory/research cache; logout clears token + user; server-side deletion via support request |
 
-## 12. Proposed privacy-policy corrections (NOT yet applied — owner to approve)
+## 12. Privacy-policy corrections (status)
 
-1. Add a real support email/URL to §11 Contact Us (currently names no channel).
-2. Add one sentence to "Browser Extension Data": copilot user messages are transmitted with chart context for analysis (currently names context + token only).
-3. Consider a short in-product disclosure on the login screen describing collection + a consent action — the User Data FAQ requires prominent in-product disclosure and consent, not only a policy link. Proposed text: "AlgoVault reads your active TradingView chart (symbol, timeframe, price) and sends it with your account to generate analysis. [Sign in = agree] [Privacy policy]".
+1. PENDING OWNER — add a real support email/URL to policy §11 Contact Us (currently names no channel). Do NOT submit until resolved.
+2. IMPLEMENTED (owner-approved 2026-10-18): "Browser Extension Data" now states that chart context, AI copilot messages, and the authentication token are transmitted to generate analysis, signals, and alerts (policy `lastUpdated` bumped to October 18, 2026).
+3. IMPLEMENTED (owner-approved 2026-10-18, stronger than the original proposal): both sign-in entry paths (popup `LoginView`, side-panel login) now show a prominent disclosure — "AlgoVault reads the active TradingView chart (symbol, timeframe, price) and sends Copilot messages with that chart context to its backend, authenticated with the AlgoVault session, to provide AI analysis and related features" — with a working Privacy Policy link and an unchecked-by-default consent checkbox; sign-in stays disabled until consent is given. A link click never counts as consent.
 
 ## 13. Submission checklist
 
@@ -119,6 +119,6 @@ chart. Every item below is strictly necessary to it (2026 Limited Use).
 - [x] No localhost/dev hosts, no unused permissions in packaged manifest
 - [ ] Dashboard Privacy tab: data categories + purposes + Limited Use certification (uses §11 above)
 - [ ] Reviewer demo account credentials (NEEDS OWNER)
-- [ ] Support email decided + added to policy §11 and listing §7 (NEEDS OWNER)
-- [ ] Decide on proposed corrections §12.1–12.3 (NEEDS OWNER)
-- [ ] Upload ZIP + assets + submit (NEEDS OWNER)
+- [ ] Support email decided + added to policy §11 and listing §7 (NEEDS OWNER — BLOCKS SUBMISSION)
+- [x] Corrections §12.2 (copilot-message disclosure) and §12.3 (in-product disclosure + consent) implemented; §12.1 (support contact) still NEEDS OWNER
+- [ ] Upload ZIP + assets + submit (NEEDS OWNER — DO NOT SUBMIT until support contact + reviewer account are resolved)

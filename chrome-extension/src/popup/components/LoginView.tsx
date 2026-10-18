@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Loader2, AlertCircle, ExternalLink } from "lucide-react";
 import { signInWithEmail } from "@/auth/auth";
+import { canAttemptSignIn, PRIVACY_POLICY_PATH } from "@/auth/consent";
+import { DataConsentNotice } from "@/components/DataConsentNotice";
 import { getAlgoVaultUrl } from "@/config/environment";
 
 /** The real AlgoVault logo, same asset the website header uses. */
@@ -13,12 +15,18 @@ interface LoginViewProps {
 export function LoginView({ onAuth }: LoginViewProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const canSubmit = canAttemptSignIn({ email, password, consentGiven: consent, loading });
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
+    // Consent + credential gate: sign-in cannot proceed without explicit
+    // data-handling consent (unchecked by default). Re-checked here so a
+    // submit event can never bypass the disabled button state.
+    if (!canSubmit) return;
     setLoading(true);
     setError(null);
 
@@ -82,9 +90,15 @@ export function LoginView({ onAuth }: LoginViewProps) {
             </div>
           )}
 
+          <DataConsentNotice
+            checked={consent}
+            onChange={setConsent}
+            privacyUrl={`${getAlgoVaultUrl()}${PRIVACY_POLICY_PATH}`}
+          />
+
           <button
             type="submit"
-            disabled={loading || !email || !password}
+            disabled={!canSubmit}
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
           >
             {loading ? <Loader2 size={14} className="animate-spin" /> : null}

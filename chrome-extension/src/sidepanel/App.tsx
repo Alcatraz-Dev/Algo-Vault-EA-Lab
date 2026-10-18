@@ -40,6 +40,8 @@ import {
 import { checkHealth, getGatewayStatus } from "@/api/algovault";
 import { getAlgoVaultUrl, PRODUCTION_ALGOVAULT_URL } from "@/config/environment";
 import { getAuthToken, getCachedContext, getUser } from "@/storage/storage";
+import { canAttemptSignIn, PRIVACY_POLICY_PATH } from "@/auth/consent";
+import { DataConsentNotice } from "@/components/DataConsentNotice";
 import type { TradingViewContext } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { useProAccess } from "@/services/pro-service";
@@ -676,11 +678,16 @@ export default function App() {
 function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const canSubmit = canAttemptSignIn({ email, password, consentGiven: consent, loading });
+
   const submit = async () => {
-    if (!email || !password) return;
+    // Same consent gate as the popup login: no sign-in attempt (including
+    // via the Enter key) without explicit data-handling consent.
+    if (!canSubmit) return;
     setLoading(true);
     setError(null);
     try {
@@ -720,9 +727,17 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
         className="w-full max-w-[260px] rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none focus:border-brand-500"
       />
       {error && <p className="text-[10px] text-rose-400">{error}</p>}
+      <div className="w-full max-w-[260px]">
+        <DataConsentNotice
+          checked={consent}
+          onChange={setConsent}
+          privacyUrl={`${getAlgoVaultUrlSafe()}${PRIVACY_POLICY_PATH}`}
+          id="av-data-consent-sidepanel"
+        />
+      </div>
       <button
         onClick={submit}
-        disabled={loading || !email || !password}
+        disabled={!canSubmit}
         className="w-full max-w-[260px] rounded-lg bg-brand-500 py-2 text-xs font-semibold text-white transition-opacity hover:bg-brand-400 disabled:opacity-40"
       >
         {loading ? "Signing in…" : "Sign in"}
