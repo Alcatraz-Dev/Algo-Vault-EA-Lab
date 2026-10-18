@@ -247,7 +247,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
                   placeholder="TF"
                   className="w-12 bg-muted border border-border rounded px-2 py-0.5 text-[10px] text-foreground placeholder:text-muted-foreground/70 outline-none"
                 />
-                <button onClick={handleManualSubmit} className="rounded bg-brand-500 px-2 py-0.5 text-[10px] font-semibold text-white transition-colors hover:bg-brand-600">Go</button>
+                <button onClick={handleManualSubmit} className="rounded bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Go</button>
               </div>
             )}
           </div>

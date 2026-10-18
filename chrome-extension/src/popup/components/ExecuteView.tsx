@@ -341,8 +341,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             const active = direction === d;
             const palette = active
               ? d === "BUY"
-                ? "border-positive/50 bg-positive/15 text-positive shadow-[inset_0_0_0_1px_rgba(16,185,129,0.4)]"
-                : "border-negative/50 bg-negative/15 text-negative shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4)]"
+                ? "border-positive/50 bg-positive/15 text-positive"
+                : "border-negative/50 bg-negative/15 text-negative"
               : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground";
             return (
               <button
