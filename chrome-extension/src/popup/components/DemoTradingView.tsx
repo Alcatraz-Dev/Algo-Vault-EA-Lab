@@ -351,7 +351,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
   const fmt = (v: number, digits?: number) =>
     v.toLocaleString("en-US", { minimumFractionDigits: digits ?? (Math.abs(v) >= 100 ? 2 : Math.abs(v) >= 10 ? 2 : 4), maximumFractionDigits: digits ?? 4 });
 
-  if (!loaded) return <div className="flex h-full items-center justify-center text-[10px] text-ink-faint">Loading…</div>;
+  if (!loaded) return <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground/70">Loading…</div>;
 
   /* ── setup screen (no demo account yet) ──────────────────────────── */
   if (!demo) {
@@ -360,11 +360,11 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         <ViewHeader title="Demo Trades" sub="Test logic — simulated account" />
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           <div className="flex flex-col items-center gap-2 pt-6 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-edge bg-raised text-ink-mute">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-border bg-secondary text-muted-foreground">
               <FlaskConical size={22} />
             </span>
-            <p className="text-sm font-semibold text-ink">Practice with test capital</p>
-            <p className="max-w-[260px] text-[10px] leading-snug text-ink-mute">
+            <p className="text-sm font-semibold text-foreground">Practice with test capital</p>
+            <p className="max-w-[260px] text-[10px] leading-snug text-muted-foreground">
               Enter a virtual account size. Orders fill against the live bid/ask — same market / limit / stop logic as the real Trade Ticket, zero risk.
             </p>
           </div>
@@ -385,8 +385,8 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
                 onClick={() => setCapitalInput(String(v))}
                 className={`rounded-md border px-2.5 py-1 font-mono text-[10px] transition-colors ${
                   capitalInput === String(v)
-                    ? "border-neutral-500 bg-raised text-ink"
-                    : "border-edge bg-card text-ink-mute hover:bg-raised hover:text-ink"
+                    ? "border-muted-foreground/40 bg-secondary text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground"
                 }`}
               >
                 ${v.toLocaleString()}
@@ -398,7 +398,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             Start demo account
           </PrimaryButton>
         </div>
-        <div className="flex items-center border-t border-edge px-3 py-2">
+        <div className="flex items-center border-t border-border px-3 py-2">
           <BackButton onClick={onBack} />
         </div>
       </div>
@@ -423,12 +423,12 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               onOpenChart={() => window.open("https://www.tradingview.com/", "_blank", "noopener,noreferrer")}
               compact
             />
-            <span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-ink-mute">
+            <span className="rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Simulated
             </span>
             {feedOnline && (
-              <span className="flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-emerald-400">
-                <span className="h-1 w-1 animate-pulse-dot rounded-full bg-emerald-400" /> live
+              <span className="flex items-center gap-1 rounded border border-positive/30 bg-positive/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-positive">
+                <span className="h-1 w-1 rounded-full bg-positive" /> live
               </span>
             )}
           </div>
@@ -437,18 +437,18 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
 
       <div className="flex-1 space-y-3 overflow-y-auto p-3">
         {/* account strip */}
-        <div className="rounded-lg border border-edge bg-card p-2.5">
-          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+        <div className="rounded-lg border border-border bg-card p-2.5">
+          <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Wallet size={11} />
             Test account
             <span className="ml-auto normal-case">
               {feedOnline ? (
-                <span className="flex items-center gap-1 text-[9px] text-emerald-400">
-                  <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-emerald-400" /> live feed
+                <span className="flex items-center gap-1 text-[10px] text-positive">
+                  <span className="h-1.5 w-1.5 rounded-full bg-positive" /> live feed
                 </span>
               ) : (
-                <span className="flex items-center gap-1 text-[9px] text-ink-faint">
-                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-600" /> feed offline — paused
+                <span className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" /> feed offline — paused
                 </span>
               )}
             </span>
@@ -472,8 +472,8 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             />
           </div>
           {curvePts.length >= 2 && (
-            <div className="mt-1.5 border-t border-edge pt-1.5">
-              <div className="mb-0.5 flex items-center justify-between text-[9px] text-ink-faint">
+            <div className="mt-1.5 border-t border-border pt-1.5">
+              <div className="mb-0.5 flex items-center justify-between text-[10px] text-muted-foreground/70">
                 <span>Equity curve</span>
                 <span className="font-mono">{fmt(curvePts[curvePts.length - 1], 2)}</span>
               </div>
@@ -481,15 +481,15 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             </div>
           )}
           {stats && stats.closed > 0 && (
-            <div className="mt-1.5 space-y-1 border-t border-edge pt-1.5">
-              <div className="flex items-center justify-between text-[9px] text-ink-faint">
+            <div className="mt-1.5 space-y-1 border-t border-border pt-1.5">
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground/70">
                 <span>
                   {stats.closed} closed · {stats.wins}W / {stats.losses}L · win rate{" "}
-                  <span className="font-mono text-ink-mute">{(stats.winRate * 100).toFixed(0)}%</span>
+                  <span className="font-mono text-muted-foreground">{(stats.winRate * 100).toFixed(0)}%</span>
                 </span>
                 <span>
                   realized{" "}
-                  <span className={`font-mono ${stats.realizedPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  <span className={`font-mono ${stats.realizedPnl >= 0 ? "text-positive" : "text-negative"}`}>
                     {stats.realizedPnl >= 0 ? "+" : ""}{fmt(stats.realizedPnl, 2)}
                   </span>
                 </span>
@@ -502,7 +502,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
                     <span>Win rate</span>
                     <span className="font-mono">
                       PF {Number.isFinite(stats.profitFactor) ? stats.profitFactor.toFixed(2) : "∞"} · avg{" "}
-                      <span className={stats.expectancy >= 0 ? "text-emerald-400" : "text-rose-400"}>
+                      <span className={stats.expectancy >= 0 ? "text-positive" : "text-negative"}>
                         {stats.expectancy >= 0 ? "+" : ""}{fmt(stats.expectancy, 2)}
                       </span>
                     </span>
@@ -512,9 +512,9 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             </div>
           )}
           {exposure > 0 && demo && (
-            <div className="mt-1.5 border-t border-edge pt-1.5 text-[9px] text-ink-faint">
-              Exposure <span className="font-mono text-ink-mute">${fmt(exposure, 2)}</span>{" "}
-              <span className="text-ink-faint">
+            <div className="mt-1.5 border-t border-border pt-1.5 text-[10px] text-muted-foreground/70">
+              Exposure <span className="font-mono text-muted-foreground">${fmt(exposure, 2)}</span>{" "}
+              <span className="text-muted-foreground/70">
                 ({(exposure / Math.max(1, equity) * 100).toFixed(1)}% of equity at risk)
               </span>
             </div>
@@ -527,9 +527,9 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             const active = direction === d;
             const palette = active
               ? d === "BUY"
-                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.4)]"
-                : "border-rose-500/50 bg-rose-500/15 text-rose-400 shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4)]"
-              : "border-edge bg-card text-ink-mute hover:bg-raised hover:text-ink";
+                ? "border-positive/50 bg-positive/15 text-positive shadow-[inset_0_0_0_1px_rgba(16,185,129,0.4)]"
+                : "border-negative/50 bg-negative/15 text-negative shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4)]"
+              : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground";
             return (
               <button
                 key={d}
@@ -542,13 +542,13 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
                     <>
                       <span className="font-mono text-[10px] font-normal opacity-90">{fmt(midPrice)}</span>
                       {spread > 0 && (
-                        <span className="font-mono text-[8px] font-normal opacity-70">
+                        <span className="font-mono text-[10px] font-normal opacity-70">
                           spread {fmt(spread, 5)}
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className="text-[9px] font-normal opacity-60">awaiting quote</span>
+                    <span className="text-[10px] font-normal opacity-60">awaiting quote</span>
                   )}
                 </span>
               </button>
@@ -558,7 +558,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-colors hover:bg-edge hover:text-ink disabled:opacity-30"
+            className="flex w-9 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -610,19 +610,19 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
 
         {/* quick-SL chips: tap to set SL based on a $-risk budget at the current lot size */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[9px] uppercase tracking-wider text-ink-faint">Quick risk</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick risk</span>
           {QUICK_RISK_PRESETS.map((usd) => (
             <button
               key={usd}
               type="button"
               onClick={() => setQuickRisk(usd)}
               disabled={calc.entryNum <= 0}
-              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-30"
+              className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground transition-colors hover:border-negative/40 hover:bg-negative/10 hover:text-negative disabled:opacity-30"
             >
               ${usd}
             </button>
           ))}
-          <span className="ml-auto text-[9px] text-ink-faint">
+          <span className="ml-auto text-[10px] text-muted-foreground/70">
             at {(parseFloat(fixedLots) || 0.01).toFixed(2)} lots
           </span>
         </div>
@@ -630,14 +630,14 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         {/* TP assist — fill a target at an R multiple of the stop distance */}
         {tpSuggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-ink-faint">
+            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
               <Crosshair size={9} /> TP assist
             </span>
             {tpSuggestions.map((s) => (
               <button
                 key={s.r}
                 onClick={() => setTp(s.price.toFixed(s.price >= 100 ? 2 : 5))}
-                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                className="rounded border border-positive/25 bg-positive/10 px-1.5 py-0.5 font-mono text-[10px] text-positive transition-colors hover:bg-positive/20"
               >
                 {s.r}R · {fmt(s.price)}
               </button>
@@ -673,9 +673,9 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             </Field>
           )}
           <div className="flex items-end">
-            <div className="w-full rounded-lg border border-edge bg-card px-2.5 py-1.5 text-center">
-              <div className="text-[9px] text-ink-faint">Volume</div>
-              <div className="font-mono text-sm font-bold text-ink tabular-nums">{calc.volume}</div>
+            <div className="w-full rounded-lg border border-border bg-card px-2.5 py-1.5 text-center">
+              <div className="text-[10px] text-muted-foreground/70">Volume</div>
+              <div className="font-mono text-sm font-bold text-foreground tabular-nums">{calc.volume}</div>
             </div>
           </div>
         </div>
@@ -731,7 +731,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         {open.length > 0 && (
           <section>
             <SectionTitle>
-              <span>Open ({open.length}) · floating <span className={`ml-1 font-mono ${openPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{openPnl >= 0 ? "+" : ""}{fmt(openPnl, 2)}</span></span>
+              <span>Open ({open.length}) · floating <span className={`ml-1 font-mono ${openPnl >= 0 ? "text-positive" : "text-negative"}`}>{openPnl >= 0 ? "+" : ""}{fmt(openPnl, 2)}</span></span>
               {confirmPanic === "closeAll" ? (
                 <span className="ml-auto flex gap-1">
                   <MiniButton onClick={() => setConfirmPanic(null)} variant="neutral">Keep</MiniButton>
@@ -766,7 +766,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
           <section>
             <SectionTitle>
               <span>History</span>
-              <span className="ml-auto font-mono normal-case text-ink-faint">
+              <span className="ml-auto font-mono normal-case text-muted-foreground/70">
                 PF {Number.isFinite(stats!.profitFactor) ? stats!.profitFactor.toFixed(2) : "∞"}
               </span>
             </SectionTitle>
@@ -784,13 +784,13 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         )}
 
         {demo.positions.length === 0 && (
-          <p className="pt-1 text-center text-[10px] text-ink-faint">
+          <p className="pt-1 text-center text-[10px] text-muted-foreground/70">
             No trades yet — place your first simulated order above.
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-2 border-t border-edge bg-card/60 px-3 py-2">
+      <div className="flex items-center gap-2 border-t border-border px-3 py-2">
         <BackButton onClick={onBack} />
         {confirmReset ? (
           <ConfirmActionRow
@@ -804,10 +804,10 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary/80 px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
             title={`Reset test capital to $${demo.startingCapital.toLocaleString()} and clear positions`}
           >
-            <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
+            <RotateCcw size={12} className="shrink-0 text-muted-foreground/70 transition-transform duration-200 group-hover:-rotate-45" />
             <span className="truncate">Reset Demo</span>
           </button>
         )}
@@ -820,7 +820,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-1 flex items-center text-[9px] font-semibold uppercase tracking-wider text-ink-faint">
+    <div className="mb-1 flex items-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
       {children}
     </div>
   );
@@ -842,7 +842,7 @@ function formatAge(ms: number): string {
 function PnlBadge({ value }: { value: number }) {
   const bull = value >= 0;
   return (
-    <span className={`font-mono font-bold tabular-nums ${bull ? "text-emerald-400" : "text-rose-400"}`}>
+    <span className={`font-mono font-bold tabular-nums ${bull ? "text-positive" : "text-negative"}`}>
       {bull ? "+" : ""}{value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
     </span>
   );
@@ -851,13 +851,13 @@ function PnlBadge({ value }: { value: number }) {
 function CloseReasonChip({ reason }: { reason?: DemoCloseReason }) {
   if (!reason) return null;
   const cls =
-    reason === "tp" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-    : reason === "sl" ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
-    : reason === "breakeven" ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-    : reason === "panic" ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-    : "bg-neutral-500/10 text-neutral-400 border-edge";
+    reason === "tp" ? "bg-positive/15 text-positive border-positive/30"
+    : reason === "sl" ? "bg-negative/15 text-negative border-negative/30"
+    : reason === "breakeven" ? "bg-warning/15 text-warning border-warning/30"
+    : reason === "panic" ? "bg-warning/15 text-warning border-warning/30"
+    : "bg-muted text-muted-foreground border-border";
   return (
-    <span className={`rounded border px-1 py-px text-[8px] font-bold uppercase ${cls}`}>{reason}</span>
+    <span className={`rounded border px-1 py-px text-[10px] font-bold uppercase ${cls}`}>{reason}</span>
   );
 }
 
@@ -880,32 +880,32 @@ function PositionRow({
       : (p.side === "BUY" ? p.entry - ref.ask : ref.bid - p.entry);
   const waits = triggerDist > 0;
   return (
-    <div className={`flex items-center gap-2 rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
-      <span className={`text-[10px] font-bold ${p.side === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
+    <div className={`flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
+      <span className={`text-[10px] font-bold ${p.side === "BUY" ? "text-positive" : "text-negative"}`}>
         {orderAction(p.kind, p.side)}
       </span>
-      <span className="font-mono text-[10px] text-ink-mute">{p.lots} @ {fmt(p.entry)}</span>
+      <span className="font-mono text-[10px] text-muted-foreground">{p.lots} @ {fmt(p.entry)}</span>
       <span className="ml-auto flex items-center gap-1.5">
-        <span className="font-mono text-[9px] text-ink-faint">
+        <span className="font-mono text-[10px] text-muted-foreground/70">
           {p.sl ? `SL ${fmt(p.sl)} ` : ""}{p.tp ? `TP ${fmt(p.tp)}` : ""}
         </span>
         {waits && quote && (
-          <span className="rounded border border-amber-500/25 bg-amber-500/10 px-1 py-px font-mono text-[8px] text-amber-400">
+          <span className="rounded border border-warning/25 bg-warning/10 px-1 py-px font-mono text-[10px] text-warning">
             Δ {fmt(triggerDist, 5)}
           </span>
         )}
-        <span className="font-mono text-[8px] text-ink-faint">{formatAge(Date.now() - p.openedAt)}</span>
+        <span className="font-mono text-[10px] text-muted-foreground/70">{formatAge(Date.now() - p.openedAt)}</span>
       </span>
       <button
         onClick={onDuplicate}
-        title="Duplicate this order"          className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-neutral-500 hover:text-ink"
+        title="Duplicate this order"          className="rounded border border-border bg-secondary p-1 text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:text-foreground"
       >
         <Copy size={10} />
       </button>
       <button
         onClick={onCancel}
         title="Cancel order"
-        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-rose-500/40 hover:text-rose-400"
+        className="rounded border border-border bg-secondary p-1 text-muted-foreground transition-colors hover:border-negative/40 hover:text-negative"
       >
         <X size={10} />
       </button>
@@ -935,26 +935,26 @@ function OpenPositionRow({
     ? (p.side === "BUY" ? ref.bid - p.sl : p.sl - ref.ask)
     : null;
   return (
-    <div className={`rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
+    <div className={`rounded-lg border border-border bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
       <div className="flex items-center gap-2">
         <span className={`text-[10px] font-bold ${dirClasses[p.side === "BUY" ? "bullish" : "bearish"]}`}>{p.side}</span>
-        <span className="font-mono text-[10px] text-ink-mute">{p.lots} @ {fmt(p.filledAt ?? p.entry)}</span>
+        <span className="font-mono text-[10px] text-muted-foreground">{p.lots} @ {fmt(p.filledAt ?? p.entry)}</span>
         <span className="ml-auto flex items-center gap-1.5">
           {distToSl != null && (
-            <span className={`rounded border px-1 py-px font-mono text-[8px] ${distToSl <= 0 ? "border-rose-500/40 bg-rose-500/15 text-rose-400" : distToSl < slDist * 0.2 ? "border-amber-500/40 bg-amber-500/15 text-amber-400" : "border-edge text-ink-faint"}`}>
+            <span className={`rounded border px-1 py-px font-mono text-[10px] ${distToSl <= 0 ? "border-negative/40 bg-negative/15 text-negative" : distToSl < slDist * 0.2 ? "border-warning/40 bg-warning/15 text-warning" : "border-border text-muted-foreground/70"}`}>
               {distToSl <= 0 ? "past SL" : `Δ ${fmt(distToSl, 5)}`}
             </span>
           )}
-          <span className={`font-mono text-[10px] font-bold tabular-nums ${pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+          <span className={`font-mono text-[10px] font-bold tabular-nums ${pnl >= 0 ? "text-positive" : "text-negative"}`}>
             {pnl >= 0 ? "+" : ""}{fmt(pnl, 2)}
           </span>
         </span>
       </div>
-      <div className="mt-1 flex items-center gap-1.5 text-[9px] text-ink-faint">
+      <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground/70">
         <span className="font-mono">
-          {p.sl ? <span className="text-rose-400/80">SL {fmt(p.sl)}</span> : <span className="opacity-50">no SL</span>}
+          {p.sl ? <span className="text-negative/80">SL {fmt(p.sl)}</span> : <span className="opacity-50">no SL</span>}
           {" · "}
-          {p.tp ? <span className="text-emerald-400/80">TP {fmt(p.tp)}</span> : <span className="opacity-50">no TP</span>}
+          {p.tp ? <span className="text-positive/80">TP {fmt(p.tp)}</span> : <span className="opacity-50">no TP</span>}
           {slDist > 0 && (
             <span className="ml-1 opacity-60">({fmt(slDist, 5)}{tpDist > 0 ? ` · R:R ${(tpDist / slDist).toFixed(1)}` : ""})</span>
           )}
@@ -989,16 +989,16 @@ function HistoryRow({
   onDuplicate: () => void;
 }) {
   return (
-    <div className="group flex items-center gap-2 rounded px-0.5 py-0.5 text-[10px] transition-colors duration-150 hover:bg-raised/50">
+    <div className="group flex items-center gap-2 rounded px-0.5 py-0.5 text-[10px] transition-colors duration-150 hover:bg-muted/50">
       <span className={`font-bold ${dirClasses[p.side === "BUY" ? "bullish" : "bearish"]}`}>{p.side}</span>
-      <span className="font-mono text-ink-faint">{p.lots} @ {fmt(p.filledAt ?? p.entry)} → {fmt(p.exitPrice ?? 0)}</span>
+      <span className="font-mono text-muted-foreground/70">{p.lots} @ {fmt(p.filledAt ?? p.entry)} → {fmt(p.exitPrice ?? 0)}</span>
       <span className="ml-auto flex items-center gap-1.5">
         <CloseReasonChip reason={p.closeReason} />
         <PnlBadge value={p.pnl ?? 0} />
         <button
           onClick={onDuplicate}
           title="Duplicate this trade"
-          className="rounded border border-edge bg-raised p-0.5 text-ink-faint opacity-0 transition-colors hover:border-neutral-500 hover:text-ink group-hover:opacity-100"
+          className="rounded border border-border bg-secondary p-0.5 text-muted-foreground/70 opacity-0 transition-colors hover:border-muted-foreground/40 hover:text-foreground group-hover:opacity-100"
         >
           <Copy size={9} />
         </button>

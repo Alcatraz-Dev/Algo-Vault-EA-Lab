@@ -1,31 +1,41 @@
 /**
  * AlgoVault UI kit — shadcn-style building blocks shared by every popup
- * view. Surfaces map to the platform palette (base #0f0f0f, card #181818,
- * raised #232323) and the single brand accent is AlgoVault orange #de661c.
+ * view, reimplemented on the extension's shadcn/ui Zinc design tokens
+ * (src/styles/tokens.css). Surfaces use bg-background / bg-card / bg-muted,
+ * text uses text-foreground / text-muted-foreground, and the single brand
+ * accent is AlgoVault orange (bg-brand-500, text-brand-foreground).
  *
- * Conventions (shadcn/ui): variant-driven components composed with `clsx`,
- * `rounded-md`/`rounded-lg` radii, `border-edge` outlines, `ring-brand`
- * focus states, and no decorative animation — state changes use plain
- * color transitions only.
+ * Conventions (shadcn/ui): variant-driven components composed with `cn`,
+ * `rounded-lg` controls / `rounded-xl` cards / `rounded-full` pills,
+ * `border-border` outlines, `focus-visible:ring-2 ring-ring` focus states,
+ * and no decorative animation — state changes use plain color transitions
+ * only. Trading semantics are single-meaning tokens: positive (bullish /
+ * success), negative (bearish / error), warning (caution).
  */
 import React from "react";
-import { clsx } from "clsx";
 import { AlertCircle, ArrowLeft, CheckCircle2, ExternalLink, Loader2, Minus, Plus, Radio, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
+
+import { Alert as BaseAlert } from "@/components/ui/alert";
+import { Button as BaseButton } from "@/components/ui/button";
+import { Card as BaseCard } from "@/components/ui/card";
+import { Input as BaseInput } from "@/components/ui/input";
+import { Separator as BaseSeparator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 /* ── semantic direction styling ──────────────────────────────────────── */
 
 export type Direction = "bullish" | "bearish" | "neutral";
 
 export const dirClasses: Record<Direction, string> = {
-  bullish: "text-emerald-400",
-  bearish: "text-rose-400",
-  neutral: "text-neutral-400",
+  bullish: "text-positive",
+  bearish: "text-negative",
+  neutral: "text-muted-foreground",
 };
 
 export const dirBgClasses: Record<Direction, string> = {
-  bullish: "bg-emerald-500/15 text-emerald-400",
-  bearish: "bg-rose-500/15 text-rose-400",
-  neutral: "bg-neutral-500/10 text-neutral-400",
+  bullish: "bg-positive/10 text-positive",
+  bearish: "bg-negative/10 text-negative",
+  neutral: "bg-muted text-muted-foreground",
 };
 
 export function asDirection(v: string | null | undefined): Direction {
@@ -40,7 +50,12 @@ export function asDirection(v: string | null | undefined): Direction {
 
 export function Badge({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${className}`}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground",
+        className
+      )}
+    >
       {children}
     </span>
   );
@@ -48,50 +63,51 @@ export function Badge({ children, className = "" }: { children: React.ReactNode;
 
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-lg border border-edge bg-card ${className}`}>{children}</div>
+    <div className={cn("rounded-xl border border-border bg-card text-foreground", className)}>{children}</div>
   );
 }
 
 /* ── status dot ──────────────────────────────────────────────────────── */
 
 export function StatusDot({ state }: { state: "ok" | "warn" | "off" }) {
-  const color = state === "ok" ? "bg-emerald-400" : state === "warn" ? "bg-amber-400" : "bg-neutral-600";
-  return <span className={`inline-block h-1.5 w-1.5 rounded-full ${color} ${state !== "off" ? "animate-pulse-dot" : ""}`} />;
+  const color = state === "ok" ? "bg-positive" : state === "warn" ? "bg-warning" : "bg-muted-foreground/50";
+  return <span className={`inline-block h-1.5 w-1.5 rounded-full ${color}`} />;
 }
 
 /* ── inputs ──────────────────────────────────────────────────────────── */
 
 export const inputClass =
-  "w-full rounded border border-edge bg-raised px-2.5 py-1.5 font-mono text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500/60";
+  "w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-medium uppercase tracking-wider text-ink-mute">{label}</span>
+      <span className="mb-1 block text-[11px] font-medium text-muted-foreground">{label}</span>
       {children}
-      {hint && <span className="mt-0.5 block text-[9px] text-ink-faint">{hint}</span>}
+      {hint && <span className="mt-0.5 block text-[10px] text-muted-foreground/70">{hint}</span>}
     </label>
   );
 }
 
 /* ── shadcn-style primitives ─────────────────────────────────────────── */
 
-type ButtonVariant = "default" | "secondary" | "outline" | "ghost" | "destructive";
+type ButtonVariant = "default" | "brand" | "secondary" | "outline" | "ghost" | "destructive";
 type ButtonSize = "sm" | "md" | "lg" | "icon";
 
-const buttonVariants: Record<ButtonVariant, string> = {
-  default: "bg-brand-500 text-white hover:bg-brand-400",
-  secondary: "border border-edge bg-raised text-ink hover:border-neutral-500 hover:text-ink",
-  outline: "border border-edge bg-transparent text-ink-mute hover:bg-raised hover:text-ink",
-  ghost: "text-ink-mute hover:bg-raised hover:text-ink",
-  destructive: "bg-rose-600 text-white hover:bg-rose-500",
+const buttonVariants: Record<ButtonVariant, "default" | "brand" | "secondary" | "outline" | "ghost" | "destructive"> = {
+  default: "default",
+  brand: "brand",
+  secondary: "secondary",
+  outline: "outline",
+  ghost: "ghost",
+  destructive: "destructive",
 };
 
-const buttonSizes: Record<ButtonSize, string> = {
-  sm: "h-8 px-3 text-[11px]",
-  md: "h-9 px-4 text-xs",
-  lg: "h-10 px-4 text-xs",
-  icon: "h-8 w-8",
+const buttonSizes: Record<ButtonSize, "default" | "sm" | "lg" | "icon-sm"> = {
+  sm: "sm",
+  md: "default",
+  lg: "lg",
+  icon: "icon-sm",
 };
 
 export function Button({
@@ -104,15 +120,11 @@ export function Button({
   size?: ButtonSize;
 }) {
   return (
-    <button
+    <BaseButton
+      variant={buttonVariants[variant]}
+      size={buttonSizes[size]}
+      className={cn("font-semibold", className)}
       {...props}
-      className={clsx(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-semibold",
-        "transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-        buttonVariants[variant],
-        buttonSizes[size],
-        className,
-      )}
     />
   );
 }
@@ -122,14 +134,9 @@ export function Input({
   ...props
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <input
+    <BaseInput
+      className={cn("h-8 rounded-lg px-2.5 py-1 text-xs", className)}
       {...props}
-      className={clsx(
-        "w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink",
-        "outline-none transition-colors placeholder:text-ink-faint",
-        "focus:border-brand-500 disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
     />
   );
 }
@@ -141,18 +148,18 @@ export function Label({
   return (
     <label
       {...props}
-      className={clsx("mb-1 block text-[11px] font-medium text-ink-mute", className)}
+      className={cn("mb-1 block text-[11px] font-medium text-muted-foreground", className)}
     />
   );
 }
 
 type AlertVariant = "default" | "success" | "error" | "warning";
 
-const alertVariants: Record<AlertVariant, { icon: React.ReactNode; cls: string }> = {
-  default: { icon: <AlertCircle size={13} />, cls: "border-edge bg-raised text-ink-mute" },
-  success: { icon: <CheckCircle2 size={13} />, cls: "border-emerald-500/25 bg-emerald-500/10 text-emerald-500" },
-  error: { icon: <AlertCircle size={13} />, cls: "border-rose-500/25 bg-rose-500/10 text-rose-500" },
-  warning: { icon: <AlertCircle size={13} />, cls: "border-amber-500/25 bg-amber-500/10 text-amber-600" },
+const alertVariants: Record<AlertVariant, { icon: React.ReactNode; variant: "default" | "success" | "destructive" | "warning" }> = {
+  default: { icon: <AlertCircle size={13} />, variant: "default" },
+  success: { icon: <CheckCircle2 size={13} />, variant: "success" },
+  error: { icon: <AlertCircle size={13} />, variant: "destructive" },
+  warning: { icon: <AlertCircle size={13} />, variant: "warning" },
 };
 
 export function Alert({
@@ -166,25 +173,18 @@ export function Alert({
 }) {
   const v = alertVariants[variant];
   return (
-    <div className={clsx("flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-snug", v.cls, className)}>
-      <span className="mt-0.5 shrink-0">{v.icon}</span>
+    <BaseAlert variant={v.variant} className={cn("py-2 text-[11px] leading-snug", className)}>
+      {v.icon}
       <span>{children}</span>
-    </div>
+    </BaseAlert>
   );
 }
 
 export function Separator({ className = "" }: { className?: string }) {
-  return <div className={clsx("h-px w-full bg-edge", className)} role="separator" />;
+  return <BaseSeparator className={cn("bg-border", className)} role="separator" />;
 }
 
-/* ── buttons (legacy wrappers — prefer `Button` for new code) ────────── */
-/**
- * Disabled-state helper shared by legacy buttons. State changes are plain
- * color transitions; there is intentionally no press-scale animation.
- */
-function pressCls(disabled?: boolean): string {
-  return disabled ? "cursor-not-allowed opacity-30" : "transition-colors";
-}
+/* ── full-width action buttons ───────────────────────────────────────── */
 
 export function PrimaryButton({
   children, onClick, disabled, className = "", type = "button",
@@ -196,14 +196,16 @@ export function PrimaryButton({
   type?: "button" | "submit";
 }) {
   return (
-    <button
+    <BaseButton
       type={type}
+      variant="brand"
+      size="lg"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 ${pressCls(disabled)} ${className}`}
+      className={cn("w-full gap-2 text-xs", className)}
     >
       {children}
-    </button>
+    </BaseButton>
   );
 }
 
@@ -216,14 +218,16 @@ export function GhostButton({
   className?: string;
 }) {
   return (
-    <button
+    <BaseButton
       type="button"
+      variant="outline"
+      size="lg"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-raised py-2 text-xs font-medium text-ink transition-colors hover:border-neutral-600 hover:bg-edge ${pressCls(disabled)} ${className}`}
+      className={cn("w-full gap-2 text-xs", className)}
     >
       {children}
-    </button>
+    </BaseButton>
   );
 }
 
@@ -236,14 +240,16 @@ export function DangerButton({
   className?: string;
 }) {
   return (
-    <button
+    <BaseButton
       type="button"
+      variant="destructive"
+      size="lg"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 py-2.5 text-xs font-bold text-white transition-colors hover:bg-rose-500 ${pressCls(disabled)} ${className}`}
+      className={cn("w-full gap-2 text-xs font-bold", className)}
     >
       {children}
-    </button>
+    </BaseButton>
   );
 }
 
@@ -258,9 +264,9 @@ export function MiniButton({
   title?: string;
 }) {
   const palette = {
-    neutral: "border-edge bg-raised text-ink-mute hover:bg-edge hover:text-ink",
-    danger: "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20",
-    success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20",
+    neutral: "border-border bg-secondary/50 text-muted-foreground hover:bg-muted hover:text-foreground",
+    danger: "border-negative/30 bg-negative/10 text-negative hover:bg-negative/20",
+    success: "border-positive/30 bg-positive/10 text-positive hover:bg-positive/20",
   }[variant];
   return (
     <button
@@ -268,7 +274,13 @@ export function MiniButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`inline-flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${palette} ${pressCls(disabled)} ${className}`}
+      className={cn(
+        "inline-flex items-center justify-center gap-1 rounded-lg border px-1.5 py-1 text-[10px] font-medium",
+        "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+        "disabled:cursor-not-allowed disabled:opacity-40",
+        palette,
+        className
+      )}
     >
       {children}
     </button>
@@ -278,8 +290,8 @@ export function MiniButton({
 /* ── compact back button ────────────────────────────────────────────── */
 /**
  * Compact, sleek "back" button used in popup sub-view footers.
- * Defaults to a clean 32×32 (h-8 w-8) icon button with an arrow micro-interaction
- * on hover, keeping maximum horizontal space available for action and reset buttons.
+ * Defaults to a clean 32×32 (h-8 w-8) icon button, keeping maximum
+ * horizontal space available for action and reset buttons.
  * Pass `iconOnly={false}` to show a text label when desired.
  */
 export function BackButton({
@@ -299,12 +311,16 @@ export function BackButton({
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 ${
-        iconOnly ? "w-8 px-0" : "px-2.5"
-      } text-[11px] font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink ${pressCls(false)} ${className}`}
+      className={cn(
+        "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-input bg-transparent",
+        "text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+        iconOnly ? "w-8 px-0" : "px-2.5",
+        className
+      )}
     >
-      <ArrowLeft size={13} className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5" strokeWidth={2.2} />
-      {!iconOnly && <span className="tracking-wide truncate">{label}</span>}
+      <ArrowLeft size={13} className="shrink-0" strokeWidth={2.2} />
+      {!iconOnly && <span className="truncate">{label}</span>}
     </button>
   );
 }
@@ -337,15 +353,15 @@ export function ConfirmActionRow({
       <button
         type="button"
         onClick={onCancel}
-        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink ${pressCls(false)}`}
+        className="flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-input bg-transparent px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
       >
         <span className="truncate">{cancelLabel}</span>
       </button>
       <button
         type="button"
         onClick={onConfirm}
-        className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-white transition-colors ${pressCls(false)} ${
-          destructive ? "bg-rose-600 hover:bg-rose-500" : "bg-brand-500 hover:bg-brand-400"
+        className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-semibold text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ${
+          destructive ? "bg-destructive hover:bg-destructive/90" : "bg-brand-500 hover:bg-brand-600"
         }`}
       >
         {confirmIcon}
@@ -355,7 +371,7 @@ export function ConfirmActionRow({
   );
 }
 
-/* ── segmented control (order type, sizing mode, …) ─────────────────── */
+/* ── segmented control (order type, sizing mode, theme, …) ──────────── */
 
 export function SegmentedControl<T extends string>({
   value, onChange, options, size = "sm",
@@ -365,9 +381,9 @@ export function SegmentedControl<T extends string>({
   options: Array<{ value: T; label: React.ReactNode; title?: string }>;
   size?: "sm" | "md";
 }) {
-  const padding = size === "md" ? "py-2 text-xs" : "py-1.5 text-[10px]";
+  const padding = size === "md" ? "py-2 text-xs" : "py-1.5 text-[11px]";
   return (
-    <div className="flex w-full gap-1 rounded-lg border border-edge bg-base p-0.5">
+    <div className="flex w-full gap-1 rounded-lg border border-border bg-muted p-0.5">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -376,10 +392,11 @@ export function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(o.value)}
             title={o.title}
-            className={`flex-1 select-none rounded-md ${padding} font-semibold uppercase tracking-wider transition-colors ${pressCls(false)} ${
+            aria-pressed={active}
+            className={`flex-1 select-none rounded-md ${padding} font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ${
               active
-                ? "bg-brand-500/15 text-brand-400 ring-1 ring-inset ring-brand-500/40"
-                : "text-ink-mute hover:bg-raised hover:text-ink"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {o.label}
@@ -411,13 +428,13 @@ export function Stepper({
     return Math.max(min, max != null ? Math.min(max, Number(r.toFixed(dec))) : Number(r.toFixed(dec)));
   };
   return (
-    <div className={`flex items-stretch overflow-hidden rounded border border-edge bg-raised ${className}`}>
+    <div className={`flex items-stretch overflow-hidden rounded-lg border border-input bg-transparent ${className}`}>
       <button
         type="button"
         aria-label="Decrease"
         onClick={() => onChange(clamp(value - step))}
         disabled={value <= min}
-        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-edge hover:text-ink disabled:opacity-30 ${pressCls(value <= min)}`}
+        className="flex w-6 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
       >
         <Minus size={11} />
       </button>
@@ -433,14 +450,14 @@ export function Stepper({
           onChange(Number.isFinite(raw) ? clamp(raw) : min);
         }}
         onBlur={(e) => onChange(clamp(parseFloat(e.target.value) || min))}
-        className="w-full min-w-0 border-x border-edge bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-ink outline-none focus:bg-edge"
+        className="w-full min-w-0 border-x border-border bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-foreground outline-none transition-colors focus:bg-muted"
       />
       <button
         type="button"
         aria-label="Increase"
         onClick={() => onChange(clamp(value + step))}
         disabled={max != null && value >= max}
-        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-edge hover:text-ink disabled:opacity-30 ${pressCls(max != null && value >= max)}`}
+        className="flex w-6 items-center justify-center text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
       >
         <Plus size={11} />
       </button>
@@ -459,14 +476,14 @@ export function StatPill({
   sub?: React.ReactNode;
 }) {
   const toneCls =
-    tone === "bullish" ? "text-emerald-400"
-    : tone === "bearish" ? "text-rose-400"
-    : "text-ink";
+    tone === "bullish" ? "text-positive"
+    : tone === "bearish" ? "text-negative"
+    : "text-foreground";
   return (
     <div className="text-center">
-      <div className="text-[9px] uppercase tracking-wider text-ink-faint">{label}</div>
+      <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
       <div className={`font-mono text-xs font-bold tabular-nums ${toneCls}`}>{value}</div>
-      {sub != null && <div className="text-[8px] text-ink-faint">{sub}</div>}
+      {sub != null && <div className="text-[10px] text-muted-foreground/70">{sub}</div>}
     </div>
   );
 }
@@ -482,15 +499,15 @@ export function MiniBar({
 }) {
   const safe = Math.max(0, Math.min(100, pct));
   const color =
-    tone === "bullish" ? "bg-emerald-400"
-    : tone === "bearish" ? "bg-rose-400"
-    : tone === "brand" ? "bg-brand-400"
-    : tone === "warning" ? "bg-amber-400"
-    : "bg-neutral-400";
+    tone === "bullish" ? "bg-positive"
+    : tone === "bearish" ? "bg-negative"
+    : tone === "brand" ? "bg-brand-500"
+    : tone === "warning" ? "bg-warning"
+    : "bg-muted-foreground/50";
   return (
     <div>
-      {label != null && <div className="mb-0.5 flex items-center justify-between text-[9px] text-ink-faint">{label}</div>}
-      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-500/20">
+      {label != null && <div className="mb-0.5 flex items-center justify-between text-[10px] text-muted-foreground">{label}</div>}
+      <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
         <div className={`h-full ${color}`} style={{ width: `${safe}%` }} />
       </div>
     </div>
@@ -507,12 +524,12 @@ export function Spinner({ size = 13 }: { size?: number }) {
 
 export function Feedback({ kind, msg }: { kind: "success" | "error" | "info"; msg: string }) {
   const map = {
-    success: { icon: <CheckCircle2 size={13} />, cls: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400" },
-    error: { icon: <AlertCircle size={13} />, cls: "border-rose-500/25 bg-rose-500/10 text-rose-400" },
-    info: { icon: <AlertCircle size={13} />, cls: "border-edge bg-raised text-ink-mute" },
+    success: { icon: <CheckCircle2 size={13} />, cls: "border-positive/30 bg-positive/10 text-positive" },
+    error: { icon: <AlertCircle size={13} />, cls: "border-negative/30 bg-negative/10 text-negative" },
+    info: { icon: <AlertCircle size={13} />, cls: "border-border bg-muted/50 text-muted-foreground" },
   };
   return (
-    <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-snug ${map[kind].cls}`}>
+    <div className={cn("flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-snug", map[kind].cls)}>
       <span className="mt-0.5 shrink-0">{map[kind].icon}</span>
       <span>{msg}</span>
     </div>
@@ -525,10 +542,10 @@ export function ConfidenceMeter({ score, direction }: { score: number; direction
   // score: -100…+100 → centered bar from the midpoint
   const pct = Math.min(Math.abs(score), 100) / 2; // max 50% from center each side
   const bull = direction === "bullish";
-  const barColor = bull ? "bg-emerald-400" : direction === "bearish" ? "bg-rose-400" : "bg-neutral-500";
+  const barColor = bull ? "bg-positive" : direction === "bearish" ? "bg-negative" : "bg-muted-foreground/50";
   return (
-    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-neutral-500/20">
-      <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-500/50" />
+    <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-muted">
+      <div className="absolute inset-y-0 left-1/2 w-px bg-border" />
       <div
         className={`absolute inset-y-0 ${barColor} rounded-full`}
         style={bull ? { left: "50%", width: `${pct}%` } : { right: "50%", width: `${pct}%` }}
@@ -547,13 +564,12 @@ export function Sparkline({ data, width = 72, height = 22 }: { data: number[]; w
   const step = width / (data.length - 1);
   const pts = data.map((v, i) => `${(i * step).toFixed(1)},${(height - 2 - ((v - min) / range) * (height - 4)).toFixed(1)}`);
   const up = data[data.length - 1] >= data[0];
-  const stroke = up ? "#34d399" : "#fb7185";
   return (
-    <svg width={width} height={height} className="overflow-visible">
+    <svg width={width} height={height} className={cn("overflow-visible", up ? "text-positive" : "text-negative")}>
       <polyline
         points={pts.join(" ")}
         fill="none"
-        stroke={stroke}
+        stroke="currentColor"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -565,19 +581,19 @@ export function Sparkline({ data, width = 72, height = 22 }: { data: number[]; w
 /* ── direction icon ──────────────────────────────────────────────────── */
 
 export function DirIcon({ d, size = 12 }: { d: Direction; size?: number }) {
-  if (d === "bullish") return <TrendingUp size={size} className="text-emerald-400" />;
-  if (d === "bearish") return <TrendingDown size={size} className="text-rose-400" />;
-  return <Minus size={size} className="text-neutral-400" />;
+  if (d === "bullish") return <TrendingUp size={size} className="text-positive" />;
+  if (d === "bearish") return <TrendingDown size={size} className="text-negative" />;
+  return <Minus size={size} className="text-muted-foreground" />;
 }
 
 /* ── view header (used by sub-views) ─────────────────────────────────── */
 
 export function ViewHeader({ title, sub, right }: { title: string; sub?: React.ReactNode; right?: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between border-b border-edge px-3 py-2">
+    <div className="flex items-center justify-between border-b border-border px-3 py-2">
       <div className="min-w-0">
-        <span className="block truncate text-xs font-semibold text-ink">{title}</span>
-        {sub && <span className="block text-[9px] text-ink-faint">{sub}</span>}
+        <span className="block truncate text-xs font-semibold text-foreground">{title}</span>
+        {sub && <span className="block text-[10px] text-muted-foreground">{sub}</span>}
       </div>
       {right && <div className="ml-2 flex shrink-0 items-center gap-2">{right}</div>}
     </div>
@@ -632,20 +648,18 @@ function formatAge(ageMs: number): string {
 export function ChartSyncBadge({
   state, symbol, timeframe, ageMs, refreshing, onRefresh, onOpenChart, onClearManual, compact,
 }: ChartSyncBadgeProps) {
-  const palette =
+  const stateText =
     state === "live"
-      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+      ? "text-positive"
       : state === "stale"
-      ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-      : state === "manual"
-      ? "border-brand-500/30 bg-brand-500/10 text-brand-400"
-      : "border-edge bg-raised text-ink-faint";
+      ? "text-warning"
+      : "text-muted-foreground";
 
   const dot =
-    state === "live" ? "bg-emerald-400 animate-pulse-dot"
-    : state === "stale" ? "bg-amber-400"
-    : state === "manual" ? "bg-brand-400"
-    : "bg-neutral-600";
+    state === "live" ? "bg-positive"
+    : state === "stale" ? "bg-warning"
+    : state === "manual" ? "bg-muted-foreground"
+    : "bg-muted-foreground/50";
 
   const label =
     state === "live" ? "Live from chart"
@@ -659,6 +673,9 @@ export function ChartSyncBadge({
     ? `${symbol ?? "—"} · ${timeframe ?? "—"} · ${formatAge(ageMs)}`
     : `${symbol ?? "—"} · ${timeframe ?? "—"}`;
 
+  const chipBtn =
+    "rounded-md border border-border bg-secondary/50 px-1.5 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0";
+
   if (compact) {
     return (
       <button
@@ -666,46 +683,40 @@ export function ChartSyncBadge({
         onClick={onRefresh}
         disabled={refreshing}
         title={subline}
-        className={`flex items-center gap-1.5 rounded-md border px-1.5 py-0.5 font-mono text-[9px] transition-colors ${palette} ${pressCls(refreshing)}`}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-full border border-border px-2 py-0.5 transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50",
+          stateText
+        )}
       >
-        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${dot}`} />
-        <span className="font-sans font-semibold uppercase tracking-wider">{label}</span>
-        <span className="ml-0.5 font-mono normal-case text-ink-faint">{symbol ?? "—"}</span>
-        <span className="font-mono text-ink-faint">·</span>
-        <span className="font-mono text-ink-faint">{timeframe ?? "—"}</span>
+        <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
+        <span className="text-[10px] font-medium">{label}</span>
+        <span className="ml-0.5 font-mono text-muted-foreground/70">{symbol ?? "—"}</span>
+        <span className="font-mono text-muted-foreground/70">·</span>
+        <span className="font-mono text-muted-foreground/70">{timeframe ?? "—"}</span>
       </button>
     );
   }
 
   return (
-    <div className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-colors duration-150 ${palette}`}>
-      <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+    <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-1.5">
+      <span className={cn("h-2 w-2 shrink-0 rounded-full", dot)} />
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider">
+        <div className={cn("flex items-center gap-1 text-[10px] font-medium", stateText)}>
           <Radio size={9} />
           <span>{label}</span>
         </div>
-        <div className="truncate font-mono text-[10px] tabular-nums">{subline}</div>
+        <div className="truncate font-mono text-[10px] tabular-nums text-muted-foreground">{subline}</div>
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {state === "manual" && onClearManual && (
-          <button
-            type="button"
-            onClick={onClearManual}
-            className={`rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(false)}`}
-            title="Re-attach to the active TradingView chart"
-          >
+          <button type="button" onClick={onClearManual} className={chipBtn} title="Re-attach to the active TradingView chart">
             Re-sync
           </button>
         )}
         {state === "offline" && onOpenChart && (
-          <button
-            type="button"
-            onClick={onOpenChart}
-            className={`flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(false)}`}
-            title="Open TradingView"
-          >
-            <ExternalLink size={9} /> Open
+          <button type="button" onClick={onOpenChart} className={chipBtn} title="Open TradingView">
+            <span className="inline-flex items-center gap-1"><ExternalLink size={9} /> Open</span>
           </button>
         )}
         <button
@@ -714,10 +725,12 @@ export function ChartSyncBadge({
           disabled={refreshing}
           aria-label="Refresh chart context"
           title="Re-detect from the active TradingView chart"
-          className={`flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-1 text-[9px] font-semibold uppercase text-ink-mute ${pressCls(refreshing)}`}
+          className={chipBtn}
         >
-          <RefreshCw size={9} className={refreshing ? "animate-spin" : ""} />
-          {refreshing ? "Refreshing" : "Refresh"}
+          <span className="inline-flex items-center gap-1">
+            <RefreshCw size={9} className={refreshing ? "animate-spin" : ""} />
+            {refreshing ? "Refreshing" : "Refresh"}
+          </span>
         </button>
       </div>
     </div>

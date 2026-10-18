@@ -21,8 +21,8 @@ interface AnalysisSectionProps {
 
 function AnalysisSection({ title, children }: AnalysisSectionProps) {
   return (
-    <div className="rounded-lg border border-edge bg-card p-2.5">
-      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">{title}</div>
+    <div className="rounded-lg border border-border bg-card p-2.5">
+      <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</div>
       {children}
     </div>
   );
@@ -32,8 +32,8 @@ function DataRow({ label, value, highlight }: { label: string; value: string | n
   if (value === null || value === undefined) return null;
   return (
     <div className="flex justify-between items-center py-0.5">
-      <span className="text-[10px] text-ink-mute">{label}</span>
-      <span className={`text-[10px] font-mono ${highlight ? "text-brand-400" : "text-ink"}`}>{value}</span>
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+      <span className={`text-[10px] font-mono ${highlight ? "text-brand-foreground" : "text-foreground"}`}>{value}</span>
     </div>
   );
 }
@@ -115,15 +115,15 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b border-edge px-3 py-2">
+      <div className="border-b border-border px-3 py-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-ink">Chart Intelligence — {symbol || "—"}</span>
+          <span className="text-xs font-semibold text-foreground">Chart Intelligence — {symbol || "—"}</span>
           <div className="flex items-center gap-1.5">
-            {context?.timeframe && <span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-bold text-ink-mute">{context.timeframe}</span>}
+            {context?.timeframe && <span className="rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">{context.timeframe}</span>}
             <button
               onClick={() => setShowTradingView((v) => !v)}
-              className={`rounded border px-1.5 py-0.5 text-[9px] font-bold transition ${
-                showTradingView ? "border-blue-500/40 bg-blue-500/10 text-blue-400" : "border-edge bg-raised text-ink-mute hover:text-ink"
+              className={`rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors ${
+                showTradingView ? "border-border bg-secondary text-foreground" : "border-border bg-card text-muted-foreground hover:text-foreground"
               }`}
               title="TradingView external context + unified intelligence panel"
             >
@@ -134,7 +134,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
       </div>
 
       {showTradingView && (
-        <div className="border-b border-edge bg-card p-3">
+        <div className="border-b border-border bg-card p-3">
           <TradingViewPanel
             symbol={symbol}
             timeframe={context?.timeframe ?? null}
@@ -149,16 +149,16 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {loading && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <Loader2 size={24} className="animate-spin text-ink-faint" />
-            <p className="text-xs text-ink-mute">Analyzing chart intelligence…</p>
+            <Loader2 size={24} className="animate-spin text-muted-foreground/70" />
+            <p className="text-xs text-muted-foreground">Analyzing chart intelligence…</p>
           </div>
         )}
 
         {error && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <AlertCircle size={24} className="text-rose-400" />
-            <p className="text-xs text-rose-400">{error}</p>
-            <button onClick={handleAnalyze} className="text-xs text-brand-400 hover:text-brand-300">Retry</button>
+            <AlertCircle size={24} className="text-negative" />
+            <p className="text-xs text-negative">{error}</p>
+            <button onClick={handleAnalyze} className="text-xs text-brand-foreground hover:text-brand-foreground">Retry</button>
           </div>
         )}
 
@@ -181,15 +181,15 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                   title={`Structure (${ctx.marketStructure.bosCount} BOS / ${ctx.marketStructure.chochCount} CHOCH)`}
                  
                 >
-                  <button onClick={() => toggleSection("structure")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
+                  <button onClick={() => toggleSection("structure")} className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
                     {expandedSections.structure ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
                     {ctx.marketStructure.overall}
                   </button>
                   {expandedSections.structure && ctx.marketStructure.events.length > 0 && (
                     <div className="space-y-0.5">
                       {ctx.marketStructure.events.slice(-10).map((ev: { type: string; price: number; direction: string }, i: number) => (
-                        <div key={i} className="text-[10px] text-ink font-mono">
-                          <span className={ev.type === "BOS" ? "text-emerald-400" : "text-rose-400"}>{ev.type}</span>
+                        <div key={i} className="text-[10px] text-foreground font-mono">
+                          <span className={ev.type === "BOS" ? "text-positive" : "text-negative"}>{ev.type}</span>
                           {" "}{ev.price.toFixed(5)} — {ev.direction}
                         </div>
                       ))}
@@ -198,13 +198,13 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 </AnalysisSection>
 
                 <AnalysisSection title="Market Score">
-                  <div className="text-[10px] text-ink font-mono">{ctx.score.total}/100 — {ctx.score.bias} ({ctx.score.confidence})</div>
+                  <div className="text-[10px] text-foreground font-mono">{ctx.score.total}/100 — {ctx.score.bias} ({ctx.score.confidence})</div>
                   {ctx.score.components.length > 0 && (
                     <div className="space-y-0.5 mt-1">
                       {ctx.score.components.map((c: { name: string; value: number; direction: string }, i: number) => (
                         <div key={i} className="flex justify-between text-[10px]">
-                          <span className="text-ink-mute">{c.name}</span>
-                          <span className={`font-mono ${c.direction === "bullish" ? "text-emerald-400" : c.direction === "bearish" ? "text-rose-400" : "text-ink-mute"}`}>
+                          <span className="text-muted-foreground">{c.name}</span>
+                          <span className={`font-mono ${c.direction === "bullish" ? "text-positive" : c.direction === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
                             {c.value} ({c.direction})
                           </span>
                         </div>
@@ -235,8 +235,8 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                     <div className="space-y-0.5">
                       {ctx.mtfAlignment.map((m: { timeframe: string; bias: string }, i: number) => (
                         <div key={i} className="flex justify-between text-[10px]">
-                          <span className="text-ink-mute">{m.timeframe}</span>
-                          <span className={`font-mono ${m.bias === "bullish" ? "text-emerald-400" : m.bias === "bearish" ? "text-rose-400" : "text-ink-mute"}`}>
+                          <span className="text-muted-foreground">{m.timeframe}</span>
+                          <span className={`font-mono ${m.bias === "bullish" ? "text-positive" : m.bias === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
                             {m.bias}
                           </span>
                         </div>
@@ -248,55 +248,55 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 {ai && (
                   <>
                     <AnalysisSection title="AI Analysis Summary">
-                      <div className="text-[11px] text-ink leading-relaxed whitespace-pre-wrap">{ai.summary}</div>
+                      <div className="text-[11px] text-foreground leading-relaxed whitespace-pre-wrap">{ai.summary}</div>
                     </AnalysisSection>
 
                     <AnalysisSection
                       title={`Key Levels (${ai.confluences} confluences)`}
                      
                     >
-                      <button onClick={() => toggleSection("levels")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
+                      <button onClick={() => toggleSection("levels")} className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
                         {expandedSections.levels ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
                       </button>
                       {expandedSections.levels && (
                         <div className="space-y-1">
                           {ai.keyLevels.support.length > 0 && (
                             <div>
-                              <div className="text-[9px] text-emerald-400 uppercase">Support</div>
+                              <div className="text-[10px] text-positive uppercase">Support</div>
                               {ai.keyLevels.support.map((s: { price: number; strength: string; source: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-ink font-mono">{s.price.toFixed(5)} — {s.strength} ({s.source})</div>
+                                <div key={i} className="text-[10px] text-foreground font-mono">{s.price.toFixed(5)} — {s.strength} ({s.source})</div>
                               ))}
                             </div>
                           )}
                           {ai.keyLevels.resistance.length > 0 && (
                             <div>
-                              <div className="text-[9px] text-rose-400 uppercase">Resistance</div>
+                              <div className="text-[10px] text-negative uppercase">Resistance</div>
                               {ai.keyLevels.resistance.map((r: { price: number; strength: string; source: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-ink font-mono">{r.price.toFixed(5)} — {r.strength} ({r.source})</div>
+                                <div key={i} className="text-[10px] text-foreground font-mono">{r.price.toFixed(5)} — {r.strength} ({r.source})</div>
                               ))}
                             </div>
                           )}
                           {ai.keyLevels.liquidity.length > 0 && (
                             <div>
-                              <div className="text-[9px] text-cyan-400 uppercase">Liquidity</div>
+                              <div className="text-[10px] text-muted-foreground uppercase">Liquidity</div>
                               {ai.keyLevels.liquidity.map((l: { price: number; side: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-ink font-mono">{l.price.toFixed(5)} — {l.side} ({l.strength})</div>
+                                <div key={i} className="text-[10px] text-foreground font-mono">{l.price.toFixed(5)} — {l.side} ({l.strength})</div>
                               ))}
                             </div>
                           )}
                           {ai.keyLevels.fvg.length > 0 && (
                             <div>
-                              <div className="text-[9px] text-purple-400 uppercase">FVG</div>
+                              <div className="text-[10px] text-muted-foreground uppercase">FVG</div>
                               {ai.keyLevels.fvg.map((f: { price: number; direction: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-ink font-mono">{f.price.toFixed(5)} — {f.direction}</div>
+                                <div key={i} className="text-[10px] text-foreground font-mono">{f.price.toFixed(5)} — {f.direction}</div>
                               ))}
                             </div>
                           )}
                           {ai.keyLevels.orderBlock.length > 0 && (
                             <div>
-                              <div className="text-[9px] text-orange-400 uppercase">Order Blocks</div>
+                              <div className="text-[10px] text-muted-foreground uppercase">Order Blocks</div>
                               {ai.keyLevels.orderBlock.map((o: { price: number; direction: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-ink font-mono">{o.price.toFixed(5)} — {o.direction}</div>
+                                <div key={i} className="text-[10px] text-foreground font-mono">{o.price.toFixed(5)} — {o.direction}</div>
                               ))}
                             </div>
                           )}
@@ -308,7 +308,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                       title="Scenarios"
                      
                     >
-                      <button onClick={() => toggleSection("scenarios")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
+                      <button onClick={() => toggleSection("scenarios")} className="flex items-center gap-1 text-[10px] text-muted-foreground mb-1">
                         {expandedSections.scenarios ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
                       </button>
                       {expandedSections.scenarios && ai.scenarios.length > 0 && (
@@ -316,39 +316,39 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                           {ai.scenarios.map((sc: { type: string; description: string; invalidation: string; probability: string }, i: number) => (
                             <div key={i} className="space-y-0.5">
                               <div className="text-[10px] font-medium">
-                                <span className={sc.type === "bullish" ? "text-emerald-400" : sc.type === "bearish" ? "text-rose-400" : "text-ink-mute"}>
+                                <span className={sc.type === "bullish" ? "text-positive" : sc.type === "bearish" ? "text-negative" : "text-muted-foreground"}>
                                   {sc.type.toUpperCase()}
                                 </span>
                                 {" "}({sc.probability})
                               </div>
-                              <div className="text-[10px] text-ink">{sc.description}</div>
-                              <div className="text-[9px] text-ink-mute">Invalidation: {sc.invalidation}</div>
+                              <div className="text-[10px] text-foreground">{sc.description}</div>
+                              <div className="text-[10px] text-muted-foreground">Invalidation: {sc.invalidation}</div>
                             </div>
                           ))}
                         </div>
                       )}
                     </AnalysisSection>
 
-                    <div className="text-[9px] text-ink-faint italic">
+                    <div className="text-[10px] text-muted-foreground/70 italic">
                       {ai.structureConfirmations} structure confirmations | {ai.mtfAlignmentCount} MTF aligned
                     </div>
                   </>
                 )}
 
                 {result.error && (
-                  <div className="flex items-center gap-1 text-[10px] text-amber-400 italic"><AlertCircle size={10} className="shrink-0" /> {result.error}</div>
+                  <div className="flex items-center gap-1 text-[10px] text-warning italic"><AlertCircle size={10} className="shrink-0" /> {result.error}</div>
                 )}
               </>
             )}
           </div>
         )}
 
-        <div className="mt-3 pt-3 border-t border-edge space-y-2">
+        <div className="mt-3 pt-3 border-t border-border space-y-2">
           {!result?.error && (
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 text-[11px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 text-[11px] font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-40"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : null}
               {loading ? "Analyzing..." : "Re-analyze"}
@@ -363,12 +363,12 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskAI(); }
               }}
               placeholder="Ask AI about this chart..."
-              className="flex-1 bg-neutral-500/10 border border-edge rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
+              className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/70 outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <button
               onClick={handleAskAI}
               disabled={!question.trim() || chatLoading}
-              className="p-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
+              className="p-1.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
             >
               <Send size={14} />
             </button>
@@ -376,22 +376,22 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
           {chatLoading && (
             <div className="flex items-center gap-2 py-1">
-              <Loader2 size={12} className="animate-spin text-ink-faint" />
-              <span className="text-[10px] text-ink-mute">Thinking...</span>
+              <Loader2 size={12} className="animate-spin text-muted-foreground/70" />
+              <span className="text-[10px] text-muted-foreground">Thinking...</span>
             </div>
           )}
 
           {aiReply && (
-            <div className="mt-2 rounded-lg border border-edge bg-card p-2.5">
-              <div className="text-[10px] text-ink-mute uppercase tracking-wider mb-1">AI Response</div>
-              <div className="text-[11px] text-ink leading-relaxed whitespace-pre-wrap">{aiReply}</div>
+            <div className="mt-2 rounded-lg border border-border bg-card p-2.5">
+              <div className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">AI Response</div>
+              <div className="text-[11px] text-foreground leading-relaxed whitespace-pre-wrap">{aiReply}</div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="px-3 py-2 border-t border-edge">
-        <button onClick={onBack} className="w-full text-xs text-ink-mute hover:text-ink transition-colors py-1">Back</button>
+      <div className="px-3 py-2 border-t border-border">
+        <button onClick={onBack} className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1">Back</button>
       </div>
     </div>
   );

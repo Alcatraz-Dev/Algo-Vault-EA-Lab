@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
-    <script>try{if(sessionStorage.getItem("avThemeMirror")==="light"){document.documentElement.classList.add("light");document.documentElement.classList.remove("dark")}}catch(e){}</script>
+    <script>(function(){try{var d=document.documentElement;d.classList.remove("light","dark");var m=sessionStorage.getItem("avThemeMirror");var l;if(m==="light"||m==="dark"){l=m==="light"}else{l=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches}d.classList.add(l?"light":"dark")}catch(e){document.documentElement.classList.add("dark")}})();</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AlgoVault</title>
-    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div id="root"></div>

@@ -64,7 +64,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
   };
 
   const handleThemeChange = (mode: ThemeMode) => {
-    update("theme", mode);
+    update("theme", mode === "system" ? "dark" : mode); // legacy mirror; avTheme is canonical
     setTheme(mode); // live-switch the whole popup, persisted for next open
   };
 
@@ -140,7 +140,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
           </Field>
         </div>
 
-        <div className="space-y-1.5 rounded-lg border border-edge bg-card p-2.5">
+        <div className="space-y-1.5 rounded-lg border border-border bg-card p-2.5">
           <ToggleRow label="Auto-detect TradingView" checked={settings.autoDetectTradingView} onChange={(v) => update("autoDetectTradingView", v)} />
           <ToggleRow label="Show overlay on TradingView" checked={settings.showOverlay} onChange={(v) => update("showOverlay", v)} />
           <ToggleRow label="Enable chart analysis" checked={settings.enableChartAnalysis} onChange={(v) => update("enableChartAnalysis", v)} />
@@ -148,19 +148,19 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
         </div>
 
         {/* ── AI Copilot (v3) ─────────────────────────────────────── */}
-        <div className="space-y-2 rounded-lg border border-edge bg-card p-2.5">
+        <div className="space-y-2 rounded-lg border border-border bg-card p-2.5">
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Bot size={11} /> AI Copilot
             </span>
             <button
               onClick={() => (onOpenCopilot ? onOpenCopilot() : openSidePanelFromExtensionPage())}
-              className="text-[10px] text-brand-400 hover:text-brand-300"
+              className="text-[10px] text-brand-foreground hover:text-brand-foreground"
             >
               Open →
             </button>
           </div>
-          <p className="text-[9px] leading-relaxed text-ink-faint">
+          <p className="text-[10px] leading-relaxed text-muted-foreground/70">
             The copilot remembers each symbol separately, can draw key levels on your chart, and manages alerts.
           </p>
           <Field label="Persona">
@@ -186,7 +186,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
           <button
             onClick={handleClearCache}
             title="Clear cached market data"
-            className="flex items-center justify-center gap-1.5 rounded-lg border border-edge bg-card px-3 text-[11px] text-ink-mute transition-colors hover:border-rose-500/30 hover:text-rose-400"
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] text-muted-foreground transition-colors hover:border-negative/30 hover:text-negative"
           >
             {cacheCleared ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
             {cacheCleared ? "Cleared" : "Cache"}
@@ -194,28 +194,28 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
         </div>
 
         {devDiagnostic && (
-          <div className="space-y-2 border-t border-edge pt-3">
+          <div className="space-y-2 border-t border-border pt-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Diagnostics</span>
-              <button onClick={handleRefreshDebug} disabled={debugLoading} className="text-[10px] text-brand-400 hover:text-brand-300">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Diagnostics</span>
+              <button onClick={handleRefreshDebug} disabled={debugLoading} className="text-[10px] text-brand-foreground hover:text-brand-foreground">
                 {debugLoading ? "Refreshing…" : "Refresh"}
               </button>
             </div>
             {debugInfo && (
-              <div className="space-y-1 rounded-lg border border-edge bg-base p-2.5 font-mono text-[10px]">
-                <div className="text-ink-mute">Symbol: {debugInfo.symbolDetected || "null"}</div>
-                <div className="text-ink-mute">Timeframe: {debugInfo.timeframeDetected || "null"}</div>
-                <div className="text-ink-mute">Market API: {debugInfo.marketApi} ({debugInfo.marketApiStatus ?? "?"})</div>
-                <div className="text-ink-mute">Candles: {debugInfo.candleCount} · TFs: {debugInfo.timeframesAvailable.join(", ")}</div>
-                <div className="text-ink-mute">Latency: {debugInfo.requestLatency ?? "?"}ms · Errors: {debugInfo.errors.length}</div>
+              <div className="space-y-1 rounded-lg border border-border bg-background p-2.5 font-mono text-[10px]">
+                <div className="text-muted-foreground">Symbol: {debugInfo.symbolDetected || "null"}</div>
+                <div className="text-muted-foreground">Timeframe: {debugInfo.timeframeDetected || "null"}</div>
+                <div className="text-muted-foreground">Market API: {debugInfo.marketApi} ({debugInfo.marketApiStatus ?? "?"})</div>
+                <div className="text-muted-foreground">Candles: {debugInfo.candleCount} · TFs: {debugInfo.timeframesAvailable.join(", ")}</div>
+                <div className="text-muted-foreground">Latency: {debugInfo.requestLatency ?? "?"}ms · Errors: {debugInfo.errors.length}</div>
                 {debugInfo.errors.map((e: string, i: number) => (
-                  <div key={i} className="text-rose-400">{e}</div>
+                  <div key={i} className="text-negative">{e}</div>
                 ))}
                 {debugInfo.stages.length > 0 && (
-                  <div className="mt-1 space-y-0.5 border-t border-edge pt-1">
+                  <div className="mt-1 space-y-0.5 border-t border-border pt-1">
                     {debugInfo.stages.map((s: AnalysisStage, i: number) => (
-                      <div key={i} className="text-[9px]">
-                        <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-ink-mute" : "text-ink-faint"}>
+                      <div key={i} className="text-[10px]">
+                        <span className={s.status === "complete" ? "text-positive" : s.status === "error" ? "text-negative" : s.status === "running" ? "text-muted-foreground" : "text-muted-foreground/70"}>
                           {s.status === "running" ? "●" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
                         </span>{" "}
                         {s.name}: {s.message}
@@ -230,16 +230,16 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
         )}
       </div>
 
-      <div className="space-y-2 border-t border-edge px-3 py-2">
+      <div className="space-y-2 border-t border-border px-3 py-2">
         <button
           onClick={() => setDevDiagnostic(!devDiagnostic)}
-          className="w-full rounded border border-edge px-1.5 py-1 text-[9px] text-ink-faint transition-colors hover:text-ink-mute"
+          className="w-full rounded border border-border px-1.5 py-1 text-[10px] text-muted-foreground/70 transition-colors hover:text-muted-foreground"
         >
           {devDiagnostic ? "Hide diagnostics" : "Diagnostics"}
         </button>
         <button
           onClick={onLogout}
-          className="w-full rounded-lg border border-rose-500/20 bg-rose-500/10 py-2 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20"
+          className="w-full rounded-lg border border-negative/20 bg-negative/10 py-2 text-xs font-medium text-negative transition-colors hover:bg-negative/20"
         >
           Logout
         </button>
@@ -251,10 +251,10 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
 function ToggleRow({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between py-0.5">
-      <span className="text-[11px] text-ink-mute">{label}</span>
+      <span className="text-[11px] text-muted-foreground">{label}</span>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative h-4 w-8 rounded-full transition-colors ${checked ? "bg-brand-500" : "bg-neutral-700"}`}
+        className={`relative h-4 w-8 rounded-full transition-colors ${checked ? "bg-brand-500" : "bg-input"}`}
       >
         <div className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
       </button>

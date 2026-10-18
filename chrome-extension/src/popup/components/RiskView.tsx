@@ -84,12 +84,12 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
             <button
               key={s}
               onClick={() => setSide(s)}
-              className={`flex-1 rounded-lg border py-1.5 text-[11px] font-bold uppercase transition-all ${
+              className={`flex-1 rounded-lg border py-1.5 text-[11px] font-bold uppercase transition-colors ${
                 side === s
                   ? s === "long"
-                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
-                    : "border-rose-500/40 bg-rose-500/15 text-rose-400"
-                  : "border-edge bg-card text-ink-mute hover:bg-raised"
+                    ? "border-positive/40 bg-positive/15 text-positive"
+                    : "border-negative/40 bg-negative/15 text-negative"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted"
               }`}
             >
               {s}
@@ -119,7 +119,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
         </div>
 
         {!calc.slSideOk && stopLoss && entry && (
-          <p className="text-[10px] text-amber-400">
+          <p className="text-[10px] text-warning">
             Stop is on the wrong side for a {side} from this entry.
           </p>
         )}
@@ -132,7 +132,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
             {calc.tpSuggested != null && (
               <button
                 onClick={() => setTp(calc.tpSuggested!.toFixed(5))}
-                className="mt-3 whitespace-nowrap rounded border border-edge bg-raised px-2 py-1 text-[10px] font-medium text-ink-mute transition-colors hover:text-ink"
+                className="mt-3 whitespace-nowrap rounded border border-border bg-secondary px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 Use {calc.tpSuggested.toFixed(5)} ({rrTarget}R)
               </button>
@@ -141,26 +141,26 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
         )}
 
         <Card className="space-y-1.5 p-3">
-          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Results</div>
+          <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Results</div>
           <Row label="Risk amount" value={`$${calc.riskAmount.toFixed(2)}`} />
           <Row label="Stop distance" value={calc.stopDistance > 0 ? calc.stopDistance.toFixed(5) : "—"} />
           <Row
             label="R:R ratio"
             value={calc.riskReward > 0 ? `${calc.riskReward.toFixed(2)}R` : "—"}
-            valueClass={calc.riskReward >= 1.5 ? "text-emerald-400" : calc.riskReward > 0 ? "text-amber-400" : undefined}
+            valueClass={calc.riskReward >= 1.5 ? "text-positive" : calc.riskReward > 0 ? "text-warning" : undefined}
           />
           <Row label="Lot size (100k = 1.0)" value={calc.lotSize > 0 ? calc.lotSize.toFixed(2) : "—"} />
           {tp && !calc.tpValid && calc.slSideOk && (
-            <Row label="Target validity" value="wrong side" valueClass="text-rose-400" />
+            <Row label="Target validity" value="wrong side" valueClass="text-negative" />
           )}
         </Card>
 
-        <p className="text-[9px] leading-snug text-ink-faint">
+        <p className="text-[10px] leading-snug text-muted-foreground/70">
           Lot sizing uses the FX convention ($10/pip per standard lot). Account size and risk % are saved as your defaults and reused by the trade ticket.
         </p>
       </div>
 
-      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+      <div className="flex items-center border-t border-border px-3 py-2">
         <BackButton onClick={onBack} />
       </div>
     </div>
@@ -170,8 +170,8 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
 function Row({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
   return (
     <div className="flex items-center justify-between text-[11px]">
-      <span className="text-ink-mute">{label}</span>
-      <span className={`font-mono ${valueClass ?? "text-ink"}`}>{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-mono ${valueClass ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }

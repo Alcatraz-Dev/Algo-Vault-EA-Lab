@@ -95,12 +95,12 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
             <button
               key={d}
               onClick={() => setDirection(d)}
-              className={`rounded-lg border py-2 text-xs font-bold transition-all ${
+              className={`rounded-lg border py-2 text-xs font-bold transition-colors ${
                 direction === d
                   ? d === "BUY"
-                    ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-400"
-                    : "border-rose-500/40 bg-rose-500/15 text-rose-400"
-                  : "border-edge bg-card text-ink-mute hover:bg-raised"
+                    ? "border-positive/40 bg-positive/15 text-positive"
+                    : "border-negative/40 bg-negative/15 text-negative"
+                  : "border-border bg-card text-muted-foreground hover:bg-muted"
               }`}
             >
               {d}
@@ -131,11 +131,11 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
         {/* targets with live R multiples */}
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[10px] font-medium uppercase tracking-wider text-ink-mute">Targets</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Targets</span>
             <button
               onClick={suggestTargets}
               disabled={!calc.slValid}
-              className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-semibold text-ink-mute transition-colors hover:text-ink disabled:opacity-30"
+              className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
             >
               Suggest 2R / 3.5R / 5R
             </button>
@@ -149,10 +149,10 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
                     type="number"
                     value={val}
                     onChange={(e) => setters[i](e.target.value)}
-                    className={`${inputClass} ${!calc.tpValid[i] ? "border-rose-500/40" : ""}`}
+                    className={`${inputClass} ${!calc.tpValid[i] ? "border-negative/40" : ""}`}
                     placeholder={`TP${i + 1}`}
                   />
-                  <span className="mt-0.5 block text-center font-mono text-[9px] text-ink-faint">
+                  <span className="mt-0.5 block text-center font-mono text-[10px] text-muted-foreground/70">
                     {calc.rrText(i)}
                   </span>
                 </div>
@@ -181,7 +181,7 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
         </PrimaryButton>
       </div>
 
-      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+      <div className="flex items-center border-t border-border px-3 py-2">
         <BackButton onClick={onBack} />
       </div>
     </div>

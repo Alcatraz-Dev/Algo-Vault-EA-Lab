@@ -1,13 +1,14 @@
-import React from "react";
 import { Activity, MessageSquareText, Radar, Settings } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 
 export type TabId = "home" | "analysis" | "copilot" | "settings";
 
-const TABS: Array<{ id: TabId; label: string; icon: React.ReactNode }> = [
-  { id: "home", label: "Home", icon: <Activity size={16} /> },
-  { id: "analysis", label: "Intel", icon: <Radar size={16} /> },
-  { id: "copilot", label: "Copilot", icon: <MessageSquareText size={16} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={16} /> },
+const TABS: Array<{ id: TabId; label: string; icon: typeof Activity }> = [
+  { id: "home", label: "Home", icon: Activity },
+  { id: "analysis", label: "Intel", icon: Radar },
+  { id: "copilot", label: "Copilot", icon: MessageSquareText },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 interface TabBarProps {
@@ -17,19 +18,27 @@ interface TabBarProps {
 
 export function TabBar({ active, onChange }: TabBarProps) {
   return (
-    <nav className="flex border-t border-edge/70 bg-card">
+    <nav
+      aria-label="Primary"
+      className="grid h-12 shrink-0 grid-cols-4 border-t border-border bg-background"
+    >
       {TABS.map((tab) => {
+        const Icon = tab.icon;
         const isActive = tab.id === active;
         return (
           <button
             key={tab.id}
+            type="button"
+            aria-current={isActive ? "page" : undefined}
             onClick={() => onChange(tab.id)}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-1.5 transition-colors ${
-              isActive ? "text-ink" : "text-ink-faint hover:text-ink-mute"
-            }`}
+            className={cn(
+              "flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+              isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+            )}
           >
-            <span className={`grid size-5 place-items-center rounded-md transition-colors ${isActive ? "bg-brand-500/15 text-brand-400" : "text-ink-faint"}`}>{tab.icon}</span>
-            <span className={`text-[9px] ${isActive ? "font-semibold" : "font-medium"}`}>{tab.label}</span>
+            <Icon className="h-4 w-4" />
+            {tab.label}
           </button>
         );
       })}

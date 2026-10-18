@@ -1,5 +1,6 @@
-import React from "react";
 import { Info } from "lucide-react";
+
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DataConsentNoticeProps {
   checked: boolean;
@@ -17,8 +18,8 @@ interface DataConsentNoticeProps {
  * so the wording and gating behavior cannot drift between surfaces.
  *
  * Accessibility notes:
- * - Native checkbox associated with its label via `htmlFor` (screen-reader
- *   announced, keyboard operable, visible focus ring).
+ * - shadcn Checkbox (Radix) associates the input with its label via
+ *   `htmlFor` (screen-reader announced, keyboard operable, visible focus ring).
  * - The Privacy Policy link is rendered OUTSIDE the `<label>` element:
  *   activating the link cannot toggle the checkbox, and a link click never
  *   counts as consent.
@@ -30,17 +31,16 @@ export function DataConsentNotice({
   id = "av-data-consent",
 }: DataConsentNoticeProps) {
   return (
-    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2">
+    <div className="rounded-lg border border-warning/30 bg-warning/10 px-2.5 py-2">
       <div className="flex items-start gap-2">
-        <input
+        <Checkbox
           id={id}
-          type="checkbox"
           checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+          onCheckedChange={(value) => onChange(value === true)}
+          className="mt-0.5 shrink-0"
         />
-        <Info size={12} className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
-        <p className="text-[11px] leading-snug text-ink-mute">
+        <Info size={12} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+        <p className="text-[11px] leading-snug text-muted-foreground">
           <label htmlFor={id} className="cursor-pointer">
             AlgoVault uses your TradingView chart data and Copilot messages,
             sent with your session, to provide AI analysis.
@@ -49,7 +49,7 @@ export function DataConsentNotice({
             href={privacyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="font-medium text-ink underline decoration-brand-500/60 underline-offset-2 transition-colors hover:decoration-brand-400"
+            className="text-foreground underline underline-offset-2 hover:text-foreground/80"
           >
             Privacy Policy
           </a>

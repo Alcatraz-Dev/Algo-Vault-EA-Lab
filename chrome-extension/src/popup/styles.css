@@ -2,46 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── theme tokens (mirror app/globals.css) ──────────────────────────── */
-/* Dark is the default; the `.light` class on <html> flips the palette.   */
-:root {
-  --av-base: #0f0f0f;        /* app background   */
-  --av-card: #181818;        /* card surface     */
-  --av-raised: #232323;      /* inputs / raised  */
-  --av-edge: #383838;        /* borders          */
-  --av-ink: #f9f9f9;         /* primary text     */
-  --av-ink-mute: #a3a3a3;    /* secondary text   */
-  --av-ink-faint: #737373;   /* tertiary text    */
-}
+/* Design tokens (shadcn/ui Zinc) live in src/styles/tokens.css and are
+   imported first from main.tsx; the `.light`/`.dark` class on <html>
+   selects the theme (src/theme.ts). */
 
-.light {
-  --av-base: #f9f9f9;
-  --av-card: #ffffff;
-  --av-raised: #f1f1f1;
-  --av-edge: #e5e7eb;
-  --av-ink: #262626;
-  --av-ink-mute: #727272;
-  --av-ink-faint: #9c9c9c;
-}
-
+/* Popup is a fixed 400×600 Chrome popup — body must not grow. */
 body {
   width: 400px;
   height: 600px;
   max-height: 600px;
   overflow: hidden;
-  background: var(--av-base);
-  color: var(--av-ink);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Custom scrollbar — thin, brand-tinted */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+/* Thin neutral scrollbar (zinc, theme-aware) */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--av-edge); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--av-ink-faint); }
+::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 6px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.5); }
 
 /* Number inputs: hide native spinners (trader-friendly, cleaner look) */
 input[type="number"]::-webkit-outer-spin-button,
@@ -51,7 +34,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
-/* Animations */
+/* Status/entrance animations — plain opacity/transform, no glow */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }
@@ -78,21 +61,25 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
 .fixed.inset-0.z-50 { animation: overlayIn 0.15s ease-out; }
 
-
-
 /* Tabular numerals everywhere we show money / PnL — keeps digits aligned
    when they tick over. */
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-/* Focus ring consistency — brand orange, visible on both themes */
+/* Accessible focus: theme-aware ring color on native controls that don't
+   opt into component focus styles. shadcn components set their own
+   ring + outline-none and override this via class specificity. */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid rgba(222, 102, 28, 0.55);
+  outline: 2px solid hsl(var(--ring) / 0.7);
   outline-offset: 1px;
 }
+
+/* Utility: horizontal scrollers without visible scrollbar */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* Respect reduced-motion preferences: status dots and view transitions
    render in their final state with no animation. */

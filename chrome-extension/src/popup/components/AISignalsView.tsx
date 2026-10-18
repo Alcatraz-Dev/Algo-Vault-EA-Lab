@@ -131,11 +131,11 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
   return (
     <div className="flex flex-col h-full">
       {/* header */}
-      <div className="flex items-center justify-between border-b border-edge px-3 py-2">
-        <span className="flex items-center gap-1.5 text-xs font-medium text-ink">
-          <Sparkles size={13} className="text-ink-mute" /> AI Signals
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-foreground">
+          <Sparkles size={13} className="text-muted-foreground" /> AI Signals
         </span>
-        <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${quota.remaining > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
+        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${quota.remaining > 0 ? "bg-positive/15 text-positive" : "bg-negative/15 text-negative"}`}>
           {quota.remaining}/{quota.limit} free today
         </span>
       </div>
@@ -143,19 +143,19 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
       <div className="min-h-0 flex-1 overflow-y-auto p-3 space-y-3">
         {/* symbol picker */}
         <section>
-          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Your symbols ({symbols.length}/{MAX_SIGNAL_SYMBOLS})
           </p>
           <div className="flex flex-wrap gap-1.5">
             {symbols.map((s) => (
-              <span key={s} className="flex items-center gap-1 rounded-md border border-brand-500/40 bg-brand-500/10 px-2 py-0.5 font-mono text-[10px] text-brand-300">
+              <span key={s} className="flex items-center gap-1 rounded-md border border-brand-500/40 bg-brand-500/10 px-2 py-0.5 font-mono text-[10px] text-brand-foreground">
                 {s}
-                <button onClick={() => removeSymbol(s)} className="text-brand-400/70 hover:text-rose-400" title={`Remove ${s}`}>
+                <button onClick={() => removeSymbol(s)} className="text-brand-foreground/70 hover:text-negative" title={`Remove ${s}`}>
                   <X size={9} />
                 </button>
               </span>
             ))}
-            {symbols.length === 0 && <span className="text-[10px] text-ink-faint">Add up to 3 symbols…</span>}
+            {symbols.length === 0 && <span className="text-[10px] text-muted-foreground/70">Add up to 3 symbols…</span>}
           </div>
           {symbols.length < MAX_SIGNAL_SYMBOLS && (
             <>
@@ -165,12 +165,12 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && input.trim()) addSymbol(input); }}
                   placeholder="Add symbol (XAUUSD)"
-                  className="flex-1 rounded-lg border border-edge bg-neutral-500/10 px-2.5 py-1.5 font-mono text-[11px] uppercase text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
+                  className="flex-1 rounded-lg border border-border bg-muted px-2.5 py-1.5 font-mono text-[11px] uppercase text-foreground outline-none placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring"
                 />
                 <button
                   onClick={() => addSymbol(input)}
                   disabled={!input.trim()}
-                  className="rounded-lg bg-brand-500 px-3 text-[11px] font-semibold text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
+                  className="rounded-lg bg-brand-500 px-3 text-[11px] font-semibold text-white hover:bg-brand-600 disabled:opacity-40 transition-colors"
                 >
                   Add
                 </button>
@@ -181,7 +181,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
                     <button
                       key={s}
                       onClick={() => addSymbol(s)}
-                      className="rounded border border-edge px-1.5 py-0.5 font-mono text-[9px] text-ink-faint hover:border-neutral-500 hover:text-ink transition-colors"
+                      className="rounded border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground/70 hover:border-muted-foreground/40 hover:text-foreground transition-colors"
                     >
                       + {s}
                     </button>
@@ -196,16 +196,16 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
         <button
           onClick={generate}
           disabled={!canGenerate}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-opacity hover:bg-brand-400 disabled:opacity-40"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-opacity hover:bg-brand-600 disabled:opacity-40"
         >
           {loading ? <Loader2 size={14} className="animate-spin" /> : quota.remaining === 0 ? <Lock size={14} /> : <Radar size={14} />}
           {loading ? "Analyzing your symbols…" : quota.remaining === 0 ? "Daily limit reached" : `Generate ${Math.min(symbols.length, quota.remaining) || ""} daily signal${(Math.min(symbols.length, quota.remaining) || 0) === 1 ? "" : "s"}`}
         </button>
 
         {note && (
-          <div className="flex items-start gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2">
-            <AlertCircle size={12} className="mt-0.5 shrink-0 text-amber-400" />
-            <p className="text-[10px] leading-snug text-amber-400">{note}</p>
+          <div className="flex items-start gap-1.5 rounded-lg border border-warning/25 bg-warning/10 px-2.5 py-2">
+            <AlertCircle size={12} className="mt-0.5 shrink-0 text-warning" />
+            <p className="text-[10px] leading-snug text-warning">{note}</p>
           </div>
         )}
 
@@ -219,13 +219,13 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
         )}
 
         {signals.length === 0 && !loading && hydrated && (
-          <p className="pt-2 text-center text-[10px] leading-relaxed text-ink-faint">
+          <p className="pt-2 text-center text-[10px] leading-relaxed text-muted-foreground/70">
             Pick up to 3 symbols and generate your free daily AI signals — each with entry, stop loss and 3 take-profit targets.
           </p>
         )}
       </div>
 
-      <div className="flex items-center border-t border-edge bg-card/60 px-3 py-2">
+      <div className="flex items-center border-t border-border px-3 py-2">
         <BackButton onClick={onBack} />
       </div>
     </div>
@@ -235,60 +235,60 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
 function SignalCard({ signal: s }: { signal: DailySignal }) {
   const buy = s.direction === "BUY";
   return (
-    <div className="space-y-2 rounded-lg border border-edge bg-white/[0.02] p-2.5">
+    <div className="space-y-2 rounded-lg border border-border bg-card p-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-xs font-semibold text-ink">{s.symbol}</span>
-          <span className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold ${buy ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+          <span className="font-mono text-xs font-semibold text-foreground">{s.symbol}</span>
+          <span className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-bold ${buy ? "bg-positive/20 text-positive" : "bg-negative/20 text-negative"}`}>
             {buy ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
             {s.direction}
           </span>
-          <span className="rounded bg-neutral-500/10 px-1.5 py-0.5 font-mono text-[9px] text-ink-mute">{s.timeframe}</span>
+          <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">{s.timeframe}</span>
         </div>
-        <span className={`font-mono text-[10px] font-semibold ${s.confidence >= 75 ? "text-emerald-400" : s.confidence >= 60 ? "text-amber-400" : "text-ink-mute"}`}>
+        <span className={`font-mono text-[10px] font-semibold ${s.confidence >= 75 ? "text-positive" : s.confidence >= 60 ? "text-warning" : "text-muted-foreground"}`}>
           {s.confidence}%
         </span>
       </div>
 
       <div className="grid grid-cols-5 gap-1 text-center">
-        <PriceCell label="Entry" value={fmt(s.entry)} cls="text-ink" />
-        <PriceCell label="SL" value={fmt(s.stopLoss)} cls="text-rose-400" />
-        <PriceCell label="TP1" value={fmt(s.takeProfit1)} cls="text-emerald-400" />
-        <PriceCell label="TP2" value={fmt(s.takeProfit2)} cls="text-emerald-400" />
-        <PriceCell label="TP3" value={fmt(s.takeProfit3)} cls="text-emerald-400" />
+        <PriceCell label="Entry" value={fmt(s.entry)} cls="text-foreground" />
+        <PriceCell label="SL" value={fmt(s.stopLoss)} cls="text-negative" />
+        <PriceCell label="TP1" value={fmt(s.takeProfit1)} cls="text-positive" />
+        <PriceCell label="TP2" value={fmt(s.takeProfit2)} cls="text-positive" />
+        <PriceCell label="TP3" value={fmt(s.takeProfit3)} cls="text-positive" />
       </div>
 
       {(s.setup || s.reasoning) && (
-        <div className="border-t border-white/5 pt-1.5">
+        <div className="border-t border-border pt-1.5">
           {s.setup && (
-            <p className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-ink-mute">
-              <Target size={9} className="text-ink-mute" /> {s.setup}
+            <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Target size={9} className="text-muted-foreground" /> {s.setup}
             </p>
           )}
-          {s.reasoning && <p className="mt-0.5 text-[9px] leading-snug text-ink-faint">{s.reasoning}</p>}
+          {s.reasoning && <p className="mt-0.5 text-[10px] leading-snug text-muted-foreground/70">{s.reasoning}</p>}
         </div>
       )}
 
       {/* Chart confluence — the drawn levels that backed the engine's call,
           mirroring the web signal detail's transparency. */}
       {(typeof s.riskReward === "number" && s.riskReward > 0) || (s.chartEvidence?.length ?? 0) > 0 ? (
-        <div className="border-t border-white/5 pt-1.5">
+        <div className="border-t border-border pt-1.5">
           {typeof s.riskReward === "number" && s.riskReward > 0 && (
-            <p className="font-mono text-[9px] text-ink-faint">
-              R:R <span className="text-ink-mute">{s.riskReward.toFixed(1)}</span>
+            <p className="font-mono text-[10px] text-muted-foreground/70">
+              R:R <span className="text-muted-foreground">{s.riskReward.toFixed(1)}</span>
             </p>
           )}
           {s.chartEvidence && s.chartEvidence.length > 0 && (
             <ul className="mt-0.5 space-y-0.5">
               {s.chartEvidence.slice(0, 3).map((e, i) => (
-                <li key={i} className="truncate text-[9px] leading-snug text-ink-faint" title={e}>
+                <li key={i} className="truncate text-[10px] leading-snug text-muted-foreground/70" title={e}>
                   · {e}
                 </li>
               ))}
             </ul>
           )}
           {s.chartLevels && s.chartLevels.length > 0 && (
-            <p className="mt-0.5 truncate text-[8px] uppercase tracking-wider text-ink-faint/70" title={s.chartLevels.map((l) => `${l.label} ${l.price}`).join(" · ")}>
+            <p className="mt-0.5 truncate text-[10px] uppercase tracking-wider text-muted-foreground/70" title={s.chartLevels.map((l) => `${l.label} ${l.price}`).join(" · ")}>
               {s.chartLevels.slice(0, 4).map((l) => l.label).join(" · ")}
             </p>
           )}
@@ -301,7 +301,7 @@ function SignalCard({ signal: s }: { signal: DailySignal }) {
 function PriceCell({ label, value, cls }: { label: string; value: string; cls: string }) {
   return (
     <div>
-      <span className="block text-[8px] uppercase tracking-wider text-ink-faint">{label}</span>
+      <span className="block text-[10px] uppercase tracking-wider text-muted-foreground/70">{label}</span>
       <span className={`block font-mono text-[10px] font-semibold ${cls}`}>{value}</span>
     </div>
   );

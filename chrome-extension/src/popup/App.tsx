@@ -1,11 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Zap } from "lucide-react";
+import { WifiOff } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+
 import { checkHealth, getGatewayStatus, openStrategyLab, runBacktestFromExtension } from "@/api/algovault";
+import { TooltipProvider } from "@/components/ui";
 import { getAuthToken, getCachedContext, getUser, getLastView, saveLastView } from "@/storage/storage";
 import type { TradingViewContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { resolveMarketSymbol, classifyMarket } from "@/utils/symbols";
-import { primeSidePanelWindowId } from "@/utils/side-panel";
+import { primeSidePanelWindowId, openSidePanelFromExtensionPage } from "@/utils/side-panel";
 import { Header } from "./components/Header";
 import { TabBar, type TabId } from "./components/TabBar";
 import { MainView } from "./components/MainView";
@@ -53,19 +55,19 @@ const RESUMABLE_VIEWS: ReadonlySet<ViewMode> = new Set<ViewMode>([
   "settings",
 ]);
 
-function resumableView(raw: string | null): ViewMode | null {
-  if (!raw) return null;
-  const isViewMode = (VIEW_MODE_FALLBACK as readonly string[]).includes(raw);
-  return isViewMode && RESUMABLE_VIEWS.has(raw as ViewMode) ? (raw as ViewMode) : null;
-}
-
 /** Kept in sync with the ViewMode union in @/types — type-level guard. */
 const VIEW_MODE_FALLBACK: readonly ViewMode[] = [
   "main", "analysis", "ai-copilot", "risk", "signal", "alerts", "execute", "quick-order",
   "signals-list", "ai-signals", "demo-trades", "settings", "strategy-intelligence", "diagnostics",
 ];
 
-export default function App() {
+function resumableView(raw: string | null): ViewMode | null {
+  if (!raw) return null;
+  const isViewMode = (VIEW_MODE_FALLBACK as readonly string[]).includes(raw);
+  return isViewMode && RESUMABLE_VIEWS.has(raw as ViewMode) ? (raw as ViewMode) : null;
+}
+
+function PopupApp() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isHealthy, setIsHealthy] = useState(false);
@@ -286,11 +288,15 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-base">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-500/30 border-t-neutral-400" />
-          <p className="text-xs text-ink-mute">Loading AlgoVault…</p>
+      <div className="flex h-full flex-col bg-background">
+        <div className="h-11 shrink-0 border-b border-border" />
+        <div className="min-h-0 flex-1 space-y-3 overflow-hidden p-3">
+          <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+          <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
+          <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
+          <div className="h-16 animate-pulse rounded-xl border border-border bg-card" />
         </div>
+        <div className="h-12 shrink-0 border-t border-border" />
       </div>
     );
   }
@@ -355,21 +361,33 @@ export default function App() {
   const activeTab = tabForView(view);
 
   return (
-    <div className="flex h-full flex-col bg-base text-ink">
+    <div className="flex h-full flex-col bg-background text-foreground">
       <Header
         isHealthy={isHealthy}
         gatewayConnected={gatewayConnected}
         userEmail={user ? (user.email as string || null) : null}
         onBack={!isTab ? () => handleSetView("main") : undefined}
         onSettings={view === "main" ? () => handleSetView("settings") : undefined}
+        onOpenSidePanel={openSidePanelFromExtensionPage}
       />
       {offlineNotice && (
-        <div className="border-b border-amber-500/20 bg-amber-500/10 px-3 py-1.5">
-          <p className="text-[10px] text-amber-400">AlgoVault server unreachable — offline mode. Some features may not work.</p>
+        <div className="shrink-0 border-b border-warning/30 bg-warning/10 px-3 py-1.5">
+          <p className="flex items-center gap-1.5 text-[11px] leading-snug text-warning">
+            <WifiOff className="h-3.5 w-3.5 shrink-0" />
+            AlgoVault server unreachable — offline mode. Some features may not work.
+          </p>
         </div>
       )}
-      <div className="animate-fade-in min-h-0 flex-1 overflow-y-auto">{renderView()}</div>
+      <div className="min-h-0 flex-1 overflow-y-auto">{renderView()}</div>
       {isTab && <TabBar active={activeTab} onChange={(tab) => handleSetView(TAB_VIEWS[tab])} />}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <TooltipProvider delayDuration={300}>
+      <PopupApp />
+    </TooltipProvider>
   );
 }

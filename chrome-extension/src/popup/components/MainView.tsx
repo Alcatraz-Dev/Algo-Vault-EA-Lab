@@ -95,7 +95,7 @@ export function MainView({
     return () => { alive = false; };
   }, [context?.marketSymbol, symbol, tf, ready]);
 
-  const tickColor = tick > 0 ? "text-emerald-400" : tick < 0 ? "text-rose-400" : "text-ink";
+  const tickColor = tick > 0 ? "text-positive" : tick < 0 ? "text-negative" : "text-foreground";
 
   const handleSymbolSubmit = () => {
     const val = inputValue.trim().toUpperCase();
@@ -134,7 +134,7 @@ export function MainView({
   return (
     <div className="flex flex-col h-full">
       {/* ── symbol / price strip ─────────────────────────────────── */}
-      <div className="border-b border-edge px-3 py-2.5">
+      <div className="border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2">
           {editing ? (
             <input
@@ -147,27 +147,27 @@ export function MainView({
                 if (e.key === "Escape") { setInputValue(symbol || ""); setEditing(false); }
               }}
               placeholder="XAUUSD"
-              className="w-32 rounded border border-edge bg-raised px-2 py-0.5 font-mono text-sm text-ink outline-none focus:border-brand-500"
+              className="w-32 rounded-lg border border-input bg-transparent px-2 py-0.5 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
             />
           ) : (
             <button
               onClick={() => { setInputValue(symbol || ""); setEditing(true); }}
-              className="flex items-center gap-1 rounded px-1 py-0.5 font-mono text-sm font-semibold text-ink transition-colors hover:text-ink"
+              className="flex items-center gap-1 rounded px-1 py-0.5 font-mono text-sm font-semibold text-foreground transition-colors hover:text-foreground"
               title="Change symbol"
             >
               {symbol || "No symbol"}
-              <Pencil size={10} className="text-ink-faint" />
+              <Pencil size={10} className="text-muted-foreground/70" />
             </button>
           )}
 
           {/* timeframe switcher */}
-          <div className="ml-auto flex items-center gap-0.5 rounded-md border border-edge bg-raised p-0.5">
+          <div className="ml-auto flex items-center gap-0.5 rounded-lg border border-border bg-muted p-0.5">
             {buildTimeframes(tf).map((t) => (
               <button
                 key={t}
                 onClick={() => onSelectTimeframe(t)}
-                className={`rounded px-1.5 py-0.5 text-[9px] font-semibold transition-colors ${
-                  t === tf ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"
+                className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors ${
+                  t === tf ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t}
@@ -186,12 +186,12 @@ export function MainView({
             {ready ? (
               <span className="flex items-center gap-1 pb-0.5">
                 <StatusDot state="ok" />
-                <span className="text-[9px] font-semibold text-emerald-400">LIVE</span>
+                <span className="text-[10px] font-semibold text-positive">LIVE</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1 pb-0.5 text-ink-faint">
+              <span className="flex items-center gap-1 pb-0.5 text-muted-foreground/70">
                 <AlertCircle size={10} />
-                <span className="text-[9px]">syncing…</span>
+                <span className="text-[10px]">syncing…</span>
               </span>
             )}
           </div>
@@ -201,27 +201,27 @@ export function MainView({
 
       {/* ── verdict card ─────────────────────────────────────────── */}
       {ready && mc ? (
-        <div className="border-b border-edge px-3 py-2.5">
+        <div className="border-b border-border px-3 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <DirIcon d={asDirection(mc.trend.direction)} size={14} />
-              <span className={`text-xs font-bold uppercase tracking-wide ${asDirection(mc.trend.direction) === "bullish" ? "text-emerald-400" : asDirection(mc.trend.direction) === "bearish" ? "text-rose-400" : "text-neutral-400"}`}>
+              <span className={`text-xs font-bold uppercase tracking-wide ${asDirection(mc.trend.direction) === "bullish" ? "text-positive" : asDirection(mc.trend.direction) === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
                 {mc.trend.direction}
               </span>
-              <Badge className={mc.score.bias === "bullish" ? "bg-emerald-500/15 text-emerald-400" : mc.score.bias === "bearish" ? "bg-rose-500/15 text-rose-400" : "bg-neutral-500/10 text-neutral-400"}>
+              <Badge className={mc.score.bias === "bullish" ? "bg-positive/15 text-positive" : mc.score.bias === "bearish" ? "bg-negative/15 text-negative" : "bg-muted text-muted-foreground"}>
                 {mc.marketRegime.regime.replace(/_/g, " ")}
               </Badge>
             </div>
-            <span className="font-mono text-[10px] text-ink-mute">
-              score <span className={mc.score.bias === "bullish" ? "text-emerald-400" : mc.score.bias === "bearish" ? "text-rose-400" : "text-neutral-400"}>{mc.score.total}</span>/100
+            <span className="font-mono text-[10px] text-muted-foreground">
+              score <span className={mc.score.bias === "bullish" ? "text-positive" : mc.score.bias === "bearish" ? "text-negative" : "text-muted-foreground"}>{mc.score.total}</span>/100
             </span>
           </div>
 
           {setup && (
-            <div className="mt-2 rounded-lg border border-edge bg-card p-2">
+            <div className="mt-2 rounded-xl border border-border bg-card p-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-semibold text-ink-mute uppercase tracking-wider">Setup</span>
-                <span className={`text-[11px] font-bold ${setup.direction === "long" ? "text-emerald-400" : setup.direction === "short" ? "text-rose-400" : "text-neutral-400"}`}>
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Setup</span>
+                <span className={`text-[11px] font-bold ${setup.direction === "long" ? "text-positive" : setup.direction === "short" ? "text-negative" : "text-muted-foreground"}`}>
                   {setup.label} · {setup.confidence}
                 </span>
               </div>
@@ -231,8 +231,8 @@ export function MainView({
               {setup.reasons.length > 0 && (
                 <ul className="mt-1.5 space-y-0.5">
                   {setup.reasons.slice(0, 3).map((r, i) => (
-                    <li key={i} className="flex items-start gap-1 text-[9px] leading-snug text-ink-mute">
-                      <span className="mt-[3px] h-0.5 w-0.5 shrink-0 rounded-full bg-ink-faint" />
+                    <li key={i} className="flex items-start gap-1 text-[10px] leading-snug text-muted-foreground">
+                      <span className="mt-[3px] h-0.5 w-0.5 shrink-0 rounded-full bg-muted-foreground/70" />
                       {r}
                     </li>
                   ))}
@@ -243,11 +243,11 @@ export function MainView({
 
           {mc.mtfAlignment.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-1">
-              <span className="text-[9px] font-medium uppercase tracking-wider text-ink-faint">MTF</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">MTF</span>
               {mc.mtfAlignment.map((m, i) => (
                 <Badge
                   key={i}
-                  className={m.bias === "bullish" ? "bg-emerald-500/10 text-emerald-400" : m.bias === "bearish" ? "bg-rose-500/10 text-rose-400" : "bg-neutral-500/10 text-neutral-500"}
+                  className={m.bias === "bullish" ? "bg-positive/10 text-positive" : m.bias === "bearish" ? "bg-negative/10 text-negative" : "bg-muted text-muted-foreground"}
                 >
                   {m.timeframe} {m.bias === "bullish" ? "▲" : m.bias === "bearish" ? "▼" : "•"}
                 </Badge>
@@ -256,8 +256,8 @@ export function MainView({
           )}
         </div>
       ) : (
-        <div className="border-b border-edge px-3 py-3 text-center">
-          <p className="text-[10px] text-ink-faint">
+        <div className="border-b border-border px-3 py-3 text-center">
+          <p className="text-[11px] text-muted-foreground">
             {symbol ? "Waiting for market data…" : "Set a symbol or open a TradingView chart"}
           </p>
         </div>
@@ -270,16 +270,16 @@ export function MainView({
           onClick={() => onNavigate("ai-signals")}
           className="group mb-3 flex w-full items-center gap-2.5 rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2.5 text-left transition-colors hover:border-brand-500/50 hover:bg-brand-500/15"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500/20 text-brand-400 transition-colors group-hover:bg-brand-500/30">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500/20 text-brand-foreground transition-colors group-hover:bg-brand-500/30">
             <Sparkles size={15} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-[11px] font-semibold text-ink">AI Daily Signals</span>
-            <span className="block text-[9px] leading-snug text-ink-mute">
+            <span className="block text-[11px] font-semibold text-foreground">AI Daily Signals</span>
+            <span className="block text-[11px] leading-snug text-muted-foreground">
               3 free signals per day — pick 3 symbols, get entry, SL &amp; 3 targets
             </span>
           </span>
-          <ChevronRight size={14} className="shrink-0 text-ink-faint" />
+          <ChevronRight size={14} className="shrink-0 text-muted-foreground/70" />
         </button>
 
         <div className="grid grid-cols-3 gap-2">
@@ -287,16 +287,16 @@ export function MainView({
             <button
               key={a.id}
               onClick={a.run}
-              className={`group flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
+              className={`group flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-colors ${
                 a.accent
                   ? "border-brand-500/30 bg-brand-500/10 hover:bg-brand-500/20"
-                  : "border-edge bg-card hover:border-neutral-500 hover:bg-raised"
+                  : "border-border bg-card hover:border-muted-foreground/40 hover:bg-muted"
               }`}
             >
-              <span className={a.accent ? "text-brand-500" : "text-ink-mute group-hover:text-ink transition-colors"}>
+              <span className={a.accent ? "text-brand-500" : "text-muted-foreground group-hover:text-foreground transition-colors"}>
                 {a.icon}
               </span>
-              <span className={`text-[10px] font-medium ${a.accent ? "text-ink" : "text-ink-mute group-hover:text-ink"} transition-colors`}>
+              <span className={`text-[10px] font-medium ${a.accent ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"} transition-colors`}>
                 {a.label}
               </span>
             </button>
@@ -304,20 +304,20 @@ export function MainView({
         </div>
 
         {enriched?.priceValidation.state === "mismatched" && (
-          <div className="mt-3 flex items-start gap-1.5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2.5 py-2">
-            <AlertCircle size={12} className="mt-0.5 shrink-0 text-amber-400" />
-            <p className="text-[9px] leading-snug text-amber-400">
+          <div className="mt-3 flex items-start gap-1.5 rounded-xl border border-warning/30 bg-warning/10 px-2.5 py-2">
+            <AlertCircle size={12} className="mt-0.5 shrink-0 text-warning" />
+            <p className="text-[11px] leading-snug text-warning">
               Chart price deviates {Math.abs(enriched.priceValidation.deviationPct ?? 0).toFixed(2)}% from market data — verify the symbol.
             </p>
           </div>
         )}
 
         {!gatewayConnected && (
-          <div className="mt-3 flex items-center justify-between rounded-lg border border-edge bg-card px-2.5 py-2">
-            <span className="text-[10px] text-ink-mute">Trading gateway offline — analysis still works</span>
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-border bg-card px-2.5 py-2">
+            <span className="text-[11px] text-muted-foreground">Trading gateway offline — analysis still works</span>
             <button
               onClick={() => window.open(`${getAlgoVaultUrl()}/trading`, "_blank")}
-              className="text-[10px] font-medium text-brand-400 hover:text-brand-300"
+              className="text-[11px] font-medium text-brand-foreground underline-offset-2 hover:underline"
             >
               Connect
             </button>

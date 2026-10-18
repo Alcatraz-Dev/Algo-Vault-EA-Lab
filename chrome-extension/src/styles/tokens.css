@@ -1,0 +1,103 @@
+/**
+ * AlgoVault extension — shared shadcn/ui Zinc design tokens.
+ *
+ * Single source of truth for every extension surface (popup, side panel,
+ * options). Values follow the official shadcn/ui Zinc palette in the
+ * HSL form canonical for Tailwind CSS v3 (`hsl(var(--token) / <alpha>)`).
+ *
+ * Theme strategy (shadcn dark-mode convention):
+ *   :root   → light theme (default values)
+ *   .dark   → dark theme
+ * The `light`/`dark` class on <html> is managed by src/theme.ts with a
+ * pre-paint script in each page's <head> to avoid a flash of the wrong theme.
+ *
+ * Additive tokens (brand + trading semantics) keep single-meaning colors:
+ *   --brand*      AlgoVault orange #de661c (brand actions/accents only)
+ *   --positive    bullish / success  (themed green)
+ *   --negative    bearish / error    (themed red)
+ *   --warning     warnings           (themed amber)
+ */
+
+:root {
+  --radius: 0.625rem;
+
+  /* ── shadcn/ui Zinc — light ─────────────────────────────────────── */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+
+  /* ── brand (AlgoVault orange) ───────────────────────────────────── */
+  --brand: 21 82% 49%;         /* #de661c */
+  --brand-foreground: 24 79% 33%; /* #96410f — AA-safe brand text on light */
+  --brand-ring: 21 82% 49%;
+
+  /* ── trading / status semantics (themed for contrast) ───────────── */
+  --positive: 160 84% 39%;     /* emerald-600 on light */
+  --negative: 347 81% 46%;     /* rose-600 on light */
+  --warning: 32 94% 44%;       /* amber-600 on light */
+}
+
+.dark {
+  /* ── shadcn/ui Zinc — dark ──────────────────────────────────────── */
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+
+  --card: 240 10% 10%;
+  --card-foreground: 0 0% 98%;
+
+  --popover: 240 10% 10%;
+  --popover-foreground: 0 0% 98%;
+
+  --primary: 0 0% 98%;
+  --primary-foreground: 240 5.9% 10%;
+
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+
+  --destructive: 0 72% 47%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 240 5% 64.9%;
+
+  /* ── brand (identical hex in both themes) ───────────────────────── */
+  --brand: 21 82% 49%;
+  --brand-foreground: 24 87% 59%; /* #e67e2e — AA-safe brand text on dark */
+  --brand-ring: 21 82% 49%;
+
+  /* ── trading / status semantics (themed for contrast) ───────────── */
+  --positive: 158 64% 52%;     /* emerald-400 on dark */
+  --negative: 350 89% 71%;     /* rose-400 on dark */
+  --warning: 48 96% 67%;       /* amber-400 on dark */
+}

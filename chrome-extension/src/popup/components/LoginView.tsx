@@ -1,10 +1,14 @@
+import { ExternalLink, Eye, EyeOff, Loader2 } from "lucide-react";
 import React, { useState } from "react";
-import { Eye, EyeOff, ExternalLink, Loader2 } from "lucide-react";
+
 import { signInWithEmail } from "@/auth/auth";
 import { canAttemptSignIn, PRIVACY_POLICY_PATH } from "@/auth/consent";
 import { DataConsentNotice } from "@/components/DataConsentNotice";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { getAlgoVaultUrl } from "@/config/environment";
-import { Alert, Button, Input, Label } from "./ui";
 
 /** The real AlgoVault logo, same asset the website header uses. */
 const LOGO_URL = chrome.runtime.getURL("logos/logo.png");
@@ -42,31 +46,35 @@ export function LoginView({ onAuth }: LoginViewProps) {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-base px-6 py-8">
+    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto bg-background px-5 py-6">
       <div className="mx-auto w-full max-w-[300px]">
         <div className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-lg border border-edge/70 bg-raised/50">
+          <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-lg border border-border bg-muted/50">
             <img
               src={LOGO_URL}
               alt="AlgoVault logo"
               className="h-5 w-5 object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
             />
           </span>
           <div>
-            <h1 className="text-sm font-semibold tracking-tight">AlgoVault</h1>
-            <p className="text-[11px] text-ink-mute">Trading Intelligence</p>
+            <h1 className="text-sm font-semibold tracking-tight text-foreground">AlgoVault</h1>
+            <p className="text-[11px] text-muted-foreground">Trading Intelligence</p>
           </div>
         </div>
 
-        <h2 className="mt-6 text-base font-semibold tracking-tight">Sign in</h2>
-        <p className="mt-1 text-[11px] leading-snug text-ink-mute">
+        <h2 className="mt-5 text-base font-semibold tracking-tight text-foreground">Sign in</h2>
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
           Use your AlgoVault account to access analysis, signals, and trading tools.
         </p>
 
         <form onSubmit={handleSignIn} className="mt-4 space-y-3">
-          <div>
-            <Label htmlFor="av-login-email">Email</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="av-login-email" className="text-xs">
+              Email
+            </Label>
             <Input
               id="av-login-email"
               type="email"
@@ -77,8 +85,10 @@ export function LoginView({ onAuth }: LoginViewProps) {
               required
             />
           </div>
-          <div>
-            <Label htmlFor="av-login-password">Password</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="av-login-password" className="text-xs">
+              Password
+            </Label>
             <div className="relative">
               <Input
                 id="av-login-password"
@@ -94,14 +104,18 @@ export function LoginView({ onAuth }: LoginViewProps) {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-faint transition-colors hover:text-ink"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
               >
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
           </div>
 
-          {error && <Alert variant="error">{error}</Alert>}
+          {error && (
+            <Alert variant="destructive" className="py-2">
+              <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
+          )}
 
           <DataConsentNotice
             checked={consent}
@@ -109,7 +123,7 @@ export function LoginView({ onAuth }: LoginViewProps) {
             privacyUrl={`${getAlgoVaultUrl()}${PRIVACY_POLICY_PATH}`}
           />
 
-          <Button type="submit" size="lg" disabled={!canSubmit} className="w-full">
+          <Button type="submit" size="lg" variant="brand" disabled={!canSubmit} className="w-full gap-2">
             {loading && <Loader2 size={14} className="animate-spin" />}
             {loading ? "Signing in…" : "Sign in"}
           </Button>
@@ -119,7 +133,7 @@ export function LoginView({ onAuth }: LoginViewProps) {
           href={`${getAlgoVaultUrl()}/login`}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-ink-mute transition-colors hover:text-ink"
+          className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         >
           Sign in on the AlgoVault website
           <ExternalLink size={10} />

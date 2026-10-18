@@ -327,8 +327,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               onOpenChart={() => window.open("https://www.tradingview.com/", "_blank", "noopener,noreferrer")}
               compact
             />
-            <span className="flex items-center gap-1.5 rounded border border-rose-500/30 bg-rose-500/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-rose-400">
-              <span className="h-1 w-1 animate-pulse-dot rounded-full bg-rose-400" /> Live account
+            <span className="flex items-center gap-1.5 rounded border border-negative/30 bg-negative/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-negative">
+              <span className="h-1 w-1 rounded-full bg-negative" /> Live account
             </span>
           </div>
         }
@@ -341,9 +341,9 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             const active = direction === d;
             const palette = active
               ? d === "BUY"
-                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-400 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.4)]"
-                : "border-rose-500/50 bg-rose-500/15 text-rose-400 shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4)]"
-              : "border-edge bg-card text-ink-mute hover:bg-raised hover:text-ink";
+                ? "border-positive/50 bg-positive/15 text-positive shadow-[inset_0_0_0_1px_rgba(16,185,129,0.4)]"
+                : "border-negative/50 bg-negative/15 text-negative shadow-[inset_0_0_0_1px_rgba(244,63,94,0.4)]"
+              : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground";
             return (
               <button
                 key={d}
@@ -356,13 +356,13 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                     <>
                       <span className="font-mono text-[10px] font-normal opacity-90">{fmt(livePrice, livePrice >= 100 ? 2 : 4)}</span>
                       {liveSpread > 0 && (
-                        <span className="font-mono text-[8px] font-normal opacity-70">
+                        <span className="font-mono text-[10px] font-normal opacity-70">
                           spread {fmt(liveSpread, 5)}
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className="text-[9px] font-normal opacity-60">awaiting quote</span>
+                    <span className="text-[10px] font-normal opacity-60">awaiting quote</span>
                   )}
                 </span>
               </button>
@@ -372,7 +372,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-colors hover:bg-edge hover:text-ink disabled:opacity-30"
+            className="flex w-9 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -408,9 +408,9 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         </div>
 
         {/* ── REAL account capital ──────────────────────────────────── */}
-        <div className="rounded-lg border border-edge bg-card p-2.5">
+        <div className="rounded-lg border border-border bg-card p-2.5">
           <div className="mb-1.5 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               <Wallet size={11} />
               Account capital
             </div>
@@ -418,7 +418,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <button
                 onClick={() => void refreshCapital()}
                 disabled={capitalLoading}
-                className="flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:text-ink disabled:opacity-40"
+                className="flex items-center gap-1 rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:text-foreground disabled:opacity-40"
               >
                 <RefreshCw size={9} className={capitalLoading ? "animate-spin" : ""} />
                 Refresh
@@ -442,7 +442,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               />
             </div>
           ) : gatewayReady ? (
-            <p className="text-[10px] text-ink-faint">Loading live account capital…</p>
+            <p className="text-[10px] text-muted-foreground/70">Loading live account capital…</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <Field label="Capital ($)">
@@ -455,15 +455,15 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 />
               </Field>
               <div className="flex items-end pb-1">
-                <p className="text-[9px] leading-snug text-ink-faint">
+                <p className="text-[10px] leading-snug text-muted-foreground/70">
                   Gateway offline — sizing uses this manual figure. Connect the EA for live balance/equity.
                 </p>
               </div>
             </div>
           )}
           {capital?.marginFree != null && (
-            <div className="mt-1.5 border-t border-edge pt-1.5 text-[9px] text-ink-faint">
-              Free margin <span className="font-mono text-ink-mute">{fmt(capital.marginFree, 2)}</span>
+            <div className="mt-1.5 border-t border-border pt-1.5 text-[10px] text-muted-foreground/70">
+              Free margin <span className="font-mono text-muted-foreground">{fmt(capital.marginFree, 2)}</span>
             </div>
           )}
         </div>
@@ -488,19 +488,19 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 
         {/* quick-risk chips */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[9px] uppercase tracking-wider text-ink-faint">Quick risk</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick risk</span>
           {QUICK_RISK_PRESETS.map((usd) => (
             <button
               key={usd}
               type="button"
               onClick={() => setQuickRisk(usd)}
               disabled={calc.entryNum <= 0}
-              className="rounded border border-edge bg-raised px-1.5 py-0.5 font-mono text-[9px] text-ink-mute transition-colors hover:border-rose-500/40 hover:bg-rose-500/10 hover:text-rose-400 disabled:opacity-30"
+              className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground transition-colors hover:border-negative/40 hover:bg-negative/10 hover:text-negative disabled:opacity-30"
             >
               ${usd}
             </button>
           ))}
-          <span className="ml-auto text-[9px] text-ink-faint">
+          <span className="ml-auto text-[10px] text-muted-foreground/70">
             at {(parseFloat(fixedLots) || 0.01).toFixed(2)} lots
           </span>
         </div>
@@ -508,14 +508,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         {/* TP assist — fill a target at an R multiple of the stop distance */}
         {tpSuggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider text-ink-faint">
+            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
               <Crosshair size={9} /> TP assist
             </span>
             {tpSuggestions.map((s) => (
               <button
                 key={s.r}
                 onClick={() => setTp(s.price.toFixed(s.price >= 100 ? 2 : 5))}
-                className="rounded border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 font-mono text-[9px] text-emerald-400 transition-colors hover:bg-emerald-500/20"
+                className="rounded border border-positive/25 bg-positive/10 px-1.5 py-0.5 font-mono text-[10px] text-positive transition-colors hover:bg-positive/20"
               >
                 {s.r}R · {fmt(s.price)}
               </button>
@@ -568,8 +568,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         )}
 
         {/* live preview */}
-        <div className="rounded-lg border border-edge bg-card p-2.5">
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Order preview</div>
+        <div className="rounded-lg border border-border bg-card p-2.5">
+          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Order preview</div>
           <div className="grid grid-cols-3 gap-2">
             <StatPill label="Volume" value={calc.volume} />
             <StatPill
@@ -593,21 +593,21 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
           <div
             className={`rounded-lg border px-2.5 py-2 text-[10px] leading-snug transition-colors ${
               outcome.ok
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                ? "border-positive/30 bg-positive/10 text-positive"
                 : outcome.status === "REJECTED" || outcome.status === "FAILED"
-                ? "border-rose-500/30 bg-rose-500/10 text-rose-400"
+                ? "border-negative/30 bg-negative/10 text-negative"
                 : outcome.status === "ACCEPTED" || outcome.pendingSync
-                ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-                : "border-edge bg-card text-ink-mute"
+                ? "border-warning/30 bg-warning/10 text-warning"
+                : "border-border bg-card text-muted-foreground"
             }`}
           >
             <span className="flex items-center gap-2">
               {outcome.ok ? (
-                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                <span className="h-2 w-2 rounded-full bg-positive" />
               ) : outcome.status === "REJECTED" || outcome.status === "FAILED" ? (
-                <span className="h-2 w-2 rounded-full bg-rose-400" />
+                <span className="h-2 w-2 rounded-full bg-negative" />
               ) : (
-                <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
+                <span className="h-2 w-2 rounded-full bg-warning" />
               )}
               <span>
                 {outcome.message}
@@ -627,7 +627,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                   type="button"
                   onClick={() => void handleConfirm()}
                   disabled={loading || !gatewayReady}
-                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:text-ink disabled:opacity-40"
+                  className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                 >
                   Retry — same request
                 </button>
@@ -635,7 +635,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 <button
                   type="button"
                   onClick={startNewTicket}
-                  className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:text-ink"
+                  className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   New Ticket
                 </button>
@@ -659,7 +659,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         </PrimaryButton>
       </div>
 
-      <div className="flex items-center gap-2 border-t border-edge bg-card/60 px-3 py-2">
+      <div className="flex items-center gap-2 border-t border-border px-3 py-2">
         <BackButton onClick={onBack} />
         {confirmReset ? (
           <ConfirmActionRow
@@ -673,10 +673,10 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:bg-edge hover:text-ink"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary/80 px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
             title="Reset ticket fields to defaults"
           >
-            <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
+            <RotateCcw size={12} className="shrink-0 text-muted-foreground/70 transition-transform duration-200 group-hover:-rotate-45" />
             <span className="truncate">Reset Ticket</span>
           </button>
         )}
@@ -684,11 +684,11 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 
       {/* ── confirm sheet ──────────────────────────────────────────── */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="animate-slide-up w-full max-w-[330px] space-y-3 rounded-xl border border-edge bg-card p-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-[330px] space-y-3 rounded-xl border border-border bg-card p-4 shadow-2xl">
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-ink">
-                <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-rose-400" />
+              <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-negative" />
                 Review — REAL order
               </span>
               <MiniButton onClick={() => setShowConfirm(false)} variant="neutral" title="Close">
@@ -701,8 +701,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <Line label="Symbol" value={displaySymbol || "—"} />
               <Line label="Type" value={orderAction(orderKind, direction)} mono />
               <Line label="Entry" value={entry} mono />
-              <Line label="Stop loss" value={sl || "—"} mono valueClass="text-rose-400" />
-              {tp && <Line label="Take profit" value={tp} mono valueClass="text-emerald-400" />}
+              <Line label="Stop loss" value={sl || "—"} mono valueClass="text-negative" />
+              {tp && <Line label="Take profit" value={tp} mono valueClass="text-positive" />}
               <Line label="Volume" value={`${calc.volume} lots`} mono />
               <Line label="Risk" value={`$${calc.riskAmount.toFixed(2)} (${riskPercent}%)`} mono />
               {calc.riskReward > 0 && (
@@ -710,7 +710,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                   label="R:R"
                   value={`${calc.riskReward.toFixed(2)}R`}
                   mono
-                  valueClass={calc.riskReward >= 1.5 ? "text-emerald-400" : "text-amber-400"}
+                  valueClass={calc.riskReward >= 1.5 ? "text-positive" : "text-warning"}
                 />
               )}
               <Line
@@ -723,7 +723,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink-mute transition-colors hover:bg-edge"
+                className="flex-1 rounded-lg border border-border bg-secondary py-2.5 text-[11px] text-muted-foreground transition-colors hover:bg-muted"
               >
                 Cancel
               </button>
@@ -731,7 +731,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 onClick={handleConfirm}
                 disabled={loading}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-colors disabled:opacity-50 ${
-                  direction === "BUY" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-600 hover:bg-rose-500"
+                  direction === "BUY" ? "bg-positive hover:bg-positive" : "bg-negative hover:bg-negative"
                 }`}
               >
                 {loading ? "Sending…" : `Send ${direction}`}
@@ -747,8 +747,8 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 function Line({ label, value, mono, valueClass }: { label: string; value: string; mono?: boolean; valueClass?: string }) {
   return (
     <div className="flex justify-between">
-      <span className="text-ink-mute">{label}</span>
-      <span className={`${mono ? "font-mono tabular-nums" : ""} ${valueClass ?? "text-ink"}`}>{value}</span>
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`${mono ? "font-mono tabular-nums" : ""} ${valueClass ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }

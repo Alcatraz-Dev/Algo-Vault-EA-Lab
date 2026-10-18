@@ -1,65 +1,91 @@
-import React from "react";
-import { ArrowLeft, Settings } from "lucide-react";
-import { StatusDot } from "./ui";
+import { PanelRightOpen, Settings, WifiOff } from "lucide-react";
 
-/** The real AlgoVault logo, same asset the website header uses. */
-const LOGO_URL = chrome.runtime.getURL("logos/logo.png");
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface HeaderProps {
   isHealthy: boolean;
   gatewayConnected: boolean;
-  userEmail?: string | null;
+  userEmail: string | null;
   onBack?: () => void;
   onSettings?: () => void;
+  onOpenSidePanel?: () => void;
 }
 
-export function Header({ isHealthy, gatewayConnected, userEmail, onBack, onSettings }: HeaderProps) {
+export function Header({
+  isHealthy,
+  gatewayConnected,
+  userEmail,
+  onBack,
+  onSettings,
+  onOpenSidePanel,
+}: HeaderProps) {
   return (
-    <div className="flex items-center justify-between border-b border-edge/70 bg-card px-3 py-2.5">
-      <div className="flex items-center gap-2.5">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="rounded p-1 text-ink-mute transition-colors hover:bg-raised hover:text-ink"
-            title="Back"
-          >
-            <ArrowLeft size={15} />
-          </button>
-        )}
-        <div className="flex items-center gap-2.5">
-          <span className="grid size-6 shrink-0 place-items-center rounded-md border border-edge/70 bg-raised/50">
-            <img src={LOGO_URL} alt="AlgoVault" className="h-4 w-4 object-contain" />
+    <header className="flex h-11 shrink-0 items-center justify-between border-b border-border bg-background px-3">
+      <div className="flex min-w-0 items-center gap-2">
+        {onBack ? (
+          <Button variant="ghost" size="icon" className="h-7 w-7 -ml-1.5" onClick={onBack} aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
+              <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </Button>
+        ) : (
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" className="h-3.5 w-3.5">
+              <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M14 7h7v7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </span>
-          <span className="text-sm font-semibold tracking-tight">AlgoVault</span>
+        )}
+        <div className="flex min-w-0 flex-col leading-none">
+          <span className="truncate text-xs font-semibold tracking-tight text-foreground">
+            AlgoVault
+          </span>
+          {userEmail && (
+            <span className="mt-0.5 truncate text-[10px] text-muted-foreground">{userEmail}</span>
+          )}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {userEmail && (
-          <span className="max-w-[70px] truncate text-[10px] text-ink-mute" title={userEmail}>
-            {userEmail.split("@")[0]}
-          </span>
-        )}
-        <div className="flex items-center gap-1 rounded-md border border-edge bg-base px-1.5 py-0.5" title="AlgoVault API">
-          <StatusDot state={isHealthy ? "ok" : "off"} />
-          <span className="text-[9px] font-medium text-ink-mute">API</span>
-        </div>
-        <div
-          className="flex items-center gap-1 rounded-md border border-edge bg-base px-1.5 py-0.5"
-          title={gatewayConnected ? "Trading gateway connected" : "Gateway disconnected"}
+
+      <div className="flex shrink-0 items-center gap-1">
+        <span
+          className={`flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 ${
+            isHealthy ? "text-muted-foreground" : "text-warning"
+          }`}
+          title={isHealthy ? "Backend connected" : "Backend unreachable"}
         >
-          <StatusDot state={gatewayConnected ? "ok" : "off"} />
-          <span className="text-[9px] font-medium text-ink-mute">GW</span>
-        </div>
+          {isHealthy ? (
+            <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+          ) : (
+            <WifiOff className="h-3 w-3" />
+          )}
+          <span className="text-[10px]">{isHealthy ? "Online" : "Offline"}</span>
+        </span>
+
+        {gatewayConnected && (
+          <span className="flex items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+            <span className="text-[10px]">Gateway</span>
+          </span>
+        )}
+
+        {onOpenSidePanel && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onOpenSidePanel} aria-label="Open side panel">
+                <PanelRightOpen className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Open full workspace</TooltipContent>
+          </Tooltip>
+        )}
+
         {onSettings && (
-          <button
-            onClick={onSettings}
-            className="rounded p-1 text-ink-mute transition-colors hover:bg-raised hover:text-ink"
-            title="Settings"
-          >
-            <Settings size={14} />
-          </button>
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onSettings} aria-label="Settings">
+            <Settings className="h-3.5 w-3.5" />
+          </Button>
         )}
       </div>
-    </div>
+    </header>
   );
 }
