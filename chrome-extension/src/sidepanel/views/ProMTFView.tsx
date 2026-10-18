@@ -51,7 +51,7 @@ export const ProMTFView: React.FC<ProMTFViewProps> = ({ symbol, timeframe }) => 
       {/* Header */}
       <div className="flex items-center justify-between border-b border-edge/60 pb-2">
         <div className="flex items-center space-x-2">
-          <LayersIcon className="w-4 h-4 text-brand-400" />
+          <LayersIcon className="w-4 h-4 text-ink-mute" />
           <span className="font-semibold text-sm tracking-wide">MTF Intelligence</span>
           <span className="bg-raised border border-edge rounded px-1.5 py-0.5 text-[10px] text-ink-mute font-mono">
             {symbol || "NO SYMBOL"}
@@ -76,7 +76,7 @@ export const ProMTFView: React.FC<ProMTFViewProps> = ({ symbol, timeframe }) => 
 
       {loading && !data && (
         <div className="flex flex-col items-center justify-center py-12 space-y-2 text-ink-mute">
-          <RefreshCwIcon className="w-5 h-5 animate-spin text-brand-400" />
+          <RefreshCwIcon className="w-5 h-5 animate-spin text-ink-faint" />
           <span>Analyzing multi-timeframe alignment...</span>
         </div>
       )}
@@ -94,10 +94,10 @@ export const ProMTFView: React.FC<ProMTFViewProps> = ({ symbol, timeframe }) => 
               return (
                 <div
                   key={row.timeframe}
-                  className={`p-2.5 rounded-lg border transition-all ${
+                  className={`p-2.5 rounded-lg border transition-colors ${
                     isBase
-                      ? "bg-brand-500/5 border-brand-500/30 shadow-sm"
-                      : "bg-card border-edge hover:border-edge/80"
+                      ? "bg-card border-neutral-500"
+                      : "bg-card border-edge hover:border-neutral-500"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1.5">

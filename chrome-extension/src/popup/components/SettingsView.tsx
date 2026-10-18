@@ -148,9 +148,9 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
         </div>
 
         {/* ── AI Copilot (v3) ─────────────────────────────────────── */}
-        <div className="space-y-2 rounded-lg border border-brand-500/20 bg-brand-500/[0.04] p-2.5">
+        <div className="space-y-2 rounded-lg border border-edge bg-card p-2.5">
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-brand-400">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
               <Bot size={11} /> AI Copilot
             </span>
             <button
@@ -182,7 +182,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
         </div>
 
         <div className="flex gap-2">
-          <PrimaryButton onClick={handleSave} className="flex-1">{saved ? "Saved ✓" : "Save Settings"}</PrimaryButton>
+          <PrimaryButton onClick={handleSave} className="flex-1">{saved ? "Saved" : "Save Settings"}</PrimaryButton>
           <button
             onClick={handleClearCache}
             title="Clear cached market data"
@@ -215,7 +215,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
                   <div className="mt-1 space-y-0.5 border-t border-edge pt-1">
                     {debugInfo.stages.map((s: AnalysisStage, i: number) => (
                       <div key={i} className="text-[9px]">
-                        <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-brand-400" : "text-ink-faint"}>
+                        <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-ink-mute" : "text-ink-faint"}>
                           {s.status === "running" ? "●" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
                         </span>{" "}
                         {s.name}: {s.message}

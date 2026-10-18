@@ -364,7 +364,7 @@ export default function App() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center bg-base">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-500/30 border-t-neutral-400" />
       </div>
     );
   }
@@ -412,7 +412,7 @@ export default function App() {
           />
           <button
             onClick={() => setCommandBarOpen(true)}
-            className="flex items-center gap-1 rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-brand-500/40 transition-colors"
+            className="flex items-center gap-1 rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-neutral-500 transition-colors"
             title="AI Command Bar (⌘K)"
           >
             <Command size={10} />
@@ -462,7 +462,7 @@ export default function App() {
           />
           <button
             onClick={applyManual}
-            className="rounded bg-brand-500/20 px-2 py-1 text-[10px] font-semibold text-brand-400"
+            className="rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
           >
             Apply
           </button>
@@ -633,8 +633,7 @@ export default function App() {
             {tab === "setup" && <SetupView />}
           </>
         ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
-            <Zap size={28} className="text-brand-500" />
+          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">              <Zap size={28} className="text-ink-faint" />
             <p className="text-xs font-medium text-ink">No chart detected</p>
             <p className="max-w-[240px] text-[10px] leading-relaxed text-ink-mute">
               Open a chart on TradingView and the copilot will follow it automatically — or set a

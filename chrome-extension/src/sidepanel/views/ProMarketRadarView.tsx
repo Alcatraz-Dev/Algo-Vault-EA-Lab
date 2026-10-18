@@ -219,7 +219,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
     <div className="flex h-full flex-col">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <ScanEye size={13} className="text-brand-400" />
+        <ScanEye size={13} className="text-ink-mute" />
         <span className="text-[11px] font-semibold text-ink">Market Radar</span>
         <button
           onClick={() => setShowAdd((v) => !v)}
@@ -254,7 +254,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
           />
           <button
             onClick={addSymbol}
-            className="rounded bg-brand-500/20 px-2 py-1 text-[10px] font-semibold text-brand-400"
+            className="rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
           >
             Add
           </button>
@@ -271,7 +271,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
         {/* loading */}
         {loading && watchlist.length > 0 && (
           <div className="flex items-center justify-center gap-2 py-3">
-            <RefreshCw size={14} className="animate-spin text-brand-400" />
+            <RefreshCw size={14} className="animate-spin text-ink-faint" />
             <p className="text-[10px] text-ink-mute">Scanning {watchlist.length} symbols…</p>
           </div>
         )}
@@ -282,7 +282,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
             <p className="text-[10px] text-rose-400">{error}</p>
             <button
               onClick={() => load(watchlist)}
-              className="mt-1.5 text-[10px] text-rose-300 hover:text-rose-200"
+              className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500"
             >
               Retry →
             </button>

@@ -139,7 +139,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
       {/* ── ALGOVAULT evidence ─────────────────────────────────────────── */}
       <Section
         title="AlgoVault"
-        badge={<span className="rounded bg-brand-500/10 px-1.5 py-0.5 text-[8px] font-medium text-brand-500">DETERMINISTIC</span>}
+        badge={<span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-medium text-ink-mute">DETERMINISTIC</span>}
       >
         {marketContext ? (
           <div className="grid grid-cols-2 gap-1 text-[10px]">
@@ -189,7 +189,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
             <button
               type="button"
               onClick={() => void openTradingViewConnectPage()}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-brand-500/10"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-edge"
             >
               {needsReconnect ? <RefreshCw size={10} /> : <Plug size={10} />}
               {needsReconnect ? "Reconnect TradingView" : "Connect TradingView"}
@@ -208,7 +208,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
       </Section>
 
       {/* ── AI summary ─────────────────────────────────────────────────── */}
-      <Section title="AI" badge={<span className="rounded bg-violet-500/10 px-1.5 py-0.5 text-[8px] font-medium text-violet-400">EVIDENCE-ONLY</span>}>
+      <Section title="AI" badge={<span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-medium text-ink-mute">EVIDENCE-ONLY</span>}>
         {loadingAi ? (
           <div className="flex items-center gap-1.5 text-[10px] text-ink-mute">
             <Loader2 size={10} className="animate-spin" /> Analyzing evidence…
@@ -235,7 +235,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
       <button
         type="button"
         onClick={onRefreshContext}
-        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-brand-500/10"
+        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-edge"
       >
         <RefreshCw size={10} /> Refresh evidence
       </button>

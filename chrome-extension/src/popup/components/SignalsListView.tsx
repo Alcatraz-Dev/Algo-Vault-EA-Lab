@@ -71,7 +71,7 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
       <div className="flex-1 overflow-y-auto p-3">
         {loading && (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <Loader2 size={20} className="animate-spin text-brand-400" />
+            <Loader2 size={20} className="animate-spin text-ink-faint" />
             <p className="text-[11px] text-ink-mute">Loading signals...</p>
           </div>
         )}

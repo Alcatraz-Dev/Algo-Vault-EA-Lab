@@ -288,7 +288,7 @@ export default function App() {
     return (
       <div className="flex h-screen items-center justify-center bg-base">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-500 border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-500/30 border-t-neutral-400" />
           <p className="text-xs text-ink-mute">Loading AlgoVault…</p>
         </div>
       </div>

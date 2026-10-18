@@ -180,7 +180,7 @@ export function ProStrategyHealthView({ symbol, timeframe }: Props) {
     <div className="flex h-full flex-col">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <HeartPulse size={13} className="text-brand-400" />
+        <HeartPulse size={13} />
         <span className="text-[11px] font-semibold text-ink">Strategy Health</span>
         {data && (
           <span className="ml-auto text-[10px] text-ink-mute">
@@ -220,7 +220,7 @@ export function ProStrategyHealthView({ symbol, timeframe }: Props) {
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-brand-400" />
+            <RefreshCw size={18} className="animate-spin text-ink-faint" />
             <p className="text-[10px] text-ink-mute">Evaluating strategy conditions…</p>
           </div>
         )}
@@ -229,7 +229,7 @@ export function ProStrategyHealthView({ symbol, timeframe }: Props) {
         {error && !loading && (
           <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
             <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-300 hover:text-rose-200">
+            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
               Retry →
             </button>
           </div>

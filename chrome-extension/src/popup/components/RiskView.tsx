@@ -132,7 +132,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
             {calc.tpSuggested != null && (
               <button
                 onClick={() => setTp(calc.tpSuggested!.toFixed(5))}
-                className="mt-3 whitespace-nowrap rounded border border-brand-500/30 bg-brand-500/10 px-2 py-1 text-[10px] font-medium text-brand-400 hover:bg-brand-500/20"
+                className="mt-3 whitespace-nowrap rounded border border-edge bg-raised px-2 py-1 text-[10px] font-medium text-ink-mute transition-colors hover:text-ink"
               >
                 Use {calc.tpSuggested.toFixed(5)} ({rrTarget}R)
               </button>

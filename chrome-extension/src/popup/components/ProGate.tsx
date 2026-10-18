@@ -47,7 +47,7 @@ export function ProGate({
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center gap-2">
-        <Loader2 size={14} className="animate-spin text-brand-500" />
+        <Loader2 size={14} className="animate-spin text-ink-faint" />
         <span className="text-xs text-ink-mute">Checking access…</span>
       </div>
     );
@@ -71,8 +71,8 @@ export function ProGate({
 function ProUpgradePrompt({ featureName }: { featureName: string }) {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-6 text-center animate-fade-in">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-brand-500/30 bg-brand-500/10">
-        <Lock size={18} className="text-brand-500" />
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-edge bg-raised">
+        <Lock size={18} className="text-ink-mute" />
       </div>
       <div>
         <p className="text-sm font-semibold text-ink">Pro required</p>

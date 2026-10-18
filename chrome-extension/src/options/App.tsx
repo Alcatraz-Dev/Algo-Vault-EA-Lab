@@ -66,8 +66,8 @@ export default function OptionsApp() {
     <div className="min-h-screen bg-base p-6 text-ink">
       <div className="mx-auto max-w-lg">
         <div className="mb-6 flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/15">
-            <Zap size={16} className="text-brand-500" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-edge bg-raised">
+            <Zap size={16} className="text-ink-mute" />
           </div>
           <div>
             <h1 className="text-lg font-bold">AlgoVault Extension Settings</h1>

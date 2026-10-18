@@ -83,9 +83,9 @@ const STATE_CONFIG: Record<
   },
   NOT_CONNECTED: {
     label: "NOT CONNECTED",
-    bg: "bg-slate-700/30",
-    text: "text-slate-400",
-    border: "border-slate-600/40",
+    bg: "bg-raised/30",
+    text: "text-ink-mute",
+    border: "border-edge/40",
     icon: <Lock size={13} />,
   },
 };
@@ -93,8 +93,8 @@ const STATE_CONFIG: Record<
 function Row({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
   return (
     <div>
-      <span className="text-slate-400 block text-[10px] uppercase tracking-wider">{label}</span>
-      <span className={`text-slate-200 ${mono ? "font-mono" : ""}`}>{value}</span>
+      <span className="text-ink-mute block text-[10px] uppercase tracking-wider">{label}</span>
+      <span className={`text-ink ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
 }
@@ -115,44 +115,44 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
     ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
     : account.mode === "DEMO"
     ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-    : "bg-slate-700/40 text-slate-300 border-slate-600/50";
+    : "bg-raised/40 text-ink border-edge/50";
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-lg p-3 space-y-3 text-xs">
+    <div className="bg-card/80 border border-edge rounded-lg p-3 space-y-3 text-xs">
       {/* Header + freshness */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Layers size={14} className="text-cyan-400" />
-          <span className="font-semibold text-slate-200 uppercase tracking-wider">Trading Account</span>
+          <Layers size={14} />
+          <span className="font-semibold text-ink uppercase tracking-wider">Trading Account</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-slate-500">{timeLabel}</span>
+          <span className="font-mono text-[10px] text-ink-faint">{timeLabel}</span>
           <button
             onClick={onRefresh}
             disabled={refreshing}
-            className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-slate-200 transition-colors disabled:opacity-50"
+            className="p-1 hover:bg-raised rounded text-ink-mute hover:text-ink transition-colors disabled:opacity-50"
             title="Refresh account status"
           >
-            <RefreshCw size={12} className={refreshing ? "animate-spin text-cyan-400" : ""} />
+            <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
       {/* ── TRADINGVIEW connection ───────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-2">
-        <span className="text-[10px] uppercase tracking-wider text-slate-400 w-24">TradingView</span>
+      <div className="flex flex-wrap items-center gap-2 border-b border-edge pb-2">
+        <span className="text-[10px] uppercase tracking-wider text-ink-mute w-24">TradingView</span>
         <span
           className={`flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border ${
             tvConnected
               ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-              : "bg-slate-800 text-slate-400 border-slate-700"
+              : "bg-raised text-ink-mute border-edge"
           }`}
         >
           {tvConnected ? <Wifi size={11} /> : <WifiOff size={11} />}
           {tvConnected ? "Connected" : "Not connected"}
         </span>
         {account.tradingView.mcpState && (
-          <span className="px-2 py-0.5 rounded text-[10px] font-medium border bg-slate-800 text-slate-400 border-slate-700">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium border bg-raised text-ink-mute border-edge">
             MCP: {account.tradingView.mcpState}
           </span>
         )}
@@ -167,14 +167,14 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           mono
         />
         <div>
-          <span className="text-slate-400 block text-[10px] uppercase tracking-wider">Mode</span>
+          <span className="text-ink-mute block text-[10px] uppercase tracking-wider">Mode</span>
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${modeTone}`}>
             {isLive && <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-pulse" />}
             {modeLabel(account.mode)}
           </span>
         </div>
         <div>
-          <span className="text-slate-400 block text-[10px] uppercase tracking-wider">Execution</span>
+          <span className="text-ink-mute block text-[10px] uppercase tracking-wider">Execution</span>
           <span
             className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border ${
               executionEnabled
@@ -199,7 +199,7 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           {stateCfg.label}
         </span>
         {account.currency && (
-          <span className="px-2 py-0.5 rounded text-[10px] font-medium border bg-slate-800 text-slate-300 border-slate-700">
+          <span className="px-2 py-0.5 rounded text-[10px] font-medium border bg-raised text-ink border-edge">
             {account.currency}
           </span>
         )}
@@ -207,10 +207,10 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
 
       {/* ── LIVE ACCOUNT warning (persistent, §21) ───────────────────── */}
       {(isLive || (modeUnreported && executionEnabled)) && (
-        <div className="bg-rose-950/40 border border-rose-500/30 text-rose-300 p-2 rounded text-[11px] flex items-start gap-2">
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-500 p-2 rounded text-[11px] flex items-start gap-2">
           <ShieldAlert size={14} className="text-rose-400 shrink-0 mt-0.5" />
           <div>
-            <span className="font-semibold block text-rose-200">LIVE ACCOUNT</span>
+            <span className="font-semibold block text-rose-500">LIVE ACCOUNT</span>
             {isLive
               ? "Orders placed from this ticket are routed to a live account. Double-check every risk parameter before confirming."
               : "No source reported whether this account is paper or live — treat it as LIVE. TradingView MCP does not expose account mode."}
@@ -220,20 +220,20 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
 
       {/* ── capability limitation (§28) ──────────────────────────────── */}
       {account.unsupportedReason && !executionEnabled && (
-        <div className="bg-amber-950/30 border border-amber-500/20 text-amber-300/90 p-2 rounded text-[11px]">
-          <div className="font-medium text-amber-200 mb-0.5">Capability limitation</div>
+        <div className="bg-amber-500/10 border border-amber-500/20 text-amber-600/90 p-2 rounded text-[11px]">
+          <div className="font-medium text-amber-600 mb-0.5">Capability limitation</div>
           {account.unsupportedReason}
         </div>
       )}
 
       {/* ── financials (only when reported) ──────────────────────────── */}
       {(account.balance !== null || account.equity !== null) ? (
-        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800 text-[11px]">
+        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-edge text-[11px]">
           {account.balance !== null && (
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Balance</span>
-              <span className="font-semibold text-slate-100 flex items-center gap-1">
-                <Wallet size={11} className="text-cyan-400" />
+              <span className="text-ink-mute block text-[10px] uppercase">Balance</span>
+              <span className="font-semibold text-ink flex items-center gap-1">
+                <Wallet size={11} />
                 {account.currency ? `${account.currency} ` : ""}
                 {account.balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
@@ -241,8 +241,8 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           )}
           {account.equity !== null && (
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Equity</span>
-              <span className="font-semibold text-slate-100">
+              <span className="text-ink-mute block text-[10px] uppercase">Equity</span>
+              <span className="font-semibold text-ink">
                 {account.currency ? `${account.currency} ` : ""}
                 {account.equity.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
@@ -250,26 +250,26 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
           )}
           {account.marginFree !== null && (
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Free margin</span>
-              <span className="font-medium text-slate-200">{account.marginFree.toFixed(2)}</span>
+              <span className="text-ink-mute block text-[10px] uppercase">Free margin</span>
+              <span className="font-medium text-ink">{account.marginFree.toFixed(2)}</span>
             </div>
           )}
           {account.marginLevel !== null && (
             <div>
-              <span className="text-slate-400 block text-[10px] uppercase">Margin level</span>
-              <span className="font-medium text-slate-200">{account.marginLevel.toFixed(2)}%</span>
+              <span className="text-ink-mute block text-[10px] uppercase">Margin level</span>
+              <span className="font-medium text-ink">{account.marginLevel.toFixed(2)}%</span>
             </div>
           )}
         </div>
       ) : (
-        <div className="pt-1 border-t border-slate-800 text-[11px] text-slate-500">
+        <div className="pt-1 border-t border-edge text-[11px] text-ink-faint">
           Account information unavailable — balance, equity and margin are not reported by the
           connected source.
         </div>
       )}
 
       {/* ── data surfaces ────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-800/60 text-[9px] text-slate-400">
+      <div className="flex flex-wrap gap-1.5 pt-1 border-t border-edge/60 text-[9px] text-ink-mute">
         <span className="uppercase tracking-wider w-full mb-0.5">Data surfaces</span>
         {(
           [
@@ -283,7 +283,7 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
             className={`px-1.5 py-0.5 rounded border ${
               ok
                 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/25"
-                : "bg-slate-800 text-slate-500 border-slate-700"
+                : "bg-raised text-ink-faint border-edge"
             }`}
           >
             {label}: {ok ? "live" : "unavailable"}
@@ -291,9 +291,9 @@ export const ProTradingAccountPanel: React.FC<Props> = ({ account, onRefresh, re
         ))}
       </div>
 
-      <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1 border-t border-slate-800/60">
+      <div className="flex justify-between items-center text-[10px] text-ink-faint pt-1 border-t border-edge/60">
         <span>Sync freshness</span>
-        <span className="font-mono text-slate-400">{timeLabel}</span>
+        <span className="font-mono text-ink-mute">{timeLabel}</span>
       </div>
     </div>
   );

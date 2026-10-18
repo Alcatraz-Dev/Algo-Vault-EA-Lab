@@ -17,19 +17,11 @@ interface AnalysisViewProps {
 interface AnalysisSectionProps {
   title: string;
   children: React.ReactNode;
-  accent?: string;
 }
 
-function AnalysisSection({ title, children, accent = "violet" }: AnalysisSectionProps) {
-  const colorMap: Record<string, string> = {
-    violet: "border-brand-500/20 bg-brand-500/5",
-    emerald: "border-emerald-500/20 bg-emerald-500/5",
-    amber: "border-amber-500/20 bg-amber-500/5",
-    rose: "border-rose-500/20 bg-rose-500/5",
-    cyan: "border-cyan-500/20 bg-cyan-500/5",
-  };
+function AnalysisSection({ title, children }: AnalysisSectionProps) {
   return (
-    <div className={`rounded-lg border ${colorMap[accent] || colorMap.violet} bg-card p-2.5`}>
+    <div className="rounded-lg border border-edge bg-card p-2.5">
       <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">{title}</div>
       {children}
     </div>
@@ -157,7 +149,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {loading && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <Loader2 size={24} className="animate-spin text-brand-400" />
+            <Loader2 size={24} className="animate-spin text-ink-faint" />
             <p className="text-xs text-ink-mute">Analyzing chart intelligence…</p>
           </div>
         )}
@@ -174,7 +166,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
           <div className="space-y-2">
             {ctx && (
               <>
-                <AnalysisSection title="Market Summary" accent="violet">
+                <AnalysisSection title="Market Summary">
                   {ctx.currentPrice != null && (
                     <DataRow label="Price" value={ctx.currentPrice.toFixed(ctx.currentPrice >= 1000 ? 1 : ctx.currentPrice >= 100 ? 2 : 4)} highlight />
                   )}
@@ -187,7 +179,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
                 <AnalysisSection
                   title={`Structure (${ctx.marketStructure.bosCount} BOS / ${ctx.marketStructure.chochCount} CHOCH)`}
-                  accent="cyan"
+                 
                 >
                   <button onClick={() => toggleSection("structure")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
                     {expandedSections.structure ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
@@ -205,7 +197,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                   )}
                 </AnalysisSection>
 
-                <AnalysisSection title="Market Score" accent="amber">
+                <AnalysisSection title="Market Score">
                   <div className="text-[10px] text-ink font-mono">{ctx.score.total}/100 — {ctx.score.bias} ({ctx.score.confidence})</div>
                   {ctx.score.components.length > 0 && (
                     <div className="space-y-0.5 mt-1">
@@ -221,7 +213,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                   )}
                 </AnalysisSection>
 
-                <AnalysisSection title="Volatility & VWAP" accent="emerald">
+                <AnalysisSection title="Volatility & VWAP">
                   <DataRow label="ATR" value={ctx.volatility.atr.toFixed(5)} />
                   <DataRow label="ATR %" value={`${ctx.volatility.atrPercent.toFixed(2)}%`} />
                   <DataRow label="VWAP" value={ctx.vwap.vwap.toFixed(5)} />
@@ -229,7 +221,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                   <DataRow label="Volume" value={`${ctx.volume.relative}x avg`} />
                 </AnalysisSection>
 
-                <AnalysisSection title="Zones & Liquidity" accent="rose">
+                <AnalysisSection title="Zones & Liquidity">
                   <DataRow label="FVG" value={`${ctx.fvg.count} (${ctx.fvg.direction})`} />
                   <DataRow label="Order Blocks" value={`${ctx.orderBlock.count} (${ctx.orderBlock.direction})`} />
                   <DataRow label="Liquidity Sweeps" value={ctx.liquidity.sweeps.length} />
@@ -237,7 +229,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
                 <AnalysisSection
                   title={`MTF Alignment (${ai?.mtfAlignmentCount || 0})`}
-                  accent="cyan"
+                 
                 >
                   {ctx.mtfAlignment.length > 0 && (
                     <div className="space-y-0.5">
@@ -255,13 +247,13 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
                 {ai && (
                   <>
-                    <AnalysisSection title="AI Analysis Summary" accent="violet">
+                    <AnalysisSection title="AI Analysis Summary">
                       <div className="text-[11px] text-ink leading-relaxed whitespace-pre-wrap">{ai.summary}</div>
                     </AnalysisSection>
 
                     <AnalysisSection
                       title={`Key Levels (${ai.confluences} confluences)`}
-                      accent="amber"
+                     
                     >
                       <button onClick={() => toggleSection("levels")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
                         {expandedSections.levels ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
@@ -314,7 +306,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
                     <AnalysisSection
                       title="Scenarios"
-                      accent="emerald"
+                     
                     >
                       <button onClick={() => toggleSection("scenarios")} className="flex items-center gap-1 text-[10px] text-ink-mute mb-1">
                         {expandedSections.scenarios ? <ChevronDown size={10} /> : <ChevronUp size={10} />}
@@ -344,7 +336,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 )}
 
                 {result.error && (
-                  <div className="text-[10px] text-amber-400 italic">⚠ {result.error}</div>
+                  <div className="flex items-center gap-1 text-[10px] text-amber-400 italic"><AlertCircle size={10} className="shrink-0" /> {result.error}</div>
                 )}
               </>
             )}
@@ -356,7 +348,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-brand-500/20 bg-brand-500/5 text-[11px] text-brand-400 hover:bg-brand-500/10 transition-colors disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 text-[11px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : null}
               {loading ? "Analyzing..." : "Re-analyze"}
@@ -376,7 +368,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
             <button
               onClick={handleAskAI}
               disabled={!question.trim() || chatLoading}
-              className="p-1.5 rounded-lg bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 disabled:opacity-30 transition-colors"
+              className="p-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
             >
               <Send size={14} />
             </button>
@@ -384,14 +376,14 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
           {chatLoading && (
             <div className="flex items-center gap-2 py-1">
-              <Loader2 size={12} className="animate-spin text-brand-400" />
+              <Loader2 size={12} className="animate-spin text-ink-faint" />
               <span className="text-[10px] text-ink-mute">Thinking...</span>
             </div>
           )}
 
           {aiReply && (
-            <div className="mt-2 rounded-lg border border-brand-500/20 bg-brand-500/5 p-2.5">
-              <div className="text-[10px] text-brand-400 uppercase tracking-wider mb-1">AI Response</div>
+            <div className="mt-2 rounded-lg border border-edge bg-card p-2.5">
+              <div className="text-[10px] text-ink-mute uppercase tracking-wider mb-1">AI Response</div>
               <div className="text-[11px] text-ink leading-relaxed whitespace-pre-wrap">{aiReply}</div>
             </div>
           )}

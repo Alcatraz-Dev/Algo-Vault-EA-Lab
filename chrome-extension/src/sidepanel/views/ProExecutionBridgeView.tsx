@@ -111,8 +111,8 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
 
   if (proLoading || loading) {
     return (
-      <div className="p-4 text-center text-slate-400 text-xs flex items-center justify-center gap-2">
-        <Zap size={14} className="animate-spin text-cyan-400" />
+      <div className="p-4 text-center text-ink-mute text-xs flex items-center justify-center gap-2">
+        <Zap size={14} className="animate-spin text-ink-faint" />
         Initializing TradingView Execution…
       </div>
     );
@@ -122,22 +122,22 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
   if (!isPro) {
     return (
       <div className="space-y-3">
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 space-y-2 text-xs">
+        <div className="bg-card border border-edge rounded-lg p-3 space-y-2 text-xs">
           <div className="flex items-center gap-2">
             <Lock size={14} className="text-amber-400" />
-            <span className="font-semibold text-slate-200 uppercase tracking-wider text-[11px]">
+            <span className="font-semibold text-ink uppercase tracking-wider text-[11px]">
               TradingView Execution
             </span>
             <span className="ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold border bg-amber-500/10 text-amber-400 border-amber-500/30">
               PRO
             </span>
           </div>
-          <p className="text-slate-400 leading-relaxed">
+          <p className="text-ink-mute leading-relaxed">
             Pro subscribers get the full execution bridge: trade tickets with an Execution Risk
             Check, live position monitoring, pending-order management, execution history and
             AlgoVault journal sync.
           </p>
-          <ul className="space-y-1 text-slate-500 text-[10px]">
+          <ul className="space-y-1 text-ink-faint text-[10px]">
             <li>• TradingView account &amp; broker context (where supported)</li>
             <li>• Explicit confirmation flow — the AI never executes</li>
             <li>• Duplicate-order protection with idempotency keys</li>
@@ -147,11 +147,11 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
             href={`${getAlgoVaultUrl()}/pricing`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-500/25"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-400"
           >
             Upgrade to AlgoVault Pro <ExternalLink size={11} />
           </a>
-          <p className="text-[9px] text-slate-600">
+          <p className="text-[9px] text-ink-faint">
             Entitlement is verified server-side on every privileged execution endpoint — UI
             manipulation cannot bypass this gate.
           </p>
@@ -162,10 +162,10 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
 
   if (flagEnabled === false) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-center space-y-2 text-xs">
-        <ShieldCheck size={20} className="mx-auto text-slate-500" />
-        <p className="text-slate-300 font-semibold">TradingView Execution is not enabled on your account.</p>
-        <p className="text-slate-500 text-[11px]">
+      <div className="bg-card border border-edge rounded-lg p-4 text-center space-y-2 text-xs">
+        <ShieldCheck size={20} className="mx-auto text-ink-faint" />
+        <p className="text-ink font-semibold">TradingView Execution is not enabled on your account.</p>
+        <p className="text-ink-faint text-[11px]">
           The feature flag is currently off — reach out to support if you expect it to be active.
         </p>
       </div>
@@ -183,19 +183,19 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
   return (
     <div className="space-y-3">
       {/* ── command center header (§17) ─────────────────────────────── */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-lg p-3 text-[11px] space-y-2">
+      <div className="bg-card/90 border border-edge rounded-lg p-3 text-[11px] space-y-2">
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 font-bold text-slate-200 uppercase tracking-wider text-[11px]">
-            <Zap size={13} className="text-cyan-400" /> TradingView Execution
+          <span className="flex items-center gap-1.5 font-bold text-ink uppercase tracking-wider text-[11px]">
+            <Zap size={13} /> TradingView Execution
           </span>
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] text-slate-500">
+            <span className="font-mono text-[10px] text-ink-faint">
               {account ? accountAgeLabel(account) : "—"}
             </span>
             <button
               onClick={() => void loadAccount(true)}
               disabled={refreshing}
-              className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-50"
+              className="p-1 rounded text-ink-mute hover:text-ink hover:bg-raised disabled:opacity-50"
               title="Refresh execution context"
             >
               <RefreshCw size={11} className={refreshing ? "animate-spin" : ""} />
@@ -205,27 +205,27 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
 
         <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           <span className="flex items-center justify-between">
-            <span className="text-slate-500">TradingView</span>
+            <span className="text-ink-faint">TradingView</span>
             <span
-              className={`font-semibold ${capabilities?.tvConnected ? "text-emerald-400" : "text-slate-400"}`}
+              className={`font-semibold ${capabilities?.tvConnected ? "text-emerald-400" : "text-ink-mute"}`}
             >
               ● {capabilities?.tvConnected ? "Connected" : "Not connected"}
             </span>
           </span>
           <span className="flex items-center justify-between">
-            <span className="text-slate-500">Broker</span>
-            <span className="font-semibold text-slate-300 truncate max-w-[110px]">
+            <span className="text-ink-faint">Broker</span>
+            <span className="font-semibold text-ink truncate max-w-[110px]">
               {capabilities?.broker || "Not detected"}
             </span>
           </span>
           <span className="flex items-center justify-between">
-            <span className="text-slate-500">Account</span>
-            <span className="font-mono font-semibold text-slate-300">
+            <span className="text-ink-faint">Account</span>
+            <span className="font-mono font-semibold text-ink">
               {capabilities?.masked || "Unavailable"}
             </span>
           </span>
           <span className="flex items-center justify-between">
-            <span className="text-slate-500">Mode</span>
+            <span className="text-ink-faint">Mode</span>
             <span
               className={`font-semibold ${
                 capabilities?.mode === "LIVE"
@@ -243,7 +243,7 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
             </span>
           </span>
           <span className="flex items-center justify-between">
-            <span className="text-slate-500">Execution</span>
+            <span className="text-ink-faint">Execution</span>
             <span
               className={`font-semibold ${
                 capabilities?.execution === "AVAILABLE" ? "text-emerald-400" : "text-amber-400"
@@ -253,45 +253,45 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
             </span>
           </span>
           <span className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Open positions</span>
-            <span className="font-semibold text-slate-300">
+            <span className="text-ink-faint">Open positions</span>
+            <span className="font-semibold text-ink">
               {account?.dataAvailability.positions ? account.openPositions.length : "—"}
             </span>
           </span>
           <span className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Pending orders</span>
-            <span className="font-semibold text-slate-300">
+            <span className="text-ink-faint">Pending orders</span>
+            <span className="font-semibold text-ink">
               {account?.dataAvailability.pendingOrders ? account.pendingOrders.length : "—"}
             </span>
           </span>
           <span className="flex items-center justify-between gap-2">
-            <span className="text-slate-500">Executions</span>
-            <span className="font-semibold text-slate-300">{historyRows.length}</span>
+            <span className="text-ink-faint">Executions</span>
+            <span className="font-semibold text-ink">{historyRows.length}</span>
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-800">
+        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-edge">
           <button
             onClick={() => setSubTab("ticket")}
-            className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink hover:bg-raised"
           >
             <Zap size={10} /> Trade Ticket
           </button>
           <button
             onClick={() => setSubTab("positions")}
-            className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink hover:bg-raised"
           >
             <Activity size={10} /> Open Positions
           </button>
           <button
             onClick={() => setSubTab("pending")}
-            className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink hover:bg-raised"
           >
             <Clock size={10} /> Pending Orders
           </button>
           <button
             onClick={() => setSubTab("history")}
-            className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-300 hover:bg-slate-700"
+            className="flex items-center gap-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink hover:bg-raised"
           >
             <History size={10} /> Execution History
           </button>
@@ -299,7 +299,7 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
             href={`${getAlgoVaultUrl()}/account/pro-trading-extension`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1 rounded border border-slate-700 bg-slate-800 px-2 py-1 text-[10px] text-slate-400 hover:bg-slate-700 hover:text-slate-200"
+            className="flex items-center gap-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink-mute hover:bg-raised hover:text-ink"
           >
             <Sparkles size={10} /> Trade History ↗
           </a>
@@ -337,18 +337,18 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
               onExecutionComplete={handleExecutionComplete}
             />
           ) : (
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-lg text-center space-y-3">
-              <WifiOff size={22} className="mx-auto text-slate-500" />
-              <h3 className="text-sm font-semibold text-slate-300">No execution source detected</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
+            <div className="p-4 bg-card border border-edge rounded-lg text-center space-y-3">
+              <WifiOff size={22} className="mx-auto text-ink-faint" />
+              <h3 className="text-sm font-semibold text-ink">No execution source detected</h3>
+              <p className="text-xs text-ink-mute leading-relaxed">
                 TradingView MCP is read-only and no execution gateway responded. Start the{" "}
-                <strong className="text-slate-200">AlgoVaultTradeGateway</strong> EA on your MT5
+                <strong className="text-ink">AlgoVaultTradeGateway</strong> EA on your MT5
                 terminal (with your gateway token) to enable order execution.
               </p>
               <button
                 onClick={() => void loadAccount(true)}
                 disabled={refreshing}
-                className="mx-auto flex items-center gap-1.5 rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-300 hover:bg-slate-700 hover:text-slate-100 transition-colors disabled:opacity-40"
+                className="mx-auto flex items-center gap-1.5 rounded border border-edge bg-raised px-3 py-1.5 text-xs font-medium text-ink hover:bg-raised hover:text-ink transition-colors disabled:opacity-40"
               >
                 <RefreshCw size={11} className={refreshing ? "animate-pulse" : ""} />
                 {refreshing ? "Checking…" : "Re-check gateway"}
@@ -371,32 +371,32 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
       )}
 
       {subTab === "history" && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 space-y-2 text-[11px]">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="flex items-center gap-1.5 font-semibold text-slate-200 uppercase tracking-wider text-[11px]">
-              <History size={13} className="text-cyan-400" /> Execution History
+        <div className="bg-card border border-edge rounded-lg p-3 space-y-2 text-[11px]">
+          <div className="flex items-center justify-between border-b border-edge pb-2">
+            <span className="flex items-center gap-1.5 font-semibold text-ink uppercase tracking-wider text-[11px]">
+              <History size={13} /> Execution History
             </span>
-            <span className="font-mono text-[10px] text-slate-500">
+            <span className="font-mono text-[10px] text-ink-faint">
               {account ? accountAgeLabel(account) : "—"}
             </span>
           </div>
 
           {!account?.dataAvailability.executionHistory ? (
-            <p className="text-slate-500 text-center py-5">
+            <p className="text-ink-faint text-center py-5">
               Execution history unavailable —{" "}
               {account?.dataAvailability.reason || "no execution gateway responded."}
             </p>
           ) : historyRows.length === 0 ? (
-            <p className="text-slate-500 text-center py-5">No execution records yet.</p>
+            <p className="text-ink-faint text-center py-5">No execution records yet.</p>
           ) : (
             <div className="space-y-1.5">
               {historyRows.map((row) => (
                 <div
                   key={`${row.requestId}-${row.createdAt ?? 0}`}
-                  className="bg-slate-950/70 border border-slate-800 rounded p-2 font-mono text-[10px]"
+                  className="bg-base/70 border border-edge rounded p-2 font-mono text-[10px]"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-200 font-bold">
+                    <span className="text-ink font-bold">
                       {row.side || "—"} {row.quantity ?? "—"} {row.symbol || "—"}
                     </span>
                     <span
@@ -405,13 +405,13 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                           : /rejected|failed/i.test(row.status)
                           ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
-                          : "bg-slate-800 text-slate-300 border-slate-700"
+                          : "bg-raised text-ink border-edge"
                       }`}
                     >
                       {row.status}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-slate-500 mt-1">
+                  <div className="flex items-center justify-between text-ink-faint mt-1">
                     <span>{row.requestId}</span>
                     <span>
                       {row.executedAt

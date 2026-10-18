@@ -72,16 +72,16 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 space-y-3 text-xs">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-        <div className="flex items-center gap-1.5 font-semibold text-slate-200 uppercase tracking-wider text-[11px]">
+    <div className="bg-card border border-edge rounded-lg p-3 space-y-3 text-xs">
+      <div className="flex items-center justify-between border-b border-edge pb-2">
+        <div className="flex items-center gap-1.5 font-semibold text-ink uppercase tracking-wider text-[11px]">
           <Clock size={14} className="text-amber-400" /> Pending Orders ({pendingOrders.length})
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-slate-500">{accountAgeLabel(account)}</span>
+          <span className="font-mono text-[10px] text-ink-faint">{accountAgeLabel(account)}</span>
           <button
             onClick={onRefresh}
-            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800"
+            className="p-1 rounded text-ink-mute hover:text-ink hover:bg-raised"
             title="Refresh pending orders"
           >
             <RefreshCw size={11} />
@@ -90,24 +90,24 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
       </div>
 
       {actionMsg && (
-        <div className="bg-slate-800 border border-slate-700 text-slate-200 p-2 rounded text-[11px] flex items-start gap-1.5">
+        <div className="bg-raised border border-edge text-ink p-2 rounded text-[11px] flex items-start gap-1.5">
           <AlertCircle size={13} className="text-amber-400 shrink-0 mt-0.5" />
           <span>{actionMsg}</span>
         </div>
       )}
 
       {!available ? (
-        <div className="text-center py-6 text-slate-500 text-[11px] space-y-1.5">
-          <ShieldQuestion size={20} className="mx-auto text-slate-600 mb-1" />
+        <div className="text-center py-6 text-ink-faint text-[11px] space-y-1.5">
+          <ShieldQuestion size={20} className="mx-auto text-ink-faint mb-1" />
           <p>Pending-order data unavailable.</p>
-          <p className="text-slate-600 max-w-[280px] mx-auto leading-relaxed">
+          <p className="text-ink-faint max-w-[280px] mx-auto leading-relaxed">
             {account.dataAvailability.reason ||
               "No connected source reports pending orders. TradingView MCP exposes no order tool."}
           </p>
         </div>
       ) : pendingOrders.length === 0 ? (
-        <div className="text-center py-6 text-slate-500 text-[11px] space-y-1">
-          <FileText size={20} className="mx-auto text-slate-600 mb-1" />
+        <div className="text-center py-6 text-ink-faint text-[11px] space-y-1">
+          <FileText size={20} className="mx-auto text-ink-faint mb-1" />
           <p>No active pending limit or stop orders.</p>
         </div>
       ) : (
@@ -115,10 +115,10 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
           {pendingOrders.map((ord) => (
             <div
               key={ord.id}
-              className="bg-slate-950/70 border border-slate-800/80 rounded p-2 space-y-1.5 text-[11px]"
+              className="bg-base/70 border border-edge/80 rounded p-2 space-y-1.5 text-[11px]"
             >
               <div className="flex items-center justify-between font-mono">
-                <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                <div className="flex items-center gap-1.5 font-bold text-ink">
                   <span
                     className={`px-1.5 py-0.5 rounded text-[9px] ${
                       ord.side === "BUY"
@@ -129,32 +129,32 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                     {ord.side} {ord.orderType}
                   </span>
                   <span>{ord.symbol}</span>
-                  <span className="text-slate-400 text-[10px]">x{ord.quantity}</span>
-                  <span className="px-1 py-0.5 rounded text-[9px] bg-slate-800 text-slate-300 border border-slate-700">
+                  <span className="text-ink-mute text-[10px]">x{ord.quantity}</span>
+                  <span className="px-1 py-0.5 rounded text-[9px] bg-raised text-ink border border-edge">
                     {ord.status}
                   </span>
                 </div>
 
-                <span className="text-slate-300 font-bold">@ {ord.price ?? "—"}</span>
+                <span className="text-ink font-bold">@ {ord.price ?? "—"}</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-1 text-[10px] text-slate-400 pt-1 border-t border-slate-800/60 font-mono">
+              <div className="grid grid-cols-3 gap-1 text-[10px] text-ink-mute pt-1 border-t border-edge/60 font-mono">
                 <div>
-                  Stop <span className="text-slate-200">{ord.stopLoss ?? "—"}</span>
+                  Stop <span className="text-ink">{ord.stopLoss ?? "—"}</span>
                 </div>
                 <div>
-                  Target <span className="text-slate-200">{ord.takeProfit ?? "—"}</span>
+                  Target <span className="text-ink">{ord.takeProfit ?? "—"}</span>
                 </div>
                 <div>
                   Placed{" "}
-                  <span className="text-slate-200">
+                  <span className="text-ink">
                     {ord.timestamp ? new Date(ord.timestamp).toLocaleString() : "—"}
                   </span>
                 </div>
               </div>
 
               {confirm?.orderId === ord.id ? (
-                <div className="bg-rose-950/30 border border-rose-500/30 rounded p-2 space-y-1.5 text-rose-200">
+                <div className="bg-rose-500/10 border border-rose-500/30 rounded p-2 space-y-1.5 text-rose-500">
                   <span className="block text-[11px]">
                     Cancel {ord.symbol} {ord.side} {ord.orderType} {ord.quantity} (ticket {ord.id})?
                     This request is submitted to the AlgoVault execution service.
@@ -163,7 +163,7 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                     <button
                       type="button"
                       onClick={() => setConfirm(null)}
-                      className="flex-1 rounded border border-slate-700 bg-slate-800 py-1 text-slate-300"
+                      className="flex-1 rounded border border-edge bg-raised py-1 text-ink"
                     >
                       Keep order
                     </button>
@@ -191,7 +191,7 @@ export const ProPendingOrdersView: React.FC<Props> = ({ account, onRefresh }) =>
                       // key so the server's idempotency protects the user.
                       setConfirm({ orderId: ord.id, clientRequestId: newClientRequestId("cancel") });
                     }}
-                    className="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-rose-300 border border-slate-700 rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-40"
+                    className="px-2 py-0.5 bg-raised hover:bg-raised text-rose-500 border border-edge rounded text-[10px] font-medium transition-colors flex items-center gap-1 disabled:opacity-40"
                   >
                     <XCircle size={10} /> Cancel Order
                   </button>

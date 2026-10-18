@@ -159,7 +159,7 @@ export function ProSmartAlertsView({ symbol, timeframe }: ProSmartAlertsViewProp
   if (loading && alerts.length === 0) {
     return (
       <div className="flex h-48 items-center justify-center gap-2">
-        <Loader2 size={14} className="animate-spin text-brand-500" />
+        <Loader2 size={14} className="animate-spin text-ink-faint" />
         <span className="text-[10px] text-ink-mute">Checking for alerts…</span>
       </div>
     );
@@ -170,10 +170,10 @@ export function ProSmartAlertsView({ symbol, timeframe }: ProSmartAlertsViewProp
       {/* toolbar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-edge/50">
         <div className="flex items-center gap-1.5">
-          <Bell size={12} className="text-brand-500" />
+          <Bell size={12} className="text-ink-mute" />
           <span className="text-xs font-semibold">Smart Alerts</span>
           {unreadCount > 0 && (
-            <span className="rounded-full bg-brand-500 px-1.5 py-0.5 text-[8px] font-bold text-white">
+            <span className="rounded-full border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-bold text-ink-mute">
               {unreadCount}
             </span>
           )}

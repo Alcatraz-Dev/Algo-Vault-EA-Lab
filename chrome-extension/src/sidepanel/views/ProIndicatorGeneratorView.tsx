@@ -76,7 +76,7 @@ export const ProIndicatorGeneratorView: React.FC<ProIndicatorGeneratorViewProps>
       {/* View Header */}
       <div className="flex items-center justify-between border-b border-edge/60 pb-2">
         <div className="flex items-center space-x-2">
-          <CodeIcon className="w-4 h-4 text-brand-400" />
+          <CodeIcon className="w-4 h-4 text-ink-mute" />
           <span className="font-semibold text-sm tracking-wide">AI Pine Indicator Studio</span>
         </div>
         <div className="flex bg-raised rounded p-0.5 border border-edge/60">
@@ -144,7 +144,7 @@ export const ProIndicatorGeneratorView: React.FC<ProIndicatorGeneratorViewProps>
                 </div>
                 <button
                   onClick={() => copyCode(currentIndicator.code)}
-                  className="bg-raised border border-edge hover:border-brand-500/50 px-2 py-1 rounded text-[10px] text-ink flex items-center space-x-1 transition-colors"
+                  className="bg-raised border border-edge hover:border-neutral-500 px-2 py-1 rounded text-[10px] text-ink flex items-center space-x-1 transition-colors"
                 >
                   {copied ? (
                     <>
@@ -172,7 +172,7 @@ export const ProIndicatorGeneratorView: React.FC<ProIndicatorGeneratorViewProps>
               )}
 
               <div className="relative">
-                <pre className="bg-raised border border-edge/80 rounded p-2.5 text-[10px] font-mono text-emerald-300 max-h-[200px] overflow-auto whitespace-pre-wrap">
+                <pre className="bg-raised border border-edge/80 rounded p-2.5 text-[10px] font-mono text-ink max-h-[200px] overflow-auto whitespace-pre-wrap">
                   {currentIndicator.code}
                 </pre>
               </div>

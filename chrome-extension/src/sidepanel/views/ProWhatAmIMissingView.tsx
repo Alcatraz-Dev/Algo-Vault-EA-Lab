@@ -134,7 +134,7 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
     <div className="flex h-full flex-col">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <SearchX size={13} className="text-brand-400" />
+        <SearchX size={13} />
         <span className="text-[11px] font-semibold text-ink">What Am I Missing?</span>
         {data && (
           <div className="ml-auto flex items-center gap-1.5">
@@ -183,7 +183,7 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-brand-400" />
+            <RefreshCw size={18} className="animate-spin text-ink-faint" />
             <p className="text-[10px] text-ink-mute">Scanning for blind spots…</p>
           </div>
         )}
@@ -192,7 +192,7 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
         {error && !loading && (
           <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
             <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-300 hover:text-rose-200">
+            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
               Retry →
             </button>
           </div>

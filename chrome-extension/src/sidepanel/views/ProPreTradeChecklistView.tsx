@@ -164,7 +164,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
     <div className="flex h-full flex-col">
       {/* header */}
       <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <ClipboardList size={13} className="text-brand-400" />
+        <ClipboardList size={13} />
         <span className="text-[11px] font-semibold text-ink">Pre-Trade Checklist</span>
         {data && (
           <span className={`ml-auto text-[11px] font-bold tabular-nums ${passColor}`}>
@@ -208,7 +208,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
           <div className="rounded-lg border border-edge bg-card p-2.5 space-y-2">
             <div className="flex items-center justify-between border-b border-edge/40 pb-1.5">
               <span className="flex items-center gap-1.5 text-[10px] font-bold text-ink">
-                <BarChart3 size={11} className="text-brand-400" /> EVIDENCE SCORE
+                <BarChart3 size={11} /> EVIDENCE SCORE
               </span>
               <span className="text-[8px] text-ink-faint">Condition Alignment</span>
             </div>
@@ -260,7 +260,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-brand-400" />
+            <RefreshCw size={18} className="animate-spin text-ink-faint" />
             <p className="text-[10px] text-ink-mute">Evaluating conditions…</p>
           </div>
         )}
@@ -269,7 +269,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
         {error && !loading && (
           <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
             <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-300 hover:text-rose-200">
+            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
               Retry →
             </button>
           </div>

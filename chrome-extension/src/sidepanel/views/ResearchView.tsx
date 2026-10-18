@@ -87,13 +87,13 @@ export function ResearchView({ symbol, timeframe, structuredContextKey }: Resear
       <div className="flex items-center gap-1.5 border-b border-edge px-2.5 py-1.5">
         <button
           onClick={() => setKind("quick")}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${kind === "quick" ? "bg-brand-500/20 text-brand-400" : "text-ink-mute hover:text-ink"}`}
+          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "quick" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"}`}
         >
           <FileSearch size={11} /> Snapshot
         </button>
         <button
           onClick={() => setKind("deep")}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${kind === "deep" ? "bg-brand-500/20 text-brand-400" : "text-ink-mute hover:text-ink"}`}
+          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "deep" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"}`}
         >
           <FileText size={11} /> Deep dive
         </button>
@@ -113,7 +113,7 @@ export function ResearchView({ symbol, timeframe, structuredContextKey }: Resear
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && !note && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <Loader2 size={18} className="animate-spin text-brand-400" />
+            <Loader2 size={18} className="animate-spin text-ink-faint" />
             <p className="text-[11px] text-ink-mute">
               Researching {symbol} — {kind === "quick" ? "snapshot" : "deep dive"}…
             </p>
@@ -122,7 +122,7 @@ export function ResearchView({ symbol, timeframe, structuredContextKey }: Resear
         )}
 
         {error && (
-          <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-[10px] text-rose-300">
+          <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-[10px] text-rose-500">
             {error}
           </div>
         )}

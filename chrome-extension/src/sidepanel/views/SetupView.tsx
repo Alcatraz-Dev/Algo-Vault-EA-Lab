@@ -45,7 +45,7 @@ export function SetupView() {
                 key={p.id}
                 onClick={() => update({ personaId: p.id })}
                 className={`rounded-lg border px-2.5 py-2 text-left ${
-                  prefs.personaId === p.id ? "border-brand-500/50 bg-brand-500/10" : "border-edge bg-card hover:border-brand-500/25"
+                  prefs.personaId === p.id ? "border-brand-500/50 bg-brand-500/10" : "border-edge bg-card hover:border-neutral-500"
                 }`}
               >
                 <span className="flex items-center gap-1.5 text-[11px] font-semibold text-ink">
@@ -91,7 +91,7 @@ export function SetupView() {
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">Data</p>
         <button
           onClick={wipeHistory}
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-500/25 bg-rose-500/10 py-2 text-[11px] font-medium text-rose-300 hover:bg-rose-500/20"
+          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-rose-500/25 bg-rose-500/10 py-2 text-[11px] font-medium text-rose-500 hover:bg-rose-500/20"
         >
           <Trash2 size={12} /> {wiped ? "Cleared!" : "Clear copilot threads, memory & research cache"}
         </button>

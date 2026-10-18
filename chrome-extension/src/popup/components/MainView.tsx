@@ -147,12 +147,12 @@ export function MainView({
                 if (e.key === "Escape") { setInputValue(symbol || ""); setEditing(false); }
               }}
               placeholder="XAUUSD"
-              className="w-32 rounded border border-brand-500/40 bg-raised px-2 py-0.5 font-mono text-sm text-ink outline-none"
+              className="w-32 rounded border border-edge bg-raised px-2 py-0.5 font-mono text-sm text-ink outline-none focus:border-brand-500"
             />
           ) : (
             <button
               onClick={() => { setInputValue(symbol || ""); setEditing(true); }}
-              className="flex items-center gap-1 rounded px-1 py-0.5 font-mono text-sm font-semibold text-ink transition-colors hover:text-brand-400"
+              className="flex items-center gap-1 rounded px-1 py-0.5 font-mono text-sm font-semibold text-ink transition-colors hover:text-ink"
               title="Change symbol"
             >
               {symbol || "No symbol"}
@@ -232,7 +232,7 @@ export function MainView({
                 <ul className="mt-1.5 space-y-0.5">
                   {setup.reasons.slice(0, 3).map((r, i) => (
                     <li key={i} className="flex items-start gap-1 text-[9px] leading-snug text-ink-mute">
-                      <span className="mt-[3px] h-0.5 w-0.5 shrink-0 rounded-full bg-brand-500" />
+                      <span className="mt-[3px] h-0.5 w-0.5 shrink-0 rounded-full bg-ink-faint" />
                       {r}
                     </li>
                   ))}
@@ -279,7 +279,7 @@ export function MainView({
               3 free signals per day — pick 3 symbols, get entry, SL &amp; 3 targets
             </span>
           </span>
-          <ChevronRight size={14} className="shrink-0 text-brand-400" />
+          <ChevronRight size={14} className="shrink-0 text-ink-faint" />
         </button>
 
         <div className="grid grid-cols-3 gap-2">
@@ -290,13 +290,13 @@ export function MainView({
               className={`group flex flex-col items-center gap-1.5 rounded-lg border p-3 transition-all ${
                 a.accent
                   ? "border-brand-500/30 bg-brand-500/10 hover:bg-brand-500/20"
-                  : "border-edge bg-card hover:border-brand-500/25 hover:bg-raised"
+                  : "border-edge bg-card hover:border-neutral-500 hover:bg-raised"
               }`}
             >
-              <span className={a.accent ? "text-brand-400" : "text-ink-mute group-hover:text-brand-400 transition-colors"}>
+              <span className={a.accent ? "text-brand-500" : "text-ink-mute group-hover:text-ink transition-colors"}>
                 {a.icon}
               </span>
-              <span className={`text-[10px] font-medium ${a.accent ? "text-brand-100" : "text-ink-mute group-hover:text-ink"} transition-colors`}>
+              <span className={`text-[10px] font-medium ${a.accent ? "text-ink" : "text-ink-mute group-hover:text-ink"} transition-colors`}>
                 {a.label}
               </span>
             </button>

@@ -135,7 +135,7 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
             <button
               onClick={suggestTargets}
               disabled={!calc.slValid}
-              className="rounded border border-brand-500/30 bg-brand-500/10 px-2 py-0.5 text-[9px] font-semibold text-brand-400 transition-colors hover:bg-brand-500/20 disabled:opacity-30"
+              className="rounded border border-edge bg-raised px-2 py-0.5 text-[9px] font-semibold text-ink-mute transition-colors hover:text-ink disabled:opacity-30"
             >
               Suggest 2R / 3.5R / 5R
             </button>

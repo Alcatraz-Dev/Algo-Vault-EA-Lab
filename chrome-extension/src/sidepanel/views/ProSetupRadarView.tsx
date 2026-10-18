@@ -163,7 +163,7 @@ function SetupCard({ setup, onAnalyze, onBacktest, onPrepareTrade, onDismiss }: 
         <div className="w-px bg-edge/50" />
         <button
           onClick={() => onAnalyze(setup)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-brand-400 hover:text-brand-300 hover:bg-brand-500/5 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors"
         >
           <Zap size={10} /> Analyze
         </button>
@@ -263,11 +263,9 @@ export function ProSetupRadarView({
 
   if (loading && setups.length === 0) {
     return (
-      <div className="flex h-48 flex-col items-center justify-center gap-3">
-        <div className="relative flex h-10 w-10 items-center justify-center">
-          <div className="absolute inset-0 rounded-full border-2 border-brand-500/30 animate-ping" />
-          <Radar size={18} className="text-brand-500" />
-        </div>
+      <div className="flex h-48 flex-col items-center justify-center gap-3">          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-edge bg-raised">
+            <Radar size={18} className="text-ink-mute" />
+          </div>
         <p className="text-[10px] text-ink-mute">Scanning for setups…</p>
       </div>
     );
@@ -278,10 +276,10 @@ export function ProSetupRadarView({
       {/* toolbar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-edge/50">
         <div className="flex items-center gap-1.5">
-          <Radar size={12} className="text-brand-500" />
+          <Radar size={12} className="text-ink-mute" />
           <span className="text-xs font-semibold">Setup Radar</span>
           {activeCount > 0 && (
-            <span className="rounded-full bg-brand-500/20 px-1.5 py-0.5 text-[9px] font-semibold text-brand-300">
+            <span className="rounded-full bg-raised border border-edge px-1.5 py-0.5 text-[9px] font-semibold text-ink-mute">
               {activeCount} active
             </span>
           )}

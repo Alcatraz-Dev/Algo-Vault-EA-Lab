@@ -75,7 +75,7 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
       {/* Header */}
       <div className="flex items-center justify-between border-b border-edge/60 pb-2">
         <div className="flex items-center space-x-2">
-          <CpuIcon className="w-4 h-4 text-brand-400" />
+          <CpuIcon className="w-4 h-4 text-ink-mute" />
           <span className="font-semibold text-sm tracking-wide">AI Strategy Studio</span>
         </div>
         <div className="flex bg-raised rounded p-0.5 border border-edge/60">
@@ -144,7 +144,7 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
                 <div className="flex items-center space-x-1.5">
                   <button
                     onClick={() => copyCode(currentStrategy.code)}
-                    className="bg-raised border border-edge hover:border-brand-500/50 px-2 py-1 rounded text-[10px] text-ink flex items-center space-x-1 transition-colors"
+                    className="bg-raised border border-edge hover:border-neutral-500 px-2 py-1 rounded text-[10px] text-ink flex items-center space-x-1 transition-colors"
                   >
                     {copied ? (
                       <CheckIcon className="w-3 h-3 text-emerald-400" />
@@ -184,7 +184,7 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
               )}
 
               <div className="relative">
-                <pre className="bg-raised border border-edge/80 rounded p-2.5 text-[10px] font-mono text-emerald-300 max-h-[180px] overflow-auto whitespace-pre-wrap">
+                <pre className="bg-raised border border-edge/80 rounded p-2.5 text-[10px] font-mono text-ink max-h-[180px] overflow-auto whitespace-pre-wrap">
                   {currentStrategy.code}
                 </pre>
               </div>
@@ -218,7 +218,7 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
                     </button>
                     <button
                       onClick={() => handleHandoff(strat.id)}
-                      className="px-2 py-0.5 bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 rounded text-[10px] font-medium flex items-center space-x-1"
+                      className="px-2 py-0.5 border border-edge bg-raised text-ink-mute hover:text-ink rounded text-[10px] font-medium flex items-center space-x-1 transition-colors"
                     >
                       <ExternalLinkIcon className="w-3 h-3" />
                       <span>Backtest</span>

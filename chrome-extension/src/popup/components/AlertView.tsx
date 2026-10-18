@@ -118,10 +118,10 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
       <div className="flex items-center justify-between border-b border-edge px-3 py-2">
         <div className="flex items-center gap-2">
           <BackButton onClick={onBack} />
-          <Bell size={13} className="text-brand-400" />
+          <Bell size={13} className="text-ink-mute" />
           <span className="text-xs font-semibold text-ink">
             Alerts
-            <span className="ml-1.5 font-mono text-[10px] text-brand-400">
+            <span className="ml-1.5 font-mono text-[10px] text-ink">
               {displaySymbol} · {tf}
             </span>
           </span>
@@ -136,7 +136,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
           </button>
           <button
             onClick={() => { setShowForm((v) => !v); setError(null); }}
-            className="flex items-center gap-1 rounded bg-brand-500/20 px-2 py-1 text-[10px] font-semibold text-brand-400 transition-colors hover:bg-brand-500/30"
+            className="flex items-center gap-1 rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
           >
             <Plus size={11} />
             New
@@ -208,7 +208,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && (
           <div className="flex items-center justify-center py-10">
-            <Loader2 size={18} className="animate-spin text-brand-400" />
+            <Loader2 size={18} className="animate-spin text-ink-faint" />
           </div>
         )}
         {!loading && alerts.length === 0 && (
@@ -219,7 +219,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
             </p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-1 rounded bg-brand-500/20 px-3 py-1.5 text-[10px] font-semibold text-brand-400 hover:bg-brand-500/30"
+              className="mt-1 rounded border border-edge bg-raised px-3 py-1.5 text-[10px] font-semibold text-ink-mute transition-colors hover:text-ink"
             >
               + New alert
             </button>
@@ -237,12 +237,14 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
                   · {a.type.replace(/_/g, " ")}
                 </span>
                 {a.targetPrice != null && (
-                  <span className="text-brand-400"> @ {a.targetPrice}</span>
+                  <span className="text-ink"> @ {a.targetPrice}</span>
                 )}
               </p>
               <p className="mt-0.5 truncate text-[9px] text-ink-faint">
                 {a.timeframe} · {new Date(a.createdAt).toLocaleDateString()}
-                {a.triggered ? " · ✓ triggered" : ""}
+                {a.triggered && (
+                  <span> · <CheckCircle2 size={8} className="mb-px inline text-emerald-400" /> triggered</span>
+                )}
               </p>
             </div>
             <button

@@ -104,7 +104,7 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
           </button>
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1 rounded bg-brand-500/20 px-2 py-1 text-[10px] font-semibold text-brand-400"
+            className="flex items-center gap-1 rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
           >
             <Plus size={11} /> New
           </button>
@@ -152,7 +152,7 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
         </div>
       )}
 
-      {error && <p className="border-b border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-[10px] text-rose-300">{error}</p>}
+      {error && <p className="border-b border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-[10px] text-rose-500">{error}</p>}
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {alerts.length === 0 && !loading && (
@@ -164,8 +164,7 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
           <div key={a.id} className="mb-1.5 flex items-center gap-2 rounded-lg border border-edge bg-card px-2.5 py-2">
             <div className="min-w-0 flex-1">
               <p className="truncate font-mono text-[11px] font-semibold text-ink">
-                {a.symbol} <span className="font-sans font-normal text-ink-mute">· {a.type.replace(/_/g, " ")}</span>
-                {a.targetPrice != null && <span className="text-brand-400"> @ {a.targetPrice}</span>}
+                {a.symbol} <span className="font-sans font-normal text-ink-mute">· {a.type.replace(/_/g, " ")}</span>                  {a.targetPrice != null && <span className="text-ink"> @ {a.targetPrice}</span>}
               </p>
               <p className="truncate text-[9px] text-ink-faint">
                 {a.timeframe} · {new Date(a.createdAt).toLocaleDateString()} {a.triggered ? "· triggered" : ""}

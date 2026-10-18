@@ -229,7 +229,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
             {!showManual ? (
               <button
                 onClick={() => setShowManual(true)}
-                className="mt-2 text-[10px] text-brand-400 hover:text-violet-300"
+                className="mt-2 text-[10px] text-ink-mute hover:text-ink"
               >
                 Enter symbol manually
               </button>
@@ -247,7 +247,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
                   placeholder="TF"
                   className="w-12 bg-neutral-500/10 border border-edge rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
                 />
-                <button onClick={handleManualSubmit} className="px-2 py-0.5 text-[10px] bg-brand-500/20 text-brand-400 rounded">Go</button>
+                <button onClick={handleManualSubmit} className="rounded bg-brand-500 px-2 py-0.5 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400">Go</button>
               </div>
             )}
           </div>
@@ -261,8 +261,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
             {suggestions.map((s) => (
               <button
                 key={s}
-                onClick={() => send(s)}
-                className="text-left text-[11px] px-3 py-2 rounded-lg border border-edge bg-white/[0.02] text-ink-mute hover:bg-brand-500/10 hover:border-brand-500/20 hover:text-brand-400 transition-all"
+                onClick={() => send(s)}                  className="text-left text-[11px] px-3 py-2 rounded-lg border border-edge text-ink-mute hover:bg-raised hover:border-neutral-500 hover:text-ink transition-colors"
               >
                 {s}
               </button>
@@ -272,7 +271,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
         {messages.map((msg, i) => (
           <div key={`${i}-${msg.timestamp}`} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-neutral-500/10 text-ink"}`}>
+            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "border border-edge bg-raised text-ink" : "bg-neutral-500/10 text-ink"}`}>
               {msg.role === "assistant" ? <Markdown content={msg.content} /> : msg.content}
               {msg.truncated && (
                 <div className="mt-2 pt-2 border-t border-amber-500/20 flex items-center gap-1">
@@ -289,7 +288,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
         {loading && (
           <div className="flex justify-start">
             <div className="bg-neutral-500/10 rounded-lg px-3 py-2 flex items-center gap-2">
-              <Loader2 size={12} className="animate-spin text-brand-400" />
+              <Loader2 size={12} className="animate-spin text-ink-faint" />
               <span className="text-[11px] text-ink-mute">Thinking...</span>
             </div>
           </div>
@@ -312,7 +311,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="p-1.5 rounded-lg bg-brand-500/20 text-brand-400 hover:bg-brand-500/30 disabled:opacity-30 transition-colors"
+            className="p-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
           >
             <Send size={14} />
           </button>
@@ -337,12 +336,13 @@ function addressContext(
 
 function ContextStatusBadge({ status, age }: { status: ContextStatus; age: number | null }) {
   const config = {
-    live: { color: "text-emerald-400", label: "● Live Context" },
-    stale: { color: "text-amber-400", label: "◐ Stale Context" },
-    unavailable: { color: "text-rose-400", label: "⚠ No Context" },
+    live: { color: "text-emerald-400", dot: "bg-emerald-400", label: "Live Context" },
+    stale: { color: "text-amber-400", dot: "bg-amber-400", label: "Stale Context" },
+    unavailable: { color: "text-rose-400", dot: "bg-rose-400", label: "No Context" },
   };
   return (
-    <span className={`text-[9px] ${config[status].color} font-semibold`}>
+    <span className={`flex items-center gap-1 text-[9px] ${config[status].color} font-semibold`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${config[status].dot}`} />
       {config[status].label}
       {age != null && status === "live" ? ` · ${formatAge(age)} old` : ""}
     </span>

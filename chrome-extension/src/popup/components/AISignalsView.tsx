@@ -133,7 +133,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
       {/* header */}
       <div className="flex items-center justify-between border-b border-edge px-3 py-2">
         <span className="flex items-center gap-1.5 text-xs font-medium text-ink">
-          <Sparkles size={13} className="text-brand-400" /> AI Signals
+          <Sparkles size={13} className="text-ink-mute" /> AI Signals
         </span>
         <span className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${quota.remaining > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
           {quota.remaining}/{quota.limit} free today
@@ -170,7 +170,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
                 <button
                   onClick={() => addSymbol(input)}
                   disabled={!input.trim()}
-                  className="rounded-lg bg-brand-500/20 px-3 text-[11px] font-semibold text-brand-400 hover:bg-brand-500/30 disabled:opacity-30"
+                  className="rounded-lg bg-brand-500 px-3 text-[11px] font-semibold text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
                 >
                   Add
                 </button>
@@ -181,7 +181,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
                     <button
                       key={s}
                       onClick={() => addSymbol(s)}
-                      className="rounded border border-edge px-1.5 py-0.5 font-mono text-[9px] text-ink-faint hover:border-brand-500/40 hover:text-brand-400"
+                      className="rounded border border-edge px-1.5 py-0.5 font-mono text-[9px] text-ink-faint hover:border-neutral-500 hover:text-ink transition-colors"
                     >
                       + {s}
                     </button>
@@ -262,7 +262,7 @@ function SignalCard({ signal: s }: { signal: DailySignal }) {
         <div className="border-t border-white/5 pt-1.5">
           {s.setup && (
             <p className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-wider text-ink-mute">
-              <Target size={9} className="text-brand-400" /> {s.setup}
+              <Target size={9} className="text-ink-mute" /> {s.setup}
             </p>
           )}
           {s.reasoning && <p className="mt-0.5 text-[9px] leading-snug text-ink-faint">{s.reasoning}</p>}

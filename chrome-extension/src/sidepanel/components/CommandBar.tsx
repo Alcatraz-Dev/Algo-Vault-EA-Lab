@@ -161,23 +161,23 @@ export const COMMANDS: CommandSpec[] = [
 ];
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  Sparkles: <Sparkles size={14} className="text-brand-400" />,
-  SearchX: <SearchX size={14} className="text-amber-400" />,
-  ClipboardList: <ClipboardList size={14} className="text-emerald-400" />,
-  History: <History size={14} className="text-sky-400" />,
-  HeartPulse: <HeartPulse size={14} className="text-rose-400" />,
-  ScanEye: <ScanEye size={14} className="text-violet-400" />,
-  Layers: <Layers size={14} className="text-indigo-400" />,
-  Bell: <Bell size={14} className="text-yellow-400" />,
-  Wand2: <Wand2 size={14} className="text-purple-400" />,
-  Cpu: <Cpu size={14} className="text-teal-400" />,
-  FlaskConical: <FlaskConical size={14} className="text-pink-400" />,
+  Sparkles: <Sparkles size={14} className="text-ink-mute" />,
+  SearchX: <SearchX size={14} className="text-ink-mute" />,
+  ClipboardList: <ClipboardList size={14} className="text-ink-mute" />,
+  History: <History size={14} className="text-ink-mute" />,
+  HeartPulse: <HeartPulse size={14} className="text-ink-mute" />,
+  ScanEye: <ScanEye size={14} className="text-ink-mute" />,
+  Layers: <Layers size={14} className="text-ink-mute" />,
+  Bell: <Bell size={14} className="text-ink-mute" />,
+  Wand2: <Wand2 size={14} className="text-ink-mute" />,
+  Cpu: <Cpu size={14} className="text-ink-mute" />,
+  FlaskConical: <FlaskConical size={14} className="text-ink-mute" />,
   ExternalLink: <ExternalLink size={14} className="text-ink-mute" />,
-  Activity: <Activity size={14} className="text-cyan-400" />,
-  MessageSquareText: <MessageSquareText size={14} className="text-brand-400" />,
-  Globe2: <Globe2 size={14} className="text-sky-400" />,
-  PencilLine: <PencilLine size={14} className="text-amber-400" />,
-  XCircle: <XCircle size={14} className="text-rose-400" />,
+  Activity: <Activity size={14} className="text-ink-mute" />,
+  MessageSquareText: <MessageSquareText size={14} className="text-ink-mute" />,
+  Globe2: <Globe2 size={14} className="text-ink-mute" />,
+  PencilLine: <PencilLine size={14} className="text-ink-mute" />,
+  XCircle: <XCircle size={14} className="text-ink-mute" />,
 };
 
 export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Props) {
@@ -238,7 +238,7 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
       >
         {/* search input */}
         <div className="flex items-center gap-2 border-b border-edge px-3 py-2.5 bg-raised/50">
-          <Search size={14} className="text-brand-400 shrink-0" />
+          <Search size={14} className="text-ink-faint shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -255,7 +255,7 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
 
         {/* context indicator */}
         <div className="flex items-center justify-between px-3 py-1.5 bg-black/20 border-b border-edge/30 text-[9px] text-ink-faint">
-          <span>Active Chart: <span className="font-mono text-brand-300 font-medium">{symbol || "N/A"} · {timeframe}</span></span>
+          <span>Active Chart: <span className="font-mono text-ink font-medium">{symbol || "N/A"} · {timeframe}</span></span>
           <span>{filtered.length} action{filtered.length !== 1 ? "s" : ""}</span>
         </div>
 
@@ -292,7 +292,7 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
                     </p>
                   </div>
                   {active && (
-                    <ChevronRight size={12} className="text-brand-400 shrink-0" />
+                    <ChevronRight size={12} className="text-ink-faint shrink-0" />
                   )}
                 </button>
               );

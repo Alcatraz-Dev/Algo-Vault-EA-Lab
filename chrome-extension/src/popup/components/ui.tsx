@@ -146,14 +146,13 @@ export function Label({
   );
 }
 
-type AlertVariant = "default" | "success" | "error" | "warning" | "brand";
+type AlertVariant = "default" | "success" | "error" | "warning";
 
 const alertVariants: Record<AlertVariant, { icon: React.ReactNode; cls: string }> = {
   default: { icon: <AlertCircle size={13} />, cls: "border-edge bg-raised text-ink-mute" },
   success: { icon: <CheckCircle2 size={13} />, cls: "border-emerald-500/25 bg-emerald-500/10 text-emerald-500" },
   error: { icon: <AlertCircle size={13} />, cls: "border-rose-500/25 bg-rose-500/10 text-rose-500" },
   warning: { icon: <AlertCircle size={13} />, cls: "border-amber-500/25 bg-amber-500/10 text-amber-600" },
-  brand: { icon: <AlertCircle size={13} />, cls: "border-brand-500/30 bg-brand-500/10 text-brand-600" },
 };
 
 export function Alert({
@@ -254,7 +253,7 @@ export function MiniButton({
   children: React.ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: "neutral" | "danger" | "success" | "brand";
+  variant?: "neutral" | "danger" | "success";
   className?: string;
   title?: string;
 }) {
@@ -262,7 +261,6 @@ export function MiniButton({
     neutral: "border-edge bg-raised text-ink-mute hover:bg-edge hover:text-ink",
     danger: "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20",
     success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20",
-    brand: "border-brand-500/30 bg-brand-500/10 text-brand-400 hover:bg-brand-500/20",
   }[variant];
   return (
     <button
@@ -479,7 +477,7 @@ export function MiniBar({
   pct, tone = "bullish", label,
 }: {
   pct: number; // 0..100
-  tone?: "bullish" | "bearish" | "neutral" | "brand";
+  tone?: "bullish" | "bearish" | "neutral" | "brand" | "warning";
   label?: React.ReactNode;
 }) {
   const safe = Math.max(0, Math.min(100, pct));
@@ -487,6 +485,7 @@ export function MiniBar({
     tone === "bullish" ? "bg-emerald-400"
     : tone === "bearish" ? "bg-rose-400"
     : tone === "brand" ? "bg-brand-400"
+    : tone === "warning" ? "bg-amber-400"
     : "bg-neutral-400";
   return (
     <div>
@@ -510,7 +509,7 @@ export function Feedback({ kind, msg }: { kind: "success" | "error" | "info"; ms
   const map = {
     success: { icon: <CheckCircle2 size={13} />, cls: "border-emerald-500/25 bg-emerald-500/10 text-emerald-400" },
     error: { icon: <AlertCircle size={13} />, cls: "border-rose-500/25 bg-rose-500/10 text-rose-400" },
-    info: { icon: <AlertCircle size={13} />, cls: "border-amber-500/25 bg-amber-500/10 text-amber-400" },
+    info: { icon: <AlertCircle size={13} />, cls: "border-edge bg-raised text-ink-mute" },
   };
   return (
     <div className={`flex items-start gap-2 rounded-lg border px-3 py-2 text-[11px] leading-snug ${map[kind].cls}`}>

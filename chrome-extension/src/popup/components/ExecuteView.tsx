@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowDownUp, Crosshair, RefreshCw, RotateCcw, Wallet } from "lucide-react";
+import { ArrowDownUp, Crosshair, RefreshCw, RotateCcw, Wallet, X } from "lucide-react";
 import { getGatewayStatus, getRiskAnalysis } from "@/api/algovault";
 import {
   newClientRequestId,
@@ -411,14 +411,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         <div className="rounded-lg border border-edge bg-card p-2.5">
           <div className="mb-1.5 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
-              <Wallet size={11} className="text-brand-400" />
+              <Wallet size={11} />
               Account capital
             </div>
             {gatewayReady && (
               <button
                 onClick={() => void refreshCapital()}
                 disabled={capitalLoading}
-                className="flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:border-brand-500/40 hover:text-brand-400 disabled:opacity-40"
+                className="flex items-center gap-1 rounded border border-edge bg-raised px-1.5 py-0.5 text-[9px] font-medium text-ink-mute transition-colors hover:border-neutral-500 hover:text-ink disabled:opacity-40"
               >
                 <RefreshCw size={9} className={capitalLoading ? "animate-spin" : ""} />
                 Refresh
@@ -610,9 +610,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 <span className="h-2 w-2 animate-pulse-dot rounded-full bg-amber-400" />
               )}
               <span>
-                {outcome.status === "REJECTED" || outcome.status === "FAILED"
-                  ? `✗ ${outcome.message}`
-                  : outcome.message}
+                {outcome.message}
                 {outcome.status === "SUCCEEDED" && outcome.result?.filledPrice != null
                   ? ` @ ${outcome.result.filledPrice}`
                   : ""}
@@ -691,10 +689,10 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5 text-xs font-bold text-ink">
                 <span className="h-1.5 w-1.5 animate-pulse-dot rounded-full bg-rose-400" />
-                ⚠ Review — REAL order
+                Review — REAL order
               </span>
               <MiniButton onClick={() => setShowConfirm(false)} variant="neutral" title="Close">
-                ✕
+                <X size={10} />
               </MiniButton>
             </div>
 

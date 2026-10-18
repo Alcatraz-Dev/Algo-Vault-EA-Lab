@@ -360,7 +360,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         <ViewHeader title="Demo Trades" sub="Test logic — simulated account" />
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           <div className="flex flex-col items-center gap-2 pt-6 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-brand-500/30 bg-brand-500/10 text-brand-400">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-edge bg-raised text-ink-mute">
               <FlaskConical size={22} />
             </span>
             <p className="text-sm font-semibold text-ink">Practice with test capital</p>
@@ -385,7 +385,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
                 onClick={() => setCapitalInput(String(v))}
                 className={`rounded-md border px-2.5 py-1 font-mono text-[10px] transition-colors ${
                   capitalInput === String(v)
-                    ? "border-brand-500/50 bg-brand-500/15 text-brand-400 shadow-[inset_0_0_0_1px_rgba(255,77,0,0.25)]"
+                    ? "border-neutral-500 bg-raised text-ink"
                     : "border-edge bg-card text-ink-mute hover:bg-raised hover:text-ink"
                 }`}
               >
@@ -423,7 +423,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               onOpenChart={() => window.open("https://www.tradingview.com/", "_blank", "noopener,noreferrer")}
               compact
             />
-            <span className="rounded border border-brand-500/30 bg-brand-500/10 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-brand-400">
+            <span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider text-ink-mute">
               Simulated
             </span>
             {feedOnline && (
@@ -439,7 +439,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
         {/* account strip */}
         <div className="rounded-lg border border-edge bg-card p-2.5">
           <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
-            <Wallet size={11} className="text-brand-400" />
+            <Wallet size={11} />
             Test account
             <span className="ml-auto normal-case">
               {feedOnline ? (
@@ -496,7 +496,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
               </div>
               <MiniBar
                 pct={stats.winRate * 100}
-                tone={stats.winRate >= 0.5 ? "bullish" : stats.winRate >= 0.4 ? "brand" : "bearish"}
+                tone={stats.winRate >= 0.5 ? "bullish" : stats.winRate >= 0.4 ? "warning" : "bearish"}
                 label={
                   <span className="flex w-full justify-between">
                     <span>Win rate</span>
@@ -880,7 +880,7 @@ function PositionRow({
       : (p.side === "BUY" ? p.entry - ref.ask : ref.bid - p.entry);
   const waits = triggerDist > 0;
   return (
-    <div className={`flex items-center gap-2 rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-all duration-200 ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
+    <div className={`flex items-center gap-2 rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
       <span className={`text-[10px] font-bold ${p.side === "BUY" ? "text-emerald-400" : "text-rose-400"}`}>
         {orderAction(p.kind, p.side)}
       </span>
@@ -898,8 +898,7 @@ function PositionRow({
       </span>
       <button
         onClick={onDuplicate}
-        title="Duplicate this order"
-        className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-brand-500/40 hover:text-brand-400"
+        title="Duplicate this order"          className="rounded border border-edge bg-raised p-1 text-ink-mute transition-colors hover:border-neutral-500 hover:text-ink"
       >
         <Copy size={10} />
       </button>
@@ -936,14 +935,14 @@ function OpenPositionRow({
     ? (p.side === "BUY" ? ref.bid - p.sl : p.sl - ref.ask)
     : null;
   return (
-    <div className={`rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-all duration-200 ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
+    <div className={`rounded-lg border border-edge bg-card px-2.5 py-1.5 transition-colors ${newlyPlaced ? "animate-fade-in border-brand-500/40" : ""}`}>
       <div className="flex items-center gap-2">
         <span className={`text-[10px] font-bold ${dirClasses[p.side === "BUY" ? "bullish" : "bearish"]}`}>{p.side}</span>
         <span className="font-mono text-[10px] text-ink-mute">{p.lots} @ {fmt(p.filledAt ?? p.entry)}</span>
         <span className="ml-auto flex items-center gap-1.5">
           {distToSl != null && (
             <span className={`rounded border px-1 py-px font-mono text-[8px] ${distToSl <= 0 ? "border-rose-500/40 bg-rose-500/15 text-rose-400" : distToSl < slDist * 0.2 ? "border-amber-500/40 bg-amber-500/15 text-amber-400" : "border-edge text-ink-faint"}`}>
-              {distToSl <= 0 ? "⚠ past SL" : `Δ ${fmt(distToSl, 5)}`}
+              {distToSl <= 0 ? "past SL" : `Δ ${fmt(distToSl, 5)}`}
             </span>
           )}
           <span className={`font-mono text-[10px] font-bold tabular-nums ${pnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
@@ -971,7 +970,7 @@ function OpenPositionRow({
         >
           <ShieldCheck size={9} /> BE
         </MiniButton>
-        <MiniButton onClick={onDuplicate} variant="brand" title="Duplicate this position">
+        <MiniButton onClick={onDuplicate} title="Duplicate this position">
           <Copy size={9} /> Dup
         </MiniButton>
         <MiniButton onClick={onClose} variant="danger" className="ml-auto" title={`${p.filledAt ? "Close at market" : "Cancel pending"}`}>
@@ -999,7 +998,7 @@ function HistoryRow({
         <button
           onClick={onDuplicate}
           title="Duplicate this trade"
-          className="rounded border border-edge bg-raised p-0.5 text-ink-faint opacity-0 transition-colors hover:border-brand-500/40 hover:text-brand-400 group-hover:opacity-100"
+          className="rounded border border-edge bg-raised p-0.5 text-ink-faint opacity-0 transition-colors hover:border-neutral-500 hover:text-ink group-hover:opacity-100"
         >
           <Copy size={9} />
         </button>

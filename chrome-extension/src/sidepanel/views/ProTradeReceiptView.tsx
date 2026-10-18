@@ -45,8 +45,8 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
   const confirmed = receipt.status === "FILLED" || receipt.status === "PARTIALLY_FILLED";
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-3 space-y-3 text-xs">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+    <div className="bg-card border border-edge rounded-lg p-3 space-y-3 text-xs">
+      <div className="flex items-center justify-between border-b border-edge pb-2">
         <div
           className={`flex items-center gap-1.5 font-semibold uppercase tracking-wider text-[11px] ${
             confirmed ? "text-emerald-400" : "text-amber-400"
@@ -66,80 +66,80 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
         </span>
       </div>
 
-      <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-2 font-mono text-[11px]">
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">ORDER</span>
+      <div className="bg-base/80 p-3 rounded-lg border border-edge space-y-2 font-mono text-[11px]">
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">ORDER</span>
           <span className="font-bold">
             {receipt.side} {receipt.quantity} {receipt.symbol}
           </span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">EXECUTION PRICE</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">EXECUTION PRICE</span>
           <span className="font-bold text-emerald-400">
             {receipt.executionPrice !== null ? receipt.executionPrice : "Not reported by venue"}
           </span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">BROKER TICKET</span>
-          <span className="text-slate-300 text-[10px]">
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">BROKER TICKET</span>
+          <span className="text-ink text-[10px]">
             {receipt.brokerTicket || "Not reported by venue"}
           </span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">ORDER ID</span>
-          <span className="text-slate-300 text-[10px]">{receipt.orderId}</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">ORDER ID</span>
+          <span className="text-ink text-[10px]">{receipt.orderId}</span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">BROKER</span>
-          <span className="text-slate-300 text-[10px]">{receipt.broker}</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">BROKER</span>
+          <span className="text-ink text-[10px]">{receipt.broker}</span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">ACCOUNT</span>
-          <span className="text-slate-300 text-[10px]">{receipt.accountReference}</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">ACCOUNT</span>
+          <span className="text-ink text-[10px]">{receipt.accountReference}</span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">MODE</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">MODE</span>
           <span
             className={`text-[10px] ${
-              receipt.mode === "LIVE" || receipt.mode === "UNKNOWN" ? "text-rose-400" : "text-slate-300"
+              receipt.mode === "LIVE" || receipt.mode === "UNKNOWN" ? "text-rose-400" : "text-ink"
             }`}
           >
             {receipt.mode === "UNKNOWN" ? "MODE NOT REPORTED" : receipt.mode}
           </span>
         </div>
-        <div className="flex justify-between text-slate-200">
-          <span className="text-slate-400 font-sans text-[10px]">TIME</span>
-          <span className="text-slate-300 text-[10px]">{new Date(receipt.timestamp).toLocaleString()}</span>
+        <div className="flex justify-between text-ink">
+          <span className="text-ink-mute font-sans text-[10px]">TIME</span>
+          <span className="text-ink text-[10px]">{new Date(receipt.timestamp).toLocaleString()}</span>
         </div>
         {receipt.strategyName && (
-          <div className="flex justify-between text-slate-200">
-            <span className="text-slate-400 font-sans text-[10px]">STRATEGY</span>
-            <span className="text-slate-300 text-[10px]">{receipt.strategyName}</span>
+          <div className="flex justify-between text-ink">
+            <span className="text-ink-mute font-sans text-[10px]">STRATEGY</span>
+            <span className="text-ink text-[10px]">{receipt.strategyName}</span>
           </div>
         )}
         {receipt.setupId && (
-          <div className="flex justify-between text-slate-200">
-            <span className="text-slate-400 font-sans text-[10px]">SETUP ID</span>
-            <span className="text-slate-300 text-[10px]">{receipt.setupId}</span>
+          <div className="flex justify-between text-ink">
+            <span className="text-ink-mute font-sans text-[10px]">SETUP ID</span>
+            <span className="text-ink text-[10px]">{receipt.setupId}</span>
           </div>
         )}
         {receipt.analysisId && (
-          <div className="flex justify-between text-slate-200">
-            <span className="text-slate-400 font-sans text-[10px]">AI ANALYSIS ID</span>
-            <span className="text-slate-300 text-[10px]">{receipt.analysisId}</span>
+          <div className="flex justify-between text-ink">
+            <span className="text-ink-mute font-sans text-[10px]">AI ANALYSIS ID</span>
+            <span className="text-ink text-[10px]">{receipt.analysisId}</span>
           </div>
         )}
       </div>
 
       {receipt.mode === "UNKNOWN" && (
-        <div className="bg-amber-950/30 border border-amber-500/25 text-amber-300 p-2 rounded text-[11px] flex items-start gap-1.5">
+        <div className="bg-amber-500/10 border border-amber-500/25 text-amber-600 p-2 rounded text-[11px] flex items-start gap-1.5">
           <AlertTriangle size={13} className="text-amber-400 shrink-0 mt-0.5" />
           <span>The account mode was not reported by any source — verify whether this fill affected a live or demo account.</span>
         </div>
       )}
 
       {synced && (
-        <div className="bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 p-2 rounded text-[11px] flex items-center gap-1.5">
+        <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 p-2 rounded text-[11px] flex items-center gap-1.5">
           <Database size={13} className="text-emerald-400 shrink-0" />
           <span>
             Saved to your AlgoVault Trade Journal
@@ -149,7 +149,7 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
       )}
 
       {syncError && (
-        <div className="bg-rose-950/40 border border-rose-500/30 text-rose-300 p-2 rounded text-[11px]">
+        <div className="bg-rose-500/10 border border-rose-500/30 text-rose-500 p-2 rounded text-[11px]">
           {syncError}
         </div>
       )}
@@ -159,7 +159,7 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
           href={tvUrl}
           target="_blank"
           rel="noreferrer"
-          className="py-2 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium flex items-center justify-center gap-1.5 transition-colors"
+          className="py-2 rounded border border-edge bg-raised hover:bg-raised text-ink font-medium flex items-center justify-center gap-1.5 transition-colors"
         >
           <ExternalLink size={12} /> Open in TradingView
         </a>
@@ -167,7 +167,7 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
           href={algovaultUrl}
           target="_blank"
           rel="noreferrer"
-          className="py-2 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium flex items-center justify-center gap-1.5 transition-colors"
+          className="py-2 rounded border border-edge bg-raised hover:bg-raised text-ink font-medium flex items-center justify-center gap-1.5 transition-colors"
         >
           <ExternalLink size={12} /> Open in AlgoVault
         </a>
@@ -180,8 +180,8 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
           onClick={handleSyncToJournal}
           className={`flex-1 py-2 rounded font-medium flex items-center justify-center gap-1.5 transition-colors border ${
             synced
-              ? "bg-slate-800 text-emerald-400 border-slate-700 cursor-default"
-              : "bg-cyan-600 hover:bg-cyan-500 text-white border-cyan-500"
+              ? "bg-raised text-emerald-400 border-edge cursor-default"
+              : "bg-brand-500 hover:bg-brand-400 text-white border-brand-500"
           }`}
         >
           {syncing ? <RefreshCw size={12} className="animate-spin" /> : <Database size={12} />}
@@ -191,7 +191,7 @@ export const ProTradeReceiptView: React.FC<Props> = ({ result, intent, onNewTrad
         <button
           type="button"
           onClick={onNewTrade}
-          className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded font-medium flex items-center gap-1 transition-colors"
+          className="py-2 px-3 bg-raised hover:bg-raised text-ink border border-edge rounded font-medium flex items-center gap-1 transition-colors"
         >
           <span>New Trade</span>
           <ArrowRight size={12} />

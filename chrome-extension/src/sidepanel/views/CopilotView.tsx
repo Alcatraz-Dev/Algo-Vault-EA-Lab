@@ -233,7 +233,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
   }, [enrichedState, structuredContext]);
 
   if (!prefsLoaded) {
-    return <div className="flex h-full items-center justify-center"><Loader2 size={16} className="animate-spin text-brand-400" /></div>;
+    return <div className="flex h-full items-center justify-center"><Loader2 size={16} className="animate-spin text-ink-faint" /></div>;
   }
 
   return (
@@ -275,9 +275,9 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <div className="flex items-center justify-between">
             <button
               onClick={() => setShowMemoryDetails((v) => !v)}
-              className="flex items-center gap-1.5 font-medium text-brand-300 hover:text-brand-200 transition-colors"
+              className="flex items-center gap-1.5 font-medium text-ink-mute hover:text-ink transition-colors"
             >
-              <Brain size={12} className="text-brand-400" />
+              <Brain size={12} className="text-ink-mute" />
               <span>AlgoVault Memory Active</span>
               <span className="text-[9px] text-ink-faint">
                 ({algoVaultMemory.savedStrategiesCount} strats · {algoVaultMemory.activeSetupsCount} setups · {algoVaultMemory.recentAnalysesCount} research)
@@ -293,7 +293,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
                   <div className="mt-1 space-y-1">
                     {algoVaultMemory.similarSavedStrategies.map((s, idx) => (
                       <div key={idx} className="rounded bg-neutral-500/10 p-1.5">
-                        <span className="font-medium text-brand-300">{s.name}</span>
+                        <span className="font-medium text-ink">{s.name}</span>
                         {s.reasons && s.reasons.length > 0 && (
                           <ul className="mt-0.5 list-disc pl-3 text-[9px] text-ink-mute">
                             {s.reasons.map((r, i) => (
@@ -339,7 +339,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <div className="pt-2">
             <div className="mb-3 rounded-lg border border-edge bg-card p-3">
               <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ink">
-                <persona.Icon size={12} className="text-brand-400" /> {persona.name} mode
+                <persona.Icon size={12} className="text-ink-mute" /> {persona.name} mode
               </p>
               <p className="mt-0.5 text-[10px] text-ink-mute">{persona.description}</p>
               <p className="mt-2 text-[9px] leading-relaxed text-ink-faint">
@@ -352,7 +352,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="w-full rounded-lg border border-edge bg-white/[0.02] px-3 py-2 text-left text-[11px] text-ink-mute transition-colors hover:border-brand-500/30 hover:bg-brand-500/10 hover:text-brand-300"
+                  className="w-full rounded-lg border border-edge px-3 py-2 text-left text-[11px] text-ink-mute transition-colors hover:border-neutral-500 hover:bg-raised hover:text-ink"
                 >
                   {p}
                 </button>
@@ -365,7 +365,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${
-                m.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-neutral-500/10 text-ink"
+                m.role === "user" ? "border border-edge bg-raised text-ink" : "bg-neutral-500/10 text-ink"
               }`}
             >
               {m.role === "assistant" ? <Markdown content={m.content} /> : m.content}
@@ -376,7 +376,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
         {loading && (
           <div className="flex justify-start">
             <div className="flex items-center gap-2 rounded-lg bg-neutral-500/10 px-3 py-2">
-              <Loader2 size={12} className="animate-spin text-brand-400" />
+              <Loader2 size={12} className="animate-spin text-ink-faint" />
               <span className="text-[11px] text-ink-mute">{persona.name} is thinking…</span>
             </div>
           </div>
@@ -386,7 +386,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
 
       {/* status / notice strip */}
       {drawnNotice && (
-        <div className="flex items-center gap-1.5 border-t border-edge bg-brand-500/10 px-3 py-1.5 text-[10px] text-brand-300 animate-fade-in">
+        <div className="flex items-center gap-1.5 border-t border-edge bg-raised px-3 py-1.5 text-[10px] text-ink-mute">
           <Palette size={11} /> {drawnNotice}
         </div>
       )}
@@ -407,7 +407,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="rounded-lg bg-brand-500/20 p-2 text-brand-400 transition-colors hover:bg-brand-500/30 disabled:opacity-30"
+            className="rounded-lg bg-brand-500 p-2 text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
           >
             <Send size={14} />
           </button>
@@ -427,9 +427,9 @@ function PersonaPicker({ value, onChange }: { value: PersonaId; onChange: (id: P
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md border border-edge bg-raised px-2 py-1 text-[10px] font-semibold text-ink hover:border-brand-500/40"
+        className="flex items-center gap-1 rounded-md border border-edge bg-raised px-2 py-1 text-[10px] font-semibold text-ink hover:border-neutral-500"
       >
-        <ActiveIcon size={11} className="text-brand-400" /> {active.name}
+        <ActiveIcon size={11} className="text-ink-mute" /> {active.name}
         <ChevronDown size={10} className="text-ink-faint" />
       </button>
       {open && (
