@@ -167,11 +167,14 @@ export function xToTime(x: number, seriesLength: number, lastCandleTime: number,
  *   any ──reset("symbol"|"timeframe")──▶ RESETTING_* ──initialFit()──▶ FITTING
  *   capture()/prependStarted()──▶ RESTORING|PREPENDING ──restore()──▶ evaluated
  *   focus()──▶ FOCUSING ──▶ FOLLOWING_LIVE | USER_PANNED (explicit)
- *   holdPlayhead()──▶ FOCUSING ──▶ USER_PANNED (replay owns the window)
+ *   holdPlayhead()──▶ FOCUSING ──▶ USER_PANNED (replay owns the window:
+ *                       classification is frozen until enterLiveFollow()/reset())
  *
  * While a programmatic phase is in flight (RESETTING_*, FITTING, RESTORING,
  * PREPENDING, FOCUSING) incoming range events update the cached range but do
  * NOT reclassify follow state — the operation itself evaluates exactly once.
+ * While replay owns the viewport (holdPlayhead) no range event reclassifies it
+ * at all: the replay playhead policy decides when the window moves.
  */
 export type ViewportPhase =
     | "INITIAL"
@@ -302,6 +305,16 @@ export class ViewportController {
     private epoch = 0;
     private barCount = 0;
     private following = true;
+    /**
+     * True while bar replay owns the viewport (`holdPlayhead`, cleared by
+     * `enterLiveFollow`/`reset`). Range events, repairs, prepends and explicit
+     * fits must not hand classification back to live follow meanwhile: a
+     * replay-held window deliberately extends past the dataset end, so the
+     * plain live-edge rule would read it as "at the edge" and the next revealed
+     * bar would be re-anchored to the right edge — the endless auto-scroll this
+     * policy exists to prevent.
+     */
+    private replayHold = false;
     private lastRange: LogicalRange | null = null;
     private readonly listeners = new Set<(following: boolean) => void>();
     private readonly toleranceBars: number;
@@ -382,6 +395,7 @@ export class ViewportController {
                 : context === "timeframe"
                     ? "RESETTING_TIMEFRAME"
                     : "INITIAL";
+        this.replayHold = false;
         this.setFollowing(true);
         return this.epoch;
     }
@@ -418,6 +432,8 @@ export class ViewportController {
     // ── live follow ─────────────────────────────────────────────────────────
 
     enterLiveFollow(): void {
+        // The one sanctioned exit from a replay hold, together with reset().
+        this.replayHold = false;
         this.phase = "FOLLOWING_LIVE";
         this.setFollowing(true);
         const ts = this.ts;
@@ -626,20 +642,28 @@ export class ViewportController {
      *
      * Replay deliberately ends up in USER_PANNED: appends then perform zero
      * mutating viewport calls between re-centres, and the chart holds still
-     * even while the dataset grows.
+     * even while the dataset grows. Ownership lasts until `enterLiveFollow()`
+     * or `reset()` — see `replayHold`.
      *
+     * `opts.center` forces the placement (replay start, where the playhead may
+     * already be on screen but pinned near the right edge).
      * `opts.epoch` rejects stale generations after a context reset.
      */
-    holdPlayhead(index: number, opts?: { epoch?: number; marginRatio?: number }): boolean {
+    holdPlayhead(index: number, opts?: { epoch?: number; marginRatio?: number; center?: boolean }): boolean {
         if (opts?.epoch !== undefined && opts.epoch !== this.epoch) return false;
         const ts = this.ts;
         if (!ts || !Number.isFinite(index)) return false;
+        // Replay owns the viewport from its first step, even when that step is
+        // a no-op placement: classification is frozen until the hand-back.
+        this.replayHold = true;
         const visible = ts.getVisibleLogicalRange();
         const bars = Math.max(4, visible ? Math.round(visible.to - visible.from) : FOCUS_HALF_BARS * 2);
         const margin = Math.max(2, Math.round(bars * (opts?.marginRatio ?? PLAYHEAD_RIGHT_MARGIN_RATIO)));
         // Still inside the window with room to spare: the user's view (and the
         // replay's own space) is preserved exactly — no mutating call at all.
-        if (visible && index >= visible.from && index <= visible.to - margin) return false;
+        // `center` forces the placement (replay start, where the playhead may
+        // already be on screen but pinned near the right edge).
+        if (!opts?.center && visible && index >= visible.from && index <= visible.to - margin) return false;
         const half = Math.round(bars / 2);
         const range: LogicalRange = { from: Math.round(index) - half, to: Math.round(index) + half };
         this.phase = "FOCUSING";
@@ -673,6 +697,15 @@ export class ViewportController {
     // ── internals ───────────────────────────────────────────────────────────
 
     private evaluate(range: LogicalRange): void {
+        if (this.replayHold) {
+            // Replay owns the window: whatever produced this range (a user pan,
+            // a repair/prepend compensation, an explicit fit), classification
+            // stays with replay. Live follow only returns via enterLiveFollow()
+            // or reset().
+            this.phase = "USER_PANNED";
+            this.setFollowing(false);
+            return;
+        }
         const atEdge = isNearLiveEdge(range, this.barCount, this.toleranceBars);
         this.phase = atEdge ? "FOLLOWING_LIVE" : "USER_PANNED";
         this.setFollowing(atEdge);

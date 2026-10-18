@@ -13,6 +13,7 @@ import {
     LineSeries,
 } from "lightweight-charts";
 import type { Candle } from "./TradingChart/types";
+import { PLAYHEAD_RIGHT_MARGIN_RATIO } from "@/lib/chart-engine/viewport";
 
 type MarketReplayProps = {
     studies?: string[];
@@ -89,6 +90,31 @@ function subscribeToTheme(callback: () => void) {
 
 function isDarkMode() {
     return document.documentElement.classList.contains("dark");
+}
+
+/**
+ * Replay playhead policy — the shared rule from the chart engine's viewport
+ * controller, applied to this self-contained sandbox chart:
+ *
+ * The newest revealed candle is placed mid-window and the window is then HELD.
+ * While the playhead still has `PLAYHEAD_RIGHT_MARGIN_RATIO` of the window to
+ * its right, no viewport call is made at all, so each revealed bar simply fills
+ * the empty space in front of it instead of dragging the whole chart along (the
+ * endless auto-scroll that `scrollToRealTime()` per step produced). The window
+ * only moves once the playhead crosses into that margin, and it is re-centred at
+ * the current zoom — never fitted.
+ */
+function holdReplayPlayhead(chart: IChartApi | null, barCount: number): void {
+    if (!chart || barCount <= 0) return;
+    const timeScale = chart.timeScale();
+    const playhead = barCount - 1;
+    const visible = timeScale.getVisibleLogicalRange();
+    const span = visible ? Math.round(visible.to - visible.from) : 0;
+    const bars = span > 1 ? span : 120;
+    const margin = Math.max(2, Math.round(bars * PLAYHEAD_RIGHT_MARGIN_RATIO));
+    if (visible && playhead >= visible.from && playhead <= visible.to - margin) return;
+    const half = Math.round(bars / 2);
+    timeScale.setVisibleLogicalRange({ from: playhead - half, to: playhead + half });
 }
 
 function computeEma(values: number[], period: number) {
@@ -189,6 +215,15 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
     useEffect(() => {
         isCutoffModeRef.current = isCutoffMode;
     }, [isCutoffMode]);
+
+    // Mirrors `playing` for the chart-creation closure: the surface is rebuilt
+    // on size/theme changes, and the shift policy must be correct from the
+    // first frame after such a rebuild without making `playing` a create-dep
+    // (which would destroy the chart and the viewport on every play/pause).
+    const playingRef = useRef(playing);
+    useEffect(() => {
+        playingRef.current = playing;
+    }, [playing]);
 
     // Paper Trading state
     const [position, setPosition] = useState<TradePosition | null>(null);
@@ -441,6 +476,10 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
                 secondsVisible: false,
                 rightOffset: 6,
                 barSpacing: 8,
+                // Replay holds the window itself (see holdReplayPlayhead); the
+                // library's own new-bar shift would walk the chart to the end of
+                // the screen on every revealed bar instead.
+                shiftVisibleRangeOnNewBar: !playingRef.current,
             },
             crosshair: {
                 mode: 0,
@@ -505,6 +544,14 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
         };
     }, [width, chartHeight, dark, overlayForStudies]);
 
+    // The native new-bar shift walk is off while playing, so the held window in
+    // `drawSlice` below is not undone by lightweight-charts itself. Declared
+    // before the draw effect so a play/pause toggle applies it first (the
+    // paused view is owned by the fit inside `drawSlice`).
+    useEffect(() => {
+        chartRef.current?.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: !playing } });
+    }, [playing]);
+
     const drawSlice = useCallback(() => {
         const chart = chartRef.current;
         if (!chart) return;
@@ -539,7 +586,9 @@ export default function MarketReplay({ studies = [], strategyType = "indicator",
         });
 
         if (playing) {
-            chart.timeScale().scrollToRealTime();
+            // Held window, not live follow: the revealed bar lands in the empty
+            // space to the right of the playhead instead of scrolling the chart.
+            holdReplayPlayhead(chart, visible.length);
         } else {
             chart.timeScale().fitContent();
         }

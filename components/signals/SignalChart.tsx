@@ -158,7 +158,7 @@ const SPEED_LABEL: Record<number, string> = { 600: "0.5×", 300: "1×", 150: "2�
  * window is re-centred (at the current zoom — never fitted) only when the
  * playhead would otherwise leave the visible range.
  */
-function holdReplayPlayhead(chart: IChartApi | null, barCount: number): void {
+function holdReplayPlayhead(chart: IChartApi | null, barCount: number, opts?: { center?: boolean }): void {
     if (!chart || barCount <= 0) return;
     const timeScale = chart.timeScale();
     const playhead = barCount - 1;
@@ -166,7 +166,7 @@ function holdReplayPlayhead(chart: IChartApi | null, barCount: number): void {
     const span = visible ? Math.round(visible.to - visible.from) : 0;
     const bars = span > 1 ? span : 100;
     const margin = Math.max(2, Math.round(bars * PLAYHEAD_RIGHT_MARGIN_RATIO));
-    if (visible && playhead >= visible.from && playhead <= visible.to - margin) return;
+    if (!opts?.center && visible && playhead >= visible.from && playhead <= visible.to - margin) return;
     const half = Math.round(bars / 2);
     timeScale.setVisibleLogicalRange({ from: playhead - half, to: playhead + half });
 }
@@ -188,6 +188,8 @@ export default function SignalChart({
     const userScrolledRef = useRef(false);
     /** True while this component writes the viewport itself — never a user pan. */
     const programmaticRangeRef = useRef(false);
+    /** First frame of a replay session: the playhead is centred explicitly. */
+    const replayCenteredRef = useRef(false);
     const totalBarsRef = useRef(0);
     const [noData, setNoData] = useState(false);
 
@@ -547,6 +549,18 @@ export default function SignalChart({
         return () => ts.unsubscribeVisibleLogicalRangeChange(handler);
     }, [height, hasMoreHistory, loadingOlder, loadOlder]);
 
+    // ── replay: no native new-bar shift ─────────────────────────────────
+    // `shiftVisibleRangeOnNewBar` (default true) makes lightweight-charts move
+    // the visible range right by the number of appended bars whenever the last
+    // bar is visible — which replay guarantees. That native walk is what kept
+    // sliding the chart to the end of the screen while replaying; it is off for
+    // replay and back on for live. Declared before the replay feed below so the
+    // option is in place before the first replay commit, and keyed on `height`
+    // because the surface is rebuilt when the height changes.
+    useEffect(() => {
+        chartRef.current?.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: !isReplay } });
+    }, [isReplay, height]);
+
     // ── replay data feed: render bars[0..cursor] (TradingView bar replay) ─
     useEffect(() => {
         if (!isReplay) return;
@@ -566,8 +580,12 @@ export default function SignalChart({
         // Preserve the user's viewport when they've scrolled back to browse
         // history; otherwise hold the playhead in the middle of the window so
         // replay runs without the chart auto-scrolling to the end on every bar.
+        // The first frame of a session centres explicitly (the view may already
+        // contain the playhead, pinned near the right edge).
         const chart = chartRef.current;
         const savedRange = userScrolledRef.current ? chart?.timeScale().getVisibleRange() : null;
+        const firstFrame = !replayCenteredRef.current;
+        replayCenteredRef.current = true;
 
         programmaticRangeRef.current = true;
         try {
@@ -582,12 +600,17 @@ export default function SignalChart({
             if (savedRange) {
                 try { chart?.timeScale().setVisibleRange(savedRange); } catch { /* ignore */ }
             } else {
-                holdReplayPlayhead(chart, bars.length);
+                holdReplayPlayhead(chart, bars.length, { center: firstFrame });
             }
         } finally {
             programmaticRangeRef.current = false;
         }
     }, [isReplay, usingFallback, fallbackBars, preBars, replayBars, cursor]);
+
+    // A session ends with replay: the next start centres again.
+    useEffect(() => {
+        if (!isReplay) replayCenteredRef.current = false;
+    }, [isReplay]);
 
     // ── entry / SL / TP price lines ──────────────────────────────────────
     useEffect(() => {

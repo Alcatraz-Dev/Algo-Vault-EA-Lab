@@ -2622,21 +2622,33 @@ export function ProTerminalChart({
     }, [candles, symbol, timeframe, viewport, seriesRenderer]);
 
     // ── replay viewport policy ──────────────────────────────────────────
-    // Replay owns the playhead: the newest revealed candle is centred in the
-    // view and the window is then HELD there, so stepping forward fills the
-    // empty space to the right instead of pinning the bar to the right edge
-    // and dragging the chart along on every bar (the endless auto-scroll that
-    // live follow produces). The controller only re-centres once the playhead
-    // would leave the visible window, and it deliberately leaves live-follow,
-    // so the data commit above performs zero mutating viewport calls while
-    // replay plays. It runs AFTER the data commit, so it places the
-    // freshly-revealed last bar — never the previous one — and hands the
-    // viewport back to live follow the moment replay ends.
+    // 1. The library's own new-bar shift is the thing that actually walked the
+    //    chart during replay: with `shiftVisibleRangeOnNewBar` (default true)
+    //    lightweight-charts moves the visible range right by one bar for every
+    //    appended bar while the last bar is visible — and replay keeps the
+    //    playhead visible by design, so the chart ran to the end of the screen
+    //    on every step no matter what the controller did. Replay turns it off
+    //    (the window then genuinely holds still and each revealed bar lands in
+    //    the empty space to the right of the playhead); live playback restores
+    //    it, and live follow re-asserts the edge itself through the controller.
+    useEffect(() => {
+        chartRef.current?.applyOptions({ timeScale: { shiftVisibleRangeOnNewBar: !replayActive } });
+    }, [replayActive]);
+
+    // 2. Replay owns the playhead: the newest revealed candle is centred in the
+    //    view and the window is then HELD there until the playhead reaches the
+    //    right margin, where it is re-centred at the current zoom (never
+    //    fitted). The controller deliberately leaves live-follow, so the data
+    //    commit above performs zero mutating viewport calls while replay plays.
+    //    It runs AFTER the data commit, so it places the freshly-revealed last
+    //    bar — never the previous one — and hands the viewport back to live
+    //    follow the moment replay ends.
     const replayWasBusyRef = useRef(false);
     useEffect(() => {
         if (replayBusy) {
+            const starting = !replayWasBusyRef.current;
             replayWasBusyRef.current = true;
-            viewport.holdPlayhead(replayCursor - 1);
+            viewport.holdPlayhead(replayCursor - 1, { center: starting });
             return;
         }
         if (replayWasBusyRef.current) {

@@ -582,6 +582,79 @@ check("42. stale generations and detached charts receive no playhead calls", () 
     assertEqual(h.ts.mutatingCalls(), 0, "nothing is written to a detached chart");
 });
 
+check("43. replay start centres the playhead even when it still has room", () => {
+    const h = harness();
+    h.vp.initialFit();
+    // Replay arms on a wide (fitted) view: it already contains the playhead
+    // with "room" to its right, so the per-step hold policy leaves it there —
+    // the playhead would sit near the right edge, not mid-screen. The start of
+    // a session centres explicitly, which is the requested replay opening view.
+    h.setBars(280);
+    h.vp.handleDataMutation(280);
+    assert(!h.vp.holdPlayhead(279), "the plain hold policy leaves a wide view alone");
+    h.ts.resetCalls();
+    assert(h.vp.holdPlayhead(279, { center: true }), "replay start places the newest revealed candle");
+    const range = h.ts.getVisibleLogicalRange();
+    assert(range, "a window is readable");
+    assertEqual(range.to - 279, 279 - range.from, "the playhead sits in the middle of the screen");
+    assertEqual(h.ts.calls.fitContent, 0, "centring keeps the zoom — it never fits");
+    assert(!h.vp.isFollowingLive(), "replay owns the window, not live follow");
+});
+check("44. a held replay window survives an entire run of revealed bars", () => {
+    const h = harness();
+    h.vp.initialFit();
+    h.setBars(280);
+    h.vp.handleDataMutation(280);
+    h.vp.holdPlayhead(279, { center: true });
+    const held = h.ts.getVisibleLogicalRange();
+    h.ts.resetCalls();
+    for (let i = 0; i < 20; i += 1) {
+        h.vp.handleDataAppend(280 + i, 281 + i);
+        h.setBars(281 + i);
+        assert(!h.vp.holdPlayhead(280 + i), "the revealed bar lands inside the held window");
+    }
+    assertEqual(h.ts.mutatingCalls(), 0, "twenty replay steps, zero mutating viewport calls");
+    assertEqual(h.ts.getVisibleLogicalRange(), held, "the window is exactly where it was — no auto-scroll");
+});
+
+check("45. follow classification is frozen while replay owns the window", () => {
+    const h = harness();
+    h.vp.initialFit();
+    h.setBars(280);
+    h.vp.handleDataMutation(280);
+    h.vp.holdPlayhead(279, { center: true });
+    // Anything that fires a range event during replay — a small pan, a repair,
+    // a prepend — must not hand classification back to live follow: the held
+    // window deliberately extends past the dataset end, so the plain live-edge
+    // rule would read it as "at the edge" and the next revealed bar would be
+    // re-anchored to the right edge (the auto-scroll replay must not do).
+    h.ts.userSetsRange({ from: 240, to: 340 });
+    assert(!h.vp.isFollowingLive(), "a range event does not re-engage live follow");
+    assertEqual(h.vp.getPhase(), "USER_PANNED", "replay keeps the viewport");
+    h.ts.resetCalls();
+    h.vp.handleDataAppend(280, 281);
+    h.setBars(281);
+    assertEqual(h.ts.mutatingCalls(), 0, "the next revealed bar performs no viewport call");
+    h.ts.resetCalls();
+    h.vp.enterLiveFollow();
+    assert(h.vp.isFollowingLive(), "the hand-back restores live follow");
+    assertEqual(h.vp.getPhase(), "FOLLOWING_LIVE", "explicit end state");
+});
+check("46. a repair during replay does not re-engage live follow", () => {
+    const h = harness();
+    h.vp.initialFit();
+    h.setBars(280);
+    h.vp.handleDataMutation(280);
+    h.vp.holdPlayhead(279, { center: true });
+    const snapshot = h.vp.capture(makeTimes(280));
+    assert(snapshot, "a snapshot is taken for the repair");
+    h.ts.resetCalls();
+    h.vp.restore(snapshot!, makeTimes(280));
+    assert(!h.vp.isFollowingLive(), "the repair keeps replay in charge");
+    assertEqual(h.vp.getPhase(), "USER_PANNED", "classification stays with replay");
+    assertEqual(h.ts.calls.fitContent, 0, "the repair never fits");
+});
+
 console.log("Symbol / timeframe reset");
 check("18. symbol change resets the viewport context", () => {
     const h = harness();
