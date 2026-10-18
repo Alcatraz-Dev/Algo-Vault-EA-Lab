@@ -21,11 +21,11 @@ function Metric({
 }) {
   return (
     <div>
-      <span className="block flex items-center gap-1 text-[10px] uppercase tracking-wider text-ink-mute">
+      <span className="block flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
         {icon}
         {label}
       </span>
-      <span className={`font-medium ${tone ?? "text-ink"}`}>{value}</span>
+      <span className={`font-medium ${tone ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }
@@ -40,30 +40,30 @@ export const ProRiskGuardPanel: React.FC<Props> = ({ riskResult }) => {
   const notCalculable = !riskResult.riskCalculable;
 
   return (
-    <div className="space-y-2.5 rounded-lg border border-edge bg-card p-3 text-xs">
+    <div className="space-y-2.5 rounded-xl border border-border bg-card p-3 text-xs">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-ink">
+        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-foreground">
           {blocked ? (
-            <ShieldAlert size={14} className="text-rose-400" />
+            <ShieldAlert size={14} className="text-negative" />
           ) : (
-            <ShieldCheck size={14} className="text-emerald-400" />
+            <ShieldCheck size={14} className="text-positive" />
           )}
           Execution Risk Check
         </div>
         <span
-          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
             blocked
-              ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
+              ? "bg-negative/15 text-negative border-negative/30"
               : notCalculable
-              ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-              : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+              ? "bg-warning/15 text-warning border-warning/30"
+              : "bg-positive/15 text-positive border-positive/30"
           }`}
         >
           {blocked ? "REJECTED" : notCalculable ? "INCOMPLETE DATA" : "PASSED"}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 rounded border border-edge bg-base p-2 text-[11px]">
+      <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-background p-2 text-[11px]">
         <Metric label="Account mode" value={modeLabel(riskResult.accountMode)} />
         <Metric label="Order size" value={`${riskResult.orderSize} lots`} />
         <Metric
@@ -87,7 +87,7 @@ export const ProRiskGuardPanel: React.FC<Props> = ({ riskResult }) => {
           icon={<DollarSign size={10} />}
           label="Risk amount"
           value={riskResult.riskAmount !== null ? `$${riskResult.riskAmount.toFixed(2)}` : "Not calculable"}
-          tone={riskResult.riskAmount !== null ? "text-ink" : "text-amber-600"}
+          tone={riskResult.riskAmount !== null ? "text-foreground" : "text-warning"}
         />
         <Metric
           label="Risk % of balance"
@@ -113,7 +113,7 @@ export const ProRiskGuardPanel: React.FC<Props> = ({ riskResult }) => {
       </div>
 
       {notCalculable && (
-        <div className="rounded border border-amber-500/25 bg-amber-500/10 p-2 text-[11px] text-amber-600">
+        <div className="rounded-lg border border-warning/25 bg-warning/10 p-2 text-[11px] text-warning">
           {riskResult.notes?.includes(RISK_NOT_CALCULABLE_MESSAGE)
             ? RISK_NOT_CALCULABLE_MESSAGE
             : `Risk could not be calculated from available data: ${riskResult.missingRiskData.join(", ") || "missing inputs"}.`}
@@ -125,9 +125,9 @@ export const ProRiskGuardPanel: React.FC<Props> = ({ riskResult }) => {
           {riskResult.missingRiskData.map((item, i) => (
             <div
               key={i}
-              className="flex items-start gap-1.5 rounded border border-amber-500/25 bg-amber-500/10 p-1.5 text-[10px] text-amber-600"
+              className="flex items-start gap-1.5 rounded-lg border border-warning/25 bg-warning/10 p-1.5 text-[10px] text-warning"
             >
-              <AlertTriangle size={12} className="text-amber-400 shrink-0 mt-0.5" />
+              <AlertTriangle size={12} className="text-warning shrink-0 mt-0.5" />
               <span>Missing risk input: {item}</span>
             </div>
           ))}
@@ -135,14 +135,14 @@ export const ProRiskGuardPanel: React.FC<Props> = ({ riskResult }) => {
       )}
 
       {blocked && (
-        <div className="rounded border border-rose-500/25 bg-rose-500/10 p-2 text-[11px] text-rose-500">
+        <div className="rounded-lg border border-negative/25 bg-negative/10 p-2 text-[11px] text-negative">
           Broker/account restriction: risk exceeds the maximum allowed threshold. Execution is
           blocked until the order size or stop distance is adjusted.
         </div>
       )}
 
       {riskResult.notes && !notCalculable && (
-        <p className="text-[10px] italic text-ink-faint">{riskResult.notes}</p>
+        <p className="text-[10px] italic text-muted-foreground">{riskResult.notes}</p>
       )}
     </div>
   );

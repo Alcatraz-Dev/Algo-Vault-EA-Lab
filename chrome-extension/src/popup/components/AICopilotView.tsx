@@ -198,7 +198,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
             <button
               onClick={refreshContext}
               disabled={loading}
-              className="p-0.5 rounded hover:bg-muted transition-colors"
+              className="p-0.5 rounded-lg hover:bg-muted transition-colors"
               title="Refresh chart context"
             >
               <RefreshCw size={11} className={`text-muted-foreground ${loading ? "animate-spin" : ""}`} />
@@ -206,7 +206,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
           </div>
         </div>
         {enriched && (
-          <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground/70">
+          <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground">
             <span>Sync: {enriched.marketSync}</span>
             <span>·</span>
             <span>Price check: {enriched.priceValidation.state}</span>
@@ -225,7 +225,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
           <div className="text-center py-4">
             <AlertCircle size={20} className="mx-auto text-warning mb-2" />
             <p className="text-[11px] text-muted-foreground">No active chart detected.</p>
-            <p className="text-[10px] text-muted-foreground/70 mt-1">Open a chart on TradingView or enter a symbol manually.</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Open a chart on TradingView or enter a symbol manually.</p>
             {!showManual ? (
               <button
                 onClick={() => setShowManual(true)}
@@ -239,15 +239,15 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
                   value={manualSymbol}
                   onChange={(e) => setManualSymbol(e.target.value)}
                   placeholder="Symbol"
-                  className="w-20 bg-muted border border-border rounded px-2 py-0.5 text-[10px] text-foreground placeholder:text-muted-foreground/70 outline-none"
+                  className="w-20 bg-muted border border-border rounded-lg px-2 py-0.5 text-[10px] text-foreground placeholder:text-muted-foreground outline-none"
                 />
                 <input
                   value={manualTimeframe}
                   onChange={(e) => setManualTimeframe(e.target.value)}
                   placeholder="TF"
-                  className="w-12 bg-muted border border-border rounded px-2 py-0.5 text-[10px] text-foreground placeholder:text-muted-foreground/70 outline-none"
+                  className="w-12 bg-muted border border-border rounded-lg px-2 py-0.5 text-[10px] text-foreground placeholder:text-muted-foreground outline-none"
                 />
-                <button onClick={handleManualSubmit} className="rounded bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Go</button>
+                <button onClick={handleManualSubmit} className="rounded-lg bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Go</button>
               </div>
             )}
           </div>
@@ -288,7 +288,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
         {loading && (
           <div className="flex justify-start">
             <div className="bg-muted rounded-lg px-3 py-2 flex items-center gap-2">
-              <Loader2 size={12} className="animate-spin text-muted-foreground/70" />
+              <Loader2 size={12} className="animate-spin text-muted-foreground" />
               <span className="text-[11px] text-muted-foreground">Thinking...</span>
             </div>
           </div>
@@ -306,12 +306,12 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
             }}
             placeholder="Ask the AI..."
-            className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/70 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="p-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-40 transition-colors"
+            className="p-1.5 rounded-lg bg-brand-fill text-white hover:bg-brand-fill-hover disabled:opacity-40 transition-colors"
           >
             <Send size={14} />
           </button>

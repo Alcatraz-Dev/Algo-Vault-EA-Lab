@@ -49,7 +49,7 @@ export function DataConsentNotice({
             href={privacyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline underline-offset-2 hover:text-foreground/80"
+            className="text-foreground underline underline-offset-2 hover:text-foreground"
           >
             Privacy Policy
           </a>

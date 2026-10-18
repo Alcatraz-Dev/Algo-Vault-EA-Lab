@@ -6,7 +6,9 @@
  * Never blocks on a client-side flag alone — it asks the server first.
  */
 import React from "react";
-import { Loader2, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, Loader2, Lock, ShieldCheck } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { getAlgoVaultUrl } from "@/config/environment";
 import type { ProFeatureFlags } from "@/types/pro";
 
@@ -47,8 +49,8 @@ export function ProGate({
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center gap-2">
-        <Loader2 size={14} className="animate-spin text-ink-faint" />
-        <span className="text-xs text-ink-mute">Checking access…</span>
+        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">Checking access…</span>
       </div>
     );
   }
@@ -70,24 +72,21 @@ export function ProGate({
 
 function ProUpgradePrompt({ featureName }: { featureName: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-6 text-center animate-fade-in">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-edge bg-raised">
-        <Lock size={18} className="text-ink-mute" />
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-6 text-center">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-secondary">
+        <Lock size={18} className="text-muted-foreground" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-ink">Pro required</p>
-        <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-ink-mute">
+        <p className="text-sm font-semibold text-foreground">Pro required</p>
+        <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-muted-foreground">
           {featureName.charAt(0).toUpperCase() + featureName.slice(1)} is exclusive to AlgoVault Pro subscribers.
         </p>
       </div>
-      <div className="flex flex-col gap-2 w-full max-w-[240px]">
-        <button
-          onClick={openPricing}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-brand-400"
-        >
+      <div className="flex w-full max-w-[240px] flex-col gap-2">
+        <Button variant="brand" onClick={openPricing} className="gap-1.5">
           Upgrade to Pro <ArrowRight size={11} />
-        </button>
-        <p className="text-[9px] text-ink-faint">
+        </Button>
+        <p className="text-[11px] text-muted-foreground">
           Entitlement is verified server-side. UI manipulation cannot bypass this gate.
         </p>
       </div>
@@ -97,13 +96,13 @@ function ProUpgradePrompt({ featureName }: { featureName: string }) {
 
 function FeatureNotEnabledPrompt({ featureName }: { featureName: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 py-6 text-center animate-fade-in">
-      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-edge bg-raised">
-        <ShieldCheck size={18} className="text-ink-mute" />
+    <div className="flex h-full flex-col items-center justify-center gap-3 px-4 py-6 text-center">
+      <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-border bg-secondary">
+        <ShieldCheck size={18} className="text-muted-foreground" />
       </div>
       <div>
-        <p className="text-sm font-semibold text-ink">Coming soon</p>
-        <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-ink-mute">
+        <p className="text-sm font-semibold text-foreground">Coming soon</p>
+        <p className="mt-1 max-w-[220px] text-[11px] leading-relaxed text-muted-foreground">
           {featureName.charAt(0).toUpperCase() + featureName.slice(1)} is not yet enabled on your account.
         </p>
       </div>

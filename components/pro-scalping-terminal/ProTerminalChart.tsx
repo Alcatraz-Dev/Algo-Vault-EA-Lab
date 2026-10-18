@@ -4666,8 +4666,8 @@ export function ProTerminalChart({
                 volumes are the caller's real execution data; nothing here is
                 simulated. */}
             {symbolPositions.length > 0 || symbolOrders.length > 0 ? (
-                <div className="border-t border-border px-3 py-2 text-micro">
-                    <div className="flex items-center gap-2 pb-1.5 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
+                <div className="border-t border-border bg-card/40 px-3 py-2.5 text-micro">
+                    <div className="flex items-center gap-2 pb-2 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                         <span className="font-bold text-foreground">Trade</span>
                         <span>{symbolPositions.length} open</span>
                         <span aria-hidden>·</span>
@@ -4679,11 +4679,11 @@ export function ProTerminalChart({
                             levels on chart ↑
                         </span>
                     </div>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1.5">
                         {symbolPositions.map((p) => (
                             <div
                                 key={p.ticket}
-                                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-border/60 bg-background/60 px-2 py-1"
+                                className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-border/60 bg-background/80 px-2.5 py-1.5 shadow-sm"
                             >
                                 <span
                                     className={cn(
@@ -4726,7 +4726,7 @@ export function ProTerminalChart({
                                                 key={pct}
                                                 type="button"
                                                 onClick={() => onClosePosition(p.ticket, pct)}
-                                                className="rounded border border-border bg-card px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-warning/40 hover:text-foreground"
+                                                className="rounded-md border border-border/60 bg-card/80 px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-warning/50 hover:text-foreground"
                                                 title={`Close ${pct}% of the position VOLUME (${(p.volume * pct) / 100 >= 0.01 ? ((p.volume * pct) / 100).toFixed(2) : "0.01 min"} lot of ${p.volume.toFixed(2)}). This is volume, not profit.`}
                                             >
                                                 {pct}% vol
@@ -4735,7 +4735,7 @@ export function ProTerminalChart({
                                         <button
                                             type="button"
                                             onClick={() => onClosePosition(p.ticket, 100)}
-                                            className="rounded border border-negative/40 bg-negative/10 px-1.5 py-0.5 font-numeric text-micro font-semibold text-negative transition hover:bg-negative/20"
+                                            className="rounded-md border border-negative/40 bg-negative/10 px-1.5 py-0.5 font-numeric text-micro font-semibold text-negative transition hover:bg-negative/20"
                                             title="Close the entire position"
                                         >
                                             Close
@@ -4747,7 +4747,7 @@ export function ProTerminalChart({
                         {symbolOrders.map((o) => (
                             <div
                                 key={o.ticket}
-                                className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-dashed border-primary/30 bg-primary/4 px-2 py-1"
+                                className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-2.5 py-1.5"
                             >
                                 <span className="rounded bg-primary/15 px-1.5 py-0.5 font-numeric text-micro font-bold text-primary">
                                     {o.type.replace("_", " ")} {o.volume.toFixed(2)}
@@ -4769,7 +4769,7 @@ export function ProTerminalChart({
                                     <button
                                         type="button"
                                         onClick={() => onCancelOrder(o.ticket)}
-                                        className="ml-auto rounded border border-border bg-card px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-negative/40 hover:text-negative"
+                                        className="ml-auto rounded-md border border-border/60 bg-card/80 px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-negative/50 hover:text-negative"
                                         title="Cancel this pending order"
                                     >
                                         Cancel

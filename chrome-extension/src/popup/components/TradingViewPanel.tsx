@@ -14,7 +14,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
-  CheckCircle2,
   Clock,
   Globe,
   Info,
@@ -42,20 +41,20 @@ interface TradingViewPanelProps {
 }
 
 const STATE_BADGE: Record<TradingViewStatus["state"], { label: string; cls: string }> = {
-  CONNECTED: { label: "CONNECTED", cls: "bg-emerald-500/10 text-emerald-400" },
-  DISCONNECTED: { label: "NOT CONNECTED", cls: "bg-neutral-700/40 text-ink-mute" },
-  CONNECTING: { label: "CONNECTING…", cls: "bg-blue-500/10 text-blue-400" },
-  TOKEN_EXPIRED: { label: "REAUTH REQUIRED", cls: "bg-amber-500/10 text-amber-400" },
-  REAUTH_REQUIRED: { label: "REAUTH REQUIRED", cls: "bg-amber-500/10 text-amber-400" },
-  ERROR: { label: "ERROR", cls: "bg-rose-500/10 text-rose-400" },
-  DISABLED: { label: "DISABLED", cls: "bg-neutral-700/40 text-ink-mute" },
+  CONNECTED: { label: "CONNECTED", cls: "bg-positive/10 text-positive" },
+  DISCONNECTED: { label: "NOT CONNECTED", cls: "bg-secondary text-muted-foreground" },
+  CONNECTING: { label: "CONNECTING…", cls: "bg-secondary text-foreground" },
+  TOKEN_EXPIRED: { label: "REAUTH REQUIRED", cls: "bg-warning/10 text-warning" },
+  REAUTH_REQUIRED: { label: "REAUTH REQUIRED", cls: "bg-warning/10 text-warning" },
+  ERROR: { label: "ERROR", cls: "bg-negative/10 text-negative" },
+  DISABLED: { label: "DISABLED", cls: "bg-secondary text-muted-foreground" },
 };
 
 function Section({ title, badge, children }: { title: string; badge?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-edge bg-base p-2.5">
+    <div className="rounded-xl border border-border bg-card p-2.5">
       <div className="mb-1.5 flex items-center gap-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">{title}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</span>
         {badge}
       </div>
       {children}
@@ -66,23 +65,23 @@ function Section({ title, badge, children }: { title: string; badge?: React.Reac
 function TvSectionCard({ icon, title, section }: { icon: React.ReactNode; title: string; section: TradingViewContextSection | undefined }) {
   if (!section) return null;
   return (
-    <div className="rounded-md bg-raised p-2">
+    <div className="rounded-lg bg-secondary/60 p-2">
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1 text-[10px] font-medium text-ink">
+        <span className="flex items-center gap-1 text-[10px] font-medium text-foreground">
           {icon}
           {title}
         </span>
-        <span className="text-[8px] uppercase text-ink-mute">{section.state}</span>
+        <span className="text-[10px] uppercase text-muted-foreground">{section.state}</span>
       </div>
       {section.available && section.items[0] ? (
         <>
-          <p className="mt-1 line-clamp-3 whitespace-pre-line text-[10px] leading-4 text-ink-mute">{section.items[0].value}</p>
-          <p className="mt-0.5 flex items-center gap-1 text-[8px] text-ink-mute">
-            <Clock size={8} /> {section.items[0].freshnessLabel}
+          <p className="mt-1 line-clamp-3 whitespace-pre-line text-[10px] leading-4 text-muted-foreground">{section.items[0].value}</p>
+          <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Clock size={10} /> {section.items[0].freshnessLabel}
           </p>
         </>
       ) : (
-        <p className="mt-1 text-[9px] text-ink-mute">{section.message || "Not available."}</p>
+        <p className="mt-1 text-[10px] text-muted-foreground">{section.message || "Not available."}</p>
       )}
     </div>
   );
@@ -130,7 +129,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
     void load();
   }, [load]);
 
-  const badge = status ? STATE_BADGE[status.state] : { label: "OFFLINE", cls: "bg-neutral-700/40 text-ink-mute" };
+  const badge = status ? STATE_BADGE[status.state] : { label: "OFFLINE", cls: "bg-secondary text-muted-foreground" };
   const connected = status?.state === "CONNECTED";
   const needsReconnect = status?.state === "TOKEN_EXPIRED" || status?.state === "REAUTH_REQUIRED";
 
@@ -139,57 +138,57 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
       {/* ── ALGOVAULT evidence ─────────────────────────────────────────── */}
       <Section
         title="AlgoVault"
-        badge={<span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-medium text-ink-mute">DETERMINISTIC</span>}
+        badge={<span className="rounded-full border border-border bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">DETERMINISTIC</span>}
       >
         {marketContext ? (
           <div className="grid grid-cols-2 gap-1 text-[10px]">
-            <span className="text-ink-mute">Structure</span>
-            <span className="text-right text-ink">{marketContext.marketStructure.overall}</span>
-            <span className="text-ink-mute">BOS / CHOCH</span>
-            <span className="text-right font-mono text-ink">{marketContext.marketStructure.bosCount}/{marketContext.marketStructure.chochCount}</span>
-            <span className="text-ink-mute">Liquidity</span>
-            <span className="text-right text-ink">{marketContext.liquidity.levels.length} levels</span>
-            <span className="text-ink-mute">FVG</span>
-            <span className="text-right text-ink">{marketContext.fvg.count} ({marketContext.fvg.direction})</span>
-            <span className="text-ink-mute">Order Blocks</span>
-            <span className="text-right text-ink">{marketContext.orderBlock.count} ({marketContext.orderBlock.direction})</span>
-            <span className="text-ink-mute">MTF bias</span>
-            <span className="text-right text-ink">{marketContext.mtfAlignment.map((m) => m.bias[0].toUpperCase()).join("") || "—"}</span>
-            <span className="text-ink-mute">Score</span>
-            <span className="text-right font-mono text-ink">{marketContext.score.total} ({marketContext.score.bias})</span>
+            <span className="text-muted-foreground">Structure</span>
+            <span className="text-right text-foreground">{marketContext.marketStructure.overall}</span>
+            <span className="text-muted-foreground">BOS / CHOCH</span>
+            <span className="text-right font-numeric text-foreground">{marketContext.marketStructure.bosCount}/{marketContext.marketStructure.chochCount}</span>
+            <span className="text-muted-foreground">Liquidity</span>
+            <span className="text-right text-foreground">{marketContext.liquidity.levels.length} levels</span>
+            <span className="text-muted-foreground">FVG</span>
+            <span className="text-right text-foreground">{marketContext.fvg.count} ({marketContext.fvg.direction})</span>
+            <span className="text-muted-foreground">Order Blocks</span>
+            <span className="text-right text-foreground">{marketContext.orderBlock.count} ({marketContext.orderBlock.direction})</span>
+            <span className="text-muted-foreground">MTF bias</span>
+            <span className="text-right text-foreground">{marketContext.mtfAlignment.map((m) => m.bias[0].toUpperCase()).join("") || "—"}</span>
+            <span className="text-muted-foreground">Score</span>
+            <span className="text-right font-numeric text-foreground">{marketContext.score.total} ({marketContext.score.bias})</span>
           </div>
         ) : (
-          <p className="text-[10px] text-ink-mute">Awaiting engine data for {symbol ?? "chart"}…</p>
+          <p className="text-[10px] text-muted-foreground">Awaiting engine data for {symbol ?? "chart"}…</p>
         )}
       </Section>
 
       {/* ── TRADINGVIEW evidence ───────────────────────────────────────── */}
       <Section
         title="TradingView"
-        badge={<span className={`rounded px-1.5 py-0.5 text-[8px] font-medium ${badge.cls}`}>{badge.label}</span>}
+        badge={<span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${badge.cls}`}>{badge.label}</span>}
       >
         {loading ? (
-          <div className="flex items-center gap-1.5 text-[10px] text-ink-mute">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <Loader2 size={10} className="animate-spin" /> Checking connection…
           </div>
         ) : connected && tvContext ? (
           <div className="space-y-1.5">
-            <TvSectionCard icon={<Globe size={9} />} title="Technicals" section={tvContext.technicals} />
-            <TvSectionCard icon={<Info size={9} />} title="News" section={tvContext.news} />
-            <TvSectionCard icon={<Clock size={9} />} title="Economic events" section={tvContext.economicCalendar} />
-            <p className="text-[8px] leading-3 text-ink-mute">
+            <TvSectionCard icon={<Globe size={10} />} title="Technicals" section={tvContext.technicals} />
+            <TvSectionCard icon={<Info size={10} />} title="News" section={tvContext.news} />
+            <TvSectionCard icon={<Clock size={10} />} title="Economic events" section={tvContext.economicCalendar} />
+            <p className="text-[10px] leading-4 text-muted-foreground">
               May be delayed — context only, never execution.
             </p>
           </div>
         ) : (
           <div className="space-y-1.5">
-            <p className="text-[10px] text-ink-mute">
+            <p className="text-[10px] text-muted-foreground">
               {status?.message || "TradingView external context is not available."}
             </p>
             <button
               type="button"
               onClick={() => void openTradingViewConnectPage()}
-              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-edge"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary py-1.5 text-[10px] font-medium text-foreground transition-colors hover:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
             >
               {needsReconnect ? <RefreshCw size={10} /> : <Plug size={10} />}
               {needsReconnect ? "Reconnect TradingView" : "Connect TradingView"}
@@ -200,30 +199,30 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
           <button
             type="button"
             onClick={() => void openTradingViewConnectPage()}
-            className="mt-1.5 flex w-full items-center justify-center gap-1 text-[9px] text-ink-mute transition hover:text-ink"
+            className="mt-1.5 flex w-full items-center justify-center gap-1 rounded-lg text-[10px] text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Unplug size={8} /> Manage connection in AlgoVault settings
+            <Unplug size={10} /> Manage connection in AlgoVault settings
           </button>
         ) : null}
       </Section>
 
       {/* ── AI summary ─────────────────────────────────────────────────── */}
-      <Section title="AI" badge={<span className="rounded border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-medium text-ink-mute">EVIDENCE-ONLY</span>}>
+      <Section title="AI" badge={<span className="rounded-full border border-border bg-secondary/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">EVIDENCE-ONLY</span>}>
         {loadingAi ? (
-          <div className="flex items-center gap-1.5 text-[10px] text-ink-mute">
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
             <Loader2 size={10} className="animate-spin" /> Analyzing evidence…
           </div>
         ) : aiSummary ? (
-          <p className="whitespace-pre-line text-[10px] leading-4 text-ink-mute">{aiSummary}</p>
+          <p className="whitespace-pre-line text-[10px] leading-4 text-muted-foreground">{aiSummary}</p>
         ) : (
-          <p className="text-[10px] text-ink-mute">Run an analysis to see the evidence summary, interpretation and limitations.</p>
+          <p className="text-[10px] text-muted-foreground">Run an analysis to see the evidence summary, interpretation and limitations.</p>
         )}
         {tvContext && tvContext.limitations.length > 0 ? (
-          <div className="mt-1.5 border-t border-edge pt-1.5">
-            <p className="mb-0.5 flex items-center gap-1 text-[8px] font-semibold uppercase text-amber-400/80">
-              <AlertCircle size={8} /> Limitations
+          <div className="mt-1.5 border-t border-border pt-1.5">
+            <p className="mb-0.5 flex items-center gap-1 text-[10px] font-semibold uppercase text-warning">
+              <AlertCircle size={10} /> Limitations
             </p>
-            <ul className="list-inside list-disc text-[8px] leading-3 text-ink-mute">
+            <ul className="list-inside list-disc text-[10px] leading-4 text-muted-foreground">
               {tvContext.limitations.slice(0, 3).map((l, i) => (
                 <li key={i}>{l}</li>
               ))}
@@ -235,7 +234,7 @@ export function TradingViewPanel({ symbol, timeframe, marketContext, aiSummary, 
       <button
         type="button"
         onClick={onRefreshContext}
-        className="flex w-full items-center justify-center gap-1.5 rounded-md border border-edge bg-raised py-1.5 text-[10px] font-medium text-ink transition hover:bg-edge"
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary py-1.5 text-[10px] font-medium text-foreground transition-colors hover:bg-secondary/80"
       >
         <RefreshCw size={10} /> Refresh evidence
       </button>

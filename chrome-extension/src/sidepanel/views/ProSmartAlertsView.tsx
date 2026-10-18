@@ -26,34 +26,35 @@ const POLL_INTERVAL_MS = 30_000; // 30s — alerts should be reasonably fresh
 function severityStyle(severity: AlertSeverity): { border: string; icon: React.ReactNode; badge: string } {
   switch (severity) {
     case "critical": return {
-      border: "border-rose-500/30",
-      badge: "bg-rose-500/10 text-rose-400",
-      icon: <AlertTriangle size={12} className="text-rose-400 shrink-0" />,
+      border: "border-negative/30",
+      badge: "border border-negative/30 bg-negative/10 text-negative",
+      icon: <AlertTriangle size={12} className="text-negative" />,
     };
     case "warning": return {
-      border: "border-amber-500/30",
-      badge: "bg-amber-500/10 text-amber-400",
-      icon: <AlertTriangle size={12} className="text-amber-400 shrink-0" />,
+      border: "border-warning/30",
+      badge: "border border-warning/30 bg-warning/10 text-warning",
+      icon: <AlertTriangle size={12} className="text-warning" />,
     };
-    case "notice": return {
-      border: "border-blue-500/30",
-      badge: "bg-blue-500/10 text-blue-400",
-      icon: <Info size={12} className="text-blue-400 shrink-0" />,
+    case "info": return {
+      border: "border-border",
+      badge: "border border-border bg-secondary text-foreground",
+      icon: <Info size={12} className="text-muted-foreground" />,
     };
     default: return {
-      border: "border-edge",
-      badge: "bg-raised text-ink-mute",
-      icon: <Info size={12} className="text-ink-mute shrink-0" />,
+      border: "border-border",
+      badge: "border border-border bg-secondary text-muted-foreground",
+      icon: <Info size={12} className="text-muted-foreground" />,
     };
   }
 }
 
 function timeAgo(ts: number): string {
-  const d = Date.now() - ts;
-  if (d < 60_000) return "just now";
-  if (d < 3_600_000) return `${Math.floor(d / 60_000)}m ago`;
-  if (d < 86_400_000) return `${Math.floor(d / 3_600_000)}h ago`;
-  return `${Math.floor(d / 86_400_000)}d ago`;
+  const now = Date.now();
+  const diff = now - ts;
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
 }
 
 function AlertCard({ alert, onAck }: { alert: SmartAlert; onAck: (id: string) => void }) {
@@ -68,19 +69,20 @@ function AlertCard({ alert, onAck }: { alert: SmartAlert; onAck: (id: string) =>
   };
 
   return (
-    <article className={`rounded-xl border ${style.border} bg-card p-3 animate-fade-in space-y-2`}>
+    <article className={`space-y-2 rounded-xl border ${style.border} bg-card p-3`}>
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-2 min-w-0">
+        <div className="flex min-w-0 items-start gap-2">
           {style.icon}
           <div className="min-w-0">
             <p className="text-xs font-semibold leading-tight">{alert.title}</p>
-            <p className="mt-0.5 text-[10px] leading-relaxed text-ink-mute">{alert.message}</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{alert.message}</p>
           </div>
         </div>
         <button
+          type="button"
           onClick={handleAck}
           disabled={acking}
-          className="shrink-0 rounded p-0.5 text-ink-faint hover:text-ink disabled:opacity-40"
+          className="shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:opacity-40"
           title="Mark read"
         >
           {acking ? <Loader2 size={11} className="animate-spin" /> : <CheckCircle2 size={11} />}
@@ -91,7 +93,7 @@ function AlertCard({ alert, onAck }: { alert: SmartAlert; onAck: (id: string) =>
       {alert.evidence && alert.evidence.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {alert.evidence.slice(0, 3).map((e, i) => (
-            <span key={i} className="rounded bg-raised px-1.5 py-0.5 text-[9px] text-ink-mute">
+            <span key={i} className="rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] text-muted-foreground">
               {e.length > 50 ? e.slice(0, 50) + "…" : e}
             </span>
           ))}
@@ -100,11 +102,11 @@ function AlertCard({ alert, onAck }: { alert: SmartAlert; onAck: (id: string) =>
 
       {/* footer */}
       <div className="flex items-center justify-between">
-        <span className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[8px] font-semibold uppercase ${style.badge}`}>
+        <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase ${style.badge}`}>
           {alert.category}
         </span>
-        <span className="flex items-center gap-0.5 text-[9px] text-ink-faint">
-          <Clock size={8} /> {timeAgo(alert.createdAt)}
+        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+          <Clock size={9} /> {timeAgo(alert.createdAt)}
         </span>
       </div>
     </article>
@@ -159,55 +161,56 @@ export function ProSmartAlertsView({ symbol, timeframe }: ProSmartAlertsViewProp
   if (loading && alerts.length === 0) {
     return (
       <div className="flex h-48 items-center justify-center gap-2">
-        <Loader2 size={14} className="animate-spin text-ink-faint" />
-        <span className="text-[10px] text-ink-mute">Checking for alerts…</span>
+        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+        <span className="text-[11px] text-muted-foreground">Checking for alerts…</span>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-edge/50">
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <div className="flex items-center gap-1.5">
-          <Bell size={12} className="text-ink-mute" />
+          <Bell size={13} className="text-muted-foreground" />
           <span className="text-xs font-semibold">Smart Alerts</span>
           {unreadCount > 0 && (
-            <span className="rounded-full border border-edge bg-raised px-1.5 py-0.5 text-[8px] font-bold text-ink-mute">
+            <span className="rounded-full border border-border bg-secondary px-1.5 py-0.5 font-numeric text-[10px] font-bold text-muted-foreground">
               {unreadCount}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {fetchedAt && (
-            <span className="text-[9px] text-ink-faint">{timeAgo(fetchedAt)}</span>
+            <span className="font-numeric text-[10px] text-muted-foreground">{timeAgo(fetchedAt)}</span>
           )}
           <button
+            type="button"
             onClick={() => load(true)}
             disabled={loading}
-            className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40"
+            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:opacity-40"
             title="Refresh"
           >
-            <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
       {error && (
-        <div className="mx-3 mt-3 flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 text-[10px] text-rose-400">
+        <div className="mx-3 mt-3 flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-[11px] text-destructive">
           <AlertTriangle size={11} className="mt-0.5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {visible.length === 0 && !loading && !error && (
           <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
-              <Check size={18} className="text-emerald-400" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-positive/30 bg-positive/10">
+              <Check size={18} className="text-positive" />
             </div>
-            <p className="text-xs font-medium text-ink">No alerts right now</p>
-            <p className="max-w-[200px] text-[10px] leading-relaxed text-ink-mute">
+            <p className="text-xs font-medium text-foreground">No alerts right now</p>
+            <p className="max-w-[220px] text-[11px] leading-relaxed text-muted-foreground">
               Smart Alerts watches {symbol} on {timeframe} for liquidity sweeps, EMA alignment, RSI extremes, and structure breaks.
             </p>
           </div>
@@ -217,7 +220,7 @@ export function ProSmartAlertsView({ symbol, timeframe }: ProSmartAlertsViewProp
         ))}
       </div>
 
-      <p className="px-3 pb-2 text-[8px] text-ink-faint">
+      <p className="px-3 pb-2 text-[10px] text-muted-foreground">
         All alerts are deterministic. Alerts are derived from real indicator conditions — not AI speculation.
       </p>
     </div>

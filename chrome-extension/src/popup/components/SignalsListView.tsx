@@ -71,7 +71,7 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
       <div className="flex-1 overflow-y-auto p-3">
         {loading && (
           <div className="flex flex-col items-center justify-center gap-3 py-12">
-            <Loader2 size={20} className="animate-spin text-muted-foreground/70" />
+            <Loader2 size={20} className="animate-spin text-muted-foreground" />
             <p className="text-[11px] text-muted-foreground">Loading signals...</p>
           </div>
         )}
@@ -97,21 +97,21 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-foreground">
+                  <span className="text-xs font-numeric text-foreground">
                     {signal.symbol}
                   </span>
                   <span
-                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                    className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
                       signal.direction === "BUY"
-                        ? "bg-positive/20 text-positive"
-                        : "bg-negative/20 text-negative"
+                        ? "border-positive/30 bg-positive/10 text-positive"
+                        : "border-negative/30 bg-negative/10 text-negative"
                     }`}
                   >
                     {signal.direction}
                   </span>
                 </div>
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded border ${
+                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] ${
                     statusColors[signal.status] || statusColors.ACTIVE
                   }`}
                 >
@@ -122,25 +122,25 @@ export function SignalsListView({ onBack }: SignalsListViewProps) {
               <div className="grid grid-cols-4 gap-1 text-[10px]">
                 <div>
                   <span className="text-muted-foreground block">Entry</span>
-                  <span className="text-foreground font-mono">
+                  <span className="text-foreground font-numeric">
                     {signal.entry}
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">SL</span>
-                  <span className="text-negative font-mono">
+                  <span className="text-negative font-numeric">
                     {signal.stopLoss}
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">TP1</span>
-                  <span className="text-positive font-mono">
+                  <span className="text-positive font-numeric">
                     {signal.takeProfit1}
                   </span>
                 </div>
                 <div>
                   <span className="text-muted-foreground block">Conf.</span>
-                  <span className="text-foreground font-mono">
+                  <span className="text-foreground font-numeric">
                     {signal.confidence}%
                   </span>
                 </div>

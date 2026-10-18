@@ -3,7 +3,8 @@
  * view, reimplemented on the extension's shadcn/ui Zinc design tokens
  * (src/styles/tokens.css). Surfaces use bg-background / bg-card / bg-muted,
  * text uses text-foreground / text-muted-foreground, and the single brand
- * accent is AlgoVault orange (bg-brand-500, text-brand-foreground).
+ * accent is AlgoVault orange (bg-brand-fill for solid CTAs with white text,
+ * text-brand-foreground for brand text on light surfaces).
  *
  * Conventions (shadcn/ui): variant-driven components composed with `cn`,
  * `rounded-lg` controls / `rounded-xl` cards / `rounded-full` pills,
@@ -77,14 +78,14 @@ export function StatusDot({ state }: { state: "ok" | "warn" | "off" }) {
 /* ── inputs ──────────────────────────────────────────────────────────── */
 
 export const inputClass =
-  "w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 font-numeric text-xs text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50";
 
 export function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="mb-1 block text-[11px] font-medium text-muted-foreground">{label}</span>
       {children}
-      {hint && <span className="mt-0.5 block text-[10px] text-muted-foreground/70">{hint}</span>}
+      {hint && <span className="mt-0.5 block text-[10px] text-muted-foreground">{hint}</span>}
     </label>
   );
 }
@@ -361,7 +362,7 @@ export function ConfirmActionRow({
         type="button"
         onClick={onConfirm}
         className={`flex h-8 flex-[1.2] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-[11px] font-semibold text-primary-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ${
-          destructive ? "bg-destructive hover:bg-destructive/90" : "bg-brand-500 hover:bg-brand-600"
+          destructive ? "bg-destructive hover:bg-destructive/90" : "bg-brand-fill hover:bg-brand-fill-hover"
         }`}
       >
         {confirmIcon}
@@ -450,7 +451,7 @@ export function Stepper({
           onChange(Number.isFinite(raw) ? clamp(raw) : min);
         }}
         onBlur={(e) => onChange(clamp(parseFloat(e.target.value) || min))}
-        className="w-full min-w-0 border-x border-border bg-transparent px-1.5 py-1.5 text-center font-mono text-xs text-foreground outline-none transition-colors focus:bg-muted"
+        className="w-full min-w-0 border-x border-border bg-transparent px-1.5 py-1.5 text-center font-numeric text-xs text-foreground outline-none transition-colors focus:bg-muted"
       />
       <button
         type="button"
@@ -482,8 +483,8 @@ export function StatPill({
   return (
     <div className="text-center">
       <div className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className={`font-mono text-xs font-bold tabular-nums ${toneCls}`}>{value}</div>
-      {sub != null && <div className="text-[10px] text-muted-foreground/70">{sub}</div>}
+      <div className={`font-numeric text-xs font-bold tabular-nums ${toneCls}`}>{value}</div>
+      {sub != null && <div className="text-[10px] text-muted-foreground">{sub}</div>}
     </div>
   );
 }
@@ -691,9 +692,9 @@ export function ChartSyncBadge({
       >
         <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", dot)} />
         <span className="text-[10px] font-medium">{label}</span>
-        <span className="ml-0.5 font-mono text-muted-foreground/70">{symbol ?? "—"}</span>
-        <span className="font-mono text-muted-foreground/70">·</span>
-        <span className="font-mono text-muted-foreground/70">{timeframe ?? "—"}</span>
+        <span className="ml-0.5 font-numeric text-muted-foreground">{symbol ?? "—"}</span>
+        <span className="font-numeric text-muted-foreground">·</span>
+        <span className="font-numeric text-muted-foreground">{timeframe ?? "—"}</span>
       </button>
     );
   }
@@ -706,7 +707,7 @@ export function ChartSyncBadge({
           <Radio size={9} />
           <span>{label}</span>
         </div>
-        <div className="truncate font-mono text-[10px] tabular-nums text-muted-foreground">{subline}</div>
+        <div className="truncate font-numeric text-[10px] tabular-nums text-muted-foreground">{subline}</div>
       </div>
       <div className="flex shrink-0 items-center gap-1">
         {state === "manual" && onClearManual && (

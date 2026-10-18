@@ -227,43 +227,43 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
   };
 
   const contextState = useMemo(() => {
-    if (enrichedState?.market?.status === "ready") return { label: "Live context", cls: "text-emerald-400" };
-    if (enrichedState || structuredContext) return { label: "Partial context", cls: "text-amber-400" };
-    return { label: "No market data", cls: "text-rose-400" };
+    if (enrichedState?.market?.status === "ready") return { label: "Live context", cls: "text-positive" };
+    if (enrichedState || structuredContext) return { label: "Partial context", cls: "text-warning" };
+    return { label: "No market data", cls: "text-negative" };
   }, [enrichedState, structuredContext]);
 
   if (!prefsLoaded) {
-    return <div className="flex h-full items-center justify-center"><Loader2 size={16} className="animate-spin text-ink-faint" /></div>;
+    return <div className="flex h-full items-center justify-center"><Loader2 size={16} className="animate-spin text-muted-foreground" /></div>;
   }
 
   return (
     <div className="flex h-full flex-col">
       {/* toolbar: persona / threads / clear */}
-      <div className="flex items-center gap-1.5 border-b border-edge px-2.5 py-1.5">
+      <div className="flex items-center gap-1.5 border-b border-border px-2.5 py-1.5">
         <PersonaPicker value={personaId} onChange={(id) => { setPersonaId(id); saveCopilotPrefs({ personaId: id }); }} />
         <button
           onClick={() => setShowThreads((v) => !v)}
-          className="ml-auto rounded p-1 text-ink-mute hover:text-ink"
+          className="ml-auto rounded-lg p-1 text-muted-foreground hover:text-foreground"
           title="Recent threads"
         >
           <Bot size={13} />
         </button>
-        <button onClick={clearChat} className="rounded p-1 text-ink-mute hover:text-rose-400" title={`Clear ${symbol} thread`}>
+        <button onClick={clearChat} className="rounded-lg p-1 text-muted-foreground hover:text-negative" title={`Clear ${symbol} thread`}>
           <Eraser size={13} />
         </button>
       </div>
 
       {showThreads && (
-        <div className="max-h-40 overflow-y-auto border-b border-edge bg-raised/60 animate-fade-in">
-          {recentThreads.length === 0 && <p className="px-3 py-2 text-[10px] text-ink-faint">No threads yet.</p>}
+        <div className="max-h-40 overflow-y-auto border-b border-border bg-secondary/60">
+          {recentThreads.length === 0 && <p className="px-3 py-2 text-[10px] text-muted-foreground">No threads yet.</p>}
           {recentThreads.map((t) => (
             <button
               key={t.id}
               onClick={() => openThread(t)}
-              className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-[10px] hover:bg-neutral-500/10 ${t.key === `${symbol}|${timeframe}` ? "text-brand-400" : "text-ink-mute"}`}
+              className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-[10px] hover:bg-secondary/40 ${t.key === `${symbol}|${timeframe}` ? "text-brand" : "text-muted-foreground"}`}
             >
-              <span className="font-mono">{t.title}</span>
-              <span className="text-ink-faint">{t.messages.length} msgs</span>
+              <span className="font-numeric">{t.title}</span>
+              <span className="text-muted-foreground">{t.messages.length} msgs</span>
             </button>
           ))}
         </div>
@@ -271,31 +271,31 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
 
       {/* AlgoVault intelligence memory banner */}
       {algoVaultMemory && (
-        <div className="border-b border-edge/60 bg-raised/40 px-2.5 py-1.5 text-[10px]">
+        <div className="border-b border-border/60 bg-secondary/40 px-2.5 py-1.5 text-[10px]">
           <div className="flex items-center justify-between">
             <button
               onClick={() => setShowMemoryDetails((v) => !v)}
-              className="flex items-center gap-1.5 font-medium text-ink-mute hover:text-ink transition-colors"
+              className="flex items-center gap-1.5 font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              <Brain size={12} className="text-ink-mute" />
+              <Brain size={12} className="text-muted-foreground" />
               <span>AlgoVault Memory Active</span>
-              <span className="text-[9px] text-ink-faint">
+              <span className="text-[10px] text-muted-foreground">
                 ({algoVaultMemory.savedStrategiesCount} strats · {algoVaultMemory.activeSetupsCount} setups · {algoVaultMemory.recentAnalysesCount} research)
               </span>
               <ChevronDown size={10} className={`transform transition-transform ${showMemoryDetails ? "rotate-180" : ""}`} />
             </button>
           </div>
           {showMemoryDetails && (
-            <div className="mt-2 space-y-2 border-t border-edge/40 pt-2 animate-fade-in text-[10px]">
+            <div className="mt-2 space-y-2 border-t border-border/40 pt-2 text-[10px]">
               {algoVaultMemory.similarSavedStrategies && algoVaultMemory.similarSavedStrategies.length > 0 && (
                 <div>
-                  <span className="font-semibold text-ink">Similar Saved Strategies:</span>
+                  <span className="font-semibold text-foreground">Similar Saved Strategies:</span>
                   <div className="mt-1 space-y-1">
                     {algoVaultMemory.similarSavedStrategies.map((s, idx) => (
-                      <div key={idx} className="rounded bg-neutral-500/10 p-1.5">
-                        <span className="font-medium text-ink">{s.name}</span>
+                      <div key={idx} className="rounded-lg bg-secondary/40 p-1.5">
+                        <span className="font-medium text-foreground">{s.name}</span>
                         {s.reasons && s.reasons.length > 0 && (
-                          <ul className="mt-0.5 list-disc pl-3 text-[9px] text-ink-mute">
+                          <ul className="mt-0.5 list-disc pl-3 text-[10px] text-muted-foreground">
                             {s.reasons.map((r, i) => (
                               <li key={i}>{r}</li>
                             ))}
@@ -308,24 +308,24 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
               )}
               {algoVaultMemory.similarHistoricalResearch && algoVaultMemory.similarHistoricalResearch.length > 0 && (
                 <div>
-                  <span className="font-semibold text-ink">Historical Research Evidence:</span>
+                  <span className="font-semibold text-foreground">Historical Research Evidence:</span>
                   <div className="mt-1 space-y-1">
                     {algoVaultMemory.similarHistoricalResearch.map((r, idx) => (
-                      <div key={idx} className="rounded bg-neutral-500/10 p-1.5 text-[9px]">
-                        <span className="font-medium text-ink">{r.title}</span>
-                        <p className="text-ink-mute">{r.outcome}</p>
+                      <div key={idx} className="rounded-lg bg-secondary/40 p-1.5 text-[10px]">
+                        <span className="font-medium text-foreground">{r.title}</span>
+                        <p className="text-muted-foreground">{r.outcome}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
               {algoVaultMemory.recentDismissedSetups && algoVaultMemory.recentDismissedSetups.length > 0 && (
-                <div className="text-[9px] text-ink-faint">
+                <div className="text-[10px] text-muted-foreground">
                   <span>Recent invalidations: </span>
                   {algoVaultMemory.recentDismissedSetups.map((d) => d.setupType).join(", ")}
                 </div>
               )}
-              <p className="text-[8px] italic text-ink-faint">
+              <p className="text-[10px] italic text-muted-foreground">
                 Memory connects your AlgoVault workspace context to TradingView. Past pattern similarity does not guarantee future results.
               </p>
             </div>
@@ -337,13 +337,13 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {messages.length === 0 && (
           <div className="pt-2">
-            <div className="mb-3 rounded-lg border border-edge bg-card p-3">
-              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-ink">
-                <persona.Icon size={12} className="text-ink-mute" /> {persona.name} mode
+            <div className="mb-3 rounded-xl border border-border bg-card p-3">
+              <p className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+                <persona.Icon size={12} className="text-muted-foreground" /> {persona.name} mode
               </p>
-              <p className="mt-0.5 text-[10px] text-ink-mute">{persona.description}</p>
-              <p className="mt-2 text-[9px] leading-relaxed text-ink-faint">
-                Chart: <span className="font-mono text-ink-mute">{symbol} · {timeframe}</span> —{" "}
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{persona.description}</p>
+              <p className="mt-2 text-[10px] leading-relaxed text-muted-foreground">
+                Chart: <span className="font-numeric text-muted-foreground">{symbol} · {timeframe}</span> —{" "}
                 <span className={contextState.cls}>{contextState.label}</span>
               </p>
             </div>
@@ -352,7 +352,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
                 <button
                   key={p}
                   onClick={() => send(p)}
-                  className="w-full rounded-lg border border-edge px-3 py-2 text-left text-[11px] text-ink-mute transition-colors hover:border-neutral-500 hover:bg-raised hover:text-ink"
+                  className="w-full rounded-lg border border-border px-3 py-2 text-left text-[11px] text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:bg-secondary/80 hover:text-foreground"
                 >
                   {p}
                 </button>
@@ -365,7 +365,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${
-                m.role === "user" ? "border border-edge bg-raised text-ink" : "bg-neutral-500/10 text-ink"
+                m.role === "user" ? "border border-border bg-secondary text-foreground" : "bg-secondary/40 text-foreground"
               }`}
             >
               {m.role === "assistant" ? <Markdown content={m.content} /> : m.content}
@@ -375,9 +375,9 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
 
         {loading && (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-lg bg-neutral-500/10 px-3 py-2">
-              <Loader2 size={12} className="animate-spin text-ink-faint" />
-              <span className="text-[11px] text-ink-mute">{persona.name} is thinking…</span>
+            <div className="flex items-center gap-2 rounded-lg bg-secondary/40 px-3 py-2">
+              <Loader2 size={12} className="animate-spin text-muted-foreground" />
+              <span className="text-[11px] text-muted-foreground">{persona.name} is thinking…</span>
             </div>
           </div>
         )}
@@ -386,13 +386,13 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
 
       {/* status / notice strip */}
       {drawnNotice && (
-        <div className="flex items-center gap-1.5 border-t border-edge bg-raised px-3 py-1.5 text-[10px] text-ink-mute">
+        <div className="flex items-center gap-1.5 border-t border-border bg-secondary px-3 py-1.5 text-[10px] text-muted-foreground">
           <Palette size={11} /> {drawnNotice}
         </div>
       )}
 
       {/* composer */}
-      <div className="border-t border-edge p-2.5">
+      <div className="border-t border-border p-2.5">
         <div className="flex items-end gap-2">
           <textarea
             value={input}
@@ -402,12 +402,12 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
             }}
             placeholder={`Ask about ${symbol}…`}
             rows={2}
-            className="max-h-28 flex-1 resize-none rounded-lg border border-edge bg-neutral-500/10 px-3 py-2 text-[11px] text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
+            className="max-h-28 flex-1 resize-none rounded-lg border border-input bg-secondary/40 px-3 py-2 text-[11px] text-foreground outline-none placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
           />
           <button
             onClick={() => send(input)}
             disabled={!input.trim() || loading}
-            className="rounded-lg bg-brand-500 p-2 text-white transition-colors hover:bg-brand-400 disabled:opacity-40"
+            className="rounded-lg bg-brand-fill p-2 text-white transition-colors hover:bg-brand-fill-hover disabled:opacity-40"
           >
             <Send size={14} />
           </button>
@@ -427,25 +427,25 @@ function PersonaPicker({ value, onChange }: { value: PersonaId; onChange: (id: P
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md border border-edge bg-raised px-2 py-1 text-[10px] font-semibold text-ink hover:border-neutral-500"
+        className="flex items-center gap-1 rounded-lg border border-border bg-secondary px-2 py-1 text-[10px] font-semibold text-foreground hover:border-muted-foreground/40"
       >
-        <ActiveIcon size={11} className="text-ink-mute" /> {active.name}
-        <ChevronDown size={10} className="text-ink-faint" />
+        <ActiveIcon size={11} className="text-muted-foreground" /> {active.name}
+        <ChevronDown size={10} className="text-muted-foreground" />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-20 mt-1 w-52 overflow-hidden rounded-lg border border-edge bg-card shadow-xl animate-fade-in">
+          <div className="absolute left-0 top-full z-20 mt-1 w-52 overflow-hidden rounded-xl border border-border bg-card shadow-xl">
             {PERSONAS.map((p) => {
               const PIcon = p.Icon;
               return (
                 <button
                   key={p.id}
                   onClick={() => { onChange(p.id); setOpen(false); }}
-                  className={`block w-full px-3 py-2 text-left hover:bg-neutral-500/10 ${p.id === value ? "text-brand-400" : "text-ink-mute"}`}
+                  className={`block w-full px-3 py-2 text-left hover:bg-secondary/40 ${p.id === value ? "text-brand" : "text-muted-foreground"}`}
                 >
                   <span className="flex items-center gap-1.5 text-[11px] font-semibold"><PIcon size={11} /> {p.name}</span>
-                  <span className="block text-[9px] text-ink-faint">{p.description}</span>
+                  <span className="block text-[10px] text-muted-foreground">{p.description}</span>
                 </button>
               );
             })}

@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { fetchSetupRadar, dismissSetup, backtestSetup } from "@/api/pro";
 import { getAlgoVaultUrl } from "@/config/environment";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 import type { SetupRadarCard, SetupRadarStatus, SetupDirection } from "@/types/pro";
 
 interface ProSetupRadarViewProps {
@@ -36,22 +38,28 @@ interface ProSetupRadarViewProps {
 
 const POLL_INTERVAL_MS = 60_000; // 1 min — setups don't change second-by-second
 
-function statusLabel(s: SetupRadarStatus): { label: string; color: string; bg: string; dot: string } {
+function statusLabel(s: SetupRadarStatus): {
+  label: string;
+  color: string;
+  bg: string;
+  border: string;
+  dot: string;
+} {
   switch (s) {
-    case "WAITING":      return { label: "Waiting",     color: "text-ink-mute",      bg: "bg-raised",          dot: "bg-ink-faint" };
-    case "FORMING":      return { label: "Forming",     color: "text-amber-400",     bg: "bg-amber-500/10",    dot: "bg-amber-400 animate-pulse-dot" };
-    case "CONFIRMATION": return { label: "Confirming",  color: "text-blue-400",      bg: "bg-blue-500/10",     dot: "bg-blue-400 animate-pulse-dot" };
-    case "ACTIVE":       return { label: "Active",      color: "text-emerald-400",   bg: "bg-emerald-500/10",  dot: "bg-emerald-400 animate-pulse-dot" };
-    case "INVALIDATED":  return { label: "Invalidated", color: "text-rose-400",      bg: "bg-rose-500/10",     dot: "bg-rose-500" };
-    case "EXPIRED":      return { label: "Expired",     color: "text-ink-faint",     bg: "bg-raised",          dot: "bg-ink-faint" };
-    default:             return { label: s,             color: "text-ink-mute",      bg: "bg-raised",          dot: "bg-ink-faint" };
+    case "WAITING":      return { label: "Waiting",     color: "text-muted-foreground",   bg: "bg-secondary",          border: "border-border",              dot: "bg-muted-foreground/40" };
+    case "FORMING":      return { label: "Forming",     color: "text-warning",            bg: "bg-warning/10",         border: "border-warning/30",          dot: "bg-warning" };
+    case "CONFIRMATION": return { label: "Confirming",  color: "text-foreground",         bg: "bg-secondary",          border: "border-border",              dot: "bg-foreground/60" };
+    case "ACTIVE":       return { label: "Active",      color: "text-positive",           bg: "bg-positive/10",        border: "border-positive/30",         dot: "bg-positive" };
+    case "INVALIDATED":  return { label: "Invalidated", color: "text-negative",           bg: "bg-negative/10",        border: "border-negative/30",         dot: "bg-negative" };
+    case "EXPIRED":      return { label: "Expired",     color: "text-muted-foreground", bg: "bg-secondary",         border: "border-border",              dot: "bg-muted-foreground/40" };
+    default:             return { label: s,             color: "text-muted-foreground",   bg: "bg-secondary",          border: "border-border",              dot: "bg-muted-foreground/40" };
   }
 }
 
 function DirIcon({ dir }: { dir: SetupDirection }) {
-  if (dir === "LONG")  return <TrendingUp size={12} className="text-emerald-400" />;
-  if (dir === "SHORT") return <TrendingDown size={12} className="text-rose-400" />;
-  return <Minus size={12} className="text-ink-faint" />;
+  if (dir === "LONG")  return <TrendingUp size={12} className="text-positive" />;
+  if (dir === "SHORT") return <TrendingDown size={12} className="text-negative" />;
+  return <Minus size={12} className="text-muted-foreground" />;
 }
 
 function SetupCard({ setup, onAnalyze, onBacktest, onPrepareTrade, onDismiss }: {
@@ -79,125 +87,147 @@ function SetupCard({ setup, onAnalyze, onBacktest, onPrepareTrade, onDismiss }: 
     }
   };
 
+  const actionBtn = cn(
+    "flex flex-1 items-center justify-center gap-1 py-1.5 text-[10px] transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 focus-visible:ring-inset",
+    "text-muted-foreground hover:bg-secondary hover:text-foreground"
+  );
+
   return (
-    <article className="rounded-xl border border-edge bg-card overflow-hidden animate-fade-in">
+    <article className="overflow-hidden rounded-xl border border-border bg-card">
       {/* header */}
-      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+      <div className="flex items-center gap-2 px-3 pb-2 pt-3">
         <DirIcon dir={setup.direction} />
-        <span className="text-xs font-semibold flex-1 truncate">{setup.setupType}</span>
-        <span className={`inline-flex items-center gap-1 rounded-full border border-transparent px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider ${status.bg} ${status.color}`}>
-          <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
+        <span className="flex-1 truncate text-xs font-semibold">{setup.setupType}</span>
+        <span className={cn(
+          "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+          status.bg, status.color, status.border
+        )}>
+          <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
           {status.label}
         </span>
-        <button onClick={() => onDismiss(setup.id)} className="rounded p-0.5 text-ink-faint hover:text-ink" title="Dismiss">
-          <X size={11} />
+        <button
+          type="button"
+          onClick={() => onDismiss(setup.id)}
+          className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+          title="Dismiss"
+        >
+          <X size={12} />
         </button>
       </div>
 
-      <div className="px-3 pb-2">
-        <div className="flex items-center gap-2 text-[10px] text-ink-mute">
-          <span className="font-mono font-semibold text-ink">{setup.symbol}</span>
-          <span>·</span>
-          <span>{setup.timeframe}</span>
-          {setup.invalidation != null && (
-            <>
-              <span>·</span>
-              <span className="flex items-center gap-0.5"><Target size={9} /> Inv: {setup.invalidation.toFixed(setup.invalidation < 1 ? 5 : 2)}</span>
-            </>
-          )}
-        </div>
+      {/* meta */}
+      <div className="flex items-center gap-2 px-3 pb-2 text-[11px] text-muted-foreground">
+        <span className="font-numeric font-semibold text-foreground">{setup.symbol}</span>
+        <span>·</span>
+        <span>{setup.timeframe}</span>
+        {setup.invalidation != null && (
+          <span className="flex items-center gap-1">
+            <Target size={10} />
+            <span className="font-numeric">{setup.invalidation}</span>
+          </span>
+        )}
       </div>
 
-      {/* evidence summary */}
-      <div className="px-3 pb-2 flex flex-wrap gap-1">
+      {/* evidence */}
+      <div className="flex flex-wrap gap-1 px-3 pb-2">
         {setup.supportingEvidence.slice(0, 2).map((e, i) => (
-          <span key={i} className="inline-flex items-center gap-0.5 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[9px] text-emerald-400">
-            <CheckCircle2 size={8} /> {e.length > 40 ? e.slice(0, 40) + "…" : e}
+          <span key={i} className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive/10 px-1.5 py-0.5 text-[10px] text-positive">
+            <CheckCircle2 size={9} /> {e.length > 40 ? e.slice(0, 40) + "…" : e}
           </span>
         ))}
         {setup.conflictingEvidence.slice(0, 1).map((e, i) => (
-          <span key={i} className="inline-flex items-center gap-0.5 rounded bg-amber-500/10 px-1.5 py-0.5 text-[9px] text-amber-400">
-            <AlertTriangle size={8} /> {e.length > 40 ? e.slice(0, 40) + "…" : e}
+          <span key={i} className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] text-warning">
+            <AlertTriangle size={9} /> {e.length > 40 ? e.slice(0, 40) + "…" : e}
           </span>
         ))}
       </div>
 
       {/* expandable details */}
       {expanded && (
-        <div className="border-t border-edge/50 px-3 py-2 space-y-2 animate-fade-in">
+        <div className="space-y-2 border-t border-border px-3 py-2">
           {setup.supportingEvidence.length > 0 && (
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-faint mb-1">Supporting evidence</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Supporting evidence
+              </p>
               {setup.supportingEvidence.map((e, i) => (
-                <p key={i} className="text-[10px] text-emerald-400 flex items-start gap-1">
-                  <CheckCircle2 size={9} className="mt-0.5 shrink-0" /> {e}
+                <p key={i} className="flex items-start gap-1 text-[11px] text-muted-foreground">
+                  <CheckCircle2 size={10} className="mt-0.5 shrink-0 text-positive" /> {e}
                 </p>
               ))}
             </div>
           )}
           {setup.conflictingEvidence.length > 0 && (
             <div>
-              <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-faint mb-1">Conflicting evidence</p>
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Conflicting evidence
+              </p>
               {setup.conflictingEvidence.map((e, i) => (
-                <p key={i} className="text-[10px] text-amber-400 flex items-start gap-1">
-                  <AlertTriangle size={9} className="mt-0.5 shrink-0" /> {e}
+                <p key={i} className="flex items-start gap-1 text-[11px] text-muted-foreground">
+                  <AlertTriangle size={10} className="mt-0.5 shrink-0 text-warning" /> {e}
                 </p>
               ))}
             </div>
           )}
           {setup.riskContext && (
-            <p className="text-[10px] text-ink-mute">{setup.riskContext}</p>
+            <p className="text-[11px] text-muted-foreground">{setup.riskContext}</p>
           )}
         </div>
       )}
 
       {/* actions */}
-      <div className="border-t border-edge/50 flex">
+      <div className="flex border-t border-border">
         <button
+          type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors"
+          className={actionBtn}
         >
-          {expanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+          {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
           {expanded ? "Less" : "Evidence"}
         </button>
-        <div className="w-px bg-edge/50" />
-        <button
-          onClick={() => onAnalyze(setup)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors"
-        >
-          <Zap size={10} /> Analyze
+        <span className="w-px bg-border" />
+        <button type="button" onClick={() => onAnalyze(setup)} className={actionBtn}>
+          <Zap size={11} /> Analyze
         </button>
-        <div className="w-px bg-edge/50" />
+        <div className="w-px bg-border" />
         <button
+          type="button"
           onClick={handleBacktest}
           disabled={backtesting}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors disabled:opacity-40"
+          className={cn(actionBtn, "disabled:opacity-40")}
         >
-          {backtesting ? <Loader2 size={10} className="animate-spin" /> : <FlaskConical size={10} />}
+          {backtesting ? <Loader2 size={11} className="animate-spin" /> : <FlaskConical size={11} />}
           Backtest
         </button>
       </div>
 
       {/* research + trade preparation */}
-      <div className="border-t border-edge/50 flex">
+      <div className="flex border-t border-border">
         <button
+          type="button"
           onClick={() =>
             window.open(
               `${getAlgoVaultUrl()}/strategy-research?symbol=${encodeURIComponent(setup.symbol)}`,
               "_blank"
             )
           }
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] text-ink-mute hover:text-ink hover:bg-raised/50 transition-colors"
+          className={actionBtn}
         >
-          <FlaskConical size={10} /> Research
+          <FlaskConical size={11} /> Research
         </button>
-        <div className="w-px bg-edge/50" />
+        <div className="w-px bg-border" />
         <button
+          type="button"
           onClick={() => onPrepareTrade(setup)}
-          className="flex-1 flex items-center justify-center gap-1 py-1.5 text-[9px] font-semibold text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 transition-colors"
+          className={cn(
+            "flex flex-1 items-center justify-center gap-1 py-1.5 text-[10px] font-semibold transition-colors",
+            "text-brand hover:bg-brand/10",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 focus-visible:ring-inset"
+          )}
           title="Prepare a trade ticket from this setup — nothing is executed until you confirm"
         >
-          <ArrowRight size={10} /> Prepare Trade
+          <ArrowRight size={11} /> Prepare Trade
         </button>
       </div>
     </article>
@@ -263,63 +293,58 @@ export function ProSetupRadarView({
 
   if (loading && setups.length === 0) {
     return (
-      <div className="flex h-48 flex-col items-center justify-center gap-3">          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-edge bg-raised">
-            <Radar size={18} className="text-ink-mute" />
-          </div>
-        <p className="text-[10px] text-ink-mute">Scanning for setups…</p>
+      <div className="flex h-48 flex-col items-center justify-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-secondary">
+          <Radar size={18} className="text-muted-foreground" />
+        </div>
+        <p className="text-[11px] text-muted-foreground">Scanning for setups…</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-edge/50">
+      <div className="flex items-center justify-between border-b border-border px-3 py-2">
         <div className="flex items-center gap-1.5">
-          <Radar size={12} className="text-ink-mute" />
+          <Radar size={13} className="text-muted-foreground" />
           <span className="text-xs font-semibold">Setup Radar</span>
           {activeCount > 0 && (
-            <span className="rounded-full bg-raised border border-edge px-1.5 py-0.5 text-[9px] font-semibold text-ink-mute">
+            <span className="rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
               {activeCount} active
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {fetchedAt && (
-            <span className="text-[9px] text-ink-faint">
+            <span className="font-numeric text-[10px] text-muted-foreground">
               {Math.round((Date.now() - fetchedAt) / 1000)}s ago
             </span>
           )}
           <button
+            type="button"
             onClick={load}
             disabled={loading}
-            className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40"
+            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:opacity-40"
             title="Refresh"
           >
-            <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
           </button>
         </div>
       </div>
 
       {/* error */}
       {error && (
-        <div className="mx-3 mt-3 flex items-start gap-2 rounded-lg border border-rose-500/30 bg-rose-500/5 p-3 text-[10px] text-rose-400">
-          <AlertTriangle size={11} className="mt-0.5 shrink-0" />
-          <span>{error}</span>
+        <div className="px-3 pt-3">
+          <Alert variant="destructive" className="py-2">
+            <AlertTriangle size={12} />
+            <AlertDescription className="text-[11px]">{error}</AlertDescription>
+          </Alert>
         </div>
       )}
 
-      {/* setups list */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {visible.length === 0 && !loading && !error && (
-          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <Radar size={24} className="text-ink-faint" />
-            <p className="text-xs font-medium text-ink">No setups detected</p>
-            <p className="max-w-[200px] text-[10px] leading-relaxed text-ink-mute">
-              The radar monitors {symbol} on {timeframe}. Setups appear when market conditions align with the connected strategies.
-            </p>
-          </div>
-        )}
+      {/* setup list */}
+      <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {visible.map((setup) => (
           <SetupCard
             key={setup.id}
@@ -332,7 +357,7 @@ export function ProSetupRadarView({
         ))}
       </div>
 
-      <p className="px-3 pb-2 text-[8px] text-ink-faint">
+      <p className="px-3 pb-2 text-[10px] text-muted-foreground">
         Setup Radar uses deterministic evidence — not probability estimates. Backtesting is historical analysis only.
       </p>
     </div>

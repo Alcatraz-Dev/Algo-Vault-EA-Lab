@@ -4,8 +4,9 @@
 // computed marks; the close button submits intent only.
 
 import { useState } from "react";
-import { Loader2, XCircle, Pencil, Check, X, Scissors, Lock } from "lucide-react";
+import { Loader2, XCircle, Pencil, Check, X, Scissors } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Money } from "./primitives";
 import { centiLotsToNumber, priceMicrosToNumber } from "@/lib/performance-arena/money";
@@ -41,6 +42,8 @@ export function PositionsTable({
     const [takeProfit, setTakeProfit] = useState("");
     const [savingStops, setSavingStops] = useState(false);
     const [actionError, setActionError] = useState<string | null>(null);
+    const [slError, setSlError] = useState<string | null>(null);
+    const [tpError, setTpError] = useState<string | null>(null);
 
     const close = async (tradeId: string) => {
         setClosing(tradeId);
@@ -51,8 +54,43 @@ export function PositionsTable({
         }
     };
 
-    const saveStops = async (tradeId: string) => {
+    /** Validates a stop-loss or take-profit price against the entry and side.
+     * A stop must sit on the loss side of entry; a target on the profit side. */
+    const validateLevel = (
+        value: string,
+        entry: number,
+        isStopLoss: boolean,
+        side: "long" | "short",
+    ): string | null => {
+        const trimmed = value.trim();
+        if (trimmed === "") return null;
+        const parsed = Number(trimmed);
+        if (!Number.isFinite(parsed)) return "Enter a valid price.";
+        if (entry <= 0) return null;
+        // For a short, the loss side is above entry (price rising against you).
+        // For a long, the loss side is below entry (price falling against you).
+        const onLossSide = side === "short" ? parsed > entry : parsed < entry;
+        const onProfitSide = side === "short" ? parsed < entry : parsed > entry;
+        if (isStopLoss && !onLossSide) {
+            return side === "short"
+                ? "Stop-loss must remain above the entry (loss side)."
+                : "Stop-loss must remain below the entry (loss side).";
+        }
+        if (!isStopLoss && !onProfitSide) {
+            return side === "short"
+                ? "Take profit must sit above the entry (profit side)."
+                : "Take profit must sit below the entry (profit side).";
+        }
+        return null;
+    };
+
+    const saveStops = async (tradeId: string, entry: number, side: "long" | "short") => {
         if (!onModifyStops) return;
+        const slErr = validateLevel(stopLoss, entry, true, side);
+        const tpErr = validateLevel(takeProfit, entry, false, side);
+        setSlError(slErr);
+        setTpError(tpErr);
+        if (slErr || tpErr) return;
         setSavingStops(true);
         setActionError(null);
         try {
@@ -61,6 +99,8 @@ export function PositionsTable({
                 takeProfit: takeProfit.trim() === "" ? null : Number(takeProfit),
             });
             setEditingId(null);
+            setSlError(null);
+            setTpError(null);
         } catch (error) {
             setActionError(error instanceof Error ? error.message : "Could not update protection levels.");
         } finally {
@@ -83,18 +123,19 @@ export function PositionsTable({
                     <TableRow>
                         <TableHead>Symbol</TableHead>
                         <TableHead>Side</TableHead>
-                        <TableHead>Size</TableHead>
+                        <TableHead className="text-right">Size</TableHead>
                         <TableHead className="text-right">Entry</TableHead>
                         <TableHead className="text-right">Mark</TableHead>
                         <TableHead className="text-right">Unrealized</TableHead>
                         <TableHead className="text-right">Risk</TableHead>
                         <TableHead>Protection</TableHead>
-                        <TableHead />
+                        <TableHead className="text-right" />
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {positions.map((marked) => {
                         const { trade, markPriceMicros, unrealizedPnLCents, stale } = marked;
+                        const entry = priceMicrosToNumber(trade.entryPriceMicros);
                         return (
                         <TableRow key={trade.tradeId}>
                             <TableCell className="font-numeric text-xs">{trade.symbol}</TableCell>
@@ -109,21 +150,25 @@ export function PositionsTable({
                                 {stale ? <span className="ml-1 text-micro text-warning">·</span> : null}
                             </TableCell>
                             <TableCell className="text-right font-numeric text-xs text-muted-foreground">
-                                {trade.riskCents !== null ? `$${(trade.riskCents / 100).toFixed(2)}` : "no stop"}
+                                {Number.isFinite(trade.riskCents ?? NaN) ? `$${((trade.riskCents as number) / 100).toFixed(2)}` : "no stop"}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="font-numeric text-xs">
                                 {editingId === trade.tradeId ? (
-                                    <div className="flex min-w-48 items-center gap-1">
-                                        <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => setStopLoss(event.target.value)} placeholder={trade.stopLossMicros === null ? "SL" : priceMicrosToNumber(trade.stopLossMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-numeric text-micro" />
-                                        <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => setTakeProfit(event.target.value)} placeholder={trade.takeProfitMicros === null ? "TP" : priceMicrosToNumber(trade.takeProfitMicros).toString()} className="w-20 rounded border border-border bg-background px-1.5 py-1 font-numeric text-micro" />
-                                        <button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId)} className="rounded p-1 text-positive disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</button>
-                                        <button type="button" aria-label="Cancel edit" disabled={savingStops} onClick={() => setEditingId(null)} className="rounded p-1 text-muted-foreground"><X className="h-3 w-3" /></button>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="flex min-w-48 items-center gap-1.5">
+                                            <input aria-label={`Stop loss for ${trade.symbol}`} value={stopLoss} onChange={(event) => { setStopLoss(event.target.value); setSlError(null); }} placeholder={trade.stopLossMicros !== null && Number.isFinite(trade.stopLossMicros) ? priceMicrosToNumber(trade.stopLossMicros).toString() : "no SL"} className={`w-24 rounded border bg-background px-1.5 py-1 font-numeric text-xs ${slError ? "border-destructive" : "border-border"}`} />
+                                            <input aria-label={`Take profit for ${trade.symbol}`} value={takeProfit} onChange={(event) => { setTakeProfit(event.target.value); setTpError(null); }} placeholder={trade.takeProfitMicros !== null && Number.isFinite(trade.takeProfitMicros) ? priceMicrosToNumber(trade.takeProfitMicros).toString() : "no TP"} className={`w-24 rounded border bg-background px-1.5 py-1 font-numeric text-xs ${tpError ? "border-destructive" : "border-border"}`} />
+                                            <Button type="button" aria-label="Save protection levels" disabled={savingStops} onClick={() => void saveStops(trade.tradeId, entry, trade.side)} size="icon-xs" className="text-positive disabled:opacity-50">{savingStops ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}</Button>
+                                            <Button type="button" aria-label="Cancel edit" disabled={savingStops} onClick={() => { setEditingId(null); setSlError(null); setTpError(null); }} variant="ghost" size="icon-xs"><X className="h-3 w-3" /></Button>
+                                        </div>
+                                        {slError ? <p role="alert" className="pl-1 text-micro text-destructive">{slError}</p> : null}
+                                        {tpError ? <p role="alert" className="pl-1 text-micro text-destructive">{tpError}</p> : null}
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-1.5 font-numeric text-micro text-muted-foreground">
-                                        <span>SL {trade.stopLossMicros === null ? "—" : priceMicrosToNumber(trade.stopLossMicros)}</span>
-                                        <span>TP {trade.takeProfitMicros === null ? "—" : priceMicrosToNumber(trade.takeProfitMicros)}</span>
-                                        {canModifyStops && onModifyStops ? <button type="button" aria-label={`Edit protection for ${trade.symbol}`} onClick={() => { setStopLoss(trade.stopLossMicros === null ? "" : priceMicrosToNumber(trade.stopLossMicros).toString()); setTakeProfit(trade.takeProfitMicros === null ? "" : priceMicrosToNumber(trade.takeProfitMicros).toString()); setEditingId(trade.tradeId); setActionError(null); }} className="rounded p-1 hover:bg-muted"><Pencil className="h-3 w-3" /></button> : null}
+                                    <div className="flex items-center gap-2 text-muted-foreground">
+                                        <span>SL {trade.stopLossMicros !== null && Number.isFinite(trade.stopLossMicros) ? priceMicrosToNumber(trade.stopLossMicros) : "no SL"}</span>
+                                        <span>TP {trade.takeProfitMicros !== null && Number.isFinite(trade.takeProfitMicros) ? priceMicrosToNumber(trade.takeProfitMicros) : "no TP"}</span>
+                                        {canModifyStops && onModifyStops ? <Button type="button" aria-label={`Edit protection for ${trade.symbol}`} onClick={() => { setStopLoss(trade.stopLossMicros !== null && Number.isFinite(trade.stopLossMicros) ? priceMicrosToNumber(trade.stopLossMicros).toString() : ""); setTakeProfit(trade.takeProfitMicros !== null && Number.isFinite(trade.takeProfitMicros) ? priceMicrosToNumber(trade.takeProfitMicros).toString() : ""); setEditingId(trade.tradeId); setActionError(null); setSlError(null); setTpError(null); }} variant="ghost" size="icon-xs"><Pencil className="h-3 w-3" /></Button> : null}
                                     </div>
                                 )}
                             </TableCell>
@@ -131,45 +176,36 @@ export function PositionsTable({
                                 <div className="flex justify-end gap-1">
                                     {onPartialClose ? (
                                         <>
-                                            {/* Shortcuts that name the MODE, so a 50% is never ambiguous. */}
-                                            <button
-                                                type="button"
-                                                aria-label={`Lock 50% of the profit on the ${trade.symbol} position`}
-                                                disabled={!canClose}
-                                                onClick={() => onPartialClose(marked, "PROFIT_PRESERVATION", 50)}
-                                                title="Lock 50% of the current profit"
-                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground hover:bg-muted disabled:opacity-50"
-                                                data-partial-mode="PROFIT_PRESERVATION"
-                                                data-partial-percent="50"
-                                            >
-                                                <Lock className="h-3 w-3" />
-                                                <span className="hidden md:inline">Lock 50%</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                aria-label={`Close 50% of the volume of the ${trade.symbol} position`}
-                                                disabled={!canClose}
-                                                onClick={() => onPartialClose(marked, "VOLUME", 50)}
-                                                title="Close 50% of the position volume"
-                                                className="inline-flex min-h-9 items-center gap-1 rounded-md border border-border px-2 py-1 text-micro text-muted-foreground hover:bg-muted disabled:opacity-50"
-                                                data-partial-mode="VOLUME"
-                                                data-partial-percent="50"
-                                            >
-                                                <Scissors className="h-3 w-3" />
-                                                <span className="hidden md:inline">Half size</span>
-                                            </button>
+                                            {[25, 50, 75].map((pct) => (
+                                                <Button
+                                                    key={pct}
+                                                    type="button"
+                                                    aria-label={`Close ${pct}% of the volume of the ${trade.symbol} position`}
+                                                    disabled={!canClose}
+                                                    onClick={() => onPartialClose(marked, "VOLUME", pct)}
+                                                    title={`Close ${pct}% of the position volume`}
+                                                    variant="outline"
+                                                    size="xs"
+                                                    data-partial-mode="VOLUME"
+                                                    data-partial-percent={pct}
+                                                >
+                                                    <Scissors className="h-3 w-3" />
+                                                    <span className="hidden sm:inline">{pct}%</span>
+                                                </Button>
+                                            ))}
                                         </>
                                     ) : null}
-                                    <button
+                                    <Button
                                         type="button"
                                         aria-label={`Close ${trade.side === "long" ? "buy" : "sell"} position in ${trade.symbol}`}
                                         disabled={!canClose || closing === trade.tradeId}
                                         onClick={() => void close(trade.tradeId)}
-                                        className="inline-flex min-h-9 items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-50"
+                                        variant="destructive"
+                                        size="xs"
                                     >
                                         {closing === trade.tradeId ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
                                         <span className="hidden sm:inline">Close</span>
-                                    </button>
+                                    </Button>
                                 </div>
                             </TableCell>
                         </TableRow>

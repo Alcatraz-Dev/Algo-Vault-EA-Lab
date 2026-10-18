@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 import { fetchMarketRadar } from "@/api/pro";
 import type { MarketRadarItem, MarketRadarResponse, SetupRadarStatus } from "@/types/pro";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 /* ── storage helpers ─────────────────────────────────────────────────── */
 
@@ -48,37 +51,37 @@ async function saveSymbols(symbols: string[]): Promise<void> {
 const MARKET_STATE_CFG = {
   BULLISH: {
     icon: <TrendingUp size={10} />,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10",
+    color: "text-positive",
+    bg: "bg-positive/10",
     label: "Bull",
   },
   BEARISH: {
     icon: <TrendingDown size={10} />,
-    color: "text-rose-400",
-    bg: "bg-rose-500/10",
+    color: "text-negative",
+    bg: "bg-negative/10",
     label: "Bear",
   },
   RANGE: {
     icon: <Minus size={10} />,
-    color: "text-sky-400",
-    bg: "bg-sky-500/10",
+    color: "text-muted-foreground",
+    bg: "bg-secondary",
     label: "Range",
   },
   TRANSITION: {
     icon: <Activity size={10} />,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10",
+    color: "text-warning",
+    bg: "bg-warning/10",
     label: "Trans.",
   },
 };
 
 const SETUP_STATE_COLORS: Record<SetupRadarStatus, string> = {
-  WAITING: "text-ink-faint",
-  FORMING: "text-amber-400",
-  CONFIRMATION: "text-blue-400",
-  ACTIVE: "text-emerald-400",
-  INVALIDATED: "text-rose-400",
-  EXPIRED: "text-ink-faint",
+  WAITING: "text-muted-foreground",
+  FORMING: "text-warning",
+  CONFIRMATION: "text-foreground",
+  ACTIVE: "text-positive",
+  INVALIDATED: "text-negative",
+  EXPIRED: "text-muted-foreground",
 };
 
 function RadarRow({
@@ -91,7 +94,7 @@ function RadarRow({
   onSelect: (symbol: string) => void;
 }) {
   const ms = MARKET_STATE_CFG[item.marketState] ?? MARKET_STATE_CFG.RANGE;
-  const setupColor = SETUP_STATE_COLORS[item.setupState] ?? "text-ink-faint";
+  const setupColor = SETUP_STATE_COLORS[item.setupState] ?? "text-muted-foreground";
   const isCurrent = item.symbol === currentSymbol;
   const hasAlert = item.alertStatus === "ACTIVE";
   const ageMin = item.lastUpdateMs ? Math.floor((Date.now() - item.lastUpdateMs) / 60000) : null;
@@ -99,44 +102,44 @@ function RadarRow({
   return (
     <button
       onClick={() => onSelect(item.symbol)}
-      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left transition-colors ${
+      className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
         isCurrent
-          ? "bg-brand-500/10 border border-brand-500/30"
-          : "bg-raised border border-edge hover:border-edge/80"
+          ? "bg-brand/10 border border-brand/30"
+          : "bg-secondary border border-border hover:border-muted-foreground/30"
       }`}
     >
       {/* symbol */}
       <div className="w-16 shrink-0">
-        <p className="font-mono text-[11px] font-bold text-ink leading-tight">{item.symbol}</p>
-        <p className="text-[9px] text-ink-faint">{item.timeframe}</p>
+        <p className="font-numeric text-[11px] font-bold text-foreground leading-tight">{item.symbol}</p>
+        <p className="text-[10px] text-muted-foreground">{item.timeframe}</p>
       </div>
 
       {/* market state */}
-      <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${ms.color} ${ms.bg}`}>
+      <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${ms.color} ${ms.bg}`}>
         {ms.icon}
         {ms.label}
       </div>
 
       {/* setup state */}
-      <span className={`text-[9px] font-semibold flex-1 ${setupColor}`}>
+      <span className={`text-[10px] font-semibold flex-1 ${setupColor}`}>
         {item.setupState}
       </span>
 
       {/* conditions */}
-      <span className="text-[9px] text-ink-mute tabular-nums shrink-0">{item.matchedConditions}</span>
+      <span className="font-numeric text-[10px] text-muted-foreground shrink-0">{item.matchedConditions}</span>
 
       {/* alert */}
       {hasAlert ? (
-        <Bell size={9} className="text-amber-400 shrink-0" />
+        <Bell size={10} className="text-warning shrink-0" />
       ) : (
-        <BellOff size={9} className="text-ink-faint shrink-0" />
+        <BellOff size={10} className="text-muted-foreground shrink-0" />
       )}
 
       {/* strategy + age */}
       <div className="shrink-0 text-right">
-        <p className="text-[9px] text-ink-faint truncate max-w-[64px]">{item.strategyName}</p>
+        <p className="text-[10px] text-muted-foreground truncate max-w-[64px]">{item.strategyName}</p>
         {ageMin !== null && (
-          <p className="text-[8px] text-ink-faint tabular-nums">{ageMin}m ago</p>
+          <p className="font-numeric text-[10px] text-muted-foreground">{ageMin}m ago</p>
         )}
       </div>
     </button>
@@ -218,30 +221,34 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
   return (
     <div className="flex h-full flex-col">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <ScanEye size={13} className="text-ink-mute" />
-        <span className="text-[11px] font-semibold text-ink">Market Radar</span>
-        <button
+      <div className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
+        <ScanEye size={13} className="text-muted-foreground" />
+        <span className="text-xs font-semibold text-foreground">Market Radar</span>
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={() => setShowAdd((v) => !v)}
-          className="ml-auto rounded p-1 text-ink-mute hover:text-ink transition-colors"
+          className="ml-auto text-muted-foreground hover:text-foreground"
           title="Add symbol"
         >
           <Plus size={12} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={() => load(watchlist)}
           disabled={loading || watchlist.length === 0}
-          className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40 transition-colors"
+          className="text-muted-foreground hover:text-foreground"
           title="Refresh scan"
         >
           <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
-        </button>
+        </Button>
       </div>
 
       {/* add symbol bar */}
       {showAdd && (
-        <div className="flex items-center gap-2 border-b border-edge bg-raised px-3 py-2 animate-fade-in">
-          <input
+        <div className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
+          <Input
             autoFocus
             value={newSymbol}
             onChange={(e) => setNewSymbol(e.target.value)}
@@ -250,20 +257,23 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
               if (e.key === "Escape") setShowAdd(false);
             }}
             placeholder="Symbol (e.g. GBPUSD)"
-            className="flex-1 rounded border border-edge bg-base px-2 py-1 font-mono text-[11px] text-ink outline-none focus:border-brand-500"
+            className="h-7 flex-1 px-2 font-numeric text-[11px]"
           />
-          <button
+          <Button
+            variant="brand"
+            size="sm"
             onClick={addSymbol}
-            className="rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
+            className="h-7 px-2 text-[11px]"
           >
             Add
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => setShowAdd(false)}
-            className="rounded p-1 text-ink-mute hover:text-ink"
           >
             <X size={11} />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -271,36 +281,40 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
         {/* loading */}
         {loading && watchlist.length > 0 && (
           <div className="flex items-center justify-center gap-2 py-3">
-            <RefreshCw size={14} className="animate-spin text-ink-faint" />
-            <p className="text-[10px] text-ink-mute">Scanning {watchlist.length} symbols…</p>
+            <RefreshCw size={14} className="animate-spin text-muted-foreground" />
+            <p className="text-[10px] text-muted-foreground">Scanning {watchlist.length} symbols…</p>
           </div>
         )}
 
         {/* error */}
         {error && !loading && (
-          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 mx-1">
-            <p className="text-[10px] text-rose-400">{error}</p>
-            <button
-              onClick={() => load(watchlist)}
-              className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500"
-            >
-              Retry →
-            </button>
+          <div className="mx-1">
+            <Alert variant="destructive">
+              <AlertDescription className="text-[11px]">
+                {error}
+                <button
+                  onClick={() => load(watchlist)}
+                  className="mt-1.5 block text-[11px] font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Retry →
+                </button>
+              </AlertDescription>
+            </Alert>
           </div>
         )}
 
         {/* empty watchlist */}
         {watchlist.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <ScanEye size={24} className="text-ink-faint" />
-            <p className="text-[11px] font-medium text-ink">No symbols in radar</p>
-            <p className="text-[10px] text-ink-mute">Press + to add symbols to your watchlist.</p>
+            <ScanEye size={24} className="text-muted-foreground" />
+            <p className="text-[11px] font-medium text-foreground">No symbols in radar</p>
+            <p className="text-[10px] text-muted-foreground">Press + to add symbols to your watchlist.</p>
           </div>
         )}
 
         {/* legend row */}
         {watchlist.length > 0 && !loading && (
-          <div className="flex items-center gap-2 px-3 py-1 text-[8px] text-ink-faint font-semibold uppercase tracking-widest border-b border-edge">
+          <div className="flex items-center gap-2 px-3 py-1 text-[10px] text-muted-foreground font-semibold uppercase tracking-wider border-b border-border">
             <span className="w-16">Symbol</span>
             <span className="w-12">State</span>
             <span className="flex-1">Setup</span>
@@ -318,13 +332,13 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
             return (
               <div
                 key={sym}
-                className="flex items-center gap-2 rounded-lg bg-raised border border-edge px-3 py-2.5 opacity-50"
+                className="flex items-center gap-2 rounded-xl bg-secondary border border-border px-3 py-2.5"
               >
-                <span className="font-mono text-[11px] font-bold text-ink">{sym}</span>
-                <span className="text-[9px] text-ink-faint ml-1">pending…</span>
+                <span className="font-numeric text-[11px] font-bold text-foreground">{sym}</span>
+                <span className="text-[10px] text-muted-foreground ml-1">pending…</span>
                 <button
                   onClick={() => removeSymbol(sym)}
-                  className="ml-auto text-ink-faint hover:text-rose-400 transition-colors"
+                  className="ml-auto text-muted-foreground transition-colors hover:text-negative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   title={`Remove ${sym}`}
                 >
                   <X size={10} />
@@ -341,7 +355,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
               />
               <button
                 onClick={() => removeSymbol(sym)}
-                className="absolute right-1 top-1 hidden group-hover:flex items-center justify-center rounded p-0.5 text-ink-faint hover:text-rose-400 transition-colors bg-card border border-edge"
+                className="absolute right-1 top-1 hidden group-hover:flex items-center justify-center rounded border border-border bg-card p-0.5 text-muted-foreground transition-colors hover:text-negative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 title={`Remove ${sym}`}
               >
                 <X size={9} />
@@ -351,7 +365,7 @@ export function ProMarketRadarView({ symbol, timeframe, onSelectSymbol }: Props)
         })}
 
         {data && !loading && (
-          <p className="text-center text-[9px] text-ink-faint pt-1">
+          <p className="text-center text-[10px] text-muted-foreground pt-1">
             Last scan: {data.fetchedAt ? new Date(data.fetchedAt).toLocaleTimeString() : "—"}
           </p>
         )}

@@ -94,17 +94,17 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between border-b border-edge px-2.5 py-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+      <div className="flex items-center justify-between border-b border-border px-2.5 py-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           Alerts · {symbol}
         </span>
         <div className="flex items-center gap-1">
-          <button onClick={refresh} className="rounded p-1 text-ink-mute hover:text-ink" title="Refresh">
+          <button onClick={refresh} className="rounded-lg p-1 text-muted-foreground hover:text-foreground" title="Refresh">
             {loading ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
           </button>
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1 rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
+            className="flex items-center gap-1 rounded-lg bg-brand-fill px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-fill-hover"
           >
             <Plus size={11} /> New
           </button>
@@ -112,14 +112,14 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
       </div>
 
       {showForm && (
-        <div className="space-y-2 border-b border-edge bg-raised/60 p-3 animate-fade-in">
+        <div className="space-y-2 border-b border-border bg-secondary/60 p-3">
           <div className="grid grid-cols-2 gap-1.5">
             {ALERT_TYPES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
-                className={`rounded border px-2 py-1.5 text-left text-[10px] ${
-                  type === t.id ? "border-brand-500/50 bg-brand-500/10 text-brand-300" : "border-edge text-ink-mute hover:text-ink"
+                className={`rounded-lg border px-2 py-1.5 text-left text-[10px] ${
+                  type === t.id ? "border-brand/50 bg-brand/10 text-brand" : "border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {t.label}
@@ -132,19 +132,19 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
               onChange={(e) => setPrice(e.target.value)}
               type="number"
               placeholder="Target price"
-              className="w-full rounded border border-edge bg-base px-2 py-1.5 font-mono text-[11px] text-ink outline-none"
+              className="w-full rounded-lg border border-input bg-background px-2 py-1.5 font-numeric text-[11px] text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
             />
           )}
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Note (optional)"
-            className="w-full rounded border border-edge bg-base px-2 py-1.5 text-[11px] text-ink outline-none"
+            className="w-full rounded-lg border border-input bg-background px-2 py-1.5 text-[11px] text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
           />
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="flex w-full items-center justify-center gap-1.5 rounded bg-brand-500 py-1.5 text-[11px] font-semibold text-white disabled:opacity-40"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-fill py-1.5 text-[11px] font-semibold text-white disabled:opacity-40"
           >
             {creating ? <Loader2 size={12} className="animate-spin" /> : <Bell size={12} />}
             {creating ? "Creating…" : `Create ${symbol} alert`}
@@ -152,25 +152,25 @@ export function AlertsView({ symbol, timeframe }: AlertsViewProps) {
         </div>
       )}
 
-      {error && <p className="border-b border-rose-500/20 bg-rose-500/10 px-3 py-1.5 text-[10px] text-rose-500">{error}</p>}
+      {error && <p className="border-b border-negative/20 bg-negative/10 px-3 py-1.5 text-[10px] text-negative">{error}</p>}
 
       <div className="min-h-0 flex-1 overflow-y-auto p-2">
         {alerts.length === 0 && !loading && (
-          <p className="py-8 text-center text-[10px] text-ink-faint">
+          <p className="py-8 text-center text-[10px] text-muted-foreground">
             No alerts yet. Create one to get notified on Discord / Telegram / in-app.
           </p>
         )}
         {alerts.map((a) => (
-          <div key={a.id} className="mb-1.5 flex items-center gap-2 rounded-lg border border-edge bg-card px-2.5 py-2">
+          <div key={a.id} className="mb-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-2.5 py-2">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-mono text-[11px] font-semibold text-ink">
-                {a.symbol} <span className="font-sans font-normal text-ink-mute">· {a.type.replace(/_/g, " ")}</span>                  {a.targetPrice != null && <span className="text-ink"> @ {a.targetPrice}</span>}
+              <p className="truncate font-numeric text-[11px] font-semibold text-foreground">
+                {a.symbol} <span className="font-sans font-normal text-muted-foreground">· {a.type.replace(/_/g, " ")}</span>                  {a.targetPrice != null && <span className="text-foreground"> @ {a.targetPrice}</span>}
               </p>
-              <p className="truncate text-[9px] text-ink-faint">
+              <p className="truncate text-[10px] text-muted-foreground">
                 {a.timeframe} · {new Date(a.createdAt).toLocaleDateString()} {a.triggered ? "· triggered" : ""}
               </p>
             </div>
-            <button onClick={() => handleDelete(a.id)} className="rounded p-1 text-ink-faint hover:text-rose-400" title="Delete alert">
+            <button onClick={() => handleDelete(a.id)} className="rounded-lg p-1 text-muted-foreground hover:text-negative" title="Delete alert">
               <Trash2 size={12} />
             </button>
           </div>

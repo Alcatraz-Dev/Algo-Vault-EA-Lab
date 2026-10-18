@@ -29,6 +29,7 @@ import {
   XCircle,
 } from "lucide-react";
 import type { CommandId, CommandSpec } from "@/types/pro";
+import { cn } from "@/lib/utils";
 
 interface Props {
   isOpen: boolean;
@@ -161,23 +162,46 @@ export const COMMANDS: CommandSpec[] = [
 ];
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-  Sparkles: <Sparkles size={14} className="text-ink-mute" />,
-  SearchX: <SearchX size={14} className="text-ink-mute" />,
-  ClipboardList: <ClipboardList size={14} className="text-ink-mute" />,
-  History: <History size={14} className="text-ink-mute" />,
-  HeartPulse: <HeartPulse size={14} className="text-ink-mute" />,
-  ScanEye: <ScanEye size={14} className="text-ink-mute" />,
-  Layers: <Layers size={14} className="text-ink-mute" />,
-  Bell: <Bell size={14} className="text-ink-mute" />,
-  Wand2: <Wand2 size={14} className="text-ink-mute" />,
-  Cpu: <Cpu size={14} className="text-ink-mute" />,
-  FlaskConical: <FlaskConical size={14} className="text-ink-mute" />,
-  ExternalLink: <ExternalLink size={14} className="text-ink-mute" />,
-  Activity: <Activity size={14} className="text-ink-mute" />,
-  MessageSquareText: <MessageSquareText size={14} className="text-ink-mute" />,
-  Globe2: <Globe2 size={14} className="text-ink-mute" />,
-  PencilLine: <PencilLine size={14} className="text-ink-mute" />,
-  XCircle: <XCircle size={14} className="text-ink-mute" />,
+  Sparkles: <Sparkles size={14} className="text-muted-foreground" />,
+  SearchX: <SearchX size={14} className="text-muted-foreground" />,
+  ClipboardList: <ClipboardList size={14} className="text-muted-foreground" />,
+  History: <History size={14} className="text-muted-foreground" />,
+  HeartPulse: <HeartPulse size={14} className="text-muted-foreground" />,
+  ScanEye: <ScanEye size={14} className="text-muted-foreground" />,
+  Layers: <Layers size={14} className="text-muted-foreground" />,
+  Bell: <Bell size={14} className="text-muted-foreground" />,
+  Wand2: <Wand2 size={14} className="text-muted-foreground" />,
+  Cpu: <Cpu size={14} className="text-muted-foreground" />,
+  FlaskConical: <FlaskConical size={14} className="text-muted-foreground" />,
+  ExternalLink: <ExternalLink size={14} className="text-muted-foreground" />,
+  Activity: <Activity size={14} className="text-muted-foreground" />,
+  MessageSquareText: <MessageSquareText size={14} className="text-muted-foreground" />,
+  Globe2: <Globe2 size={14} className="text-muted-foreground" />,
+  PencilLine: <PencilLine size={14} className="text-muted-foreground" />,
+  XCircle: <XCircle size={14} className="text-muted-foreground" />,
+};
+
+/**
+ * Presentation-only grouping used for section headings. Results keep the
+ * original flat order, so keyboard navigation and onExecute are unchanged.
+ */
+const SECTION_OF: Partial<Record<CommandId, string>> = {
+  analyze_chart: "Analyze",
+  what_am_i_missing: "Analyze",
+  run_checklist: "Analyze",
+  show_similar_setups: "Analyze",
+  show_strategy_health: "Analyze",
+  show_market_radar: "Markets",
+  show_mtf: "Markets",
+  show_smart_alerts: "Markets",
+  create_indicator: "Build",
+  create_strategy: "Build",
+  show_open_positions: "Trade",
+  explain_position: "Trade",
+  show_market_context: "Trade",
+  prepare_modification: "Trade",
+  prepare_close: "Trade",
+  open_algovault: "Navigate",
 };
 
 export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Props) {
@@ -231,14 +255,17 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-3 backdrop-blur-sm">
       <div
-        className="w-full max-w-sm rounded-xl border border-edge bg-card shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette"
+        className="flex max-h-[85vh] w-full max-w-sm flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* search input */}
-        <div className="flex items-center gap-2 border-b border-edge px-3 py-2.5 bg-raised/50">
-          <Search size={14} className="text-ink-faint shrink-0" />
+        <div className="flex items-center gap-2 border-b border-border px-2.5 py-2">
+          <Search size={14} className="shrink-0 text-muted-foreground" />
           <input
             ref={inputRef}
             type="text"
@@ -246,65 +273,91 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={`Command ${symbol ? `(${symbol} · ${timeframe})` : ""}…`}
-            className="flex-1 bg-transparent text-[11px] text-ink placeholder:text-ink-faint outline-none"
+            className="flex-1 bg-transparent text-[11px] text-foreground outline-none placeholder:text-muted-foreground"
           />
-          <kbd className="rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[8px] font-mono text-ink-faint">
+          <kbd className="rounded border border-border px-1 py-0.5 font-numeric text-[10px] text-muted-foreground">
             ESC
           </kbd>
         </div>
 
         {/* context indicator */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-black/20 border-b border-edge/30 text-[9px] text-ink-faint">
-          <span>Active Chart: <span className="font-mono text-ink font-medium">{symbol || "N/A"} · {timeframe}</span></span>
-          <span>{filtered.length} action{filtered.length !== 1 ? "s" : ""}</span>
+        <div className="flex items-center justify-between border-b border-border px-2.5 py-1.5 text-[10px] text-muted-foreground">
+          <span>
+            Active Chart:{" "}
+            <span className="font-numeric font-medium text-foreground">
+              {symbol || "N/A"} · {timeframe}
+            </span>
+          </span>
+          <span className="font-numeric">
+            {filtered.length} action{filtered.length !== 1 ? "s" : ""}
+          </span>
         </div>
 
         {/* command list */}
-        <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
+        <div className="flex-1 overflow-y-auto p-1.5">
           {filtered.length === 0 ? (
-            <div className="py-8 text-center text-[10px] text-ink-faint">
+            <div className="py-8 text-center text-[11px] text-muted-foreground">
               No matching commands
             </div>
           ) : (
             filtered.map((cmd, idx) => {
               const active = idx === selectedIndex;
+              const section = SECTION_OF[cmd.id];
+              const prevSection = idx > 0 ? SECTION_OF[filtered[idx - 1].id] : null;
               return (
-                <button
-                  key={cmd.id}
-                  onClick={() => {
-                    onExecute(cmd.id);
-                    onClose();
-                  }}
-                  onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
-                    active
-                      ? "bg-brand-500/15 text-ink border border-brand-500/30"
-                      : "text-ink-mute hover:bg-neutral-500/10 border border-transparent"
-                  }`}
-                >
-                  <span className="shrink-0">{ICON_MAP[cmd.icon] ?? <Command size={14} />}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-[11px] font-medium leading-tight ${active ? "text-brand-300" : "text-ink"}`}>
-                      {cmd.label}
+                <React.Fragment key={cmd.id}>
+                  {section && section !== prevSection && (
+                    <p className="px-2 pb-1 pt-2 text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {section}
                     </p>
-                    <p className="truncate text-[9px] text-ink-faint leading-normal">
-                      {cmd.description}
-                    </p>
-                  </div>
-                  {active && (
-                    <ChevronRight size={12} className="text-ink-faint shrink-0" />
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onExecute(cmd.id);
+                      onClose();
+                    }}
+                    onMouseEnter={() => setSelectedIndex(idx)}
+                    className={cn(
+                      "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
+                      active
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:bg-secondary/60"
+                    )}
+                  >
+                    <span className="shrink-0">
+                      {ICON_MAP[cmd.icon] ?? <Command size={14} className="text-muted-foreground" />}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-medium leading-tight text-foreground">
+                        {cmd.label}
+                      </p>
+                      <p className="truncate text-[10px] leading-normal text-muted-foreground">
+                        {cmd.description}
+                      </p>
+                    </div>
+                    {active && (
+                      <ChevronRight size={12} className="shrink-0 text-muted-foreground" />
+                    )}
+                  </button>
+                </React.Fragment>
               );
             })
           )}
         </div>
 
         {/* footer hint */}
-        <div className="flex items-center justify-between border-t border-edge/40 px-3 py-1.5 bg-raised/30 text-[8px] text-ink-faint">
-          <span>↑↓ to navigate</span>
-          <span>↵ to execute</span>
-          <span>⌘K to toggle</span>
+        <div className="flex items-center justify-between border-t border-border px-2.5 py-1.5 text-[10px] text-muted-foreground">
+          <kbd className="rounded border border-border px-1 font-numeric text-[10px] text-muted-foreground">
+            ↑↓ to navigate
+          </kbd>
+          <kbd className="rounded border border-border px-1 font-numeric text-[10px] text-muted-foreground">
+            ↵ to execute
+          </kbd>
+          <kbd className="rounded border border-border px-1 font-numeric text-[10px] text-muted-foreground">
+            ⌘K to toggle
+          </kbd>
         </div>
       </div>
     </div>

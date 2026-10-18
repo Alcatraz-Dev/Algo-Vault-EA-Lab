@@ -7,11 +7,6 @@
  * (emerald/rose/amber/neutral) stay available for data visualisation,
  * but UI surfaces/text must use the semantic tokens.
  *
- * The `base/raised/edge/ink` aliases below exist ONLY during the
- * migration to shadcn tokens so no legacy utility can silently stop
- * generating CSS. They are removed once every source file uses
- * `background/card/secondary/border/foreground/muted-foreground`.
- *
  * @type {import('tailwindcss').Config}
  */
 export default {
@@ -38,6 +33,7 @@ export default {
         destructive: {
           DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
           foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+          fill: "hsl(var(--destructive-fill) / <alpha-value>)",
         },
         muted: {
           DEFAULT: "hsl(var(--muted) / <alpha-value>)",
@@ -66,22 +62,25 @@ export default {
           700: "#96410f",
           DEFAULT: "#de661c",
           foreground: "hsl(var(--brand-foreground) / <alpha-value>)",
+          // AA-safe brand *fill* for solid CTAs with white text.
+          fill: {
+            DEFAULT: "hsl(var(--brand-fill) / <alpha-value>)",
+            hover: "hsl(var(--brand-fill-hover) / <alpha-value>)",
+          },
         },
 
         // ── single-meaning trading / status semantics (themed) ──
-        positive: "hsl(var(--positive) / <alpha-value>)",
-        negative: "hsl(var(--negative) / <alpha-value>)",
-        warning: "hsl(var(--warning) / <alpha-value>)",
-
-        // ── legacy aliases (temporary — do not use in new code) ──
-        base: "hsl(var(--background) / <alpha-value>)",
-        raised: "hsl(var(--secondary) / <alpha-value>)",
-        edge: "hsl(var(--border) / <alpha-value>)",
-        ink: {
-          DEFAULT: "hsl(var(--foreground) / <alpha-value>)",
-          mute: "hsl(var(--muted-foreground) / <alpha-value>)",
-          faint: "hsl(var(--muted-foreground) / <alpha-value>)",
+        positive: {
+          DEFAULT: "hsl(var(--positive) / <alpha-value>)",
+          fill: "hsl(var(--positive-fill) / <alpha-value>)",
         },
+        negative: {
+          DEFAULT: "hsl(var(--negative) / <alpha-value>)",
+          fill: "hsl(var(--negative-fill) / <alpha-value>)",
+        },
+        warning: "hsl(var(--warning) / <alpha-value>)",
+        // `destructive` is the AA text colour; `destructive-fill` backs white text.
+        // (`destructive` is overridden below into an object form.)
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -94,5 +93,16 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    /**
+     * `font-numeric` — tabular figures for every number in the product
+     * (prices, quantities, P/L, balances). Declared as a utility instead of a
+     * font family so it composes with the inherited UI font.
+     */
+    function ({ addUtilities }) {
+      addUtilities({
+        ".font-numeric": { fontVariantNumeric: "tabular-nums" },
+      });
+    },
+  ],
 };

@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { fetchPreTradeChecklist, fetchEvidenceScore } from "@/api/pro";
 import type { ChecklistItem, PreTradeChecklistResponse, EvidenceScoreBreakdown } from "@/types/pro";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
@@ -30,26 +32,26 @@ import type { ChecklistItem, PreTradeChecklistResponse, EvidenceScoreBreakdown }
 const STATUS_CONFIG = {
   confirmed: {
     icon: <CheckCircle2 size={13} />,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10 border-emerald-500/25",
+    color: "text-positive",
+    bg: "bg-positive/10 border-positive/30",
     label: "CONFIRMED",
   },
   warning: {
     icon: <AlertTriangle size={13} />,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10 border-amber-500/25",
+    color: "text-warning",
+    bg: "bg-warning/10 border-warning/30",
     label: "WARNING",
   },
   failed: {
     icon: <XCircle size={13} />,
-    color: "text-rose-400",
-    bg: "bg-rose-500/10 border-rose-500/25",
+    color: "text-negative",
+    bg: "bg-negative/10 border-negative/30",
     label: "FAILED",
   },
   unresolved: {
     icon: <Clock size={13} />,
-    color: "text-sky-400",
-    bg: "bg-sky-500/10 border-sky-500/25",
+    color: "text-muted-foreground",
+    bg: "bg-secondary border-border",
     label: "UNRESOLVED",
   },
 };
@@ -69,36 +71,36 @@ function ChecklistItemRow({ item }: { item: ChecklistItem }) {
   const cfg = STATUS_CONFIG[item.status];
 
   return (
-    <div className={`rounded-lg border ${cfg.bg} overflow-hidden`}>
+    <div className={`rounded-xl border ${cfg.bg} overflow-hidden`}>
       <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         onClick={() => setExpanded((v) => !v)}
       >
         <span className={cfg.color}>{cfg.icon}</span>
-        <span className="flex-1 text-[11px] font-medium text-ink leading-tight">{item.title}</span>
-        <span className={`text-[9px] font-bold tracking-wider ${cfg.color}`}>{cfg.label}</span>
-        <span className="text-ink-faint">
+        <span className="flex-1 text-[11px] font-medium text-foreground leading-tight">{item.title}</span>
+        <span className={`text-[10px] font-bold tracking-wider ${cfg.color}`}>{cfg.label}</span>
+        <span className="text-muted-foreground">
           {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         </span>
       </button>
       {expanded && (
-        <div className="border-t border-edge/40 px-3 py-2 space-y-1.5">
-          <p className="text-[10px] text-ink-mute leading-relaxed">{item.explanation}</p>
+        <div className="border-t border-border px-3 py-2 space-y-1.5">
+          <p className="text-[10px] text-muted-foreground leading-relaxed">{item.explanation}</p>
           {item.unresolvedReason && (
-            <p className="text-[10px] text-sky-400 italic">{item.unresolvedReason}</p>
+            <p className="text-[10px] text-muted-foreground italic">{item.unresolvedReason}</p>
           )}
           {item.rawEvidence && item.rawEvidence.length > 0 && (
             <div className="space-y-0.5">
               {item.rawEvidence.map((e, i) => (
-                <p key={i} className="font-mono text-[9px] text-ink-faint">
+                <p key={i} className="font-numeric text-[10px] text-muted-foreground">
                   · {e}
                 </p>
               ))}
             </div>
           )}
           <div className="flex items-center gap-1 pt-0.5">
-            <Database size={8} className="text-ink-faint" />
-            <span className="text-[9px] text-ink-faint">{item.evidenceSource}</span>
+            <Database size={10} className="text-muted-foreground" />
+            <span className="text-[10px] text-muted-foreground">{item.evidenceSource}</span>
           </div>
         </div>
       )}
@@ -153,28 +155,28 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
 
   const passColor =
     passRate === null
-      ? "text-ink-mute"
+      ? "text-muted-foreground"
       : passRate >= 80
-      ? "text-emerald-400"
+      ? "text-positive"
       : passRate >= 60
-      ? "text-amber-400"
-      : "text-rose-400";
+      ? "text-warning"
+      : "text-negative";
 
   return (
     <div className="flex h-full flex-col">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <ClipboardList size={13} />
-        <span className="text-[11px] font-semibold text-ink">Pre-Trade Checklist</span>
+      <div className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
+        <ClipboardList size={13} className="text-muted-foreground" />
+        <span className="text-xs font-semibold text-foreground">Pre-Trade Checklist</span>
         {data && (
-          <span className={`ml-auto text-[11px] font-bold tabular-nums ${passColor}`}>
+          <span className={`ml-auto font-numeric text-[11px] font-bold ${passColor}`}>
             {data.passedCount}/{data.totalCount} passed
           </span>
         )}
         <button
           onClick={load}
           disabled={loading || !symbol}
-          className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40 transition-colors"
+          className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
           title="Run checklist"
         >
           <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
@@ -185,19 +187,19 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
         {/* progress bar */}
         {data && (
           <div className="space-y-1">
-            <div className="h-1.5 w-full rounded-full bg-raised overflow-hidden">
+            <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${
+                className={`h-full rounded-full ${
                   passRate! >= 80
-                    ? "bg-emerald-400"
+                    ? "bg-positive"
                     : passRate! >= 60
-                    ? "bg-amber-400"
-                    : "bg-rose-400"
+                    ? "bg-warning"
+                    : "bg-negative"
                 }`}
                 style={{ width: `${passRate}%` }}
               />
             </div>
-            <p className={`text-[9px] font-semibold text-right tabular-nums ${passColor}`}>
+            <p className={`text-right font-numeric text-[10px] font-semibold ${passColor}`}>
               {passRate}% conditions met
             </p>
           </div>
@@ -205,12 +207,12 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
 
         {/* Evidence Score Visualization */}
         {evidenceScore && (
-          <div className="rounded-lg border border-edge bg-card p-2.5 space-y-2">
-            <div className="flex items-center justify-between border-b border-edge/40 pb-1.5">
-              <span className="flex items-center gap-1.5 text-[10px] font-bold text-ink">
+          <div className="rounded-xl border border-border bg-card p-2.5 space-y-2">
+            <div className="flex items-center justify-between border-b border-border pb-1.5">
+              <span className="flex items-center gap-1.5 text-[10px] font-bold text-foreground">
                 <BarChart3 size={11} /> EVIDENCE SCORE
               </span>
-              <span className="text-[8px] text-ink-faint">Condition Alignment</span>
+              <span className="text-[10px] text-muted-foreground">Condition Alignment</span>
             </div>
             <div className="space-y-1.5">
               {evidenceScore.categories.map((c) => {
@@ -218,21 +220,21 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
                 const total = c.maxScore;
                 const pct = Math.round((filled / total) * 100);
                 const barColor =
-                  filled >= 8 ? "bg-emerald-400" : filled >= 6 ? "bg-amber-400" : "bg-rose-400";
+                  filled >= 8 ? "bg-positive" : filled >= 6 ? "bg-warning" : "bg-negative";
                 return (
                   <div key={c.name} className="space-y-0.5">
-                    <div className="flex items-center justify-between text-[9px]">
-                      <span className="font-mono font-semibold text-ink-mute">{c.name}</span>
-                      <span className="text-ink-faint">{c.label} ({filled}/{total})</span>
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="font-numeric font-semibold text-muted-foreground">{c.name}</span>
+                      <span className="font-numeric text-muted-foreground">{c.label} ({filled}/{total})</span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full bg-raised overflow-hidden">
+                    <div className="h-1.5 w-full rounded-full bg-secondary overflow-hidden">
                       <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="text-[8px] italic text-ink-faint leading-tight">
+            <p className="text-[10px] italic text-muted-foreground leading-tight">
               {evidenceScore.disclaimer}
             </p>
           </div>
@@ -241,38 +243,46 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
         {/* idle state */}
         {!data && !loading && !error && (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <ClipboardList size={24} className="text-ink-faint" />
-            <p className="text-[11px] font-medium text-ink">Run Pre-Trade Checklist</p>
-            <p className="max-w-[220px] text-[10px] text-ink-mute leading-relaxed">
+            <ClipboardList size={24} className="text-muted-foreground" />
+            <p className="text-[11px] font-medium text-foreground">Run Pre-Trade Checklist</p>
+            <p className="max-w-[220px] text-[10px] text-muted-foreground leading-relaxed">
               Evaluates {symbol || "current symbol"} against deterministic market structure,
               liquidity, and strategy conditions.
             </p>
-            <button
+            <Button
+              variant="brand"
+              size="sm"
               onClick={load}
               disabled={!symbol}
-              className="rounded-lg bg-brand-500 px-4 py-1.5 text-[10px] font-semibold text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
+              className="text-[11px]"
             >
               Run Checklist
-            </button>
+            </Button>
           </div>
         )}
 
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-ink-faint" />
-            <p className="text-[10px] text-ink-mute">Evaluating conditions…</p>
+            <RefreshCw size={18} className="animate-spin text-muted-foreground" />
+            <p className="text-[10px] text-muted-foreground">Evaluating conditions…</p>
           </div>
         )}
 
         {/* error */}
         {error && !loading && (
-          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
-            <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
-              Retry →
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle size={12} />
+            <AlertDescription className="text-[11px]">
+              {error}
+              <button
+                onClick={load}
+                className="mt-1.5 block text-[11px] font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Retry →
+              </button>
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* grouped items */}
@@ -280,7 +290,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
           <div className="space-y-3">
             {Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="space-y-1.5">
-                <p className="text-[9px] font-bold tracking-widest text-ink-faint uppercase">
+                <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                   {category}
                 </p>
                 {items.map((item) => (
@@ -288,7 +298,7 @@ export function ProPreTradeChecklistView({ symbol, timeframe }: Props) {
                 ))}
               </div>
             ))}
-            <p className="text-center text-[9px] text-ink-faint pt-1">
+            <p className="text-center text-[10px] text-muted-foreground pt-1">
               Fetched {data.fetchedAt ? new Date(data.fetchedAt).toLocaleTimeString() : "—"}
             </p>
           </div>

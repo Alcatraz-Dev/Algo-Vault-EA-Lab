@@ -327,7 +327,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               onOpenChart={() => window.open("https://www.tradingview.com/", "_blank", "noopener,noreferrer")}
               compact
             />
-            <span className="flex items-center gap-1.5 rounded border border-negative/30 bg-negative/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-negative">
+            <span className="inline-flex items-center gap-1 rounded-full border border-negative/30 bg-negative/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-negative">
               <span className="h-1 w-1 rounded-full bg-negative" /> Live account
             </span>
           </div>
@@ -354,15 +354,15 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 <span className="flex flex-col items-end">
                   {livePrice != null ? (
                     <>
-                      <span className="font-mono text-[10px] font-normal opacity-90">{fmt(livePrice, livePrice >= 100 ? 2 : 4)}</span>
+                      <span className="font-numeric text-[10px] font-normal">{fmt(livePrice, livePrice >= 100 ? 2 : 4)}</span>
                       {liveSpread > 0 && (
-                        <span className="font-mono text-[10px] font-normal opacity-70">
+                        <span className="font-numeric text-[10px] font-normal">
                           spread {fmt(liveSpread, 5)}
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className="text-[10px] font-normal opacity-60">awaiting quote</span>
+                    <span className="text-[10px] font-normal">awaiting quote</span>
                   )}
                 </span>
               </button>
@@ -418,7 +418,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               <button
                 onClick={() => void refreshCapital()}
                 disabled={capitalLoading}
-                className="flex items-center gap-1 rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:text-foreground disabled:opacity-40"
+                className="flex items-center gap-1 rounded-lg border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:text-foreground disabled:opacity-40"
               >
                 <RefreshCw size={9} className={capitalLoading ? "animate-spin" : ""} />
                 Refresh
@@ -442,7 +442,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
               />
             </div>
           ) : gatewayReady ? (
-            <p className="text-[10px] text-muted-foreground/70">Loading live account capital…</p>
+            <p className="text-[10px] text-muted-foreground">Loading live account capital…</p>
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <Field label="Capital ($)">
@@ -455,15 +455,15 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 />
               </Field>
               <div className="flex items-end pb-1">
-                <p className="text-[10px] leading-snug text-muted-foreground/70">
+                <p className="text-[10px] leading-snug text-muted-foreground">
                   Gateway offline — sizing uses this manual figure. Connect the EA for live balance/equity.
                 </p>
               </div>
             </div>
           )}
           {capital?.marginFree != null && (
-            <div className="mt-1.5 border-t border-border pt-1.5 text-[10px] text-muted-foreground/70">
-              Free margin <span className="font-mono text-muted-foreground">{fmt(capital.marginFree, 2)}</span>
+            <div className="mt-1.5 border-t border-border pt-1.5 text-[10px] text-muted-foreground">
+              Free margin <span className="font-numeric text-muted-foreground">{fmt(capital.marginFree, 2)}</span>
             </div>
           )}
         </div>
@@ -488,19 +488,19 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
 
         {/* quick-risk chips */}
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/70">Quick risk</span>
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Quick risk</span>
           {QUICK_RISK_PRESETS.map((usd) => (
             <button
               key={usd}
               type="button"
               onClick={() => setQuickRisk(usd)}
               disabled={calc.entryNum <= 0}
-              className="rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground transition-colors hover:border-negative/40 hover:bg-negative/10 hover:text-negative disabled:opacity-30"
+              className="rounded-lg border border-border bg-secondary px-1.5 py-0.5 font-numeric text-[10px] text-muted-foreground transition-colors hover:border-negative/40 hover:bg-negative/10 hover:text-negative disabled:opacity-30"
             >
               ${usd}
             </button>
           ))}
-          <span className="ml-auto text-[10px] text-muted-foreground/70">
+          <span className="ml-auto text-[10px] text-muted-foreground">
             at {(parseFloat(fixedLots) || 0.01).toFixed(2)} lots
           </span>
         </div>
@@ -508,14 +508,14 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
         {/* TP assist — fill a target at an R multiple of the stop distance */}
         {tpSuggestions.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+            <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
               <Crosshair size={9} /> TP assist
             </span>
             {tpSuggestions.map((s) => (
               <button
                 key={s.r}
                 onClick={() => setTp(s.price.toFixed(s.price >= 100 ? 2 : 5))}
-                className="rounded border border-positive/25 bg-positive/10 px-1.5 py-0.5 font-mono text-[10px] text-positive transition-colors hover:bg-positive/20"
+                className="rounded-lg border border-positive/25 bg-positive/10 px-1.5 py-0.5 font-numeric text-[10px] text-positive transition-colors hover:bg-positive/20"
               >
                 {s.r}R · {fmt(s.price)}
               </button>
@@ -627,7 +627,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                   type="button"
                   onClick={() => void handleConfirm()}
                   disabled={loading || !gatewayReady}
-                  className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
+                  className="rounded-lg border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40"
                 >
                   Retry — same request
                 </button>
@@ -635,7 +635,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 <button
                   type="button"
                   onClick={startNewTicket}
-                  className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                  className="rounded-lg border border-border bg-secondary px-2 py-0.5 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                 >
                   New Ticket
                 </button>
@@ -676,7 +676,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-border bg-secondary/80 px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-muted-foreground/40 hover:bg-muted hover:text-foreground"
             title="Reset ticket fields to defaults"
           >
-            <RotateCcw size={12} className="shrink-0 text-muted-foreground/70 transition-transform duration-200 group-hover:-rotate-45" />
+            <RotateCcw size={12} className="shrink-0 text-muted-foreground" />
             <span className="truncate">Reset Ticket</span>
           </button>
         )}
@@ -731,7 +731,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
                 onClick={handleConfirm}
                 disabled={loading}
                 className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-colors disabled:opacity-50 ${
-                  direction === "BUY" ? "bg-positive hover:bg-positive" : "bg-negative hover:bg-negative"
+                  direction === "BUY" ? "bg-positive-fill text-white" : "bg-negative-fill text-white"
                 }`}
               >
                 {loading ? "Sending…" : `Send ${direction}`}
@@ -748,7 +748,7 @@ function Line({ label, value, mono, valueClass }: { label: string; value: string
   return (
     <div className="flex justify-between">
       <span className="text-muted-foreground">{label}</span>
-      <span className={`${mono ? "font-mono tabular-nums" : ""} ${valueClass ?? "text-foreground"}`}>{value}</span>
+      <span className={`${mono ? "font-numeric tabular-nums" : ""} ${valueClass ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }

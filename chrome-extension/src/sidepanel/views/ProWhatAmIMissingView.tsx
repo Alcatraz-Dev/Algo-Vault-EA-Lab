@@ -25,26 +25,29 @@ import {
 } from "lucide-react";
 import { fetchWhatAmIMissing } from "@/api/pro";
 import type { MissingPoint, WhatAmIMissingResponse } from "@/types/pro";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 /* ── severity config ──────────────────────────────────────────────────── */
 
 const SEVERITY_CONFIG = {
   critical: {
     icon: <XCircle size={13} />,
-    color: "text-rose-400",
-    bg: "bg-rose-500/10 border-rose-500/25",
+    color: "text-negative",
+    bg: "bg-negative/10 border-negative/30",
     label: "CRITICAL",
   },
   warning: {
     icon: <AlertTriangle size={13} />,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10 border-amber-500/25",
+    color: "text-warning",
+    bg: "bg-warning/10 border-warning/30",
     label: "WARNING",
   },
   info: {
     icon: <Info size={13} />,
-    color: "text-sky-400",
-    bg: "bg-sky-500/10 border-sky-500/25",
+    color: "text-muted-foreground",
+    bg: "bg-secondary border-border",
     label: "INFO",
   },
 };
@@ -67,30 +70,30 @@ function MissingPointRow({ point }: { point: MissingPoint }) {
   const cfg = SEVERITY_CONFIG[point.severity];
 
   return (
-    <div className={`rounded-lg border ${cfg.bg} overflow-hidden`}>
+    <div className={`rounded-xl border ${cfg.bg} overflow-hidden`}>
       <button
-        className="flex w-full items-center gap-2 px-3 py-2 text-left"
+        className="flex w-full items-center gap-2 px-3 py-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         onClick={() => setExpanded((v) => !v)}
       >
         <span className={cfg.color}>{cfg.icon}</span>
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-medium text-ink leading-tight truncate">{point.title}</p>
-          <p className="text-[9px] text-ink-faint">{CATEGORY_LABELS[point.category] ?? point.category}</p>
+          <p className="text-[11px] font-medium text-foreground leading-tight truncate">{point.title}</p>
+          <p className="text-[10px] text-muted-foreground">{CATEGORY_LABELS[point.category] ?? point.category}</p>
         </div>
-        <span className={`text-[9px] font-bold shrink-0 ${cfg.color}`}>{cfg.label}</span>
-        <span className="text-ink-faint shrink-0">
+        <span className={`text-[10px] font-bold shrink-0 ${cfg.color}`}>{cfg.label}</span>
+        <span className="text-muted-foreground shrink-0">
           {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         </span>
       </button>
       {expanded && (
-        <div className="border-t border-edge/40 px-3 py-2 space-y-1.5">
-          <p className="text-[10px] text-ink-mute leading-relaxed">{point.detail}</p>
+        <div className="border-t border-border px-3 py-2 space-y-1.5">
+          <p className="text-[10px] text-muted-foreground leading-relaxed">{point.detail}</p>
           {point.evidence.length > 0 && (
             <div className="space-y-0.5 pt-0.5">
               {point.evidence.map((e, i) => (
                 <div key={i} className="flex items-start gap-1">
-                  <Database size={8} className="text-ink-faint mt-0.5 shrink-0" />
-                  <p className="font-mono text-[9px] text-ink-faint">{e}</p>
+                  <Database size={10} className="text-muted-foreground mt-0.5 shrink-0" />
+                  <p className="font-numeric text-[10px] text-muted-foreground">{e}</p>
                 </div>
               ))}
             </div>
@@ -133,27 +136,27 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
   return (
     <div className="flex h-full flex-col">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <SearchX size={13} />
-        <span className="text-[11px] font-semibold text-ink">What Am I Missing?</span>
+      <div className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
+        <SearchX size={13} className="text-muted-foreground" />
+        <span className="text-xs font-semibold text-foreground">What Am I Missing?</span>
         {data && (
           <div className="ml-auto flex items-center gap-1.5">
             {criticalCount > 0 && (
-              <span className="rounded px-1.5 py-0.5 text-[9px] font-bold bg-rose-500/15 text-rose-400">
+              <Badge variant="destructive" className="px-1.5 font-numeric text-[10px] font-bold">
                 {criticalCount} critical
-              </span>
+              </Badge>
             )}
             {warningCount > 0 && (
-              <span className="rounded px-1.5 py-0.5 text-[9px] font-bold bg-amber-500/15 text-amber-400">
+              <Badge variant="warning" className="px-1.5 font-numeric text-[10px] font-bold">
                 {warningCount} warnings
-              </span>
+              </Badge>
             )}
           </div>
         )}
         <button
           onClick={load}
           disabled={loading || !symbol}
-          className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40 transition-colors ml-1"
+          className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ml-1"
           title="Re-analyze"
         >
           <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
@@ -164,48 +167,56 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
         {/* idle */}
         {!data && !loading && !error && (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <SearchX size={24} className="text-ink-faint" />
-            <p className="text-[11px] font-medium text-ink">Conflict & Risk Scanner</p>
-            <p className="max-w-[220px] text-[10px] text-ink-mute leading-relaxed">
+            <SearchX size={24} className="text-muted-foreground" />
+            <p className="text-[11px] font-medium text-foreground">Conflict & Risk Scanner</p>
+            <p className="max-w-[220px] text-[10px] text-muted-foreground leading-relaxed">
               Actively scans for evidence you might be overlooking — HTF conflicts, nearby
               liquidity, structure weakness, and more.
             </p>
-            <button
+            <Button
+              variant="brand"
+              size="sm"
               onClick={load}
               disabled={!symbol}
-              className="rounded-lg bg-brand-500 px-4 py-1.5 text-[10px] font-semibold text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
+              className="text-[11px]"
             >
               Scan Now
-            </button>
+            </Button>
           </div>
         )}
 
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-ink-faint" />
-            <p className="text-[10px] text-ink-mute">Scanning for blind spots…</p>
+            <RefreshCw size={18} className="animate-spin text-muted-foreground" />
+            <p className="text-[10px] text-muted-foreground">Scanning for blind spots…</p>
           </div>
         )}
 
         {/* error */}
         {error && !loading && (
-          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
-            <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
-              Retry →
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertTriangle size={12} />
+            <AlertDescription className="text-[11px]">
+              {error}
+              <button
+                onClick={load}
+                className="mt-1.5 block text-[11px] font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Retry →
+              </button>
+            </AlertDescription>
+          </Alert>
         )}
 
         {/* all clear */}
         {data && data.points.length === 0 && !loading && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
-              <CheckCircle2 size={16} className="text-emerald-400" />
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-positive/30 bg-positive/10">
+              <CheckCircle2 size={16} className="text-positive" />
             </span>
-            <p className="text-[11px] font-medium text-emerald-400">No significant gaps found</p>
-            <p className="text-[10px] text-ink-mute">
+            <p className="text-[11px] font-medium text-positive">No significant gaps found</p>
+            <p className="text-[10px] text-muted-foreground">
               All critical evidence appears consistent with the current read.
             </p>
           </div>
@@ -223,7 +234,7 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
             .map((point) => <MissingPointRow key={point.id} point={point} />)}
 
         {data && (
-          <p className="text-center text-[9px] text-ink-faint pt-1">
+          <p className="text-center text-[10px] text-muted-foreground pt-1">
             Scanned {data.fetchedAt ? new Date(data.fetchedAt).toLocaleTimeString() : "—"}
           </p>
         )}

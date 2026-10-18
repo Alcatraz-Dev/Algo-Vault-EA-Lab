@@ -207,22 +207,22 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
   };
 
   return (
-    <div className="bg-card border border-edge rounded-lg p-3 space-y-3 text-xs">
-      <div className="flex items-center justify-between border-b border-edge pb-2">
-        <div className="flex items-center gap-1.5 font-semibold text-ink uppercase tracking-wider text-[11px]">
+    <div className="bg-card border border-border rounded-xl p-3 space-y-3 text-xs">
+      <div className="flex items-center justify-between border-b border-border pb-2">
+        <div className="flex items-center gap-1.5 font-semibold text-foreground uppercase tracking-wider text-[11px]">
           <Activity size={14} /> Active Positions ({positions.length})
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-ink-faint">{accountAgeLabel(account)}</span>
+          <span className="font-numeric text-[10px] text-muted-foreground">{accountAgeLabel(account)}</span>
           <div className="text-right">
-            <span className="text-[10px] text-ink-mute block">Total P/L</span>
+            <span className="text-[10px] text-muted-foreground block">Total P/L</span>
             <span
-              className={`font-bold font-mono text-[11px] ${
+              className={`font-bold font-numeric text-[11px] ${
                 totalUnrealized === null
-                  ? "text-ink-faint"
+                  ? "text-muted-foreground"
                   : totalUnrealized >= 0
-                  ? "text-emerald-400"
-                  : "text-rose-400"
+                  ? "text-positive"
+                  : "text-negative"
               }`}
             >
               {totalUnrealized === null
@@ -234,24 +234,24 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
       </div>
 
       {actionMsg && (
-        <div className="bg-raised border border-edge text-ink p-2 rounded text-[11px] flex items-start gap-1.5">
+        <div className="bg-secondary border border-border text-foreground p-2 rounded-lg text-[11px] flex items-start gap-1.5">
           <AlertCircle size={13} className="shrink-0 mt-0.5" />
           <span>{actionMsg}</span>
         </div>
       )}
 
       {!available ? (
-        <div className="text-center py-6 text-ink-faint text-[11px] space-y-1.5">
-          <ShieldQuestion size={20} className="mx-auto text-ink-faint mb-1" />
+        <div className="text-center py-6 text-muted-foreground text-[11px] space-y-1.5">
+          <ShieldQuestion size={20} className="mx-auto text-muted-foreground mb-1" />
           <p>Position data unavailable.</p>
-          <p className="text-ink-faint max-w-[280px] mx-auto leading-relaxed">
+          <p className="text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
             {account.dataAvailability.reason ||
               "No connected source reports open positions. TradingView MCP exposes no position tool."}
           </p>
         </div>
       ) : positions.length === 0 ? (
-        <div className="text-center py-6 text-ink-faint text-[11px] space-y-1">
-          <Clock size={20} className="mx-auto text-ink-faint mb-1" />
+        <div className="text-center py-6 text-muted-foreground text-[11px] space-y-1">
+          <Clock size={20} className="mx-auto text-muted-foreground mb-1" />
           <p>No open positions on the connected account.</p>
         </div>
       ) : (
@@ -264,22 +264,22 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
             return (
               <div
                 key={pos.id}
-                className="bg-base/70 border border-edge/80 rounded p-2 space-y-1.5 text-[11px]"
+                className="bg-secondary/40 border border-border/80 rounded-lg p-2 space-y-1.5 text-[11px]"
               >
-                <div className="flex items-center justify-between font-mono">
-                  <div className="flex items-center gap-1.5 font-bold text-ink">
+                <div className="flex items-center justify-between font-numeric">
+                  <div className="flex items-center gap-1.5 font-bold text-foreground">
                     <span
-                      className={`px-1.5 py-0.5 rounded text-[9px] ${
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] ${
                         pos.side === "BUY" || pos.side === "LONG"
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                          : "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                          ? "bg-positive/20 text-positive border border-positive/30"
+                          : "bg-negative/20 text-negative border border-negative/30"
                       }`}
                     >
                       {pos.side}
                     </span>
                     <span>{pos.symbol}</span>
-                    <span className="text-ink-mute text-[10px]">x{pos.quantity}</span>
-                    <span className="px-1 py-0.5 rounded text-[9px] bg-raised text-ink border border-edge">
+                    <span className="text-muted-foreground text-[10px]">x{pos.quantity}</span>
+                    <span className="px-1 py-0.5 rounded-full text-[10px] bg-secondary text-foreground border border-border">
                       {pos.status}
                     </span>
                   </div>
@@ -287,18 +287,18 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                   <div className="flex items-center gap-1">
                     {hasPnl ? (
                       isProfit ? (
-                        <TrendingUp size={12} className="text-emerald-400" />
+                        <TrendingUp size={12} className="text-positive" />
                       ) : (
-                        <TrendingDown size={12} className="text-rose-400" />
+                        <TrendingDown size={12} className="text-negative" />
                       )
                     ) : null}
                     <span
                       className={`font-bold ${
                         !hasPnl
-                          ? "text-ink-faint"
+                          ? "text-muted-foreground"
                           : isProfit
-                          ? "text-emerald-400"
-                          : "text-rose-400"
+                          ? "text-positive"
+                          : "text-negative"
                       }`}
                     >
                       {!hasPnl
@@ -308,24 +308,24 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                   </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-1 text-[10px] text-ink-mute pt-1 border-t border-edge/60 font-mono">
+                <div className="grid grid-cols-4 gap-1 text-[10px] text-muted-foreground pt-1 border-t border-border/60 font-numeric">
                   <div>
-                    Entry <span className="text-ink">{pos.entryPrice}</span>
+                    Entry <span className="text-foreground">{pos.entryPrice}</span>
                   </div>
                   <div>
                     Current{" "}
-                    <span className="text-ink">{pos.currentPrice ?? "—"}</span>
+                    <span className="text-foreground">{pos.currentPrice ?? "—"}</span>
                   </div>
                   <div>
-                    Stop <span className="text-ink">{pos.stopLoss ?? "—"}</span>
+                    Stop <span className="text-foreground">{pos.stopLoss ?? "—"}</span>
                   </div>
                   <div>
-                    Target <span className="text-ink">{pos.takeProfit ?? "—"}</span>
+                    Target <span className="text-foreground">{pos.takeProfit ?? "—"}</span>
                   </div>
                 </div>
 
                 {confirmTarget !== null && confirmTarget.type === "close" && (
-                  <div className="bg-rose-500/10 border border-rose-500/30 rounded p-2 space-y-1.5 text-rose-500">
+                  <div className="bg-negative/10 border border-negative/30 rounded-lg p-2 space-y-1.5 text-negative">
                     <span className="block text-[11px]">
                       Confirm closing {pos.symbol} {pos.side} {pos.quantity} (position {pos.id})? The
                       request is submitted to the Unified Trading API and the broker decides the
@@ -340,14 +340,14 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         step={1}
                         value={partialPercent}
                         onChange={(e) => setPartialPercent(e.target.value)}
-                        className="w-16 bg-base border border-edge rounded px-2 py-1 font-mono text-ink"
+                        className="w-16 rounded-lg border border-input bg-background px-2 py-1 font-numeric text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                       />
                     </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setPending(null)}
-                        className="flex-1 rounded border border-edge bg-raised py-1 text-ink"
+                        className="flex-1 rounded-lg border border-border bg-secondary py-1 text-foreground"
                       >
                         Cancel
                       </button>
@@ -355,7 +355,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         type="button"
                         disabled={busyId === pos.id}
                         onClick={() => confirmPartialClose(pos, confirmTarget)}
-                        className="flex-1 rounded bg-amber-600 hover:bg-amber-500 py-1 font-bold text-white disabled:opacity-50"
+                        className="flex-1 rounded-lg border border-warning/40 bg-warning/15 py-1 font-bold text-warning transition-colors hover:bg-warning/25 disabled:opacity-50"
                       >
                         {busyId === pos.id ? "Submitting…" : "Confirm Partial Close"}
                       </button>
@@ -363,7 +363,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         type="button"
                         disabled={busyId === pos.id}
                         onClick={() => confirmClose(pos, confirmTarget)}
-                        className="flex-1 rounded bg-rose-600 hover:bg-rose-500 py-1 font-bold text-white disabled:opacity-50"
+                        className="flex-1 rounded-lg bg-destructive hover:bg-destructive/90 py-1 font-bold text-white disabled:opacity-50"
                       >
                         {busyId === pos.id ? "Submitting…" : "Confirm Close"}
                       </button>
@@ -372,7 +372,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                 )}
 
                 {confirmTarget !== null && confirmTarget.type === "modify" && (
-                  <div className="bg-amber-500/10 border border-amber-500/30 rounded p-2 space-y-1.5 text-amber-600">
+                  <div className="bg-warning/10 border border-warning/30 rounded-lg p-2 space-y-1.5 text-warning">
                     <span className="block text-[11px]">Modify stop / target for {pos.symbol}</span>
                     <div className="grid grid-cols-2 gap-2">
                       <input
@@ -381,7 +381,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         value={modifySl}
                         onChange={(e) => setModifySl(e.target.value)}
                         placeholder="Stop loss"
-                        className="w-full bg-base border border-edge rounded px-2 py-1 font-mono text-ink"
+                        className="w-full rounded-lg border border-input bg-background px-2 py-1 font-numeric text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                       />
                       <input
                         type="number"
@@ -389,14 +389,14 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         value={modifyTp}
                         onChange={(e) => setModifyTp(e.target.value)}
                         placeholder="Take profit"
-                        className="w-full bg-base border border-edge rounded px-2 py-1 font-mono text-ink"
+                        className="w-full rounded-lg border border-input bg-background px-2 py-1 font-numeric text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                       />
                     </div>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setPending(null)}
-                        className="flex-1 rounded border border-edge bg-raised py-1 text-ink"
+                        className="flex-1 rounded-lg border border-border bg-secondary py-1 text-foreground"
                       >
                         Cancel
                       </button>
@@ -404,7 +404,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                         type="button"
                         disabled={busyId === pos.id || (!modifySl && !modifyTp)}
                         onClick={() => confirmModify(pos, confirmTarget)}
-                        className="flex-1 rounded bg-amber-600 hover:bg-amber-500 py-1 font-bold text-white disabled:opacity-50"
+                        className="flex-1 rounded-lg border border-warning/40 bg-warning/15 py-1 font-bold text-warning transition-colors hover:bg-warning/25 disabled:opacity-50"
                       >
                         {busyId === pos.id ? "Submitting…" : "Confirm Modify"}
                       </button>
@@ -417,7 +417,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                     <button
                       type="button"
                       onClick={() => startModify(pos)}
-                      className="px-2 py-0.5 bg-raised hover:bg-raised text-ink border border-edge rounded text-[10px] font-medium flex items-center gap-1"
+                      className="px-2 py-0.5 bg-secondary hover:bg-secondary/80 text-foreground border border-border rounded-lg text-[10px] font-medium flex items-center gap-1"
                     >
                       <Pencil size={10} /> Modify
                     </button>
@@ -425,7 +425,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
                       type="button"
                       disabled={!pos.canClose}
                       onClick={() => startClose(pos)}
-                      className="px-2 py-0.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/30 rounded text-[10px] font-medium flex items-center gap-1 disabled:opacity-40"
+                      className="px-2 py-0.5 bg-negative/10 hover:bg-negative/20 text-negative border border-negative/30 rounded-lg text-[10px] font-medium flex items-center gap-1 disabled:opacity-40"
                     >
                       <XCircle size={10} /> Close Position
                     </button>
@@ -437,7 +437,7 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
         </div>
       )}
 
-      <p className="border-t border-edge pt-2 text-[9px] leading-relaxed text-ink-faint">
+      <p className="border-t border-border pt-2 text-[10px] leading-relaxed text-muted-foreground">
         AI position monitoring is informational only: structure changes, HTF conflicts and strategy
         condition drift are surfaced as alerts. Closing or modifying a position always requires your
         explicit confirmation here.
@@ -445,17 +445,17 @@ export const ProPositionMonitorView: React.FC<Props> = ({ account, onRefresh, ti
 
       {/* Informational AI updates for open positions (§15) */}
       {positions.length > 0 && aiUpdates && aiUpdates.length > 0 && (
-        <div className="space-y-1.5 rounded border border-edge bg-raised p-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-ink-mute">
+        <div className="space-y-1.5 rounded-lg border border-border bg-secondary p-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             <Sparkles size={11} /> AI position monitor · informational
           </div>
           {aiUpdates.map((alert) => (
             <div key={alert.id} className="text-[10px] leading-snug">
-              <span className="font-medium text-ink">{alert.title}</span>
-              <span className="text-ink-mute"> — {alert.message}</span>
+              <span className="font-medium text-foreground">{alert.title}</span>
+              <span className="text-muted-foreground"> — {alert.message}</span>
             </div>
           ))}
-          <p className="text-[9px] text-ink-faint">
+          <p className="text-[10px] text-muted-foreground">
             These updates never act on your positions — trade actions stay behind explicit
             confirmation.
           </p>

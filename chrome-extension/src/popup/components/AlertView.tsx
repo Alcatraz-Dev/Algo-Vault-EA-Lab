@@ -121,7 +121,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
           <Bell size={13} className="text-muted-foreground" />
           <span className="text-xs font-semibold text-foreground">
             Alerts
-            <span className="ml-1.5 font-mono text-[10px] text-foreground">
+            <span className="ml-1.5 font-numeric text-[10px] text-foreground">
               {displaySymbol} · {tf}
             </span>
           </span>
@@ -129,14 +129,14 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
         <div className="flex items-center gap-1">
           <button
             onClick={refresh}
-            className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-foreground"
             title="Refresh"
           >
             {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
           </button>
           <button
             onClick={() => { setShowForm((v) => !v); setError(null); }}
-            className="flex items-center gap-1 rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-600"
+            className="flex items-center gap-1 rounded-lg bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Plus size={11} />
             New
@@ -146,7 +146,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
 
       {/* success banner */}
       {successMsg && (
-        <div className="flex items-center gap-1.5 border-b border-positive/20 bg-positive/10 px-3 py-1.5 animate-fade-in">
+        <div className="flex items-center gap-1.5 border-b border-positive/20 bg-positive/10 px-3 py-1.5">
           <CheckCircle2 size={11} className="shrink-0 text-positive" />
           <p className="text-[10px] text-positive">{successMsg}</p>
         </div>
@@ -161,15 +161,15 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
 
       {/* create form */}
       {showForm && (
-        <div className="space-y-2 border-b border-border bg-secondary/60 p-3 animate-fade-in">
+        <div className="space-y-2 border-b border-border bg-secondary/50 p-3">
           <div className="grid grid-cols-2 gap-1.5">
             {ALERT_TYPES.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setType(t.id)}
-                className={`rounded border px-2 py-1.5 text-left text-[10px] transition-colors ${
+                className={`rounded-lg border px-2 py-1.5 text-left text-[10px] transition-colors ${
                   type === t.id
-                    ? "border-brand-500/50 bg-brand-500/10 text-brand-foreground"
+                    ? "border-border bg-muted text-foreground"
                     : "border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
@@ -196,7 +196,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="flex w-full items-center justify-center gap-1.5 rounded bg-brand-500 py-1.5 text-[11px] font-semibold text-white transition-opacity disabled:opacity-40 hover:bg-brand-600"
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-brand-fill py-1.5 text-[11px] font-semibold text-white transition-colors disabled:opacity-40 hover:bg-brand-fill-hover"
           >
             {creating ? <Loader2 size={12} className="animate-spin" /> : <Bell size={12} />}
             {creating ? "Creating…" : `Create ${displaySymbol} alert`}
@@ -208,18 +208,18 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && (
           <div className="flex items-center justify-center py-10">
-            <Loader2 size={18} className="animate-spin text-muted-foreground/70" />
+            <Loader2 size={18} className="animate-spin text-muted-foreground" />
           </div>
         )}
         {!loading && alerts.length === 0 && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <Bell size={24} className="text-muted-foreground/70" />
-            <p className="text-[10px] text-muted-foreground/70">
+            <Bell size={24} className="text-muted-foreground" />
+            <p className="text-[10px] text-muted-foreground">
               No alerts yet. Create one to get notified on Discord / Telegram.
             </p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-1 rounded border border-border bg-secondary px-3 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+              className="mt-1 rounded-lg border border-border bg-secondary px-3 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
             >
               + New alert
             </button>
@@ -231,7 +231,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
             className="mb-1.5 flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2"
           >
             <div className="min-w-0 flex-1">
-              <p className="truncate font-mono text-[11px] font-semibold text-foreground">
+              <p className="truncate font-numeric text-[11px] font-semibold text-foreground">
                 {a.symbol}{" "}
                 <span className="font-sans font-normal text-muted-foreground">
                   · {a.type.replace(/_/g, " ")}
@@ -240,7 +240,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
                   <span className="text-foreground"> @ {a.targetPrice}</span>
                 )}
               </p>
-              <p className="mt-0.5 truncate text-[10px] text-muted-foreground/70">
+              <p className="mt-0.5 truncate text-[10px] text-muted-foreground">
                 {a.timeframe} · {new Date(a.createdAt).toLocaleDateString()}
                 {a.triggered && (
                   <span> · <CheckCircle2 size={8} className="mb-px inline text-positive" /> triggered</span>
@@ -249,7 +249,7 @@ export function AlertView({ symbol, context, onBack }: AlertViewProps) {
             </div>
             <button
               onClick={() => handleDelete(a.id)}
-              className="rounded p-1 text-muted-foreground/70 transition-colors hover:text-negative"
+              className="rounded-lg p-1 text-muted-foreground transition-colors hover:text-negative"
               title="Delete alert"
             >
               <Trash2 size={12} />

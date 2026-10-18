@@ -135,7 +135,7 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
             <button
               onClick={suggestTargets}
               disabled={!calc.slValid}
-              className="rounded border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+              className="rounded-lg border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
             >
               Suggest 2R / 3.5R / 5R
             </button>
@@ -152,7 +152,7 @@ export function SignalView({ symbol, context, onBack }: SignalViewProps) {
                     className={`${inputClass} ${!calc.tpValid[i] ? "border-negative/40" : ""}`}
                     placeholder={`TP${i + 1}`}
                   />
-                  <span className="mt-0.5 block text-center font-mono text-[10px] text-muted-foreground/70">
+                  <span className="mt-0.5 block text-center font-numeric text-[10px] text-muted-foreground">
                     {calc.rrText(i)}
                   </span>
                 </div>

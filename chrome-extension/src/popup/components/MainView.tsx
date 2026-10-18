@@ -147,16 +147,16 @@ export function MainView({
                 if (e.key === "Escape") { setInputValue(symbol || ""); setEditing(false); }
               }}
               placeholder="XAUUSD"
-              className="w-32 rounded-lg border border-input bg-transparent px-2 py-0.5 font-mono text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
+              className="w-32 rounded-lg border border-input bg-transparent px-2 py-0.5 font-numeric text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
             />
           ) : (
             <button
               onClick={() => { setInputValue(symbol || ""); setEditing(true); }}
-              className="flex items-center gap-1 rounded px-1 py-0.5 font-mono text-sm font-semibold text-foreground transition-colors hover:text-foreground"
+              className="flex items-center gap-1 rounded-lg px-1 py-0.5 font-numeric text-sm font-semibold text-foreground transition-colors hover:text-foreground"
               title="Change symbol"
             >
               {symbol || "No symbol"}
-              <Pencil size={10} className="text-muted-foreground/70" />
+              <Pencil size={10} className="text-muted-foreground" />
             </button>
           )}
 
@@ -179,7 +179,7 @@ export function MainView({
         <div className="mt-1.5 flex items-end justify-between">
           <div className="flex items-baseline gap-2">
             <span
-              className={`font-mono text-xl font-bold transition-colors duration-300 ${tickColor}`}
+              className={`font-numeric text-xl font-bold transition-colors duration-300 ${tickColor}`}
             >
               {fmtPrice(price)}
             </span>
@@ -189,7 +189,7 @@ export function MainView({
                 <span className="text-[10px] font-semibold text-positive">LIVE</span>
               </span>
             ) : (
-              <span className="flex items-center gap-1 pb-0.5 text-muted-foreground/70">
+              <span className="flex items-center gap-1 pb-0.5 text-muted-foreground">
                 <AlertCircle size={10} />
                 <span className="text-[10px]">syncing…</span>
               </span>
@@ -212,7 +212,7 @@ export function MainView({
                 {mc.marketRegime.regime.replace(/_/g, " ")}
               </Badge>
             </div>
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span className="font-numeric text-[10px] text-muted-foreground">
               score <span className={mc.score.bias === "bullish" ? "text-positive" : mc.score.bias === "bearish" ? "text-negative" : "text-muted-foreground"}>{mc.score.total}</span>/100
             </span>
           </div>
@@ -243,7 +243,7 @@ export function MainView({
 
           {mc.mtfAlignment.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-1">
-              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">MTF</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">MTF</span>
               {mc.mtfAlignment.map((m, i) => (
                 <Badge
                   key={i}
@@ -279,7 +279,7 @@ export function MainView({
               3 free signals per day — pick 3 symbols, get entry, SL &amp; 3 targets
             </span>
           </span>
-          <ChevronRight size={14} className="shrink-0 text-muted-foreground/70" />
+          <ChevronRight size={14} className="shrink-0 text-muted-foreground" />
         </button>
 
         <div className="grid grid-cols-3 gap-2">

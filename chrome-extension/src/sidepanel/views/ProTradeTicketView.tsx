@@ -67,7 +67,7 @@ const LIFECYCLE_LABEL: Record<string, string> = {
 };
 
 const fieldClass =
-  "w-full bg-base border border-edge rounded px-2 py-1.5 font-mono text-ink focus:border-brand-500 focus:outline-none";
+  "w-full rounded-lg border border-input bg-background px-2 py-1.5 font-numeric text-[11px] text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0";
 
 /**
  * Professional trade confirmation ticket (§6 + §7 + §8 + §9 + §12).
@@ -228,19 +228,19 @@ export const ProTradeTicketView: React.FC<Props> = ({
   )}`;
 
   return (
-    <div className="bg-card border border-edge rounded-lg p-3 space-y-3 text-xs">
+    <div className="bg-card border border-border rounded-xl p-3 space-y-3 text-xs">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-edge pb-2">
-        <span className="font-semibold text-ink uppercase tracking-wider text-[11px]">
+      <div className="flex items-center justify-between border-b border-border pb-2">
+        <span className="font-semibold text-foreground uppercase tracking-wider text-[11px]">
           TradingView Trade
         </span>
         <span
-          className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
             isLive || needsAck
-              ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
+              ? "bg-negative/20 text-negative border-negative/40"
               : account.mode === "DEMO"
-              ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-              : "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+              ? "bg-warning/15 text-warning border-warning/30"
+              : "bg-positive/15 text-positive border-positive/30"
           }`}
         >
           {isLive ? "LIVE ACCOUNT" : modeLabel(account.mode)}
@@ -249,22 +249,22 @@ export const ProTradeTicketView: React.FC<Props> = ({
 
       {/* Execution unavailable → preparation & handoff (§28) */}
       {!executionEnabled && (
-        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-600 p-2 rounded text-[11px] flex items-start gap-2">
-          <AlertOctagon size={15} className="text-amber-400 shrink-0 mt-0.5" />
+        <div className="bg-warning/10 border border-warning/30 text-warning p-2 rounded-lg text-[11px] flex items-start gap-2">
+          <AlertOctagon size={15} className="text-warning shrink-0 mt-0.5" />
           <div className="space-y-1.5">
-            <span className="font-semibold block text-amber-600">Execution unavailable</span>
+            <span className="font-semibold block text-warning">Execution unavailable</span>
             <p>
               {account.unsupportedReason ||
                 "TradingView MCP is read-only and no execution gateway is connected."}
             </p>
-            <p className="text-amber-600/80">
+            <p className="text-warning">
               You can still prepare the full order below and hand it off to TradingView.
             </p>
             <a
               href={tvHandoffUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded border border-amber-400/40 bg-amber-500/10 px-2 py-1 font-semibold text-amber-600 hover:bg-amber-500/20"
+              className="inline-flex items-center gap-1 rounded-lg border border-warning/40 bg-warning/10 px-2 py-1 font-semibold text-warning hover:bg-warning/20"
             >
               <ExternalLink size={11} /> Open in TradingView
             </a>
@@ -274,8 +274,8 @@ export const ProTradeTicketView: React.FC<Props> = ({
 
       {/* Stale market context (§24) */}
       {staleContext && (
-        <div className="bg-amber-500/10 border border-amber-500/30 text-amber-600 p-2 rounded text-[11px] flex items-start gap-2">
-          <AlertOctagon size={15} className="text-amber-400 shrink-0 mt-0.5" />
+        <div className="bg-warning/10 border border-warning/30 text-warning p-2 rounded-lg text-[11px] flex items-start gap-2">
+          <AlertOctagon size={15} className="text-warning shrink-0 mt-0.5" />
           <span>
             Market context is older than 2 minutes. The stale price was excluded from the risk
             calculation — refresh the chart before relying on reference levels.
@@ -288,10 +288,10 @@ export const ProTradeTicketView: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => setSide("BUY")}
-          className={`py-2 rounded font-bold flex items-center justify-center gap-1.5 transition-colors border ${
+          className={`py-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-colors border ${
             side === "BUY"
-              ? "bg-emerald-600 text-white border-emerald-500"
-              : "bg-raised text-ink-mute border-edge hover:text-ink"
+              ? "bg-positive-fill text-white border-positive-fill"
+              : "bg-secondary text-muted-foreground border-border hover:text-foreground"
           }`}
         >
           <ArrowUpRight size={14} /> BUY / LONG
@@ -299,10 +299,10 @@ export const ProTradeTicketView: React.FC<Props> = ({
         <button
           type="button"
           onClick={() => setSide("SELL")}
-          className={`py-2 rounded font-bold flex items-center justify-center gap-1.5 transition-colors border ${
+          className={`py-2 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-colors border ${
             side === "SELL"
-              ? "bg-rose-600 text-white border-rose-500"
-              : "bg-raised text-ink-mute border-edge hover:text-ink"
+              ? "bg-negative-fill text-white border-negative-fill"
+              : "bg-secondary text-muted-foreground border-border hover:text-foreground"
           }`}
         >
           <ArrowDownRight size={14} /> SELL / SHORT
@@ -312,7 +312,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
       {/* Fields */}
       <div className="grid grid-cols-2 gap-2 text-[11px]">
         <div>
-          <label className="text-ink-mute block mb-1">Symbol</label>
+          <label className="text-muted-foreground block mb-1">Symbol</label>
           <input
             type="text"
             value={symbol}
@@ -321,7 +321,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
           />
         </div>
         <div>
-          <label className="text-ink-mute block mb-1">Order Type</label>
+          <label className="text-muted-foreground block mb-1">Order Type</label>
           <select
             value={orderType}
             onChange={(e) => setOrderType(e.target.value as "MARKET" | "LIMIT" | "STOP")}
@@ -333,7 +333,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
           </select>
         </div>
         <div>
-          <label className="text-ink-mute block mb-1">Quantity (Lots)</label>
+          <label className="text-muted-foreground block mb-1">Quantity (Lots)</label>
           <input
             type="number"
             step="0.01"
@@ -344,7 +344,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
           />
         </div>
         <div>
-          <label className="text-ink-mute block mb-1">
+          <label className="text-muted-foreground block mb-1">
             Entry Price {orderType === "MARKET" ? "(reference)" : ""}
           </label>
           <input
@@ -357,7 +357,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
           />
         </div>
         <div>
-          <label className="text-ink-mute block mb-1">Stop Loss (SL)</label>
+          <label className="text-muted-foreground block mb-1">Stop Loss (SL)</label>
           <input
             type="number"
             step="any"
@@ -368,7 +368,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
           />
         </div>
         <div>
-          <label className="text-ink-mute block mb-1">Take Profit (TP)</label>
+          <label className="text-muted-foreground block mb-1">Take Profit (TP)</label>
           <input
             type="number"
             step="any"
@@ -385,7 +385,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
         <button
           type="button"
           onClick={handleEvaluateRisk}
-          className="flex-1 py-1.5 bg-raised hover:bg-raised text-ink rounded font-medium transition-colors border border-edge flex items-center justify-center gap-1.5"
+          className="flex-1 py-1.5 bg-secondary hover:bg-secondary/80 text-foreground rounded-lg font-medium transition-colors border border-border flex items-center justify-center gap-1.5"
         >
           <ClipboardCheck size={13} />
           {riskEvaluation ? "Re-run Execution Risk Check" : "Run Execution Risk Check"}
@@ -397,12 +397,12 @@ export const ProTradeTicketView: React.FC<Props> = ({
       {needsAck && (
         <div
           onClick={() => setLiveAcknowledged((v) => !v)}
-          className="cursor-pointer bg-rose-500/10 border border-rose-500/30 p-2 rounded flex items-start gap-2 text-rose-500 text-[11px]"
+          className="cursor-pointer bg-negative/10 border border-negative/30 p-2 rounded-lg flex items-start gap-2 text-negative text-[11px]"
         >
           {liveAcknowledged ? (
-            <CheckSquare size={16} className="text-rose-400 shrink-0 mt-0.5" />
+            <CheckSquare size={16} className="text-negative shrink-0 mt-0.5" />
           ) : (
-            <Square size={16} className="text-rose-400 shrink-0 mt-0.5" />
+            <Square size={16} className="text-negative shrink-0 mt-0.5" />
           )}
           <span>
             {isLive ? (
@@ -422,13 +422,13 @@ export const ProTradeTicketView: React.FC<Props> = ({
 
       {/* Blockers */}
       {!gating.canConfirm && gating.blockers.length > 0 && (
-        <div className="bg-base/70 border border-edge rounded p-2 space-y-1 text-[10px] text-amber-600/90">
-          <span className="font-semibold text-amber-600 uppercase tracking-wider text-[9px]">
+        <div className="bg-secondary/40 border border-border rounded-lg p-2 space-y-1 text-[10px] text-warning">
+          <span className="font-semibold text-warning uppercase tracking-wider text-[10px]">
             Blocked from execution
           </span>
           {gating.blockers.map((b, i) => (
             <div key={i} className="flex items-start gap-1.5">
-              <ShieldAlert size={11} className="shrink-0 mt-0.5 text-amber-400" />
+              <ShieldAlert size={11} className="shrink-0 mt-0.5 text-warning" />
               <span>{b}</span>
             </div>
           ))}
@@ -438,23 +438,23 @@ export const ProTradeTicketView: React.FC<Props> = ({
       {/* Execution status lifecycle (§12) */}
       {lastResult && !lastResult.receipt && (
         <div
-          className={`rounded border p-2 text-[11px] space-y-1.5 ${
+          className={`rounded-lg border p-2 text-[11px] space-y-1.5 ${
             lastResult.status === "UNKNOWN"
-              ? "bg-amber-500/10 border-amber-500/40 text-amber-600"
+              ? "bg-warning/10 border-warning/40 text-warning"
               : lastResult.status === "REJECTED" || lastResult.status === "UNAVAILABLE"
-              ? "bg-rose-500/10 border-rose-500/40 text-rose-500"
-              : "bg-base/70 border-edge text-ink"
+              ? "bg-negative/10 border-negative/40 text-negative"
+              : "bg-secondary/40 border-border text-foreground"
           }`}
         >
           <div className="flex flex-wrap items-center gap-1">
             {lastResult.statusTimeline.map((ev, i) => (
               <React.Fragment key={`${ev.status}-${ev.at}-${i}`}>
-                {i > 0 && <span className="text-ink-faint">↓</span>}
+                {i > 0 && <span className="text-muted-foreground">↓</span>}
                 <span
-                  className={`px-1.5 py-0.5 rounded border text-[9px] font-bold ${
+                  className={`px-1.5 py-0.5 rounded-full border text-[10px] font-bold ${
                     ev.status === lastResult.status
-                      ? "border-brand-500/50 bg-brand-500/10 text-ink"
-                      : "border-edge bg-card text-ink-mute"
+                      ? "border-brand/50 bg-brand/10 text-foreground"
+                      : "border-border bg-card text-muted-foreground"
                   }`}
                 >
                   {LIFECYCLE_LABEL[ev.status] || ev.status}
@@ -467,7 +467,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
             <button
               type="button"
               onClick={startNewTicket}
-              className="mt-1 rounded border border-edge bg-raised px-2 py-1 text-[10px] text-ink hover:bg-raised"
+              className="mt-1 rounded-lg border border-border bg-secondary px-2 py-1 text-[10px] text-foreground hover:bg-secondary/80"
             >
               Start a new ticket
             </button>
@@ -477,7 +477,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
 
       {/* Validation summary */}
       {validation.warnings.length > 0 && validation.valid && (
-        <ul className="text-[10px] text-amber-600/80 list-disc pl-4 space-y-0.5">
+        <ul className="text-[10px] text-warning list-disc pl-4 space-y-0.5">
           {validation.warnings.map((w, i) => (
             <li key={i}>{w}</li>
           ))}
@@ -491,58 +491,58 @@ export const ProTradeTicketView: React.FC<Props> = ({
         onClick={handleReview}
         className={`w-full py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 text-white transition-colors border ${
           !gating.canReview
-            ? "bg-raised border-edge text-ink-faint cursor-not-allowed"
+            ? "bg-secondary border-border text-muted-foreground cursor-not-allowed"
             : side === "BUY"
-            ? "bg-emerald-600 hover:bg-emerald-500 border-emerald-500"
-            : "bg-rose-600 hover:bg-rose-500 border-rose-500"
+            ? "bg-positive-fill text-white border-positive-fill"
+            : "bg-negative-fill text-white border-negative-fill"
         }`}
       >
         <Send size={14} />
         Review &amp; Confirm Trade
       </button>
 
-      <p className="text-[9px] text-ink-faint text-center">
+      <p className="text-[10px] text-muted-foreground text-center">
         Ticket {requestId} · the AI never executes orders — submission only happens on your explicit
         confirmation.
       </p>
 
       {/* ── confirmation sheet ───────────────────────────────────────── */}
       {showConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div className="animate-slide-up w-full max-w-[340px] space-y-3 rounded-xl border border-edge bg-card p-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-[340px] space-y-3 rounded-xl border border-border bg-card p-4 shadow-2xl">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
                 {isLive || needsAck ? (
-                  <ShieldAlert size={13} className="text-rose-400" />
+                  <ShieldAlert size={13} className="text-negative" />
                 ) : (
                   <ClipboardCheck size={13} />
                 )}
                 Review &amp; Confirm Trade
               </span>
               <span
-                className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold border ${
                   isLive || needsAck
-                    ? "bg-rose-500/20 text-rose-400 border-rose-500/40"
-                    : "bg-raised text-ink border-edge"
+                    ? "bg-negative/20 text-negative border-negative/40"
+                    : "bg-secondary text-foreground border-border"
                 }`}
               >
                 {modeLabel(account.mode)}
               </span>
             </div>
 
-            <div className="space-y-1 text-[11px] bg-base/70 rounded border border-edge p-2">
+            <div className="space-y-1 text-[11px] bg-secondary/40 rounded-lg border border-border p-2">
               {summaryLines.map((line) => (
                 <div key={line.label} className="flex justify-between">
-                  <span className="text-ink-mute">{line.label}</span>
+                  <span className="text-muted-foreground">{line.label}</span>
                   <span
-                    className={`font-mono ${
+                    className={`font-numeric ${
                       line.tone === "danger"
-                        ? "text-rose-400"
+                        ? "text-negative"
                         : line.tone === "success"
-                        ? "text-emerald-400"
+                        ? "text-positive"
                         : line.tone === "muted"
-                        ? "text-ink-faint"
-                        : "text-ink"
+                        ? "text-muted-foreground"
+                        : "text-foreground"
                     }`}
                   >
                     {line.value}
@@ -552,10 +552,10 @@ export const ProTradeTicketView: React.FC<Props> = ({
             </div>
 
             {/* Estimated risk */}
-            <div className="text-[11px] bg-base/70 rounded border border-edge p-2 space-y-1">
+            <div className="text-[11px] bg-secondary/40 rounded-lg border border-border p-2 space-y-1">
               <div className="flex justify-between">
-                <span className="text-ink-mute">Estimated risk</span>
-                <span className="text-ink font-mono">
+                <span className="text-muted-foreground">Estimated risk</span>
+                <span className="text-foreground font-numeric">
                   {riskEvaluation && riskEvaluation.riskAmount !== null
                     ? `$${riskEvaluation.riskAmount.toFixed(2)}${
                         riskEvaluation.riskPercentage !== null
@@ -566,8 +566,8 @@ export const ProTradeTicketView: React.FC<Props> = ({
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-ink-mute">R:R</span>
-                <span className="text-ink font-mono">
+                <span className="text-muted-foreground">R:R</span>
+                <span className="text-foreground font-numeric">
                   {riskEvaluation && riskEvaluation.potentialRiskReward !== null
                     ? `1 : ${riskEvaluation.potentialRiskReward.toFixed(2)}`
                     : "Not calculable"}
@@ -576,8 +576,8 @@ export const ProTradeTicketView: React.FC<Props> = ({
             </div>
 
             {(isLive || needsAck) && (
-              <div className="bg-rose-500/10 border border-rose-500/30 text-rose-500 p-2 rounded text-[11px] flex items-start gap-2">
-                <ShieldAlert size={13} className="text-rose-400 shrink-0 mt-0.5" />
+              <div className="bg-negative/10 border border-negative/30 text-negative p-2 rounded-lg text-[11px] flex items-start gap-2">
+                <ShieldAlert size={13} className="text-negative shrink-0 mt-0.5" />
                 <span>
                   {isLive
                     ? "This is a LIVE order. It will be routed to the connected broker account."
@@ -587,7 +587,7 @@ export const ProTradeTicketView: React.FC<Props> = ({
             )}
 
             {!gating.canConfirm && (
-              <div className="bg-amber-500/10 border border-amber-500/30 text-amber-600 p-2 rounded text-[11px] space-y-1">
+              <div className="bg-warning/10 border border-warning/30 text-warning p-2 rounded-lg text-[11px] space-y-1">
                 {gating.blockers.map((b, i) => (
                   <div key={i}>• {b}</div>
                 ))}
@@ -598,15 +598,15 @@ export const ProTradeTicketView: React.FC<Props> = ({
               <button
                 onClick={() => setShowConfirm(false)}
                 disabled={submitting}
-                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink transition-all hover:bg-raised disabled:opacity-50"
+                className="flex-1 rounded-lg border border-border bg-secondary py-2.5 text-[11px] text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmAndExecute}
                 disabled={!gating.canConfirm || submitting}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-                  side === "BUY" ? "bg-emerald-600 hover:bg-emerald-500" : "bg-rose-600 hover:bg-rose-500"
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2.5 text-[11px] font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  side === "BUY" ? "bg-positive hover:bg-positive/90" : "bg-negative hover:bg-negative/90"
                 }`}
               >
                 {submitting ? (

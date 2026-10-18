@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { generateStrategy, listStrategies, handoffStrategyToBacktest } from "@/api/pro";
 import type { GeneratedStrategy } from "@/types/pro";
 import { CpuIcon, SparklesIcon, CopyIcon, CheckIcon, ExternalLinkIcon, AlertTriangleIcon, BookmarkIcon } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ProStrategyGeneratorViewProps {
   symbol: string;
@@ -59,41 +62,45 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleHandoff = async (strategyId: string) => {
+  const handleHandoff = async (id: string) => {
     try {
-      const res = await handoffStrategyToBacktest(strategyId, symbol || "BTCUSD", timeframe || "1H");
-      if (res.url) {
-        window.open(res.url, "_blank");
-      }
+      const res = await handoffStrategyToBacktest(id, symbol || "ALL", timeframe || "1H");
+      if (res.url) window.open(res.url, "_blank", "noopener,noreferrer");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Backtest handoff failed");
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-base text-ink text-xs p-3 space-y-3 overflow-y-auto">
+    <div className="flex h-full flex-col space-y-3 overflow-y-auto bg-background p-3 text-xs text-foreground">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-edge/60 pb-2">
+      <div className="flex items-center justify-between border-b border-border pb-2">
         <div className="flex items-center space-x-2">
-          <CpuIcon className="w-4 h-4 text-ink-mute" />
-          <span className="font-semibold text-sm tracking-wide">AI Strategy Studio</span>
+          <CpuIcon className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-semibold tracking-wide">AI Strategy Studio</span>
         </div>
-        <div className="flex bg-raised rounded p-0.5 border border-edge/60">
+        <div className="flex rounded-lg border border-border bg-secondary p-0.5">
           <button
+            type="button"
             onClick={() => setActiveTab("create")}
-            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors ${
-              activeTab === "create" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"
+            className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ${
+              activeTab === "create"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Create
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("library")}
-            className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors flex items-center space-x-1 ${
-              activeTab === "library" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"
+            className={`flex items-center space-x-1 rounded-md px-2 py-1 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ${
+              activeTab === "library"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <BookmarkIcon className="w-2.5 h-2.5" />
+            <BookmarkIcon className="h-2.5 w-2.5" />
             <span>Library ({library.length})</span>
           </button>
         </div>
@@ -103,78 +110,87 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
         <div className="space-y-3">
           <form onSubmit={handleGenerate} className="space-y-2">
             <div>
-              <label className="block text-ink-mute text-[10px] font-medium uppercase mb-1">
+              <label className="mb-1 block text-[10px] font-medium uppercase text-muted-foreground">
                 Strategy specification & rules
               </label>
-              <textarea
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="e.g. ICT Silver Bullet setup on 5m timeframe. Enter long on 15m bullish FVG after liquidity sweep during NY session open. Stop below swing low, TP at 1:2.5 RR..."
-                className="w-full bg-raised border border-edge rounded p-2.5 text-ink placeholder-ink-mute/50 focus:outline-none focus:border-brand-500 min-h-[80px] resize-none text-xs"
+                className="min-h-[80px] resize-none text-[11px]"
               />
             </div>
 
-            <div className="flex justify-between items-center text-[10px] text-ink-mute">
+            <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>Target: {symbol || "ALL"} ({timeframe || "1H"})</span>
-              <button
+              <Button
                 type="submit"
+                variant="brand"
+                size="sm"
                 disabled={loading || !description.trim()}
-                className="bg-brand-500 hover:bg-brand-400 disabled:opacity-50 text-white font-medium px-3 py-1.5 rounded flex items-center space-x-1.5 transition-colors"
+                className="gap-1.5"
               >
-                <SparklesIcon className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+                <SparklesIcon className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
                 <span>{loading ? "Generating Strategy..." : "Build Strategy"}</span>
-              </button>
+              </Button>
             </div>
           </form>
 
           {error && (
-            <div className="p-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded flex items-center space-x-2">
-              <AlertTriangleIcon className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
-            </div>
+            <Alert variant="destructive" className="py-2">
+              <AlertTriangleIcon />
+              <AlertDescription className="text-[11px]">{error}</AlertDescription>
+            </Alert>
           )}
 
           {currentStrategy && (
-            <div className="bg-card border border-edge rounded-lg p-3 space-y-2.5 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-edge/40 pb-1.5">
+            <div className="space-y-2.5 rounded-xl border border-border bg-card p-3">
+              <div className="flex items-center justify-between border-b border-border pb-1.5">
                 <div>
-                  <h4 className="font-semibold text-ink text-xs">{currentStrategy.name}</h4>
-                  <p className="text-[10px] text-ink-mute">{currentStrategy.description}</p>
+                  <h4 className="text-xs font-semibold text-foreground">{currentStrategy.name}</h4>
+                  <p className="text-[10px] text-muted-foreground">{currentStrategy.description}</p>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <button
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => copyCode(currentStrategy.code)}
-                    className="bg-raised border border-edge hover:border-neutral-500 px-2 py-1 rounded text-[10px] text-ink flex items-center space-x-1 transition-colors"
+                    aria-label="Copy code"
+                    className="px-2"
                   >
                     {copied ? (
-                      <CheckIcon className="w-3 h-3 text-emerald-400" />
+                      <CheckIcon className="h-3 w-3 text-positive" />
                     ) : (
-                      <CopyIcon className="w-3 h-3 text-ink-mute" />
+                      <CopyIcon className="h-3 w-3 text-muted-foreground" />
                     )}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="default"
+                    size="sm"
                     onClick={() => handleHandoff(currentStrategy.id)}
-                    className="bg-brand-500 hover:bg-brand-400 text-white px-2.5 py-1 rounded text-[10px] font-medium flex items-center space-x-1 transition-colors"
+                    className="gap-1.5 text-[10px]"
                   >
-                    <ExternalLinkIcon className="w-3 h-3" />
+                    <ExternalLinkIcon className="h-3 w-3" />
                     <span>Backtest Engine</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               {currentStrategy.spec && (
-                <div className="grid grid-cols-2 gap-2 text-[10px] bg-raised/50 p-2 rounded border border-edge/40">
+                <div className="grid grid-cols-2 gap-2 rounded-lg border border-border bg-secondary/50 p-2 text-[10px]">
                   <div>
-                    <span className="text-ink-mute block uppercase font-medium">Entry Rules</span>
-                    <ul className="list-disc list-inside text-emerald-400/90">
+                    <span className="block font-medium uppercase text-muted-foreground">Entry Rules</span>
+                    <ul className="list-inside list-disc text-positive">
                       {currentStrategy.spec.entry?.conditions?.map((c, i) => (
                         <li key={i} className="truncate">{c}</li>
                       ))}
                     </ul>
                   </div>
                   <div>
-                    <span className="text-ink-mute block uppercase font-medium">Exit Rules</span>
-                    <ul className="list-disc list-inside text-rose-400/90">
+                    <span className="block font-medium uppercase text-muted-foreground">Exit Rules</span>
+                    <ul className="list-inside list-disc text-negative">
                       {currentStrategy.spec.exit?.conditions?.map((c, i) => (
                         <li key={i} className="truncate">{c}</li>
                       ))}
@@ -184,7 +200,7 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
               )}
 
               <div className="relative">
-                <pre className="bg-raised border border-edge/80 rounded p-2.5 text-[10px] font-mono text-ink max-h-[180px] overflow-auto whitespace-pre-wrap">
+                <pre className="max-h-[180px] overflow-auto whitespace-pre-wrap rounded-lg border border-border bg-secondary p-2.5 font-mono text-[10px] text-foreground">
                   {currentStrategy.code}
                 </pre>
               </div>
@@ -194,35 +210,39 @@ export const ProStrategyGeneratorView: React.FC<ProStrategyGeneratorViewProps> =
       ) : (
         <div className="space-y-2">
           {library.length === 0 ? (
-            <div className="text-center py-8 text-ink-mute">
+            <div className="py-8 text-center text-muted-foreground">
               No saved strategies found in your library yet.
             </div>
           ) : (
             library.map((strat) => (
               <div
                 key={strat.id}
-                className="bg-card border border-edge rounded p-2.5 space-y-1.5 hover:border-edge/80"
+                className="space-y-1.5 rounded-xl border border-border bg-card p-2.5 transition-colors hover:border-foreground/20"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
-                    <span className="font-semibold text-ink">{strat.name}</span>
-                    <p className="text-[10px] text-ink-mute line-clamp-1">{strat.description}</p>
+                    <span className="font-semibold text-foreground">{strat.name}</span>
+                    <p className="line-clamp-1 text-[10px] text-muted-foreground">{strat.description}</p>
                   </div>
                   <div className="flex items-center space-x-1.5">
                     <button
+                      type="button"
                       onClick={() => copyCode(strat.code)}
-                      className="p-1 hover:bg-raised rounded text-ink-mute hover:text-ink"
+                      className="rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0"
                       title="Copy Code"
                     >
-                      <CopyIcon className="w-3.5 h-3.5" />
+                      <CopyIcon className="h-3.5 w-3.5" />
                     </button>
-                    <button
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleHandoff(strat.id)}
-                      className="px-2 py-0.5 border border-edge bg-raised text-ink-mute hover:text-ink rounded text-[10px] font-medium flex items-center space-x-1 transition-colors"
+                      className="h-6 gap-1 px-2 text-[10px]"
                     >
-                      <ExternalLinkIcon className="w-3 h-3" />
+                      <ExternalLinkIcon className="h-3 w-3" />
                       <span>Backtest</span>
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

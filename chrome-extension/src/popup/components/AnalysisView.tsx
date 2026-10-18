@@ -33,7 +33,7 @@ function DataRow({ label, value, highlight }: { label: string; value: string | n
   return (
     <div className="flex justify-between items-center py-0.5">
       <span className="text-[10px] text-muted-foreground">{label}</span>
-      <span className={`text-[10px] font-mono ${highlight ? "text-brand-foreground" : "text-foreground"}`}>{value}</span>
+      <span className={`text-[10px] font-numeric ${highlight ? "text-brand-foreground" : "text-foreground"}`}>{value}</span>
     </div>
   );
 }
@@ -119,7 +119,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-foreground">Chart Intelligence — {symbol || "—"}</span>
           <div className="flex items-center gap-1.5">
-            {context?.timeframe && <span className="rounded border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">{context.timeframe}</span>}
+            {context?.timeframe && <span className="rounded-full border border-border bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">{context.timeframe}</span>}
             <button
               onClick={() => setShowTradingView((v) => !v)}
               className={`rounded-full border px-2 py-0.5 text-[10px] font-bold transition-colors ${
@@ -149,7 +149,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {loading && (
           <div className="flex flex-col items-center gap-3 py-8">
-            <Loader2 size={24} className="animate-spin text-muted-foreground/70" />
+            <Loader2 size={24} className="animate-spin text-muted-foreground" />
             <p className="text-xs text-muted-foreground">Analyzing chart intelligence…</p>
           </div>
         )}
@@ -188,7 +188,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                   {expandedSections.structure && ctx.marketStructure.events.length > 0 && (
                     <div className="space-y-0.5">
                       {ctx.marketStructure.events.slice(-10).map((ev: { type: string; price: number; direction: string }, i: number) => (
-                        <div key={i} className="text-[10px] text-foreground font-mono">
+                        <div key={i} className="text-[10px] text-foreground font-numeric">
                           <span className={ev.type === "BOS" ? "text-positive" : "text-negative"}>{ev.type}</span>
                           {" "}{ev.price.toFixed(5)} — {ev.direction}
                         </div>
@@ -198,13 +198,13 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 </AnalysisSection>
 
                 <AnalysisSection title="Market Score">
-                  <div className="text-[10px] text-foreground font-mono">{ctx.score.total}/100 — {ctx.score.bias} ({ctx.score.confidence})</div>
+                  <div className="text-[10px] text-foreground font-numeric">{ctx.score.total}/100 — {ctx.score.bias} ({ctx.score.confidence})</div>
                   {ctx.score.components.length > 0 && (
                     <div className="space-y-0.5 mt-1">
                       {ctx.score.components.map((c: { name: string; value: number; direction: string }, i: number) => (
                         <div key={i} className="flex justify-between text-[10px]">
                           <span className="text-muted-foreground">{c.name}</span>
-                          <span className={`font-mono ${c.direction === "bullish" ? "text-positive" : c.direction === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
+                          <span className={`font-numeric ${c.direction === "bullish" ? "text-positive" : c.direction === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
                             {c.value} ({c.direction})
                           </span>
                         </div>
@@ -236,7 +236,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                       {ctx.mtfAlignment.map((m: { timeframe: string; bias: string }, i: number) => (
                         <div key={i} className="flex justify-between text-[10px]">
                           <span className="text-muted-foreground">{m.timeframe}</span>
-                          <span className={`font-mono ${m.bias === "bullish" ? "text-positive" : m.bias === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
+                          <span className={`font-numeric ${m.bias === "bullish" ? "text-positive" : m.bias === "bearish" ? "text-negative" : "text-muted-foreground"}`}>
                             {m.bias}
                           </span>
                         </div>
@@ -264,7 +264,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                             <div>
                               <div className="text-[10px] text-positive uppercase">Support</div>
                               {ai.keyLevels.support.map((s: { price: number; strength: string; source: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-foreground font-mono">{s.price.toFixed(5)} — {s.strength} ({s.source})</div>
+                                <div key={i} className="text-[10px] text-foreground font-numeric">{s.price.toFixed(5)} — {s.strength} ({s.source})</div>
                               ))}
                             </div>
                           )}
@@ -272,7 +272,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                             <div>
                               <div className="text-[10px] text-negative uppercase">Resistance</div>
                               {ai.keyLevels.resistance.map((r: { price: number; strength: string; source: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-foreground font-mono">{r.price.toFixed(5)} — {r.strength} ({r.source})</div>
+                                <div key={i} className="text-[10px] text-foreground font-numeric">{r.price.toFixed(5)} — {r.strength} ({r.source})</div>
                               ))}
                             </div>
                           )}
@@ -280,7 +280,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                             <div>
                               <div className="text-[10px] text-muted-foreground uppercase">Liquidity</div>
                               {ai.keyLevels.liquidity.map((l: { price: number; side: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-foreground font-mono">{l.price.toFixed(5)} — {l.side} ({l.strength})</div>
+                                <div key={i} className="text-[10px] text-foreground font-numeric">{l.price.toFixed(5)} — {l.side} ({l.strength})</div>
                               ))}
                             </div>
                           )}
@@ -288,7 +288,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                             <div>
                               <div className="text-[10px] text-muted-foreground uppercase">FVG</div>
                               {ai.keyLevels.fvg.map((f: { price: number; direction: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-foreground font-mono">{f.price.toFixed(5)} — {f.direction}</div>
+                                <div key={i} className="text-[10px] text-foreground font-numeric">{f.price.toFixed(5)} — {f.direction}</div>
                               ))}
                             </div>
                           )}
@@ -296,7 +296,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                             <div>
                               <div className="text-[10px] text-muted-foreground uppercase">Order Blocks</div>
                               {ai.keyLevels.orderBlock.map((o: { price: number; direction: string; strength: string }, i: number) => (
-                                <div key={i} className="text-[10px] text-foreground font-mono">{o.price.toFixed(5)} — {o.direction}</div>
+                                <div key={i} className="text-[10px] text-foreground font-numeric">{o.price.toFixed(5)} — {o.direction}</div>
                               ))}
                             </div>
                           )}
@@ -329,7 +329,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                       )}
                     </AnalysisSection>
 
-                    <div className="text-[10px] text-muted-foreground/70 italic">
+                    <div className="text-[10px] text-muted-foreground italic">
                       {ai.structureConfirmations} structure confirmations | {ai.mtfAlignmentCount} MTF aligned
                     </div>
                   </>
@@ -348,7 +348,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
             <button
               onClick={handleAnalyze}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-500 text-[11px] font-semibold text-white transition-colors hover:bg-brand-600 disabled:opacity-40"
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-brand-fill text-[11px] font-semibold text-white transition-colors hover:bg-brand-fill-hover disabled:opacity-40"
             >
               {loading ? <Loader2 size={14} className="animate-spin" /> : null}
               {loading ? "Analyzing..." : "Re-analyze"}
@@ -363,7 +363,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskAI(); }
               }}
               placeholder="Ask AI about this chart..."
-              className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground/70 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex-1 bg-muted border border-border rounded-lg px-3 py-1.5 text-[11px] text-foreground placeholder:text-muted-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <button
               onClick={handleAskAI}
@@ -376,7 +376,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
 
           {chatLoading && (
             <div className="flex items-center gap-2 py-1">
-              <Loader2 size={12} className="animate-spin text-muted-foreground/70" />
+              <Loader2 size={12} className="animate-spin text-muted-foreground" />
               <span className="text-[10px] text-muted-foreground">Thinking...</span>
             </div>
           )}

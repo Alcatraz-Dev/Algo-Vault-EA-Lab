@@ -38,7 +38,8 @@
   --secondary-foreground: 240 5.9% 10%;
 
   --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
+  /* 240 4% 40% (#63636b) — AA on white (5.95), muted (5.42) and warning tints. */
+  --muted-foreground: 240 4% 40%;
 
   --accent: 240 4.8% 95.9%;
   --accent-foreground: 240 5.9% 10%;
@@ -51,14 +52,27 @@
   --ring: 240 10% 3.9%;
 
   /* ── brand (AlgoVault orange) ───────────────────────────────────── */
-  --brand: 21 82% 49%;         /* #de661c */
+  --brand: 21 82% 49%;         /* #de661c — accents, indicators, borders */
   --brand-foreground: 24 79% 33%; /* #96410f — AA-safe brand text on light */
   --brand-ring: 21 82% 49%;
+  /*
+   * Fill-tuned brand: solid brand surfaces that carry white text must clear
+   * WCAG AA. #bc5415 gives 4.75:1 with white (vs 3.49:1 for #de661c) while
+   * staying recognisably AlgoVault orange. `--brand` remains for accents.
+   */
+  --brand-fill: 24 79% 39%;       /* #bc5415 */
+  --brand-fill-hover: 24 85% 35%; /* #a84a11 */
 
   /* ── trading / status semantics (themed for contrast) ───────────── */
-  --positive: 160 84% 39%;     /* emerald-600 on light */
-  --negative: 347 81% 46%;     /* rose-600 on light */
-  --warning: 32 94% 44%;       /* amber-600 on light */
+  /* Values are AA text colours on white AND on --muted/card tints. */
+  --positive: 161 94% 25%;     /* #047c56 — AA green text on light */
+  --negative: 347 81% 46%;     /* #d4163f — AA red text on light */
+  --warning: 26 90% 37%;       /* #b35309 — AA amber text on light */
+  --destructive: 0 72% 45%;    /* #c52020 — AA red text on light */
+  /* Solid fills that carry WHITE text (theme-independent, AA in both). */
+  --positive-fill: 161 94% 24%;
+  --negative-fill: 347 75% 40%;
+  --destructive-fill: 0 72% 45%;
 }
 
 .dark {
@@ -84,8 +98,9 @@
   --accent: 240 3.7% 15.9%;
   --accent-foreground: 0 0% 98%;
 
-  --destructive: 0 72% 47%;
+  --destructive: 0 84% 71%;    /* light red — AA destructive text on dark */
   --destructive-foreground: 0 0% 98%;
+  --destructive-fill: 0 72% 45%;
 
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
@@ -95,9 +110,17 @@
   --brand: 21 82% 49%;
   --brand-foreground: 24 87% 59%; /* #e67e2e — AA-safe brand text on dark */
   --brand-ring: 21 82% 49%;
+  /* Fills stay AA with white text in dark mode too (#bc5415 → 4.75). */
+  --brand-fill: 24 79% 39%;     /* #bc5415 */
+  --brand-fill-hover: 24 85% 35%; /* #b65612 */
 
   /* ── trading / status semantics (themed for contrast) ───────────── */
   --positive: 158 64% 52%;     /* emerald-400 on dark */
   --negative: 350 89% 71%;     /* rose-400 on dark */
   --warning: 48 96% 67%;       /* amber-400 on dark */
+  --destructive: 0 84% 71%;    /* light red — AA destructive text on dark */
+  /* Solid fills that carry WHITE text stay darker than the accent text. */
+  --positive-fill: 161 94% 24%;
+  --negative-fill: 347 75% 40%;
+  --destructive-fill: 0 72% 45%;
 }

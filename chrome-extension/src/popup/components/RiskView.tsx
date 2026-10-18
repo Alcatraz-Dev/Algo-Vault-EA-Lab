@@ -132,7 +132,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
             {calc.tpSuggested != null && (
               <button
                 onClick={() => setTp(calc.tpSuggested!.toFixed(5))}
-                className="mt-3 whitespace-nowrap rounded border border-border bg-secondary px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="mt-3 whitespace-nowrap rounded-lg border border-border bg-secondary px-2 py-1 text-[10px] font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 Use {calc.tpSuggested.toFixed(5)} ({rrTarget}R)
               </button>
@@ -155,7 +155,7 @@ export function RiskView({ symbol, context, onBack }: RiskViewProps) {
           )}
         </Card>
 
-        <p className="text-[10px] leading-snug text-muted-foreground/70">
+        <p className="text-[10px] leading-snug text-muted-foreground">
           Lot sizing uses the FX convention ($10/pip per standard lot). Account size and risk % are saved as your defaults and reused by the trade ticket.
         </p>
       </div>
@@ -171,7 +171,7 @@ function Row({ label, value, valueClass }: { label: string; value: string; value
   return (
     <div className="flex items-center justify-between text-[11px]">
       <span className="text-muted-foreground">{label}</span>
-      <span className={`font-mono ${valueClass ?? "text-foreground"}`}>{value}</span>
+      <span className={`font-numeric ${valueClass ?? "text-foreground"}`}>{value}</span>
     </div>
   );
 }

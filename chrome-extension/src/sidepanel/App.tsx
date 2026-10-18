@@ -5,48 +5,45 @@
  * chart identity live: every chart switch re-targets the copilot, research,
  * alerts, setup radar, MTF matrix, and AI code generators.
  *
- * Tabs:
- *   Copilot    — chat with per-symbol memory, personas, model picker
- *   Radar      — Pro Setup Radar (Setup Memory live detection) [Pro]
- *   SmartAlerts— Pro Smart Alerts (deterministic signal engine) [Pro]
- *   MTF        — Multi-Timeframe Matrix [Pro]
- *   Indicators — AI Pine Script Indicator Generator [Pro]
- *   Strategies — AI Strategy Builder & Backtest Handoff [Pro]
- *   Research   — cached AI research notes
- *   Alerts     — standard price alerts
- *   Setup      — symbol/TF override, preferences
+ * Information architecture: a grouped left icon rail (Work → Intelligence →
+ * Build → Trade → System) rather than the popup's bottom tab bar, because the
+ * side panel is tall and narrow — vertical groups stay scannable at 15
+ * destinations, while a bottom strip would clip labels at this width.
+ *
+ *   Copilot     — chat with per-symbol memory, personas, model picker
+ *   Radar       — Pro Setup Radar (Setup Memory live detection) [Pro]
+ *   SmartAlerts — Pro Smart Alerts (deterministic signal engine) [Pro]
+ *   MTF         — Multi-Timeframe Matrix [Pro]
+ *   Indicators  — AI Pine Script Indicator Generator [Pro]
+ *   Strategies  — AI Strategy Builder & Backtest Handoff [Pro]
+ *   Research    — cached AI research notes
+ *   Alerts      — standard price alerts
+ *   Setup       — symbol/TF override, preferences
  */
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  AlertCircle,
+  Command,
   ExternalLink,
   Eye,
   EyeOff,
   Loader2,
-  Zap,
   RefreshCw,
-  MessageSquareText,
-  FlaskConical,
-  Bell,
   SlidersHorizontal,
-  Radar,
-  ShieldAlert,
-  Layers,
-  Code,
-  Cpu,
   Sparkles,
-  ClipboardList,
-  SearchX,
-  History,
-  HeartPulse,
-  ScanEye,
-  Command,
+  Zap,
 } from "lucide-react";
 import { checkHealth, getGatewayStatus } from "@/api/algovault";
 import { getAlgoVaultUrl, PRODUCTION_ALGOVAULT_URL } from "@/config/environment";
 import { getAuthToken, getCachedContext, getUser } from "@/storage/storage";
 import { canAttemptSignIn, PRIVACY_POLICY_PATH } from "@/auth/consent";
+import { signInWithEmail } from "@/auth/auth";
 import { DataConsentNotice } from "@/components/DataConsentNotice";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import type { TradingViewContext } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { useProAccess } from "@/services/pro-service";
@@ -54,6 +51,7 @@ import { ProGate } from "@/popup/components/ProGate";
 import type { PreparedTradeDraft } from "@/types/execution";
 
 import { CommandBar } from "./components/CommandBar";
+import { NavRail, type NavTabId } from "./components/NavRail";
 import { CopilotView } from "./views/CopilotView";
 import { ResearchView } from "./views/ResearchView";
 import { AlertsView } from "./views/AlertsView";
@@ -70,50 +68,20 @@ import { ProStrategyHealthView } from "./views/ProStrategyHealthView";
 import { ProMarketRadarView } from "./views/ProMarketRadarView";
 import { ProExecutionBridgeView } from "./views/ProExecutionBridgeView";
 
-type TabId =
-  | "copilot"
-  | "execution"
-  | "radar"
-  | "smartAlerts"
-  | "mtf"
-  | "indicators"
-  | "strategies"
-  | "checklist"
-  | "missing"
-  | "replay"
-  | "health"
-  | "marketRadar"
-  | "research"
-  | "alerts"
-  | "setup";
+type TabId = NavTabId;
 
-interface TabConfig {
-  id: TabId;
-  label: string;
-  icon: React.ReactNode;
-  isPro?: boolean;
-}
-
-const TABS: TabConfig[] = [
-  { id: "copilot", label: "Copilot", icon: <MessageSquareText size={14} /> },
-  { id: "execution", label: "Trade", icon: <Zap size={14} />, isPro: true },
-  { id: "radar", label: "Radar", icon: <Radar size={14} />, isPro: true },
-  { id: "smartAlerts", label: "Alerts+", icon: <ShieldAlert size={14} />, isPro: true },
-  { id: "mtf", label: "MTF", icon: <Layers size={14} />, isPro: true },
-  { id: "checklist", label: "Check", icon: <ClipboardList size={14} />, isPro: true },
-  { id: "missing", label: "Gaps", icon: <SearchX size={14} />, isPro: true },
-  { id: "replay", label: "Replay", icon: <History size={14} />, isPro: true },
-  { id: "health", label: "Health", icon: <HeartPulse size={14} />, isPro: true },
-  { id: "marketRadar", label: "Scan", icon: <ScanEye size={14} />, isPro: true },
-  { id: "indicators", label: "Pine", icon: <Code size={14} />, isPro: true },
-  { id: "strategies", label: "Strategy", icon: <Cpu size={14} />, isPro: true },
-  { id: "research", label: "Research", icon: <FlaskConical size={14} /> },
-  { id: "alerts", label: "Alerts", icon: <Bell size={14} /> },
-  { id: "setup", label: "Setup", icon: <SlidersHorizontal size={14} /> },
-];
-
-function statusColor(state: "ok" | "off"): string {
-  return state === "ok" ? "bg-emerald-400" : "bg-neutral-600";
+function StatusPill({ ok, label, title }: { ok: boolean; label: string; title: string }) {
+  return (
+    <span
+      title={title}
+      className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border bg-secondary/50 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+    >
+      <span
+        className={cn("h-1.5 w-1.5 rounded-full", ok ? "bg-positive" : "bg-muted-foreground/40")}
+      />
+      {label}
+    </span>
+  );
 }
 
 export default function App() {
@@ -194,8 +162,8 @@ export default function App() {
         setEnriched(message.payload as EnrichedChartContext);
       }
     };
-    chrome.runtime.onMessage.addListener(listener);
-    return () => chrome.runtime.onMessage.removeListener(listener);
+    chrome.runtime?.onMessage?.addListener(listener);
+    return () => chrome.runtime?.onMessage?.removeListener(listener);
   }, []);
 
   const handleAuth = useCallback(() => {
@@ -237,10 +205,10 @@ export default function App() {
         setCommandBarOpen((v) => !v);
         return;
       }
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === "input" || tag === "textarea" || (e.target as HTMLElement)?.isContentEditable) {
-        return;
-      }
+      // Bare-key shortcuts, only when the user isn't typing into a field.
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || target?.isContentEditable) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "a" || e.key === "A") {
         e.preventDefault();
@@ -331,7 +299,9 @@ export default function App() {
         setTab("copilot");
         break;
     }
-  }, [activeSymbol, activeTimeframe]);  const handleAnalyzeSetup = useCallback((setup: import("@/types/pro").SetupRadarCard) => {
+  }, [activeSymbol, activeTimeframe]);
+
+  const handleAnalyzeSetup = useCallback((setup: import("@/types/pro").SetupRadarCard) => {
     const setupPrompt = `Analyze this Setup Radar card for ${setup.symbol} (${setup.timeframe}): setup type "${setup.setupType}", direction ${setup.direction}, status ${setup.status}. Supporting evidence: ${setup.supportingEvidence.join(";")}. Risk context: ${setup.riskContext || "none"}. Provide trade execution steps.`;
     setAnalysisPrompt(setupPrompt);
     setTab("copilot");
@@ -363,322 +333,335 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center bg-base">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-500/30 border-t-neutral-400" />
+      <div className="flex h-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <p className="text-[11px] text-muted-foreground">Connecting to AlgoVault…</p>
+        </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return <SidePanelLogin onAuth={handleAuth} />;
+    return (
+      <TooltipProvider delayDuration={300}>
+        <SidePanelLogin onAuth={handleAuth} />
+      </TooltipProvider>
+    );
   }
 
   return (
-    <div className="flex h-full flex-col bg-base text-ink">
-      {/* header */}
-      <div className="flex items-center gap-2.5 border-b border-edge/70 bg-card px-3 py-2.5">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg border border-edge/70 bg-raised/50">
-          <img
-            src={chrome.runtime.getURL("icons/icon32.png")}
-            alt="AlgoVault"
-            className="h-4 w-4 object-contain rounded-sm"
-          />
-        </span>
-        <div className="flex min-w-0 items-center gap-1.5">
-          <h1 className="truncate text-[13px] font-semibold tracking-tight">AlgoVault</h1>
-          {isPro ? (
-            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-brand-500/40 bg-brand-500/10 px-1.5 py-0.5 text-[9px] font-medium tracking-wide text-brand-400">
-              <Sparkles size={8} /> PRO
-            </span>
-          ) : (
-            <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-edge/60 bg-raised/60 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute">
-              FREE
-            </span>
-          )}
-          <span className="truncate rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 font-mono text-[9px] text-ink-mute max-w-[100px]">
-            {activeSymbol ? `${activeSymbol} · ${activeTimeframe}` : "no chart"}
+    <TooltipProvider delayDuration={300}>
+      <div className="flex h-full flex-col bg-background text-foreground">
+        {/* Header — identity, live chart target, connection health, actions */}
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-background px-2.5">
+          <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-secondary/60">
+            <img
+              src={chrome.runtime.getURL("icons/icon32.png")}
+              alt="AlgoVault"
+              className="h-4 w-4 rounded-sm object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
           </span>
-        </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 text-[9px] text-ink-mute"
-            title="AlgoVault API"
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${statusColor(isHealthy ? "ok" : "off")}`} />
-            API
-          </span>
-          <span
-            className="inline-flex items-center gap-1 rounded-full border border-edge/60 bg-raised/40 px-1.5 py-0.5 text-[9px] text-ink-mute"
-            title="Gateway"
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${statusColor(gatewayConnected ? "ok" : "off")}`} />
-            GW
-          </span>
-          <button
-            onClick={() => setCommandBarOpen(true)}
-            className="flex items-center gap-1 rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-neutral-500 transition-colors"
-            title="AI Command Bar (⌘K)"
-          >
-            <Command size={10} />
-            <span className="font-mono text-[8px]">⌘K</span>
-          </button>
-          <button
-            onClick={() => {
-              refreshContext();
-              setRefreshKey((k) => k + 1);
-            }}
-            className="rounded p-1 text-ink-mute hover:text-ink transition-colors"
-            title="Refresh chart context"
-          >
-            <RefreshCw size={12} />
-          </button>
-          <button
-            onClick={() => {
-              setManualSymbol(activeSymbol ?? "");
-              setManualTimeframe(activeTimeframe);
-              setShowOverride(true);
-            }}
-            className="rounded p-1 text-ink-mute hover:text-ink transition-colors"
-            title="Override symbol / timeframe"
-          >
-            <SlidersHorizontal size={12} />
-          </button>
-        </div>
-      </div>
-
-      {/* manual override bar */}
-      {showOverride && (
-        <div className="flex items-center gap-2 border-b border-edge bg-raised px-3 py-2 animate-fade-in">
-          <input
-            autoFocus
-            value={manualSymbol}
-            onChange={(e) => setManualSymbol(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applyManual()}
-            placeholder="Symbol (XAUUSD)"
-            className="w-28 rounded border border-edge bg-base px-2 py-1 font-mono text-[11px] text-ink outline-none"
-          />
-          <input
-            value={manualTimeframe}
-            onChange={(e) => setManualTimeframe(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && applyManual()}
-            placeholder="TF"
-            className="w-12 rounded border border-edge bg-base px-2 py-1 font-mono text-[11px] text-ink outline-none"
-          />
-          <button
-            onClick={applyManual}
-            className="rounded bg-brand-500 px-2 py-1 text-[10px] font-semibold text-white transition-colors hover:bg-brand-400"
-          >
-            Apply
-          </button>
-          <button
-            onClick={() => setShowOverride(false)}
-            className="rounded px-2 py-1 text-[10px] text-ink-mute"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      {/* body */}
-      <div className="min-h-0 flex-1 overflow-hidden" key={refreshKey}>
-        {activeSymbol || tab === "setup" ? (
-          <>
-            {tab === "copilot" && (
-              <CopilotView
-                symbol={activeSymbol || "BTCUSD"}
-                timeframe={activeTimeframe}
-                enriched={enriched}
-                structuredContextKey={`${activeSymbol}|${activeTimeframe}|${refreshKey}`}
-                initialPrompt={analysisPrompt}
-                onPromptConsumed={() => setAnalysisPrompt(null)}
-              />
-            )}
-
-            {tab === "radar" && (
-              <ProGate featureName="Setup Radar" flagEnabled={flags.setupRadar}>
-                <ProSetupRadarView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                  onAnalyzeSetup={handleAnalyzeSetup}
-                  onPrepareTrade={handlePrepareTrade}
-                />
-              </ProGate>
-            )}
-
-            {tab === "smartAlerts" && (
-              <ProGate featureName="Smart Alerts" flagEnabled={flags.smartAlerts}>
-                <ProSmartAlertsView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "mtf" && (
-              <ProGate featureName="MTF Intelligence" flagEnabled={flags.mtfIntelligence}>
-                <ProMTFView symbol={activeSymbol || ""} timeframe={activeTimeframe} />
-              </ProGate>
-            )}
-
-            {tab === "checklist" && (
-              <ProGate featureName="Pre-Trade Checklist" flagEnabled={flags.preTradeChecklist}>
-                <ProPreTradeChecklistView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "missing" && (
-              <ProGate featureName="What Am I Missing" flagEnabled={flags.preTradeChecklist}>
-                <ProWhatAmIMissingView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "replay" && (
-              <ProGate featureName="Historical Replay" flagEnabled={flags.historicalReplay}>
-                <ProSetupReplayView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "health" && (
-              <ProGate featureName="Strategy Health" flagEnabled={flags.strategyHealth}>
-                <ProStrategyHealthView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "marketRadar" && (
-              <ProGate featureName="Market Radar" flagEnabled={flags.marketRadar}>
-                <ProMarketRadarView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                  onSelectSymbol={(sym) => {
-                    const next: import("@/types").TradingViewContext = {
-                      ...(context ?? ({} as import("@/types").TradingViewContext)),
-                      symbol: sym,
-                      exchange: null,
-                      timeframe: activeTimeframe,
-                      price: null,
-                      isTradingView: false,
-                      rawSymbol: sym,
-                      ticker: sym,
-                      marketSymbol: sym,
-                      status: "active",
-                      source: "manual",
-                      manualOverride: true,
-                      timestamp: Date.now(),
-                    };
-                    setContext(next);
-                    setRefreshKey((k) => k + 1);
-                    setTab("copilot");
-                  }}
-                />
-              </ProGate>
-            )}
-
-            {tab === "indicators" && (
-              <ProGate
-                featureName="AI Indicator Generator"
-                flagEnabled={flags.aiIndicatorGenerator}
-              >
-                <ProIndicatorGeneratorView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "strategies" && (
-              <ProGate
-                featureName="AI Strategy Studio"
-                flagEnabled={flags.aiStrategyGenerator}
-              >
-                <ProStrategyGeneratorView
-                  symbol={activeSymbol || ""}
-                  timeframe={activeTimeframe}
-                />
-              </ProGate>
-            )}
-
-            {tab === "execution" && (
-              <ProExecutionBridgeView
-                key={executionFocus}
-                initialSubTab={executionFocus}
-                activeSymbol={activeSymbol || "EURUSD"}
-                activePrice={context?.price ?? undefined}
-                contextTimestamp={context?.timestamp ?? null}
-                timeframe={activeTimeframe}
-                preparedDraft={preparedDraft}
-                onDraftConsumed={() => setPreparedDraft(null)}
-              />
-            )}
-
-            {tab === "research" && (
-              <ResearchView
-                symbol={activeSymbol || "BTCUSD"}
-                timeframe={activeTimeframe}
-                structuredContextKey={`${activeSymbol}|${activeTimeframe}|${refreshKey}`}
-              />
-            )}
-
-            {tab === "alerts" && (
-              <AlertsView symbol={activeSymbol || "BTCUSD"} timeframe={activeTimeframe} />
-            )}
-
-            {tab === "setup" && <SetupView />}
-          </>
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">              <Zap size={28} className="text-ink-faint" />
-            <p className="text-xs font-medium text-ink">No chart detected</p>
-            <p className="max-w-[240px] text-[10px] leading-relaxed text-ink-mute">
-              Open a chart on TradingView and the copilot will follow it automatically — or set a
-              symbol manually with the sliders icon above.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* tab bar */}
-      <nav className="flex border-t border-edge/70 bg-card overflow-x-auto no-scrollbar">
-        {TABS.map((t) => {
-          const isActive = tab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className={`flex flex-1 min-w-[48px] flex-col items-center justify-center gap-0.5 py-1.5 px-0.5 transition-colors relative ${
-                isActive ? "text-ink" : "text-ink-faint hover:text-ink-mute"
-              }`}
-            >
-              <span className={`grid size-5 place-items-center rounded-md transition-colors ${isActive ? "bg-brand-500/15 text-brand-400" : "text-ink-faint hover:text-ink-mute"}`}>{t.icon}</span>
-              <span className={`text-[9px] tracking-tight truncate max-w-full ${isActive ? "font-semibold" : "font-medium"}`}>{t.label}</span>
-              {t.isPro && !isPro && (
-                <span className="absolute top-1 right-1 h-1 w-1 rounded-full bg-brand-500" title="Pro Feature" />
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <span className="truncate text-[13px] font-semibold tracking-tight">AlgoVault</span>
+            <span
+              className={cn(
+                "inline-flex shrink-0 items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium tracking-wide",
+                isPro
+                  ? "border-brand/40 bg-brand/10 text-brand-foreground"
+                  : "border-border bg-secondary/60 text-muted-foreground"
               )}
-            </button>
-          );
-        })}
-      </nav>
+            >
+              {isPro && <Sparkles className="h-2.5 w-2.5" />}
+              {isPro ? "PRO" : "FREE"}
+            </span>
+            <span
+              className="inline-flex min-w-0 items-center rounded-full border border-border bg-secondary/40 px-1.5 py-0.5 font-numeric text-[10px] text-muted-foreground"
+              title="Live chart context"
+            >
+              <span className="truncate">
+                {activeSymbol ? `${activeSymbol} · ${activeTimeframe}` : "no chart"}
+              </span>
+            </span>
+          </div>
 
-      {/* AI Command Bar (⌘K) */}
-      <CommandBar
-        isOpen={commandBarOpen}
-        onClose={() => setCommandBarOpen(false)}
-        symbol={activeSymbol || ""}
-        timeframe={activeTimeframe}
-        onExecute={handleCommandExecute}
-      />
-    </div>
+          <div className="flex shrink-0 items-center gap-1">
+            <span className="flex items-center gap-1">
+              <StatusPill ok={isHealthy} label="API" title="AlgoVault API health" />
+              <StatusPill ok={gatewayConnected} label="GW" title="MT5 gateway connection" />
+            </span>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setCommandBarOpen(true)}
+                  aria-label="Open command bar"
+                >
+                  <Command className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Command bar · ⌘K</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  aria-label="Refresh chart context"
+                  onClick={() => {
+                    refreshContext();
+                    setRefreshKey((k) => k + 1);
+                  }}
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Refresh chart context</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  aria-label="Override symbol and timeframe"
+                  onClick={() => {
+                    setManualSymbol(activeSymbol ?? "");
+                    setManualTimeframe(activeTimeframe);
+                    setShowOverride(true);
+                  }}
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Override symbol / timeframe</TooltipContent>
+            </Tooltip>
+          </div>
+        </header>
+
+          {/* Manual override — chart identity override for off-TradingView use */}
+          {showOverride && (
+            <div className="flex shrink-0 items-center gap-2 border-b border-border bg-secondary/40 px-2.5 py-2">
+              <Input
+                autoFocus
+                value={manualSymbol}
+                onChange={(e) => setManualSymbol(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyManual()}
+                placeholder="Symbol (XAUUSD)"
+                className="h-8 w-28 font-numeric text-[11px]"
+                aria-label="Symbol"
+              />
+              <Input
+                value={manualTimeframe}
+                onChange={(e) => setManualTimeframe(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && applyManual()}
+                placeholder="TF"
+                className="h-8 w-14 font-numeric text-[11px]"
+                aria-label="Timeframe"
+              />
+              <Button size="sm" variant="brand" onClick={applyManual}>
+                Apply
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setShowOverride(false)}>
+                Cancel
+              </Button>
+            </div>
+          )}
+
+          {/* Body — rail navigation + active destination */}
+          <div className="flex min-h-0 flex-1">
+            <NavRail active={tab} onSelect={setTab} isPro={isPro} />
+            <main className="min-h-0 min-w-0 flex-1 overflow-hidden" key={refreshKey}>
+              {activeSymbol || tab === "setup" ? (
+                <>
+                  {tab === "copilot" && (
+                    <CopilotView
+                      symbol={activeSymbol || "BTCUSD"}
+                      timeframe={activeTimeframe}
+                      enriched={enriched}
+                      structuredContextKey={`${activeSymbol}|${activeTimeframe}|${refreshKey}`}
+                      initialPrompt={analysisPrompt}
+                      onPromptConsumed={() => setAnalysisPrompt(null)}
+                    />
+                  )}
+
+                  {tab === "radar" && (
+                    <ProGate featureName="Setup Radar" flagEnabled={flags.setupRadar}>
+                      <ProSetupRadarView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                        onAnalyzeSetup={handleAnalyzeSetup}
+                        onPrepareTrade={handlePrepareTrade}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "smartAlerts" && (
+                    <ProGate featureName="Smart Alerts" flagEnabled={flags.smartAlerts}>
+                      <ProSmartAlertsView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "mtf" && (
+                    <ProGate featureName="MTF Intelligence" flagEnabled={flags.mtfIntelligence}>
+                      <ProMTFView symbol={activeSymbol || ""} timeframe={activeTimeframe} />
+                    </ProGate>
+                  )}
+
+                  {tab === "checklist" && (
+                    <ProGate featureName="Pre-Trade Checklist" flagEnabled={flags.preTradeChecklist}>
+                      <ProPreTradeChecklistView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "missing" && (
+                    <ProGate featureName="What Am I Missing" flagEnabled={flags.preTradeChecklist}>
+                      <ProWhatAmIMissingView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "replay" && (
+                    <ProGate featureName="Historical Replay" flagEnabled={flags.historicalReplay}>
+                      <ProSetupReplayView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "health" && (
+                    <ProGate featureName="Strategy Health" flagEnabled={flags.strategyHealth}>
+                      <ProStrategyHealthView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "marketRadar" && (
+                    <ProGate featureName="Market Radar" flagEnabled={flags.marketRadar}>
+                      <ProMarketRadarView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                        onSelectSymbol={(sym) => {
+                          const next: import("@/types").TradingViewContext = {
+                            ...(context ?? ({} as import("@/types").TradingViewContext)),
+                            symbol: sym,
+                            exchange: null,
+                            timeframe: activeTimeframe,
+                            price: null,
+                            isTradingView: false,
+                            rawSymbol: sym,
+                            ticker: sym,
+                            marketSymbol: sym,
+                            status: "active",
+                            source: "manual",
+                            manualOverride: true,
+                            timestamp: Date.now(),
+                          };
+                          setContext(next);
+                          setRefreshKey((k) => k + 1);
+                          setTab("copilot");
+                        }}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "indicators" && (
+                    <ProGate
+                      featureName="AI Indicator Generator"
+                      flagEnabled={flags.aiIndicatorGenerator}
+                    >
+                      <ProIndicatorGeneratorView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "strategies" && (
+                    <ProGate
+                      featureName="AI Strategy Studio"
+                      flagEnabled={flags.aiStrategyGenerator}
+                    >
+                      <ProStrategyGeneratorView
+                        symbol={activeSymbol || ""}
+                        timeframe={activeTimeframe}
+                      />
+                    </ProGate>
+                  )}
+
+                  {tab === "execution" && (
+                    <ProExecutionBridgeView
+                      key={executionFocus}
+                      initialSubTab={executionFocus}
+                      activeSymbol={activeSymbol || "EURUSD"}
+                      activePrice={context?.price ?? undefined}
+                      contextTimestamp={context?.timestamp ?? null}
+                      timeframe={activeTimeframe}
+                      preparedDraft={preparedDraft}
+                      onDraftConsumed={() => setPreparedDraft(null)}
+                    />
+                  )}
+
+                  {tab === "research" && (
+                    <ResearchView
+                      symbol={activeSymbol || "BTCUSD"}
+                      timeframe={activeTimeframe}
+                      structuredContextKey={`${activeSymbol}|${activeTimeframe}|${refreshKey}`}
+                    />
+                  )}
+
+                  {tab === "alerts" && (
+                    <AlertsView symbol={activeSymbol || "BTCUSD"} timeframe={activeTimeframe} />
+                  )}
+
+                  {tab === "setup" && <SetupView />}
+                </>
+              ) : (
+                <div className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+                  <div className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-secondary/50">
+                    <Zap className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs font-medium text-foreground">No chart detected</p>
+                  <p className="max-w-[240px] text-[11px] leading-relaxed text-muted-foreground">
+                    Open a chart on TradingView and the copilot will follow it automatically — or set
+                    a symbol manually with the sliders button above.
+                  </p>
+                </div>
+              )}
+            </main>
+          </div>
+
+          {/* AI Command Bar (⌘K) */}
+          <CommandBar
+            isOpen={commandBarOpen}
+            onClose={() => setCommandBarOpen(false)}
+            symbol={activeSymbol || ""}
+            timeframe={activeTimeframe}
+            onExecute={handleCommandExecute}
+          />
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -694,114 +677,113 @@ function SidePanelLogin({ onAuth }: { onAuth: () => void }) {
 
   const canSubmit = canAttemptSignIn({ email, password, consentGiven: consent, loading });
 
-  const submit = async () => {
+  const submit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     // Same consent gate as the popup login: no sign-in attempt (including
-    // via the Enter key) without explicit data-handling consent.
+    // a submit event) can bypass the explicit data-handling consent.
     if (!canSubmit) return;
     setLoading(true);
     setError(null);
-    try {
-      const { signInWithEmail } = await import("@/auth/auth");
-      const result = await signInWithEmail(email, password);
-      if (result.success) onAuth();
-      else setError(result.error || "Login failed");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
+
+    const result = await signInWithEmail(email, password);
+    if (result.success) {
+      onAuth();
+    } else {
+      setError(result.error || "Authentication failed");
     }
+    setLoading(false);
   };
 
   return (
-    <div className="flex h-full flex-col bg-base p-6">
-      <div className="mx-auto flex w-full max-w-[280px] flex-1 flex-col justify-center">
+    <div className="flex h-full flex-col overflow-y-auto bg-background px-6 py-8">
+      <div className="mx-auto flex w-full max-w-[300px] flex-1 flex-col justify-center">
         <div className="flex items-center gap-2.5">
-          <span className="grid size-8 place-items-center rounded-lg border border-edge/70 bg-raised/50">
+          <span className="grid h-8 w-8 place-items-center overflow-hidden rounded-lg border border-border bg-secondary/60">
             <img
               src={chrome.runtime.getURL("logos/logo.png")}
               alt="AlgoVault logo"
               className="h-5 w-5 object-contain"
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
             />
           </span>
           <div>
-            <p className="text-sm font-semibold tracking-tight">AlgoVault</p>
-            <p className="text-[11px] text-ink-mute">Trading Intelligence</p>
+            <h1 className="text-sm font-semibold tracking-tight">AlgoVault</h1>
+            <p className="text-[11px] text-muted-foreground">Trading Intelligence</p>
           </div>
         </div>
 
         <h2 className="mt-6 text-base font-semibold tracking-tight">Sign in</h2>
-        <p className="mt-1 text-[11px] leading-snug text-ink-mute">
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
           Use your AlgoVault account for AI access and intelligence services.
         </p>
 
-        <div className="mt-4 space-y-3">
-          <div>
-            <label htmlFor="av-sidepanel-email" className="mb-1 block text-[11px] font-medium text-ink-mute">
+        <form onSubmit={submit} className="mt-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="av-sidepanel-email" className="text-xs">
               Email
-            </label>
-            <input
+            </Label>
+            <Input
               id="av-sidepanel-email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               type="email"
               autoComplete="email"
-              className="w-full rounded-lg border border-edge bg-raised px-3 py-2 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500"
+              required
             />
           </div>
-          <div>
-            <label htmlFor="av-sidepanel-password" className="mb-1 block text-[11px] font-medium text-ink-mute">
+          <div className="space-y-1.5">
+            <Label htmlFor="av-sidepanel-password" className="text-xs">
               Password
-            </label>
+            </Label>
             <div className="relative">
-              <input
+              <Input
                 id="av-sidepanel-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submit()}
                 placeholder="••••••••"
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                className="w-full rounded-lg border border-edge bg-raised px-3 py-2 pr-9 text-xs text-ink outline-none transition-colors placeholder:text-ink-faint focus:border-brand-500"
+                required
+                className="pr-9"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-faint transition-colors hover:text-ink"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground transition-colors hover:text-foreground"
               >
                 {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
           </div>
+
           {error && (
-            <div className="flex items-start gap-2 rounded-lg border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-[11px] leading-snug text-rose-500">
-              <AlertCircle size={13} className="mt-0.5 shrink-0" />
-              <span>{error}</span>
-            </div>
+            <Alert variant="destructive" className="py-2">
+              <AlertDescription className="text-xs">{error}</AlertDescription>
+            </Alert>
           )}
+
           <DataConsentNotice
             checked={consent}
             onChange={setConsent}
             privacyUrl={`${getAlgoVaultUrlSafe()}${PRIVACY_POLICY_PATH}`}
             id="av-data-consent-sidepanel"
           />
-          <button
-            onClick={submit}
-            disabled={!canSubmit}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-500 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-40"
-          >
+
+          <Button type="submit" size="lg" variant="brand" disabled={!canSubmit} className="w-full gap-2">
             {loading && <Loader2 size={14} className="animate-spin" />}
             {loading ? "Signing in…" : "Sign in"}
-          </button>
-        </div>
+          </Button>
+        </form>
 
         <a
           href={`${getAlgoVaultUrlSafe()}/login`}
           target="_blank"
           rel="noreferrer"
-          className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-ink-mute transition-colors hover:text-ink"
+          className="mt-3 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-foreground"
         >
           Sign in on the AlgoVault website
           <ExternalLink size={10} />

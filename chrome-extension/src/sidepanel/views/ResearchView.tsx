@@ -84,26 +84,26 @@ export function ResearchView({ symbol, timeframe, structuredContextKey }: Resear
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-1.5 border-b border-edge px-2.5 py-1.5">
+      <div className="flex items-center gap-1.5 border-b border-border px-2.5 py-1.5">
         <button
           onClick={() => setKind("quick")}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "quick" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"}`}
+          className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "quick" ? "bg-brand-fill text-white" : "text-muted-foreground hover:text-foreground"}`}
         >
           <FileSearch size={11} /> Snapshot
         </button>
         <button
           onClick={() => setKind("deep")}
-          className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "deep" ? "bg-brand-500 text-white" : "text-ink-mute hover:text-ink"}`}
+          className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-semibold transition-colors ${kind === "deep" ? "bg-brand-fill text-white" : "text-muted-foreground hover:text-foreground"}`}
         >
           <FileText size={11} /> Deep dive
         </button>
-        <span className="ml-auto flex items-center gap-1 text-[9px] text-ink-faint">
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground">
           {note && <><Clock size={9} /> {age(Date.now() - note.generatedAt)}</>}
         </span>
         <button
           onClick={() => generate(true)}
           disabled={loading}
-          className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40"
+          className="rounded-lg p-1 text-muted-foreground hover:text-foreground disabled:opacity-40"
           title="Regenerate"
         >
           <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
@@ -113,28 +113,28 @@ export function ResearchView({ symbol, timeframe, structuredContextKey }: Resear
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && !note && (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <Loader2 size={18} className="animate-spin text-ink-faint" />
-            <p className="text-[11px] text-ink-mute">
+            <Loader2 size={18} className="animate-spin text-muted-foreground" />
+            <p className="text-[11px] text-muted-foreground">
               Researching {symbol} — {kind === "quick" ? "snapshot" : "deep dive"}…
             </p>
-            <p className="text-[9px] text-ink-faint">Technical data comes live from your chart; wider context is general knowledge.</p>
+            <p className="text-[10px] text-muted-foreground">Technical data comes live from your chart; wider context is general knowledge.</p>
           </div>
         )}
 
         {error && (
-          <div className="rounded-lg border border-rose-500/20 bg-rose-500/10 p-3 text-[10px] text-rose-500">
+          <div className="rounded-lg border border-negative/20 bg-negative/10 p-3 text-[10px] text-negative">
             {error}
           </div>
         )}
 
         {note && !loading && (
-          <div className="animate-fade-in">
+          <div>
             <Markdown content={note.content} />
           </div>
         )}
 
         {stale && note && (
-          <p className="mt-2 text-center text-[9px] text-amber-400/80">Cached report — hit refresh for the latest.</p>
+          <p className="mt-2 text-center text-[10px] text-warning">Cached report — hit refresh for the latest.</p>
         )}
       </div>
     </div>

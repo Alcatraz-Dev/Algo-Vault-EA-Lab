@@ -20,46 +20,43 @@ import {
 } from "lucide-react";
 import { fetchSetupReplay } from "@/api/pro";
 import type { HistoricalMatch, SetupReplayResponse } from "@/types/pro";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 /* ── helpers ──────────────────────────────────────────────────────────── */
 
 const OUTCOME_CONFIG = {
   "Target Reached": {
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/15 border-emerald-500/30",
-    dot: "bg-emerald-400",
+    color: "text-positive",
+    bg: "bg-positive/15 border-positive/30",
+    dot: "bg-positive",
   },
   Invalidated: {
-    color: "text-rose-400",
-    bg: "bg-rose-500/10 border-rose-500/25",
-    dot: "bg-rose-400",
+    color: "text-negative",
+    bg: "bg-negative/10 border-negative/30",
+    dot: "bg-negative",
   },
   Partial: {
-    color: "text-amber-400",
-    bg: "bg-amber-500/10 border-amber-500/25",
-    dot: "bg-amber-400",
+    color: "text-warning",
+    bg: "bg-warning/10 border-warning/30",
+    dot: "bg-warning",
   },
   Expired: {
-    color: "text-ink-faint",
-    bg: "bg-raised border-edge",
-    dot: "bg-ink-faint",
+    color: "text-muted-foreground",
+    bg: "bg-secondary border-border",
+    dot: "bg-muted-foreground/40",
   },
 };
 
 function SimilarityBar({ score }: { score: number }) {
   const color =
-    score >= 75 ? "bg-emerald-400" : score >= 55 ? "bg-amber-400" : "bg-rose-400";
+    score >= 75 ? "bg-positive" : score >= 55 ? "bg-warning" : "bg-negative";
   return (
     <div className="flex items-center gap-1.5">
-      <div className="h-1 flex-1 rounded-full bg-raised overflow-hidden">
-        <div
-          className={`h-full rounded-full ${color} transition-all`}
-          style={{ width: `${score}%` }}
-        />
+      <div className="h-1 w-full rounded-full bg-secondary overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
       </div>
-      <span className={`text-[9px] font-bold tabular-nums ${
-        score >= 75 ? "text-emerald-400" : score >= 55 ? "text-amber-400" : "text-rose-400"
-      }`}>
+      <span className={`font-numeric text-[10px] font-bold ${score >= 75 ? "text-positive" : score >= 55 ? "text-warning" : "text-negative"}`}>
         {score}%
       </span>
     </div>
@@ -71,28 +68,28 @@ function MatchCard({ match }: { match: HistoricalMatch }) {
   const cfg = OUTCOME_CONFIG[match.outcomeClassification] ?? OUTCOME_CONFIG.Expired;
 
   return (
-    <div className={`rounded-lg border ${cfg.bg} overflow-hidden`}>
+    <div className={`rounded-xl border ${cfg.bg} overflow-hidden`}>
       <button
-        className="flex w-full items-center gap-2 px-3 py-2.5 text-left"
+        className="flex w-full items-center gap-2 px-3 py-2.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
         onClick={() => setExpanded((v) => !v)}
       >
         <span className={`inline-block h-2 w-2 rounded-full shrink-0 ${cfg.dot}`} />
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-medium text-ink leading-tight">{match.setupName}</p>
-          <p className="text-[9px] text-ink-faint">{match.dateLabel}</p>
+          <p className="text-[11px] font-medium text-foreground leading-tight">{match.setupName}</p>
+          <p className="text-[10px] text-muted-foreground">{match.dateLabel}</p>
         </div>
-        <span className={`text-[9px] font-bold shrink-0 ${cfg.color}`}>
+        <span className={`text-[10px] font-bold shrink-0 ${cfg.color}`}>
           {match.outcomeClassification}
         </span>
-        <span className="text-ink-faint shrink-0">
+        <span className="text-muted-foreground shrink-0">
           {expanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
         </span>
       </button>
       {expanded && (
-        <div className="border-t border-edge/40 px-3 py-2.5 space-y-2.5">
+        <div className="border-t border-border px-3 py-2.5 space-y-2.5">
           {/* similarity */}
           <div>
-            <p className="text-[9px] font-semibold text-ink-faint mb-1 uppercase tracking-wider">
+            <p className="text-[10px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider">
               Similarity Score
             </p>
             <SimilarityBar score={match.similarityScore} />
@@ -100,12 +97,12 @@ function MatchCard({ match }: { match: HistoricalMatch }) {
           {/* conditions */}
           {match.conditions.length > 0 && (
             <div>
-              <p className="text-[9px] font-semibold text-ink-faint mb-1 uppercase tracking-wider">
+              <p className="text-[10px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider">
                 Matched Conditions
               </p>
               <div className="space-y-0.5">
                 {match.conditions.map((c, i) => (
-                  <p key={i} className="text-[10px] text-ink-mute">· {c}</p>
+                  <p key={i} className="text-[10px] text-muted-foreground">· {c}</p>
                 ))}
               </div>
             </div>
@@ -113,20 +110,20 @@ function MatchCard({ match }: { match: HistoricalMatch }) {
           {/* why similar */}
           {match.similarityReasons.length > 0 && (
             <div>
-              <p className="text-[9px] font-semibold text-ink-faint mb-1 uppercase tracking-wider">
+              <p className="text-[10px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider">
                 Why Similar
               </p>
               {match.similarityReasons.map((r, i) => (
-                <p key={i} className="text-[10px] text-ink-mute">· {r}</p>
+                <p key={i} className="text-[10px] text-muted-foreground">· {r}</p>
               ))}
             </div>
           )}
           {/* subsequent movement */}
           <div>
-            <p className="text-[9px] font-semibold text-ink-faint mb-1 uppercase tracking-wider">
+            <p className="text-[10px] font-semibold text-muted-foreground mb-1 uppercase tracking-wider">
               What Happened
             </p>
-            <p className="text-[10px] text-ink leading-relaxed">{match.subsequentMovement}</p>
+            <p className="text-[10px] text-foreground leading-relaxed">{match.subsequentMovement}</p>
           </div>
         </div>
       )}
@@ -163,18 +160,18 @@ export function ProSetupReplayView({ symbol, timeframe }: Props) {
   return (
     <div className="flex h-full flex-col">
       {/* header */}
-      <div className="flex items-center gap-2 border-b border-edge bg-card px-3 py-2">
-        <History size={13} />
-        <span className="text-[11px] font-semibold text-ink">Historical Replay</span>
+      <div className="flex items-center gap-2 border-b border-border bg-card px-3 py-2">
+        <History size={13} className="text-muted-foreground" />
+        <span className="text-xs font-semibold text-foreground">Historical Replay</span>
         {data && (
-          <span className="ml-auto text-[10px] text-ink-mute tabular-nums">
+          <span className="ml-auto font-numeric text-[10px] text-muted-foreground">
             {data.historicalMatches.length} match{data.historicalMatches.length !== 1 ? "es" : ""}
           </span>
         )}
         <button
           onClick={load}
           disabled={loading || !symbol}
-          className="rounded p-1 text-ink-mute hover:text-ink disabled:opacity-40 transition-colors ml-1"
+          className="rounded p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 ml-1"
           title="Find historical analogues"
         >
           <RefreshCw size={11} className={loading ? "animate-spin" : ""} />
@@ -185,55 +182,63 @@ export function ProSetupReplayView({ symbol, timeframe }: Props) {
         {/* idle */}
         {!data && !loading && !error && (
           <div className="flex flex-col items-center gap-3 py-8 text-center">
-            <History size={24} className="text-ink-faint" />
-            <p className="text-[11px] font-medium text-ink">Setup Replay</p>
-            <p className="max-w-[220px] text-[10px] text-ink-mute leading-relaxed">
+            <History size={24} className="text-muted-foreground" />
+            <p className="text-[11px] font-medium text-foreground">Setup Replay</p>
+            <p className="max-w-[220px] text-[10px] text-muted-foreground leading-relaxed">
               Finds historical setups similar to current {symbol || "chart"} conditions and shows
               how they resolved — with no fabricated statistics.
             </p>
-            <button
+            <Button
+              variant="brand"
+              size="sm"
               onClick={load}
               disabled={!symbol}
-              className="rounded-lg bg-brand-500 px-4 py-1.5 text-[10px] font-semibold text-white hover:bg-brand-400 disabled:opacity-40 transition-colors"
+              className="text-[11px]"
             >
               Find Analogues
-            </button>
+            </Button>
           </div>
         )}
 
         {/* loading */}
         {loading && (
           <div className="flex flex-col items-center gap-2 py-8">
-            <RefreshCw size={18} className="animate-spin text-ink-faint" />
-            <p className="text-[10px] text-ink-mute">Searching historical setups…</p>
+            <RefreshCw size={18} className="animate-spin text-muted-foreground" />
+            <p className="text-[10px] text-muted-foreground">Searching historical setups…</p>
           </div>
         )}
 
         {/* error */}
         {error && !loading && (
-          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2">
-            <p className="text-[10px] text-rose-400">{error}</p>
-            <button onClick={load} className="mt-1.5 text-[10px] text-rose-500 hover:text-rose-500">
-              Retry →
-            </button>
-          </div>
+          <Alert variant="destructive">
+            <AlertCircle size={12} />
+            <AlertDescription className="text-[11px]">
+              {error}
+              <button
+                onClick={load}
+                className="mt-1.5 block text-[11px] font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Retry →
+              </button>
+            </AlertDescription>
+          </Alert>
         )}
 
         {data && !loading && (
           <>
             {/* current setup summary */}
-            <div className="rounded-lg border border-edge bg-raised px-3 py-2.5 space-y-1">
-              <p className="text-[9px] font-bold tracking-widest text-ink-faint uppercase">
+            <div className="rounded-xl border border-border bg-secondary px-3 py-2.5 space-y-1">
+              <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                 Current Setup
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-ink">{data.currentSetup.type}</span>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                <span className="text-[10px] font-semibold text-foreground">{data.currentSetup.type}</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${
                   data.currentSetup.bias === "bullish"
-                    ? "bg-emerald-500/15 text-emerald-400"
+                    ? "bg-positive/10 border-positive/30 text-positive"
                     : data.currentSetup.bias === "bearish"
-                    ? "bg-rose-500/15 text-rose-400"
-                    : "bg-raised text-ink-mute"
+                    ? "bg-negative/10 border-negative/30 text-negative"
+                    : "bg-secondary border-border text-muted-foreground"
                 }`}>
                   {data.currentSetup.bias.toUpperCase()}
                 </span>
@@ -241,7 +246,7 @@ export function ProSetupReplayView({ symbol, timeframe }: Props) {
               {data.currentSetup.conditions.length > 0 && (
                 <div className="space-y-0.5 pt-0.5">
                   {data.currentSetup.conditions.slice(0, 4).map((c, i) => (
-                    <p key={i} className="text-[9px] text-ink-mute">· {c}</p>
+                    <p key={i} className="text-[10px] text-muted-foreground">· {c}</p>
                   ))}
                 </div>
               )}
@@ -250,8 +255,8 @@ export function ProSetupReplayView({ symbol, timeframe }: Props) {
             {/* no matches */}
             {data.historicalMatches.length === 0 && (
               <div className="flex flex-col items-center gap-2 py-6 text-center">
-                <Minus size={20} className="text-ink-faint" />
-                <p className="text-[10px] text-ink-mute">No strong historical analogues found</p>
+                <Minus size={20} className="text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground">No strong historical analogues found</p>
               </div>
             )}
 
@@ -261,9 +266,9 @@ export function ProSetupReplayView({ symbol, timeframe }: Props) {
             ))}
 
             {/* disclaimer */}
-            <div className="flex items-start gap-1.5 rounded-lg border border-edge bg-raised px-3 py-2">
-              <AlertCircle size={10} className="text-amber-400 mt-0.5 shrink-0" />
-              <p className="text-[9px] text-ink-faint leading-relaxed">{data.disclaimer}</p>
+            <div className="flex items-start gap-1.5 rounded-xl border border-border bg-secondary px-3 py-2">
+              <AlertCircle size={10} className="text-warning mt-0.5 shrink-0" />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">{data.disclaimer}</p>
             </div>
           </>
         )}

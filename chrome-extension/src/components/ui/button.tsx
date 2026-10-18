@@ -12,8 +12,9 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
         // Rationed AlgoVault brand accent — reserved for primary brand
         // actions (sign-in, save, main CTA), never for generic surfaces.
+        // `brand-fill` is the AA-safe darker orange for white-on-brand text.
         brand:
-          "bg-brand-500 text-white shadow-sm hover:bg-brand-600",
+          "bg-brand-fill text-white shadow-sm hover:bg-brand-fill-hover",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:

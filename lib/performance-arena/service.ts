@@ -1577,8 +1577,8 @@ export async function placeOrder(uid: string, attemptId: string, input: PlaceOrd
     const dayKey = dayKeyOf(now);
     const updatedAttempt: ChallengeAttempt = {
         ...attempt,
-        tradingDayKeys: { ...attempt.tradingDayKeys, [dayKey]: attempt.tradingDayKeys[dayKey] ?? now },
-        dailyTradeCounts: { ...attempt.dailyTradeCounts, [dayKey]: (attempt.dailyTradeCounts[dayKey] ?? 0) + 1 },
+tradingDayKeys: { ...(attempt.tradingDayKeys ?? {}), [dayKey]: (attempt.tradingDayKeys ?? {})[dayKey] ?? now },
+dailyTradeCounts: { ...(attempt.dailyTradeCounts ?? {}), [dayKey]: ((attempt.dailyTradeCounts ?? {})[dayKey] ?? 0) + 1 },
         updatedAt: now,
     };
     await store.saveAttempt(updatedAttempt);

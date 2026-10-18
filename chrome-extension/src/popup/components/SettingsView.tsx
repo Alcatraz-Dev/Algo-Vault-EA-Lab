@@ -7,8 +7,8 @@ import type { DebugInfo, AnalysisStage } from "@/types/market-context";
 import { PERSONAS, type PersonaId } from "@/types/copilot";
 import { openSidePanelFromExtensionPage, primeSidePanelWindowId } from "@/utils/side-panel";
 import type { ThemeMode } from "@/theme";
-import { setTheme } from "@/theme";
-import { Field, Feedback, GhostButton, inputClass, PrimaryButton, ViewHeader } from "./ui";
+import { useTheme } from "@/hooks/useTheme";
+import { Field, Feedback, GhostButton, inputClass, PrimaryButton, SegmentedControl, ViewHeader } from "./ui";
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -31,6 +31,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
   const [devDiagnostic, setDevDiagnostic] = useState(false);
   const [copilotPersona, setCopilotPersona] = useState<PersonaId>("analyst");
   const [copilotAuto, setCopilotAuto] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     getSettings().then((s) => {
@@ -133,10 +134,15 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
             </select>
           </Field>
           <Field label="Theme">
-            <select value={settings.theme} onChange={(e) => handleThemeChange(e.target.value as ThemeMode)} className={inputClass}>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
-            </select>
+            <SegmentedControl
+              value={theme}
+              onChange={handleThemeChange}
+              options={[
+                { value: "system", label: "System" },
+                { value: "light", label: "Light" },
+                { value: "dark", label: "Dark" },
+              ]}
+            />
           </Field>
         </div>
 
@@ -160,7 +166,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
               Open →
             </button>
           </div>
-          <p className="text-[10px] leading-relaxed text-muted-foreground/70">
+          <p className="text-[10px] leading-relaxed text-muted-foreground">
             The copilot remembers each symbol separately, can draw key levels on your chart, and manages alerts.
           </p>
           <Field label="Persona">
@@ -202,7 +208,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
               </button>
             </div>
             {debugInfo && (
-              <div className="space-y-1 rounded-lg border border-border bg-background p-2.5 font-mono text-[10px]">
+              <div className="space-y-1 rounded-lg border border-border bg-background p-2.5 font-numeric text-[10px]">
                 <div className="text-muted-foreground">Symbol: {debugInfo.symbolDetected || "null"}</div>
                 <div className="text-muted-foreground">Timeframe: {debugInfo.timeframeDetected || "null"}</div>
                 <div className="text-muted-foreground">Market API: {debugInfo.marketApi} ({debugInfo.marketApiStatus ?? "?"})</div>
@@ -215,7 +221,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
                   <div className="mt-1 space-y-0.5 border-t border-border pt-1">
                     {debugInfo.stages.map((s: AnalysisStage, i: number) => (
                       <div key={i} className="text-[10px]">
-                        <span className={s.status === "complete" ? "text-positive" : s.status === "error" ? "text-negative" : s.status === "running" ? "text-muted-foreground" : "text-muted-foreground/70"}>
+                        <span className={s.status === "complete" ? "text-positive" : s.status === "error" ? "text-negative" : s.status === "running" ? "text-muted-foreground" : "text-muted-foreground"}>
                           {s.status === "running" ? "●" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
                         </span>{" "}
                         {s.name}: {s.message}
@@ -233,7 +239,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
       <div className="space-y-2 border-t border-border px-3 py-2">
         <button
           onClick={() => setDevDiagnostic(!devDiagnostic)}
-          className="w-full rounded border border-border px-1.5 py-1 text-[10px] text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+          className="w-full rounded-lg border border-border px-1.5 py-1 text-[10px] text-muted-foreground transition-colors hover:text-muted-foreground"
         >
           {devDiagnostic ? "Hide diagnostics" : "Diagnostics"}
         </button>
@@ -254,9 +260,9 @@ function ToggleRow({ label, checked, onChange }: { label: string; checked: boole
       <span className="text-[11px] text-muted-foreground">{label}</span>
       <button
         onClick={() => onChange(!checked)}
-        className={`relative h-4 w-8 rounded-full transition-colors ${checked ? "bg-brand-500" : "bg-input"}`}
+        className={`relative h-4 w-8 rounded-full transition-colors ${checked ? "bg-primary" : "bg-input"}`}
       >
-        <div className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
+        <div className={`absolute top-0.5 h-3 w-3 rounded-full bg-background shadow-sm transition-transform ${checked ? "translate-x-4" : "translate-x-0.5"}`} />
       </button>
     </div>
   );
