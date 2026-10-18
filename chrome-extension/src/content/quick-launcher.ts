@@ -75,9 +75,11 @@ function renderOrb(container: HTMLDivElement): void {
     "transition: border-color 0.15s ease, box-shadow 0.2s ease, transform 0.15s ease",
   ].join(";");
 
-  const icon = document.createElement("span");
-  icon.textContent = "⚡";
-  icon.style.cssText = "font-size: 15px; line-height: 1; pointer-events: none;";
+  const icon = document.createElement("img");
+  icon.src = chrome.runtime.getURL("logos/logo.png");
+  icon.alt = "AlgoVault";
+  icon.draggable = false;
+  icon.style.cssText = "width: 20px; height: 20px; object-fit: contain; border-radius: 5px; pointer-events: none;";
   orb.appendChild(icon);
 
   let pos = { x: -1, y: -1 };

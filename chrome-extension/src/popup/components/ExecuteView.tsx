@@ -372,7 +372,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-[#2a2a2a] hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-edge hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -675,7 +675,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95"
             title="Reset ticket fields to defaults"
           >
             <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
@@ -725,7 +725,7 @@ export function ExecuteView({ symbol, context, contextTimestamp, onBack }: Execu
             <div className="flex gap-2 pt-1">
               <button
                 onClick={() => setShowConfirm(false)}
-                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink-mute transition-all duration-150 hover:bg-[#2a2a2a] active:scale-[0.97]"
+                className="flex-1 rounded-lg border border-edge bg-raised py-2.5 text-[11px] text-ink-mute transition-all duration-150 hover:bg-edge active:scale-[0.97]"
               >
                 Cancel
               </button>

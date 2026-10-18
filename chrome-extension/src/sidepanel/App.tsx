@@ -108,7 +108,7 @@ const TABS: TabConfig[] = [
 ];
 
 function statusColor(state: "ok" | "off"): string {
-  return state === "ok" ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" : "bg-neutral-600";
+  return state === "ok" ? "bg-emerald-400" : "bg-neutral-600";
 }
 
 export default function App() {
@@ -407,7 +407,7 @@ export default function App() {
           />
           <button
             onClick={() => setCommandBarOpen(true)}
-            className="flex items-center gap-1 rounded border border-edge bg-white/5 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-brand-500/40 transition-colors"
+            className="flex items-center gap-1 rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[9px] font-medium text-ink-mute hover:text-ink hover:border-brand-500/40 transition-colors"
             title="AI Command Bar (⌘K)"
           >
             <Command size={10} />

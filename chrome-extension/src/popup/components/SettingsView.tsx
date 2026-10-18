@@ -216,7 +216,7 @@ export function SettingsView({ onBack, onLogout, onOpenCopilot }: SettingsViewPr
                     {debugInfo.stages.map((s: AnalysisStage, i: number) => (
                       <div key={i} className="text-[9px]">
                         <span className={s.status === "complete" ? "text-emerald-400" : s.status === "error" ? "text-rose-400" : s.status === "running" ? "text-brand-400" : "text-ink-faint"}>
-                          {s.status === "running" ? "⏳" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
+                          {s.status === "running" ? "●" : s.status === "complete" ? "✓" : s.status === "error" ? "✗" : "○"}
                         </span>{" "}
                         {s.name}: {s.message}
                         {s.duration ? ` (${s.duration}ms)` : ""}

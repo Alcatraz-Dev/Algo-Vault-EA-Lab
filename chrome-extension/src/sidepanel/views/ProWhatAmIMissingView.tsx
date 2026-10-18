@@ -16,6 +16,7 @@ import {
   SearchX,
   RefreshCw,
   AlertTriangle,
+  CheckCircle2,
   Info,
   XCircle,
   ChevronDown,
@@ -200,7 +201,9 @@ export function ProWhatAmIMissingView({ symbol, timeframe }: Props) {
         {/* all clear */}
         {data && data.points.length === 0 && !loading && (
           <div className="flex flex-col items-center gap-2 py-8 text-center">
-            <span className="text-2xl">✓</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+              <CheckCircle2 size={16} className="text-emerald-400" />
+            </span>
             <p className="text-[11px] font-medium text-emerald-400">No significant gaps found</p>
             <p className="text-[10px] text-ink-mute">
               All critical evidence appears consistent with the current read.

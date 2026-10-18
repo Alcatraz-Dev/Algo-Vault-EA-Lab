@@ -208,7 +208,7 @@ export function MainView({
               <span className={`text-xs font-bold uppercase tracking-wide ${asDirection(mc.trend.direction) === "bullish" ? "text-emerald-400" : asDirection(mc.trend.direction) === "bearish" ? "text-rose-400" : "text-neutral-400"}`}>
                 {mc.trend.direction}
               </span>
-              <Badge className={mc.score.bias === "bullish" ? "bg-emerald-500/15 text-emerald-400" : mc.score.bias === "bearish" ? "bg-rose-500/15 text-rose-400" : "bg-white/5 text-neutral-400"}>
+              <Badge className={mc.score.bias === "bullish" ? "bg-emerald-500/15 text-emerald-400" : mc.score.bias === "bearish" ? "bg-rose-500/15 text-rose-400" : "bg-neutral-500/10 text-neutral-400"}>
                 {mc.marketRegime.regime.replace(/_/g, " ")}
               </Badge>
             </div>
@@ -247,7 +247,7 @@ export function MainView({
               {mc.mtfAlignment.map((m, i) => (
                 <Badge
                   key={i}
-                  className={m.bias === "bullish" ? "bg-emerald-500/10 text-emerald-400" : m.bias === "bearish" ? "bg-rose-500/10 text-rose-400" : "bg-white/5 text-neutral-500"}
+                  className={m.bias === "bullish" ? "bg-emerald-500/10 text-emerald-400" : m.bias === "bearish" ? "bg-rose-500/10 text-rose-400" : "bg-neutral-500/10 text-neutral-500"}
                 >
                   {m.timeframe} {m.bias === "bullish" ? "▲" : m.bias === "bearish" ? "▼" : "•"}
                 </Badge>
@@ -268,7 +268,7 @@ export function MainView({
         {/* free daily AI signals entry point */}
         <button
           onClick={() => onNavigate("ai-signals")}
-          className="group mb-3 flex w-full items-center gap-2.5 rounded-lg border border-brand-500/30 bg-gradient-to-r from-brand-500/15 to-transparent px-3 py-2.5 text-left transition-all hover:border-brand-500/50 hover:from-brand-500/25"
+          className="group mb-3 flex w-full items-center gap-2.5 rounded-lg border border-brand-500/30 bg-brand-500/10 px-3 py-2.5 text-left transition-colors hover:border-brand-500/50 hover:bg-brand-500/15"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-brand-500/20 text-brand-400 transition-colors group-hover:bg-brand-500/30">
             <Sparkles size={15} />

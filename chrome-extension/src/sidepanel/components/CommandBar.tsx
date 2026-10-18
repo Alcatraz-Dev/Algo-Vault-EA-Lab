@@ -248,7 +248,7 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
             placeholder={`Command ${symbol ? `(${symbol} · ${timeframe})` : ""}…`}
             className="flex-1 bg-transparent text-[11px] text-ink placeholder:text-ink-faint outline-none"
           />
-          <kbd className="rounded border border-edge bg-white/5 px-1.5 py-0.5 text-[8px] font-mono text-ink-faint">
+          <kbd className="rounded border border-edge bg-neutral-500/10 px-1.5 py-0.5 text-[8px] font-mono text-ink-faint">
             ESC
           </kbd>
         </div>
@@ -279,7 +279,7 @@ export function CommandBar({ isOpen, onClose, symbol, timeframe, onExecute }: Pr
                   className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors ${
                     active
                       ? "bg-brand-500/15 text-ink border border-brand-500/30"
-                      : "text-ink-mute hover:bg-white/5 border border-transparent"
+                      : "text-ink-mute hover:bg-neutral-500/10 border border-transparent"
                   }`}
                 >
                   <span className="shrink-0">{ICON_MAP[cmd.icon] ?? <Command size={14} />}</span>

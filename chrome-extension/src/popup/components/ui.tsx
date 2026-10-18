@@ -19,7 +19,7 @@ export const dirClasses: Record<Direction, string> = {
 export const dirBgClasses: Record<Direction, string> = {
   bullish: "bg-emerald-500/15 text-emerald-400",
   bearish: "bg-rose-500/15 text-rose-400",
-  neutral: "bg-white/5 text-neutral-400",
+  neutral: "bg-neutral-500/10 text-neutral-400",
 };
 
 export function asDirection(v: string | null | undefined): Direction {
@@ -50,8 +50,7 @@ export function Card({ children, className = "" }: { children: React.ReactNode; 
 
 export function StatusDot({ state }: { state: "ok" | "warn" | "off" }) {
   const color = state === "ok" ? "bg-emerald-400" : state === "warn" ? "bg-amber-400" : "bg-neutral-600";
-  const glow = state === "ok" ? "shadow-[0_0_6px_rgba(52,211,153,0.7)]" : state === "warn" ? "shadow-[0_0_6px_rgba(251,191,36,0.6)]" : "";
-  return <span className={`inline-block h-1.5 w-1.5 rounded-full ${color} ${glow} ${state !== "off" ? "animate-pulse-dot" : ""}`} />;
+  return <span className={`inline-block h-1.5 w-1.5 rounded-full ${color} ${state !== "off" ? "animate-pulse-dot" : ""}`} />;
 }
 
 /* ── inputs ──────────────────────────────────────────────────────────── */
@@ -115,7 +114,7 @@ export function GhostButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-raised py-2 text-xs font-medium text-ink transition-colors hover:border-neutral-600 hover:bg-[#2a2a2a] ${pressCls(disabled)} ${className}`}
+      className={`flex w-full items-center justify-center gap-2 rounded-lg border border-edge bg-raised py-2 text-xs font-medium text-ink transition-colors hover:border-neutral-600 hover:bg-edge ${pressCls(disabled)} ${className}`}
     >
       {children}
     </button>
@@ -153,7 +152,7 @@ export function MiniButton({
   title?: string;
 }) {
   const palette = {
-    neutral: "border-edge bg-raised text-ink-mute hover:bg-[#2a2a2a] hover:text-ink",
+    neutral: "border-edge bg-raised text-ink-mute hover:bg-edge hover:text-ink",
     danger: "border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20",
     success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20",
     brand: "border-brand-500/30 bg-brand-500/10 text-brand-400 hover:bg-brand-500/20",
@@ -197,7 +196,7 @@ export function BackButton({
       title={label}
       className={`group inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 ${
         iconOnly ? "w-8 px-0" : "px-2.5"
-      } text-[11px] font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95 shadow-xs ${pressCls(false)} ${className}`}
+      } text-[11px] font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95 shadow-xs ${pressCls(false)} ${className}`}
     >
       <ArrowLeft size={13} className="shrink-0 transition-transform duration-150 group-hover:-translate-x-0.5" strokeWidth={2.2} />
       {!iconOnly && <span className="tracking-wide truncate">{label}</span>}
@@ -233,7 +232,7 @@ export function ConfirmActionRow({
       <button
         type="button"
         onClick={onCancel}
-        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95 ${pressCls(false)}`}
+        className={`flex h-8 flex-1 min-w-0 items-center justify-center rounded-lg border border-edge bg-raised/80 px-2 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95 ${pressCls(false)}`}
       >
         <span className="truncate">{cancelLabel}</span>
       </button>
@@ -313,7 +312,7 @@ export function Stepper({
         aria-label="Decrease"
         onClick={() => onChange(clamp(value - step))}
         disabled={value <= min}
-        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-[#2a2a2a] hover:text-ink disabled:opacity-30 ${pressCls(value <= min)}`}
+        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-edge hover:text-ink disabled:opacity-30 ${pressCls(value <= min)}`}
       >
         <Minus size={11} />
       </button>
@@ -336,7 +335,7 @@ export function Stepper({
         aria-label="Increase"
         onClick={() => onChange(clamp(value + step))}
         disabled={max != null && value >= max}
-        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-[#2a2a2a] hover:text-ink disabled:opacity-30 ${pressCls(max != null && value >= max)}`}
+        className={`flex w-6 items-center justify-center text-ink-mute hover:bg-edge hover:text-ink disabled:opacity-30 ${pressCls(max != null && value >= max)}`}
       >
         <Plus size={11} />
       </button>

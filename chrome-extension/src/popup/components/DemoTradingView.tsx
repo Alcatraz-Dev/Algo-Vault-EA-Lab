@@ -558,7 +558,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
             type="button"
             onClick={() => flipDirection(direction === "BUY" ? "SELL" : "BUY")}
             disabled={!calc.entryNum || (!calc.slNum && !calc.tpNum)}
-            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-[#2a2a2a] hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
+            className="flex w-9 items-center justify-center rounded-lg border border-edge bg-raised text-ink-mute transition-all duration-150 hover:bg-edge hover:text-ink active:scale-95 disabled:opacity-30 disabled:active:scale-100"
             title="Flip side — auto-mirror SL/TP"
           >
             <ArrowDownUp size={13} />
@@ -804,7 +804,7 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
           <button
             type="button"
             onClick={() => setConfirmReset(true)}
-            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-[#252528] hover:text-ink active:scale-95"
+            className="group flex h-8 flex-1 min-w-0 items-center justify-center gap-1.5 rounded-lg border border-edge bg-raised/80 px-3 text-xs font-medium text-ink-mute transition-all duration-150 hover:border-neutral-500 hover:bg-edge hover:text-ink active:scale-95"
             title={`Reset test capital to $${demo.startingCapital.toLocaleString()} and clear positions`}
           >
             <RotateCcw size={12} className="shrink-0 text-ink-faint transition-transform duration-200 group-hover:-rotate-45" />
@@ -855,7 +855,7 @@ function CloseReasonChip({ reason }: { reason?: DemoCloseReason }) {
     : reason === "sl" ? "bg-rose-500/15 text-rose-400 border-rose-500/30"
     : reason === "breakeven" ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
     : reason === "panic" ? "bg-amber-500/15 text-amber-400 border-amber-500/30"
-    : "bg-white/5 text-neutral-400 border-edge";
+    : "bg-neutral-500/10 text-neutral-400 border-edge";
   return (
     <span className={`rounded border px-1 py-px text-[8px] font-bold uppercase ${cls}`}>{reason}</span>
   );

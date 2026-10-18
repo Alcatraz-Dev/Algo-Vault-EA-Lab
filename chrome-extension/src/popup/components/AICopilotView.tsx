@@ -198,7 +198,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
             <button
               onClick={refreshContext}
               disabled={loading}
-              className="p-0.5 rounded hover:bg-white/5 transition-colors"
+              className="p-0.5 rounded hover:bg-neutral-500/10 transition-colors"
               title="Refresh chart context"
             >
               <RefreshCw size={11} className={`text-ink-mute ${loading ? "animate-spin" : ""}`} />
@@ -239,13 +239,13 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
                   value={manualSymbol}
                   onChange={(e) => setManualSymbol(e.target.value)}
                   placeholder="Symbol"
-                  className="w-20 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
+                  className="w-20 bg-neutral-500/10 border border-edge rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
                 />
                 <input
                   value={manualTimeframe}
                   onChange={(e) => setManualTimeframe(e.target.value)}
                   placeholder="TF"
-                  className="w-12 bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
+                  className="w-12 bg-neutral-500/10 border border-edge rounded px-2 py-0.5 text-[10px] text-ink placeholder:text-ink-faint outline-none"
                 />
                 <button onClick={handleManualSubmit} className="px-2 py-0.5 text-[10px] bg-brand-500/20 text-brand-400 rounded">Go</button>
               </div>
@@ -272,7 +272,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
         {messages.map((msg, i) => (
           <div key={`${i}-${msg.timestamp}`} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-white/5 text-ink"}`}>
+            <div className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${msg.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-neutral-500/10 text-ink"}`}>
               {msg.role === "assistant" ? <Markdown content={msg.content} /> : msg.content}
               {msg.truncated && (
                 <div className="mt-2 pt-2 border-t border-amber-500/20 flex items-center gap-1">
@@ -288,7 +288,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-white/5 rounded-lg px-3 py-2 flex items-center gap-2">
+            <div className="bg-neutral-500/10 rounded-lg px-3 py-2 flex items-center gap-2">
               <Loader2 size={12} className="animate-spin text-brand-400" />
               <span className="text-[11px] text-ink-mute">Thinking...</span>
             </div>
@@ -307,7 +307,7 @@ export function AICopilotView({ symbol, context, onBack, onContextChange }: AICo
               if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
             }}
             placeholder="Ask the AI..."
-            className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
+            className="flex-1 bg-neutral-500/10 border border-edge rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
           />
           <button
             onClick={() => send(input)}

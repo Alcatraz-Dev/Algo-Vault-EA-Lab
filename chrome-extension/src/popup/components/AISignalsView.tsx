@@ -165,7 +165,7 @@ export function AISignalsView({ symbol, enriched, onBack }: AISignalsViewProps) 
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && input.trim()) addSymbol(input); }}
                   placeholder="Add symbol (XAUUSD)"
-                  className="flex-1 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 font-mono text-[11px] uppercase text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
+                  className="flex-1 rounded-lg border border-edge bg-neutral-500/10 px-2.5 py-1.5 font-mono text-[11px] uppercase text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
                 />
                 <button
                   onClick={() => addSymbol(input)}
@@ -243,7 +243,7 @@ function SignalCard({ signal: s }: { signal: DailySignal }) {
             {buy ? <TrendingUp size={9} /> : <TrendingDown size={9} />}
             {s.direction}
           </span>
-          <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[9px] text-ink-mute">{s.timeframe}</span>
+          <span className="rounded bg-neutral-500/10 px-1.5 py-0.5 font-mono text-[9px] text-ink-mute">{s.timeframe}</span>
         </div>
         <span className={`font-mono text-[10px] font-semibold ${s.confidence >= 75 ? "text-emerald-400" : s.confidence >= 60 ? "text-amber-400" : "text-ink-mute"}`}>
           {s.confidence}%

@@ -371,7 +371,7 @@ export function AnalysisView({ symbol, context, onBack }: AnalysisViewProps) {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskAI(); }
               }}
               placeholder="Ask AI about this chart..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
+              className="flex-1 bg-neutral-500/10 border border-edge rounded-lg px-3 py-1.5 text-[11px] text-ink placeholder:text-ink-faint outline-none focus:border-brand-500/60"
             />
             <button
               onClick={handleAskAI}

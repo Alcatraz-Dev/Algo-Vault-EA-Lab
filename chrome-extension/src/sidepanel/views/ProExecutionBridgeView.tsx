@@ -147,7 +147,7 @@ export const ProExecutionBridgeView: React.FC<Props> = ({
             href={`${getAlgoVaultUrl()}/pricing`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded bg-gradient-to-r from-amber-500 to-amber-600 px-3 py-2 text-xs font-bold text-slate-950"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/15 px-3 py-2 text-xs font-semibold text-amber-300 transition-colors hover:bg-amber-500/25"
           >
             Upgrade to AlgoVault Pro <ExternalLink size={11} />
           </a>

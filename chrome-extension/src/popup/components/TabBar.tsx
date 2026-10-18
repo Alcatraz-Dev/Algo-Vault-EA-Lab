@@ -28,7 +28,7 @@ export function TabBar({ active, onChange }: TabBarProps) {
               isActive ? "text-brand-500" : "text-ink-faint hover:text-ink-mute"
             }`}
           >
-            <span className={isActive ? "drop-shadow-[0_0_6px_rgba(255,77,0,0.45)]" : ""}>{tab.icon}</span>
+            <span className={isActive ? "rounded-md bg-brand-500/15 px-2 py-0.5" : ""}>{tab.icon}</span>
             <span className="text-[9px] font-medium">{tab.label}</span>
           </button>
         );

@@ -260,7 +260,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
             <button
               key={t.id}
               onClick={() => openThread(t)}
-              className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-[10px] hover:bg-white/5 ${t.key === `${symbol}|${timeframe}` ? "text-brand-400" : "text-ink-mute"}`}
+              className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-[10px] hover:bg-neutral-500/10 ${t.key === `${symbol}|${timeframe}` ? "text-brand-400" : "text-ink-mute"}`}
             >
               <span className="font-mono">{t.title}</span>
               <span className="text-ink-faint">{t.messages.length} msgs</span>
@@ -292,7 +292,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
                   <span className="font-semibold text-ink">Similar Saved Strategies:</span>
                   <div className="mt-1 space-y-1">
                     {algoVaultMemory.similarSavedStrategies.map((s, idx) => (
-                      <div key={idx} className="rounded bg-white/5 p-1.5">
+                      <div key={idx} className="rounded bg-neutral-500/10 p-1.5">
                         <span className="font-medium text-brand-300">{s.name}</span>
                         {s.reasons && s.reasons.length > 0 && (
                           <ul className="mt-0.5 list-disc pl-3 text-[9px] text-ink-mute">
@@ -311,7 +311,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
                   <span className="font-semibold text-ink">Historical Research Evidence:</span>
                   <div className="mt-1 space-y-1">
                     {algoVaultMemory.similarHistoricalResearch.map((r, idx) => (
-                      <div key={idx} className="rounded bg-white/5 p-1.5 text-[9px]">
+                      <div key={idx} className="rounded bg-neutral-500/10 p-1.5 text-[9px]">
                         <span className="font-medium text-ink">{r.title}</span>
                         <p className="text-ink-mute">{r.outcome}</p>
                       </div>
@@ -365,7 +365,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
           <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[92%] rounded-lg px-3 py-2 text-[11px] leading-relaxed ${
-                m.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-white/5 text-ink"
+                m.role === "user" ? "bg-brand-500/20 text-brand-100" : "bg-neutral-500/10 text-ink"
               }`}
             >
               {m.role === "assistant" ? <Markdown content={m.content} /> : m.content}
@@ -375,7 +375,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
 
         {loading && (
           <div className="flex justify-start">
-            <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
+            <div className="flex items-center gap-2 rounded-lg bg-neutral-500/10 px-3 py-2">
               <Loader2 size={12} className="animate-spin text-brand-400" />
               <span className="text-[11px] text-ink-mute">{persona.name} is thinking…</span>
             </div>
@@ -402,7 +402,7 @@ export function CopilotView({ symbol, timeframe, enriched, structuredContextKey,
             }}
             placeholder={`Ask about ${symbol}…`}
             rows={2}
-            className="max-h-28 flex-1 resize-none rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[11px] text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
+            className="max-h-28 flex-1 resize-none rounded-lg border border-edge bg-neutral-500/10 px-3 py-2 text-[11px] text-ink outline-none placeholder:text-ink-faint focus:border-brand-500/60"
           />
           <button
             onClick={() => send(input)}
@@ -442,7 +442,7 @@ function PersonaPicker({ value, onChange }: { value: PersonaId; onChange: (id: P
                 <button
                   key={p.id}
                   onClick={() => { onChange(p.id); setOpen(false); }}
-                  className={`block w-full px-3 py-2 text-left hover:bg-white/5 ${p.id === value ? "text-brand-400" : "text-ink-mute"}`}
+                  className={`block w-full px-3 py-2 text-left hover:bg-neutral-500/10 ${p.id === value ? "text-brand-400" : "text-ink-mute"}`}
                 >
                   <span className="flex items-center gap-1.5 text-[11px] font-semibold"><PIcon size={11} /> {p.name}</span>
                   <span className="block text-[9px] text-ink-faint">{p.description}</span>
