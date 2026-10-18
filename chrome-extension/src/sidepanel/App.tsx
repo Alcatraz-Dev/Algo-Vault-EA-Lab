@@ -481,7 +481,7 @@ export default function App() {
           {/* Body — rail navigation + active destination */}
           <div className="flex min-h-0 flex-1">
             <NavRail active={tab} onSelect={setTab} isPro={isPro} />
-            <main className="min-h-0 min-w-0 flex-1 overflow-hidden" key={refreshKey}>
+            <main className="min-h-0 min-w-0 flex-1 overflow-y-auto" key={refreshKey}>
               {activeSymbol || tab === "setup" ? (
                 <>
                   {tab === "copilot" && (
