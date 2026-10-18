@@ -50,6 +50,27 @@ export default function CrossAssetExplorerPage() {
 
     const { data, loading, error, reload } = useCrossAsset({ symbol, timeframe, bars });
 
+    const applyQuery = useCallback(() => {
+        const next = query.trim().toUpperCase();
+        if (!next || next === symbol.toUpperCase()) return;
+        setSymbol(next);
+        setSelectedPair(null);
+        setSelectedEdgeId(null);
+    }, [query, symbol]);
+
+    const filterCounts = useMemo(() => {
+        const edges = data?.edges ?? [];
+        const isMeasured = (t: string) => t === "CORRELATION" || t === "INVERSE_CORRELATION" || t === "LEAD_LAG";
+        return {
+            measured: edges.filter((e) => isMeasured(e.relationshipType)).length,
+            all: edges.length,
+            user: edges.filter((e) => e.userDefined).length,
+            asset_class: edges.filter((e) => e.relationshipType === "ASSET_CLASS").length,
+            currency: edges.filter((e) => e.relationshipType === "CURRENCY").length,
+            exposure: edges.filter((e) => e.relationshipType === "EXPOSURE").length,
+        };
+    }, [data]);
+
     const selectNode = useCallback((next: string | null) => {
         if (next) {
             setSymbol(next);
@@ -133,14 +154,20 @@ export default function CrossAssetExplorerPage() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value.toUpperCase())}
                                 onKeyDown={(e) => {
-                                    if (e.key === "Enter" && query.trim()) {
-                                        setSymbol(query.trim().toUpperCase());
-                                        setSelectedPair(null);
-                                    }
+                                    if (e.key === "Enter") applyQuery();
                                 }}
                                 className="w-32 rounded-md border border-border bg-background px-2 py-1 font-numeric text-xs text-foreground outline-none focus:border-primary"
                                 aria-label="Search symbol"
+                                placeholder="XAUUSD"
                             />
+                            <button
+                                type="button"
+                                onClick={applyQuery}
+                                disabled={!query.trim() || query.trim().toUpperCase() === symbol.toUpperCase()}
+                                className="rounded-md border border-border px-2 py-1 text-xs normal-case tracking-normal text-foreground transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                Apply
+                            </button>
                         </span>
                     </label>
                     <label className="flex flex-col gap-0.5 text-micro uppercase tracking-wide text-muted-foreground">
@@ -171,22 +198,31 @@ export default function CrossAssetExplorerPage() {
                             ))}
                         </select>
                     </label>
-                    <div className="flex flex-wrap gap-1">
-                        {FILTERS.map((f) => (
-                            <button
-                                key={f.id}
-                                type="button"
-                                onClick={() => setFilter(f.id)}
-                                className={cn(
-                                    "rounded-full border px-2.5 py-1 text-micro transition-colors",
-                                    filter === f.id
-                                        ? "border-primary bg-primary/15 text-primary"
-                                        : "border-border text-muted-foreground hover:bg-muted"
-                                )}
-                            >
-                                {f.label}
-                            </button>
-                        ))}
+                    <div className="flex flex-wrap items-center gap-1" role="group" aria-label="Edge type filter">
+                        {FILTERS.map((f) => {
+                            const count = filterCounts[f.id] ?? 0;
+                            const active = filter === f.id;
+                            return (
+                                <button
+                                    key={f.id}
+                                    type="button"
+                                    onClick={() => setFilter(f.id)}
+                                    aria-pressed={active}
+                                    title={`${count} edge${count === 1 ? "" : "s"} of this type in the current snapshot`}
+                                    className={cn(
+                                        "rounded-full border px-2.5 py-1 text-micro transition-colors",
+                                        active
+                                            ? "border-primary bg-primary/15 text-primary"
+                                            : "border-border text-muted-foreground hover:bg-muted"
+                                    )}
+                                >
+                                    {f.label}
+                                    <span className={cn("ml-1 font-numeric", active ? "text-primary" : "text-muted-foreground/70")}>
+                                        {count}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -213,16 +249,23 @@ export default function CrossAssetExplorerPage() {
 
                 {/* graph + inspector */}
                 <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
-                    <MarketGraphCanvas
-                        nodes={data?.nodes ?? []}
-                        edges={data?.edges ?? []}
-                        focusSymbol={symbol.toUpperCase()}
-                        filter={filter}
-                        onSelectNode={selectNode}
-                        onSelectEdge={(edge) => setSelectedEdgeId(edge?.id ?? null)}
-                        selectedEdgeId={selectedEdgeId}
-                        emptyReason={loading ? "Loading the market graph…" : error ?? undefined}
-                    />
+                    <div className="relative">
+                        {loading && data ? (
+                            <div className="pointer-events-none absolute left-3 top-3 z-10 flex items-center gap-1.5 rounded-full border border-border bg-card/90 px-2.5 py-1 text-micro text-muted-foreground shadow-sm backdrop-blur">
+                                <Loader2 className="size-3 animate-spin" /> Recomputing…
+                            </div>
+                        ) : null}
+                        <MarketGraphCanvas
+                            nodes={data?.nodes ?? []}
+                            edges={data?.edges ?? []}
+                            focusSymbol={symbol.toUpperCase()}
+                            filter={filter}
+                            onSelectNode={selectNode}
+                            onSelectEdge={(edge) => setSelectedEdgeId(edge?.id ?? null)}
+                            selectedEdgeId={selectedEdgeId}
+                            emptyReason={loading ? "Loading the market graph…" : error ?? undefined}
+                        />
+                    </div>
                     <div className="space-y-3">
                         {selectedEdge ? (
                             <EdgeInspector

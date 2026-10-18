@@ -110,24 +110,38 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                 {ctx ? (
                     <div className="mt-2 space-y-2">
                         <div className="flex flex-wrap gap-1">
-                            {(ctx.regime?.activeStates ?? []).slice(0, 4).map((state) => (
+                            {(ctx.regime?.activeStates ?? [])
+                                .filter((s) => s !== "UNKNOWN")
+                                .slice(0, 4)
+                                .map((state) => (
+                                    <Chip
+                                        key={state}
+                                        tone={
+                                            state === "RISK_OFF" ||
+                                            state === "HIGH_VOLATILITY" ||
+                                            state === "DISLOCATION"
+                                                ? "negative"
+                                                : state === "RISK_ON" || state === "LOW_VOLATILITY"
+                                                  ? "positive"
+                                                  : state === "UNKNOWN"
+                                                    ? "neutral"
+                                                    : "info"
+                                        }
+                                        className="uppercase tracking-wide"
+                                    >
+                                        {state.replace(/_/g, " ")}
+                                    </Chip>
+                                ))}
+                            {(!ctx.regime ||
+                                ctx.regime.activeStates.filter((s) => s !== "UNKNOWN").length === 0) && (
                                 <Chip
-                                    key={state}
-                                    tone={
-                                        state === "RISK_OFF" || state === "HIGH_VOLATILITY"
-                                            ? "negative"
-                                            : state === "RISK_ON" || state === "LOW_VOLATILITY"
-                                              ? "positive"
-                                              : "info"
-                                    }
+                                    tone="neutral"
                                     className="uppercase tracking-wide"
+                                    title="No regime axis crossed its printed threshold this window — mixed/neutral market, not a data failure. See Explorer for the per-axis breakdown."
                                 >
-                                    {state.replace(/_/g, " ")}
+                                    No clear regime
                                 </Chip>
-                            ))}
-                            {!ctx.regime || ctx.regime.activeStates.length === 0 ? (
-                                <Chip className="uppercase tracking-wide">REGIME UNKNOWN</Chip>
-                            ) : null}
+                            )}
                         </div>
 
                         {ctx.relationships.length === 0 ? (
@@ -146,8 +160,15 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                                     "font-numeric",
                                                     (r.coefficient ?? 0) >= 0 ? "text-positive" : "text-negative"
                                                 )}
+                                                title={
+                                                    r.coefficient === null
+                                                        ? "Correlation not reported — insufficient aligned data"
+                                                        : `Rolling ${r.coefficient >= 0 ? "positive" : "inverse"} correlation ρ = ${r.coefficient.toFixed(2)} (n=${r.sampleSize}, ${r.dataQuality}) — association, not prediction`
+                                                }
                                             >
-                                                {r.coefficient === null ? "n/a" : r.coefficient.toFixed(2)}
+                                                {r.coefficient === null
+                                                    ? "n/a"
+                                                    : `${r.coefficient >= 0 ? "+" : ""}${r.coefficient.toFixed(2)}`}
                                             </span>
                                             <Chip
                                                 tone={
@@ -160,6 +181,7 @@ export const CrossAssetPanel = memo(function CrossAssetPanel({
                                                             : "neutral"
                                                 }
                                                 className="font-medium uppercase tracking-wide"
+                                                title={`Stability ${r.stability.replace(/_/g, " ").toLowerCase()} across rolling windows — describes how |ρ| evolved, not a forecast`}
                                             >
                                                 {r.stability.replace(/_/g, " ")}
                                             </Chip>

@@ -297,10 +297,18 @@ export function RegimePanel({ regime, transitions }: { regime?: GraphRegime; tra
             </p>
         );
     }
+    const meaningful = regime.activeStates.filter((s) => s !== "UNKNOWN" && s !== "TRANSITION");
+    const onlyUnknown = meaningful.length === 0;
     return (
         <div className="space-y-2">
+            {onlyUnknown ? (
+                <p className="rounded-md border border-border/60 bg-muted/30 px-2 py-1.5 text-micro leading-4 text-muted-foreground">
+                    No clear regime — no axis crossed its printed threshold this window. Mixed/neutral market, not a
+                    data failure. The per-axis breakdown below shows why.
+                </p>
+            ) : null}
             <div className="flex flex-wrap gap-1.5">
-                {regime.activeStates.map((state) => (
+                {(onlyUnknown ? ["UNKNOWN"] : regime.activeStates).map((state) => (
                     <span
                         key={state}
                         className={cn(

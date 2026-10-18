@@ -16,7 +16,7 @@
  * draws the same picture.
  */
 
-import { memo, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import {
     Background,
     Controls,
@@ -44,6 +44,24 @@ interface MarketNodeData extends Record<string, unknown> {
 
 type MarketFlowNode = Node<MarketNodeData, "market">;
 
+/* Theme follows the app shell: `:root` is dark, `.light` opts into light.
+ * ReactFlow draws its own canvas + controls, so we mirror that class here
+ * instead of trusting `prefers-color-scheme` (which the shell ignores). */
+function useIsLight(): boolean {
+    const [isLight, setIsLight] = useState<boolean>(() =>
+        typeof document !== "undefined" ? document.documentElement.classList.contains("light") : false
+    );
+    useEffect(() => {
+        const el = document.documentElement;
+        const sync = () => setIsLight(el.classList.contains("light"));
+        sync();
+        const obs = new MutationObserver(sync);
+        obs.observe(el, { attributes: true, attributeFilter: ["class"] });
+        return () => obs.disconnect();
+    }, []);
+    return isLight;
+}
+
 const COLUMN_ORDER = ["METALS", "FX", "INDICES", "CRYPTO", "EQUITIES", "COMMODITIES", "OTHER", "UNAVAILABLE"];
 
 function columnOf(node: GraphNode): number {
@@ -60,19 +78,20 @@ function MarketNodeCard({ data }: NodeProps<MarketFlowNode>) {
     return (
         <div
             className={cn(
-                "rounded-md border px-2.5 py-1.5 text-micro font-medium shadow-sm transition",
+                "min-w-[92px] rounded-md border px-2.5 py-1.5 text-micro font-medium shadow-sm transition",
                 data.kind === "REGIME" && "border-warning/50 bg-warning/10 text-warning",
                 data.kind === "FACTOR" && "border-chart-3/50 bg-chart-3/10 text-chart-3",
-                data.kind === "ASSET_CLASS" && "border-border bg-card text-muted-foreground",
+                data.kind === "CLUSTER" && "border-primary/40 bg-primary/10 text-primary",
+                data.kind === "ASSET_CLASS" && "border-border bg-muted/40 text-muted-foreground",
                 data.kind === "CURRENCY" && "border-info/40 bg-info/10 text-info",
-                data.kind === "INSTRUMENT" && "border-positive/40 bg-card text-foreground",
-                data.active && "ring-2 ring-primary",
-                data.dimmed && "opacity-35"
+                data.kind === "INSTRUMENT" && "border-border bg-card text-foreground",
+                data.active && "border-primary ring-2 ring-primary/60",
+                data.dimmed && "opacity-30 saturate-50"
             )}
             title={`${data.kind}${data.assetClass ? ` · ${data.assetClass}` : ""}`}
         >
-            <span className="block truncate font-numeric">{data.label}</span>
-            {data.badge ? <span className="block text-micro text-muted-foreground">{data.badge}</span> : null}
+            <span className="block max-w-[140px] truncate font-numeric">{data.label}</span>
+            {data.badge ? <span className="block text-micro text-primary">{data.badge}</span> : null}
             <Handle type="target" position={Position.Left} className="!hidden" />
             <Handle type="source" position={Position.Right} className="!hidden" />
         </div>
@@ -122,6 +141,10 @@ export const MarketGraphCanvas = memo(function MarketGraphCanvas({
     emptyReason,
 }: MarketGraphCanvasProps) {
     const [hovered, setHovered] = useState<string | null>(null);
+    const isLight = useIsLight();
+    const dotColor = isLight ? "#e4e4e7" : "#27272a";
+    const edgeLabelColor = isLight ? "#3f3f46" : "#e4e4e7";
+    const edgeLabelBg = isLight ? "#fafafa" : "#18181b";
 
     const visibleEdges = useMemo(() => {
         return edges.filter((e) => {
@@ -136,64 +159,104 @@ export const MarketGraphCanvas = memo(function MarketGraphCanvas({
         });
     }, [edges, filter]);
 
+    /* Only nodes touched by the visible edges stay on canvas — previously
+     * every structural node rendered even when its edges were filtered out,
+     * which read as "bogus" floating nodes. The focus node always stays. */
+    const visibleNodeIds = useMemo(() => {
+        const ids = new Set<string>();
+        for (const e of visibleEdges) {
+            ids.add(e.sourceNodeId);
+            ids.add(e.targetNodeId);
+        }
+        const focusId = `instrument:${focusSymbol.toUpperCase()}`;
+        const focusNode = nodes.find((n) => n.id === focusId);
+        if (focusNode) ids.add(focusNode.id);
+        // A structural filter with zero edges still shows its own lane.
+        if (ids.size === 0) for (const n of nodes) ids.add(n.id);
+        return ids;
+    }, [visibleEdges, nodes, focusSymbol]);
+
+    const neighborSet = useMemo(() => neighborIds(hovered, visibleEdges), [hovered, visibleEdges]);
+
     const flowNodes = useMemo<MarketFlowNode[]>(() => {
+        const visible = nodes.filter((n) => visibleNodeIds.has(n.id));
         const byColumn = new Map<number, GraphNode[]>();
-        for (const node of nodes) {
+        for (const node of visible) {
             const col = columnOf(node);
             const bucket = byColumn.get(col) ?? [];
             bucket.push(node);
             byColumn.set(col, bucket);
         }
+        // Structural lanes (negative columns) first, then asset-class columns.
         const columns = Array.from(byColumn.keys()).sort((a, b) => a - b);
         const out: MarketFlowNode[] = [];
+        const COL_X = 250;
+        const ROW_Y = 84;
         columns.forEach((col, colIndex) => {
             const bucket = (byColumn.get(col) ?? []).sort((a, b) => a.id.localeCompare(b.id));
-            bucket.forEach((node, i) => {
-                const row = col === -2 ? 0 : col === -3 ? 1 : col === -1 ? 6 : col === -4 ? 7 : 3 + (i % 3);
-                const y = row * 90 + (col === -1 || col === -4 ? Math.floor(i / 4) * 70 : Math.floor(i / 3) * 8);
+            bucket.forEach((node, rowIndex) => {
                 out.push({
                     id: node.id,
                     type: "market",
-                    position: { x: 60 + colIndex * 230, y: col >= 0 && i >= 3 ? y + Math.floor(i / 3) * 46 : y },
+                    position: { x: 40 + colIndex * COL_X, y: 32 + rowIndex * ROW_Y },
                     data: {
                         label: node.label,
                         kind: node.kind,
                         assetClass: node.assetClass,
                         badge:
-                            node.kind === "INSTRUMENT" && focusSymbol === node.symbol
+                            node.kind === "INSTRUMENT" && focusSymbol.toUpperCase() === node.symbol?.toUpperCase()
                                 ? "focus"
                                 : undefined,
-                        active: focusSymbol === node.symbol,
-                        dimmed: Boolean(hovered) && hovered !== node.id && !neighborIds(hovered, visibleEdges).has(node.id),
+                        active: focusSymbol.toUpperCase() === node.symbol?.toUpperCase(),
+                        dimmed:
+                            Boolean(hovered) && hovered !== node.id && !neighborSet.has(node.id),
                     },
                 });
             });
         });
         return out;
-    }, [nodes, hovered, focusSymbol, visibleEdges]);
+    }, [nodes, visibleNodeIds, hovered, focusSymbol, neighborSet]);
+
+    const symbolByNodeId = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const n of nodes) if (n.symbol) map.set(n.id, n.symbol.toUpperCase());
+        return map;
+    }, [nodes]);
 
     const flowEdges = useMemo<Edge[]>(
         () =>
-            visibleEdges.map((e) => {
-                const touched = hovered ? e.sourceNodeId === hovered || e.targetNodeId === hovered : true;
-                const selected = selectedEdgeId === e.id;
-                const width = e.coefficient !== null ? 1 + Math.abs(e.coefficient) * 4 : 1.2;
-                return {
-                    id: e.id,
-                    source: e.sourceNodeId,
-                    target: e.targetNodeId,
-                    animated: selected || (e.stability === "BREAKING" || e.stability === "FLIPPING"),
-                    style: {
-                        stroke: edgeColor(e),
-                        strokeWidth: selected ? width + 2 : width,
-                        opacity: hovered && !touched ? 0.12 : e.userDefined ? 0.9 : 0.75,
-                        strokeDasharray: e.userDefined || e.relationshipType === "CURRENCY" || e.relationshipType === "ASSET_CLASS" ? "6 4" : undefined,
-                    },
-                    label: e.coefficient !== null && (filter === "measured" || filter === "all") ? e.coefficient.toFixed(2) : undefined,
-                    labelStyle: { fill: "#e4e4e7", fontSize: 9 },
-                };
-            }),
-        [visibleEdges, hovered, selectedEdgeId, filter]
+            visibleEdges
+                .filter((e) => visibleNodeIds.has(e.sourceNodeId) && visibleNodeIds.has(e.targetNodeId))
+                .map((e) => {
+                    const touched = hovered ? e.sourceNodeId === hovered || e.targetNodeId === hovered : true;
+                    const selected = selectedEdgeId === e.id;
+                    const width = e.coefficient !== null ? 1 + Math.abs(e.coefficient) * 4 : 1.2;
+                    return {
+                        id: e.id,
+                        source: e.sourceNodeId,
+                        target: e.targetNodeId,
+                        animated: selected || e.stability === "BREAKING" || e.stability === "FLIPPING",
+                        style: {
+                            stroke: edgeColor(e),
+                            strokeWidth: selected ? width + 2 : width,
+                            opacity: hovered && !touched ? 0.12 : e.userDefined ? 0.9 : 0.75,
+                            strokeDasharray:
+                                e.userDefined ||
+                                e.relationshipType === "CURRENCY" ||
+                                e.relationshipType === "ASSET_CLASS"
+                                    ? "6 4"
+                                    : undefined,
+                        },
+                        label:
+                            e.coefficient !== null && (filter === "measured" || filter === "all")
+                                ? `${e.coefficient >= 0 ? "+" : ""}${e.coefficient.toFixed(2)}`
+                                : undefined,
+                        labelStyle: { fill: edgeLabelColor, fontSize: 10, fontWeight: 600 },
+                        labelBgStyle: { fill: edgeLabelBg, fillOpacity: 0.92 },
+                        labelBgPadding: [3, 2] as [number, number],
+                    };
+                }),
+        [visibleEdges, visibleNodeIds, hovered, selectedEdgeId, filter, edgeLabelColor, edgeLabelBg]
     );
 
     if (nodes.length === 0) {
@@ -211,9 +274,21 @@ export const MarketGraphCanvas = memo(function MarketGraphCanvas({
                 edges={flowEdges}
                 nodeTypes={nodeTypes}
                 fitView
-                minZoom={0.3}
+                fitViewOptions={{ padding: 0.22, maxZoom: 1.1 }}
+                minZoom={0.25}
                 maxZoom={1.6}
-                onNodeClick={(_, node) => onSelectNode(node.data.kind === "INSTRUMENT" ? String((node.data as MarketNodeData).label) : null)}
+                nodesConnectable={false}
+                nodesDraggable
+                elementsSelectable
+                colorMode={isLight ? "light" : "dark"}
+                onNodeClick={(_, node) => {
+                    const data = node.data as MarketNodeData;
+                    if (data.kind !== "INSTRUMENT") {
+                        onSelectNode(null);
+                        return;
+                    }
+                    onSelectNode(symbolByNodeId.get(node.id) ?? String(data.label).toUpperCase());
+                }}
                 onNodeMouseEnter={(_, node) => setHovered(node.id)}
                 onNodeMouseLeave={() => setHovered(null)}
                 onEdgeClick={(_, edge) => {
@@ -223,8 +298,11 @@ export const MarketGraphCanvas = memo(function MarketGraphCanvas({
                 onPaneClick={() => onSelectEdge(null)}
                 proOptions={{ hideAttribution: true }}
             >
-                <Background gap={18} color="#27272a" />
-                <Controls showInteractive={false} />
+                <Background gap={22} size={1.2} color={dotColor} bgColor="transparent" />
+                <Controls
+                    showInteractive={false}
+                    className="[&_.react-flow__controls-button]:border-border [&_.react-flow__controls-button]:bg-card [&_.react-flow__controls-button]:text-muted-foreground [&_.react-flow__controls-button:hover]:bg-muted [&_.react-flow__controls-button]:shadow-sm"
+                />
             </ReactFlow>
         </div>
     );
