@@ -1,4 +1,5 @@
 import React from "react";
+import { Info } from "lucide-react";
 
 interface DataConsentNoticeProps {
   checked: boolean;
@@ -10,7 +11,7 @@ interface DataConsentNoticeProps {
 }
 
 /**
- * Prominent in-product data-handling disclosure + explicit consent checkbox.
+ * Compact in-product data-handling disclosure + explicit consent checkbox.
  *
  * Shared by every sign-in entry path (popup `LoginView`, side-panel login)
  * so the wording and gating behavior cannot drift between surfaces.
@@ -18,9 +19,9 @@ interface DataConsentNoticeProps {
  * Accessibility notes:
  * - Native checkbox associated with its label via `htmlFor` (screen-reader
  *   announced, keyboard operable, visible focus ring).
- * - The Privacy Policy link is a SIBLING of the `<label>`, never nested
- *   inside it: activating the link must not toggle consent, and a link
- *   click must never count as consent.
+ * - The Privacy Policy link is rendered OUTSIDE the `<label>` element:
+ *   activating the link cannot toggle the checkbox, and a link click never
+ *   counts as consent.
  */
 export function DataConsentNotice({
   checked,
@@ -29,7 +30,7 @@ export function DataConsentNotice({
   id = "av-data-consent",
 }: DataConsentNoticeProps) {
   return (
-    <div className="rounded-lg border border-edge bg-raised px-3 py-2.5">
+    <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-2">
       <div className="flex items-start gap-2">
         <input
           id={id}
@@ -38,24 +39,22 @@ export function DataConsentNotice({
           onChange={(e) => onChange(e.target.checked)}
           className="mt-0.5 h-4 w-4 shrink-0 accent-[#ff4d00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         />
-        <label
-          htmlFor={id}
-          className="cursor-pointer text-[11px] leading-relaxed text-ink-mute"
-        >
-          I understand that AlgoVault reads the active TradingView chart
-          (symbol, timeframe, price) and sends my Copilot messages with that
-          chart context to its backend, authenticated with my AlgoVault
-          session, to provide AI analysis and related features.
-        </label>
+        <Info size={12} className="mt-0.5 shrink-0 text-amber-500" aria-hidden="true" />
+        <p className="text-[11px] leading-snug text-ink-mute">
+          <label htmlFor={id} className="cursor-pointer">
+            AlgoVault uses your TradingView chart data and Copilot messages,
+            sent with your session, to provide AI analysis.
+          </label>{" "}
+          <a
+            href={privacyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium text-ink underline decoration-brand-500/60 underline-offset-2 transition-colors hover:decoration-brand-400"
+          >
+            Privacy Policy
+          </a>
+        </p>
       </div>
-      <a
-        href={privacyUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-1.5 inline-block pl-6 text-[11px] text-brand-400 transition-colors hover:text-brand-300"
-      >
-        Read the Privacy Policy&nbsp;↗
-      </a>
     </div>
   );
 }

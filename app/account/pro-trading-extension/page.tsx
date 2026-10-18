@@ -43,8 +43,6 @@ import {
     ShieldCheck,
     Sparkles,
     Star,
-    Target,
-    TrendingUp,
     Workflow,
     Zap,
 } from "lucide-react";
@@ -271,7 +269,7 @@ export default function ProTradingExtensionPage() {
                                                 href={CHROME_WEB_STORE_SEARCH}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90"
+                                                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
                                             >
                                                 <Download size={14} /> Get the Extension
                                                 <ExternalLink size={11} className="opacity-80" />
@@ -326,7 +324,7 @@ export default function ProTradingExtensionPage() {
                                         )}
                                     >
                                         <div className="flex items-start justify-between">
-                                            <div className="flex h-9 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                                                 <Icon size={18} />
                                             </div>
                                             <Badge
@@ -343,6 +341,75 @@ export default function ProTradingExtensionPage() {
                                 );
                             })}
                         </div>
+                    </section>
+
+                    {/* Free vs Pro */}
+                    <section className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <h2 className="text-base font-semibold tracking-tight">Free vs Pro</h2>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            The extension is useful without a subscription. Pro unlocks the AI surfaces that are
+                            enforced server-side — the page above only renders what the server grants.
+                        </p>
+                        <div className="mt-4 overflow-hidden rounded-lg border border-border">
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="bg-muted/60 text-left text-micro uppercase tracking-wider text-muted-foreground">
+                                        <th className="px-3 py-2 font-semibold">Capability</th>
+                                        <th className="px-3 py-2 font-semibold">Free</th>
+                                        <th className="px-3 py-2 font-semibold">Pro</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border">
+                                    {[
+                                        { name: "Chart analysis, market verdict & MTF alignment", free: true, pro: true },
+                                        { name: "Price alerts from the chart overlay", free: true, pro: true },
+                                        { name: "Demo (paper) trading ticket", free: true, pro: true },
+                                        { name: "AI Daily Signals (3 per day, server-enforced quota)", free: true, pro: true },
+                                        { name: "AI Chart Copilot with per-symbol memory", free: false, pro: true },
+                                        { name: "Setup Radar, Smart Alerts & pre-trade checklist", free: false, pro: true },
+                                        { name: "Pine Script indicator & strategy generators", free: false, pro: true },
+                                        { name: "MT5 execution bridge with confirmations & receipts", free: false, pro: true },
+                                    ].map((row) => (
+                                        <tr key={row.name}>
+                                            <td className="px-3 py-2 text-foreground">{row.name}</td>
+                                            <td className="px-3 py-2">
+                                                {row.free ? (
+                                                    <CheckCircle2 size={13} className="text-positive" />
+                                                ) : (
+                                                    <span className="text-muted-foreground">—</span>
+                                                )}
+                                            </td>
+                                            <td className="px-3 py-2">
+                                                <CheckCircle2 size={13} className="text-positive" />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    {/* What it does not do */}
+                    <section className="rounded-lg border border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+                        <h2 className="text-base font-semibold tracking-tight">What the extension does not do</h2>
+                        <ul className="mt-3 space-y-2 text-xs text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                                <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary" />
+                                Never places trades on its own — every order needs your explicit confirmation and is routed server-side.
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary" />
+                                Never handles broker passwords or API secrets; execution is authenticated with your AlgoVault session.
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary" />
+                                Never guarantees trading outcomes — signals and analysis are decision support, not financial advice.
+                            </li>
+                            <li className="flex items-start gap-2">
+                                <ShieldCheck size={13} className="mt-0.5 shrink-0 text-primary" />
+                                Never reads browsing history outside TradingView tabs; live execution features additionally require a connected MT5 demo account.
+                            </li>
+                        </ul>
                     </section>
 
                     {/* How it works */}
@@ -526,5 +593,3 @@ export default function ProTradingExtensionPage() {
     );
 }
 
-/* Avoid unused-icon lint if future edits drop usage */
-void [TrendingUp, Target];

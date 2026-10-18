@@ -1,4 +1,5 @@
 import { setAuthToken, clearAuthToken, setUser, clearUser, getSettings } from "@/storage/storage";
+import { resolveAlgovaultUrl } from "@/config/environment";
 
 let firebaseAuth: unknown = null;
 
@@ -12,7 +13,8 @@ export interface AuthResult {
 export async function signInWithFirebaseToken(token: string): Promise<AuthResult> {
   try {
     const settings = await getSettings();
-    const res = await fetch(`${settings.algovaultUrl}/api/trading/gateway/status`, {
+    const baseUrl = resolveAlgovaultUrl(settings.algovaultUrl);
+    const res = await fetch(`${baseUrl}/api/trading/gateway/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) throw new Error("Invalid token");
@@ -27,14 +29,65 @@ export async function signInWithFirebaseToken(token: string): Promise<AuthResult
   }
 }
 
+/** How long the pre-login reachability probe waits before giving up. */
+const SERVER_PROBE_TIMEOUT_MS = 10_000;
+
+/**
+ * Verify the configured backend is reachable before attempting Firebase
+ * sign-in. Probes the cheap `/api/health` endpoint (200 + {"ok":true})
+ * instead of the full HTML homepage, with a timeout so black-hole
+ * networks fail fast instead of spinning forever.
+ *
+ * Throws a categorized error — callers surface `err.message` directly:
+ *   - misconfigured address  → configuration hint (not "cannot reach")
+ *   - timeout / TypeError    → genuine connection failure
+ *   - non-2xx                → server-side HTTP error with status
+ *
+ * Never includes tokens, passwords, or response bodies in messages.
+ *
+ * Returns the resolved origin to use for subsequent requests.
+ */
+export async function checkServerReachable(rawBaseUrl: string): Promise<string> {
+  const cleaned = rawBaseUrl.trim().replace(/\/+$/, "");
+  const url = resolveAlgovaultUrl(cleaned);
+  if (url !== cleaned) {
+    throw new Error(
+      "AlgoVault server address is misconfigured. Resetting to the default server — please try again."
+    );
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SERVER_PROBE_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${url}/api/health`, {
+      method: "GET",
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      throw new Error(
+        `AlgoVault server error (HTTP ${res.status}). Please try again later.`
+      );
+    }
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("AlgoVault server")) throw err;
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error(
+        "AlgoVault server is not responding (connection timed out). Check your internet connection and try again."
+      );
+    }
+    throw new Error(
+      "Cannot reach AlgoVault server. Check your internet connection and try again."
+    );    } finally {
+    clearTimeout(timer);
+  }
+  return url;
+}
+
 export async function signInWithEmail(email: string, password: string): Promise<AuthResult> {
   try {
     const settings = await getSettings();
-    try {
-      await fetch(`${settings.algovaultUrl}/`, { method: "GET" });
-    } catch {
-      throw new Error("Cannot reach AlgoVault server");
-    }
+    // Probe first (also validates the address), then reuse the resolved
+    // origin for token validation so both talk to the same server.
+    const baseUrl = await checkServerReachable(settings.algovaultUrl);
 
     const { initializeApp, getApps, getApp } = await import("firebase/app");
     const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
@@ -58,7 +111,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const cred = await signInWithEmailAndPassword(auth, email, password);
     const token = await cred.user.getIdToken();
 
-    const validationRes = await fetch(`${settings.algovaultUrl}/api/trading/gateway/status`, {
+    const validationRes = await fetch(`${baseUrl}/api/trading/gateway/status`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!validationRes.ok) {

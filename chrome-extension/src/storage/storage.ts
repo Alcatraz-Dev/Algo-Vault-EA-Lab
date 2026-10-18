@@ -1,5 +1,5 @@
 import { ExtensionSettings, TradingViewContext } from "@/types";
-import { getAlgoVaultUrl } from "@/config/environment";
+import { getAlgoVaultUrl, resolveAlgovaultUrl } from "@/config/environment";
 
 const DEFAULT_SETTINGS: ExtensionSettings = {
   algovaultUrl: getAlgoVaultUrl(),
@@ -28,6 +28,16 @@ export async function getSettings(): Promise<ExtensionSettings> {
         /algovault\.dev/.test(storedUrl)
       ) {
         delete stored.algovaultUrl;
+      }
+      // Drop empty or malformed URLs (e.g. options saved before the async
+      // settings load, or a protocol-less host) so the build default takes
+      // over instead of producing opaque fetch TypeErrors at login. A stored
+      // value survives only if it is already a clean http(s) origin.
+      if (typeof stored.algovaultUrl === "string") {
+        const cleaned = stored.algovaultUrl.trim().replace(/\/+$/, "");
+        if (resolveAlgovaultUrl(cleaned) !== cleaned) {
+          delete stored.algovaultUrl;
+        }
       }
       resolve({ ...DEFAULT_SETTINGS, ...stored });
     });
