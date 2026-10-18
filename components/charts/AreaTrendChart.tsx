@@ -5,11 +5,11 @@ import {
     AreaChart,
     CartesianGrid,
     ResponsiveContainer,
-    Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
 import { ReactNode } from "react";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 
 export type SeriesConfig = {
     key: string;
@@ -89,18 +89,7 @@ export default function AreaTrendChart({
                     tickFormatter={(v) => Number(v).toLocaleString()}
                 />
 
-                <Tooltip
-                    contentStyle={{
-                        background: "var(--card)",
-                        border: "1px solid var(--border-color)",
-                        borderRadius: 12,
-                        color: "var(--foreground)",
-                        fontSize: 13,
-                    }}
-                    labelStyle={{ color: "var(--muted-foreground)", marginBottom: 4 }}
-                    itemStyle={{ padding: 0 }}
-                    labelFormatter={formatXAxis}
-                />
+                <ChartTooltip labelFormatter={formatXAxis} itemStyle={{ padding: 0 }} />
 
                 {series.map((s, i) => (
                     <Area

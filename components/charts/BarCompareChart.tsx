@@ -6,10 +6,10 @@ import {
     CartesianGrid,
     Cell,
     ResponsiveContainer,
-    Tooltip,
     XAxis,
     YAxis,
 } from "recharts";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 
 export default function BarCompareChart({
     data,
@@ -53,16 +53,8 @@ export default function BarCompareChart({
                     tickFormatter={(v) => Number(v).toLocaleString()}
                 />
 
-                <Tooltip
+                <ChartTooltip
                     cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-                    contentStyle={{
-                        background: "var(--card)",
-                        border: "1px solid var(--border-color)",
-                        borderRadius: 12,
-                        color: "var(--foreground)",
-                        fontSize: 13,
-                    }}
-                    labelStyle={{ color: "var(--muted-foreground)", marginBottom: 4 }}
                     formatter={(value: unknown) =>
                         formatValue
                             ? formatValue(Number(value))

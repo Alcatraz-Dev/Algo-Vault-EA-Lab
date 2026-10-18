@@ -51,10 +51,10 @@ import {
     Legend,
     XAxis,
     YAxis,
-    Tooltip,
     CartesianGrid,
 } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 
 import ProGate from "@/components/subscription/ProGate";
 import ModernPageHeader from "@/components/ui/modern-page-header";
@@ -870,13 +870,7 @@ export default function BacktestsPage() {
                                                 domain={["auto", "auto"]}
                                                 tickFormatter={(v) => `$${v}`}
                                             />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: "#09090b",
-                                                    borderColor: "#27272a",
-                                                    borderRadius: "12px",
-                                                    color: "#fff",
-                                                }}
+                                            <ChartTooltip
                                                 formatter={(val) => [`$${val}`, "Equity"]}
                                             />
                                             <Area
@@ -893,13 +887,7 @@ export default function BacktestsPage() {
                                             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                             <XAxis dataKey="date" stroke="#71717a" fontSize={12} tickLine={false} />
                                             <YAxis stroke="#71717a" fontSize={12} tickLine={false} tickFormatter={(v) => `-${v}%`} />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: "#09090b",
-                                                    borderColor: "#27272a",
-                                                    borderRadius: "12px",
-                                                    color: "#fff",
-                                                }}
+                                            <ChartTooltip
                                                 formatter={(val) => [`-${val}%`, "Drawdown"]}
                                             />
                                             <Bar dataKey="drawdown" fill="#ef4444" radius={[4, 4, 0, 0]} />
@@ -909,13 +897,7 @@ export default function BacktestsPage() {
                                             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                             <XAxis dataKey="day" stroke="#71717a" fontSize={12} tickLine={false} />
                                             <YAxis stroke="#71717a" fontSize={12} tickLine={false} tickFormatter={(v) => `$${v}`} />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: "#09090b",
-                                                    borderColor: "#27272a",
-                                                    borderRadius: "12px",
-                                                    color: "#fff",
-                                                }}
+                                            <ChartTooltip
                                                 formatter={(val) => [`$${val}`, "Net Profit"]}
                                             />
                                             <Bar dataKey="profit" fill="#10b981" radius={[6, 6, 0, 0]}>
@@ -929,13 +911,7 @@ export default function BacktestsPage() {
                                             <CartesianGrid strokeDasharray="3 3" stroke="#27272a" />
                                             <XAxis dataKey="session" stroke="#71717a" fontSize={12} tickLine={false} />
                                             <YAxis stroke="#71717a" fontSize={12} tickLine={false} tickFormatter={(v) => `$${v}`} />
-                                            <Tooltip
-                                                contentStyle={{
-                                                    backgroundColor: "#09090b",
-                                                    borderColor: "#27272a",
-                                                    borderRadius: "12px",
-                                                    color: "#fff",
-                                                }}
+                                            <ChartTooltip
                                                 formatter={(val) => [`$${val}`, "Net Profit"]}
                                             />
                                             <Bar dataKey="profit" fill="#3b82f6" radius={[6, 6, 0, 0]} />

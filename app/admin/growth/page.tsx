@@ -18,8 +18,9 @@ import {
     Users,
     Wallet,
 } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { Button } from "@/components/ui/button";
 import { MetricCard } from "@/components/ui/metric-card";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -272,8 +273,7 @@ export default function AdminGrowthOverviewPage() {
                                         <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                         <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
                                         <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
+                                        <ChartTooltip
                                             formatter={(value) => [fmtCurrency(Number(value) || 0), "Revenue"]}
                                             labelStyle={{ fontSize: 11 }}
                                         />

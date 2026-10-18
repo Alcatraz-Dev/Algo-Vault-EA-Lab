@@ -26,9 +26,9 @@ import {
     Area,
     XAxis,
     YAxis,
-    Tooltip,
     CartesianGrid,
 } from "recharts";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 
 type BotStats = {
     totalTrades: number;
@@ -286,7 +286,7 @@ export default function BotDetailPage() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(127,127,127,0.15)" />
                                 <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#888" />
                                 <YAxis tick={{ fontSize: 11 }} stroke="#888" tickFormatter={(v: number) => `$${v.toLocaleString()}`} />
-                                <Tooltip formatter={(v) => formatPnl(Number(v))} />
+                                <ChartTooltip formatter={(v) => formatPnl(Number(v))} />
                                 <Area type="monotone" dataKey="pnl" stroke="#22c55e" strokeWidth={2} fill="url(#pc)" />
                             </AreaChart>
                         </ResponsiveContainer>

@@ -14,6 +14,7 @@ import {
     YAxis,
 } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import {
     ArrowRight,
     Database,
@@ -26,14 +27,6 @@ import CountUp from "./CountUp";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { HomeBacktestAnalytics } from "@/lib/home-data";
-
-const TOOLTIP_STYLE = {
-    background: "var(--card)",
-    border: "1px solid var(--border-color)",
-    borderRadius: 12,
-    color: "var(--foreground)",
-    fontSize: 12,
-} as const;
 
 function formatUsd(value: number): string {
     return new Intl.NumberFormat("en-US", {
@@ -197,7 +190,7 @@ export default function EvidenceAnalytics({
                                                     <CartesianGrid stroke="var(--border-color)" strokeDasharray="3 3" vertical={false} />
                                                     <XAxis dataKey="label" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} interval={0} />
                                                     <YAxis tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} axisLine={false} tickLine={false} width={52} tickFormatter={(v: number) => formatUsd(v)} />
-                                                    <Tooltip cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }} contentStyle={TOOLTIP_STYLE} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
+                                                    <ChartTooltip cursor={{ stroke: "var(--border-color)", strokeDasharray: "3 3" }} formatter={(value) => [formatSignedUsd(Number(value)), "Equity"]} />
                                                     <Area type="monotone" dataKey="equity" stroke="var(--primary)" strokeWidth={2.5} fillOpacity={1} fill="url(#recordedEquity)" />
                                                 </AreaChart>
                                             </MeasuredResponsiveContainer>

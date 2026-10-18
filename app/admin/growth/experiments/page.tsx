@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { Plus, FlaskConical, Trophy, Play, Pause, Archive, MoreVertical } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -451,8 +452,7 @@ function ExperimentDetailDialog({
                                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                 <XAxis type="number" tick={{ fontSize: 10 }} />
                                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={80} />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
+                                <ChartTooltip
                                     formatter={(value: unknown) => [fmtNumber(Number(value)), "Value"]}
                                 />
                                 <Legend />

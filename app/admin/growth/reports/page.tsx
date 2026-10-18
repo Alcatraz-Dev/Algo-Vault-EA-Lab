@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { BarChart3, Download, FileBarChart2, FileText, Plus, RefreshCw } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -317,8 +318,7 @@ export default function AdminGrowthReportsPage() {
                                                     <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.1} />
                                                     <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                                                     <YAxis tick={{ fontSize: 10 }} />
-                                                    <Tooltip
-                                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border-color))" }}
+                                                    <ChartTooltip
                                                         formatter={(value: unknown) => [fmtCurrency(Number(value)), "Revenue"]}
                                                     />
                                                     <Legend />

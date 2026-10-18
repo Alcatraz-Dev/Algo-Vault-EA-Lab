@@ -5,8 +5,9 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2, Shield, TrendingUp, TrendingDown, DollarSign, Activity, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import ModernPageHeader from "@/components/ui/modern-page-header";
 
 type CurvePoint = { time: number; equity: number; balance: number };
@@ -148,9 +149,7 @@ export default function EquityCurvePage() {
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="date" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} />
                                     <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${Number(v).toLocaleString()}`} />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border-color)", borderRadius: "8px", fontSize: "11px" }}
-                                        labelStyle={{ color: "var(--muted-foreground)" }}
+                                    <ChartTooltip
                                         formatter={(value, name) => [`$${Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 })}`, name === "equity" ? "Equity" : "Balance"]}
                                     />
                                     <Area type="monotone" dataKey="equity" stroke="var(--chart-1)" strokeWidth={3} fill="url(#equityGrad)" />

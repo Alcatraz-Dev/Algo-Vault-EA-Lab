@@ -38,10 +38,10 @@ import {
     Area,
     XAxis,
     YAxis,
-    Tooltip,
     CartesianGrid,
 } from "recharts";
 import { MeasuredResponsiveContainer } from "@/components/charts/MeasuredResponsiveContainer";
+import { ChartTooltip } from "@/components/charts/ChartTooltip";
 
 import { strategyLabApi } from "@/lib/strategy-lab/client-api";
 import type { AnalysisApiResponse } from "@/lib/strategy-lab/client-api";
@@ -836,7 +836,7 @@ function EquityCurve({ equity }: { equity: { time: number; balance: number; equi
                         <CartesianGrid stroke="#ffffff10" vertical={false} />
                         <XAxis dataKey="label" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} minTickGap={40} />
                         <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} width={70} domain={["auto", "auto"]} />
-                        <Tooltip contentStyle={{ background: "#18181b", border: "1px solid #3f3f46", borderRadius: 10, fontSize: 12 }} />
+                        <ChartTooltip />
                         <Area type="monotone" dataKey="balance" stroke="#f59e0b" strokeWidth={2} fill="url(#eq)" name="Balance" />
                         <Area type="monotone" dataKey="equity" stroke="#818cf8" strokeWidth={1} fillOpacity={0} name="Equity" />
                     </AreaChart>
