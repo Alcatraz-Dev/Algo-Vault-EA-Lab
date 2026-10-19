@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import {
     listAllStrategies,
     saveStrategy,
@@ -12,13 +13,16 @@ import { validateStrategyDefinition } from "@/lib/strategy-engine/validation";
 import type { BotStrategy, StrategySource } from "@/lib/bot-studio/types";
 
 export async function GET(request: NextRequest) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
-        const strategies = await listAllStrategies();
+        let strategies = await listAllStrategies();
+        if (!access.isAdmin) {
+            strategies = strategies.filter((st: any) => st.authorId === access.uid);
+        }
         return NextResponse.json({ ok: true, strategies });
     } catch (error) {
         return NextResponse.json(
@@ -29,8 +33,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -81,7 +85,7 @@ export async function POST(request: NextRequest) {
 
         const strategyRecord: BotStrategy = {
             id,
-            authorId: admin.uid,
+            authorId: access.uid,
             name: name.trim(),
             description: description?.trim() ?? "",
             state: "valid",
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
             id,
             id,
             body.id ? "strategy_updated" : "strategy_created",
-            admin.uid,
+            access.uid,
             { name: strategyRecord.name }
         );
 

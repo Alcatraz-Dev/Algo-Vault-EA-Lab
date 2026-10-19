@@ -129,6 +129,12 @@ function mountHost(): HTMLDivElement {
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "local" && changes.avTheme) applyTheme();
+      // Propagate theme change to embedded side-panel iframe so it stays in sync.
+      const panelHost = document.querySelector("#algovault-floating-panel");
+      const frame = panelHost ? (panelHost.querySelector("iframe") as HTMLIFrameElement | null) : null;
+      if (frame?.contentWindow) {
+        try { frame.contentWindow.postMessage({ type: "AV_THEME_CHANGED" }, "*"); } catch {}
+      }
     });
   } catch { /* storage unavailable — keep current theme */ }
 

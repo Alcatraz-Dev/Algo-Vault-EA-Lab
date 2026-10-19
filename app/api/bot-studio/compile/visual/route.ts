@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import { compileNodeGraph } from "@/lib/bot-studio/compiler/visual-to-strategy";
 import { newStrategyId } from "@/lib/bot-studio/database";
 import type { NodeGraph } from "@/lib/bot-studio/compiler/types";
 
 export async function POST(request: NextRequest) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

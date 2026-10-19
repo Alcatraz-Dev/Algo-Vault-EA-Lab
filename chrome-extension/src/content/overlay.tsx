@@ -31,6 +31,7 @@ import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { getOverlayState, setOverlayState, getSettings } from "@/storage/storage";
 import { chartDisplayLabel } from "@/services/chart-intelligence";
 import { OVERLAY_CLOSED_EVENT } from "@/content/quick-launcher";
+import { shadowTokenCSS } from "./shadow-tokens";
 
 /* ── theme ───────────────────────────────────────────────────────────── */
 
@@ -802,12 +803,13 @@ function createShadowContainer(): HTMLDivElement {
   const style = document.createElement("style");
   style.textContent = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :host { all: initial; }
     button { font: inherit; }
   `;
+  const tokenStyle = document.createElement("style");
+  tokenStyle.textContent = shadowTokenCSS;
 
   const container = document.createElement("div");
-  container.className = "";
+  container.className = "av-tokens";
   container.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: visible;";
 
   function setThemeFromStorage() {
@@ -815,13 +817,14 @@ function createShadowContainer(): HTMLDivElement {
       chrome.storage.local.get(["avTheme"], (r) => {
         const mode = (r?.avTheme as string) || "system";
         const isLight = mode === "light" || (mode === "system" && window.matchMedia?.("(prefers-color-scheme: light)").matches);
-        container.setAttribute("data-theme", isLight ? "" : "dark");
+        container.setAttribute("data-theme", isLight ? "light" : "dark");
       });
     } catch { container.setAttribute("data-theme", "dark"); }
   }
   setThemeFromStorage();
   try { chrome.storage.onChanged.addListener((ch, a) => { if (a === "local" && ch.avTheme) setThemeFromStorage(); }); } catch { /* ignore */ }
 
+  shadow.appendChild(tokenStyle);
   shadow.appendChild(style);
   shadow.appendChild(container);
   document.documentElement.appendChild(host);

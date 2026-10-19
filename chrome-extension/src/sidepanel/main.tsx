@@ -16,6 +16,14 @@ try {
   }
 } catch { /* cross-origin parent — nothing to announce */ }
 
+/* When the floating-panel wrapper or the main popup switches theme,
+   the sidepanel iframe must follow so all surfaces stay identical. */
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "AV_THEME_CHANGED") {
+    initTheme().catch(() => {});
+  }
+});
+
 initTheme().finally(() => {
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>

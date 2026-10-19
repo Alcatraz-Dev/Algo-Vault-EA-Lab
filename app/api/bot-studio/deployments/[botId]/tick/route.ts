@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import { getDeployment, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
 import { BotRuntimeSession } from "@/lib/bot-studio/runtime";
 import { fetchCandles } from "@/lib/market-data/normalizer";
@@ -12,8 +13,8 @@ export async function POST(
     request: NextRequest,
     context: { params: Promise<{ botId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

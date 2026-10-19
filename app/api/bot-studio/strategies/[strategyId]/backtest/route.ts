@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import { getStrategy, saveStrategy, appendAudit } from "@/lib/bot-studio/database";
 import { loadDataBundle } from "@/lib/strategy-lab/market-data";
 import { backtestStrategy, defaultBacktestConfig } from "@/lib/strategy-lab/backtest";
@@ -19,8 +20,8 @@ export async function POST(
     request: NextRequest,
     context: { params: Promise<{ strategyId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
 
@@ -82,7 +83,7 @@ export async function POST(
             strategy.id,
             strategy.id,
             "strategy_backtested",
-            admin.uid,
+            access.uid,
             {
                 symbol,
                 period,

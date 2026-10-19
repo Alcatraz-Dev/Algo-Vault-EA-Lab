@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import { getStrategy, saveStrategy, newStrategyId, deleteStrategy, appendAudit } from "@/lib/bot-studio/database";
 import crypto from "crypto";
 
@@ -7,14 +8,17 @@ export async function GET(
     request: NextRequest,
     context: { params: Promise<{ strategyId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
         const { strategyId } = await context.params;
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
+        }
+        if (!access.isAdmin && strategy.authorId !== access.uid) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
         return NextResponse.json({ ok: true, strategy });
@@ -30,8 +34,8 @@ export async function PATCH(
     request: NextRequest,
     context: { params: Promise<{ strategyId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
@@ -50,7 +54,7 @@ export async function PATCH(
         }
         const updated = { ...strategy, name, updatedAt: Date.now() };
         await saveStrategy(updated);
-        await appendAudit(strategyId, strategyId, "strategy_updated", admin.uid, { name });
+        await appendAudit(strategyId, strategyId, "strategy_updated", access.uid, { name });
         return NextResponse.json({ ok: true, strategy: updated });
     } catch (error) {
         return NextResponse.json(
@@ -64,8 +68,8 @@ export async function POST(
     request: NextRequest,
     context: { params: Promise<{ strategyId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
@@ -86,7 +90,7 @@ export async function POST(
             ...strategy,
             id: newId,
             name,
-            authorId: admin.uid,
+            authorId: access.uid,
             state: "valid" as const,
             validationErrors: [],
             validationWarnings: [],
@@ -101,7 +105,7 @@ export async function POST(
             lastBacktestTrades: undefined,
         };
         await saveStrategy(copy);
-        await appendAudit(newId, strategyId, "strategy_created", admin.uid, { name, duplicatedFrom: strategyId });
+        await appendAudit(newId, strategyId, "strategy_created", access.uid, { name, duplicatedFrom: strategyId });
         return NextResponse.json({ ok: true, strategy: copy });
     } catch (error) {
         return NextResponse.json(
@@ -115,8 +119,8 @@ export async function DELETE(
     request: NextRequest,
     context: { params: Promise<{ strategyId: string }> }
 ) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     try {
@@ -127,7 +131,7 @@ export async function DELETE(
         }
         const success = await deleteStrategy(strategyId);
         if (success) {
-            await appendAudit(strategyId, strategyId, "admin_override", admin.uid, { name: strategy.name, action: "strategy_deleted" });
+            await appendAudit(strategyId, strategyId, "admin_override", access.uid, { name: strategy.name, action: "strategy_deleted" });
         }
         return NextResponse.json({ ok: true, deleted: success });
     } catch (error) {

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, errMessage } from "@/lib/admin-auth";
+import { errMessage } from "@/lib/admin-auth";
+import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
 import {
     listAllDeployments,
     getStrategy,
@@ -11,8 +12,8 @@ import {
 import type { BotDeployment } from "@/lib/bot-studio/types";
 
 export async function GET(request: NextRequest) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -28,8 +29,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    const admin = await requireAdmin(request);
-    if (!admin) {
+    const access = await requireBotStudioAccess(request);
+    if (!access) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
             id: botId,
             strategyId,
             deployedFingerprint: strategy.fingerprint,
-            ownerId: admin.uid,
+            ownerId: access.uid,
             mt5Account: mt5Account?.trim() || "default",
             accountMode: accountMode === "live" ? "live" : "demo",
             runtimeState: "ready",
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest) {
             botId,
             strategyId,
             "strategy_deployed",
-            admin.uid,
+            access.uid,
             {
                 strategyName: strategy.name,
                 accountMode: deployment.accountMode,
