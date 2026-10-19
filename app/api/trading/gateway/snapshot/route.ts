@@ -138,6 +138,48 @@ export async function POST(request: NextRequest) {
             .ref(`trading_orders/${userId}/${accountId}`)
             .set(ordersData);
 
+        // ── MT5 Deal History (closedDeals) — full account history ───────
+        // The gateway EA harvests MT5 deal history (HistorySelect) and
+        // reports every closing deal. These are written to `trading_history`
+        // so the terminal shows the complete account trade history regardless
+        // of whether the position was seen open in a prior snapshot.
+        const closedDeals = Array.isArray(body.closedDeals) ? body.closedDeals : [];
+        if (closedDeals.length > 0) {
+            for (const deal of closedDeals) {
+                const d = deal as Record<string, unknown>;
+                const positionId = String(d.positionId || d.position || "").trim();
+                const ticket = positionId || String(d.dealTicket || d.ticket || "").trim();
+                if (!ticket) continue;
+
+                const openPrice = Number(d.openPrice || 0);
+                const closePrice = Number(d.closePrice || 0);
+                const direction = String(d.type || "BUY").toUpperCase() === "SELL" ? -1 : 1;
+                const priceMovePct =
+                    openPrice > 0 && closePrice > 0
+                        ? Math.round(((closePrice - openPrice) / openPrice) * 100 * direction * 100) / 100
+                        : null;
+
+                await adminDatabase
+                    .ref(`trading_history/${userId}/${accountId}/${ticket}`)
+                    .set({
+                        ticket,
+                        symbol: String(d.symbol || ""),
+                        type: String(d.type || "BUY"),
+                        volume: Number(d.volume || 0),
+                        openPrice,
+                        closePrice,
+                        profit: Number(d.profit || 0),
+                        swap: Number(d.swap || 0),
+                        magic: String(d.magic || ""),
+                        comment: String(d.comment || ""),
+                        openedAt: Number(d.openedAt || 0),
+                        closedAt: Number(d.closedAt || Date.now()),
+                        closeSource: "mt5_deal",
+                        priceMovePct,
+                    });
+            }
+        }
+
         // ── Copy trading: mirror master opens / closes ────────────────────
         // The gateway EA reports every position on each snapshot, so diffing
         // against the previous snapshot yields newly opened masters (mirror

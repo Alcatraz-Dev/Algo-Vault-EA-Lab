@@ -207,7 +207,7 @@ int    CountManagedOrders();
 int OnInit()
 {
    Print("==========================================");
-   Print("AlgoVault Trade Gateway v1.2.0");
+   Print("AlgoVault Trade Gateway v1.3.0");
    Print("Initializing...");
    Print("==========================================");
 
@@ -1468,7 +1468,10 @@ bool SendSnapshot()
       "," +
 
       "\"orders\":" +
-      BuildOrdersJson() +
+      BuildOrdersJson() + ",
+
+      \"closedDeals\":" +
+      BuildClosedDealsJson() +
 
       "}";
 
@@ -1488,6 +1491,110 @@ bool SendSnapshot()
       DebugPrint("Snapshot failed.");
 
    return success;
+}
+
+
+//+------------------------------------------------------------------+
+//| Build closed-deal history JSON (MT5 deal history — closes)        |
+//+------------------------------------------------------------------+
+
+string BuildClosedDealsJson()
+{
+   string json = "[";
+
+   datetime from = 0;
+   datetime to   = TimeCurrent();
+
+   if(!HistorySelect(from, to))
+      return "[]";
+
+   int total = HistoryDealsTotal();
+
+   bool first = true;
+
+   for(int i = total - 1; i >= 0; i--) // newest first
+   {
+      if(!HistoryDealSelectByIndex(i))
+         continue;
+
+      ulong ticket = HistoryDealGetTicket(i);
+      if(ticket == 0)
+         continue;
+
+      long entry = HistoryDealGetInteger(ticket, DEAL_ENTRY);
+
+      // Only closing (exit) deals represent completed trades.
+      if(entry != DEAL_ENTRY_OUT)
+         continue;
+
+      // Report every deal on this account so Trade History is complete.
+      // The server keys by DEAL_POSITION_ID (the open position ticket) to
+      // match the snapshot-diff path, avoiding duplicate rows.
+
+      long magic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
+
+      long positionId = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
+      long entryDeal  = HistoryDealGetInteger(ticket, DEAL_POSITION_BY_ID);
+
+      string symbol     = HistoryDealGetString(ticket, DEAL_SYMBOL);
+      double volume     = HistoryDealGetDouble(ticket, DEAL_VOLUME);
+      double closePrice = HistoryDealGetDouble(ticket, DEAL_PRICE);
+      double profit     = HistoryDealGetDouble(ticket, DEAL_PROFIT);
+      double swap       = HistoryDealGetDouble(ticket, DEAL_SWAP);
+      long dealType     = HistoryDealGetInteger(ticket, DEAL_TYPE);
+      long time         = HistoryDealGetInteger(ticket, DEAL_TIME);
+      string comment    = HistoryDealGetString(ticket, DEAL_COMMENT);
+
+      // Derive position side from the exit deal (opposite of deal direction).
+      string posType = "BUY";
+      if(dealType == DEAL_TYPE_SELL)
+         posType = "BUY";      // exit SELL deal = closing a BUY position? No.
+      else if(dealType == DEAL_TYPE_BUY)
+         posType = "SELL";     // exit BUY deal = closing a SELL position
+      else
+         posType = "BUY";
+
+      // Correct derivation: exit deal type = opposite of position side.
+      if(dealType == DEAL_TYPE_BUY)
+         posType = "SELL";
+      else if(dealType == DEAL_TYPE_SELL)
+         posType = "BUY";
+
+      double openPrice = 0;
+      long   openTime  = 0;
+      if(entryDeal > 0)
+      {
+         openPrice = HistoryDealGetDouble(entryDeal, DEAL_PRICE);
+         openTime  = HistoryDealGetInteger(entryDeal, DEAL_TIME);
+      }
+
+      if(!first)
+         json += ",";
+
+      first = false;
+
+      json +=
+         "{" +
+         "\"dealTicket\":" + IntegerToString((long)ticket) +"," +
+         "\"positionId\":" + (positionId > 0 ? IntegerToString((long)positionId) : "0") + "," +
+         "\"symbol\":\"" + JsonEscape(symbol) + "\"," +
+         "\"type\":\"" + posType + "\"," +
+         "\"volume\":" + DoubleToString(volume, 8) + "," +
+         "\"openPrice\":" + DoubleToString(openPrice, 10) + "," +
+         "\"closePrice\":" + DoubleToString(closePrice, 10) + "," +
+         "\"profit\":" + DoubleToString(profit, 2) + "," +
+         "\"swap\":" + DoubleToString(swap, 2) + "," +
+         "\"magic\":" + IntegerToString((long)magic) + "," +
+         "\"comment\":\"" + JsonEscape(comment) + "\"," +
+         "\"openedAt\":" + IntegerToString(openTime) + "," +
+         "\"closedAt\":" + IntegerToString(time) + "," +
+         "\"closeSource\":\"mt5_deal\"" +
+         "}";
+   }
+
+   json += "]";
+
+   return json;
 }
 
 
