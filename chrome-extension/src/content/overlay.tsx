@@ -583,6 +583,7 @@ function AlgoVaultOverlay() {
         </span>
       </div>
 
+      <div style={{marginLeft:44,padding:"8px 10px 10px",minHeight:0}}>
       {/* price row */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "8px 10px 4px" }}>
         <span
@@ -736,14 +737,15 @@ function AlgoVaultOverlay() {
         )}
       </div>
 
-      {/* actions — simple row like other popups */}
-      <div style={{ display: "flex", gap: 4, padding: "7px 10px 8px", borderTop: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)" }}>
-        {ACTIONS.map((a) => (
-          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:"6px 0 5px", borderRadius:"0.75rem", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", color:"#f5f5f5", fontFamily:C.sans, fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s ease" }} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.12)";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.06)";}}>
-            <a.Icon size={14} strokeWidth={2} />
-            <span style={{fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{a.label}</span>
+      </div>
+
+      {/* sidebar rail — 5 actions (sidepanel style) */}
+      <div style={{position:"absolute",left:0,top:38,bottom:0,width:44,display:"flex",flexDirection:"column",gap:3,padding:"6px 4px 8px",borderRight:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.03)"}}>
+        {ACTIONS.map(a=>
+          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} aria-label={a.label} style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:"#f5f5f5",cursor:"pointer",transition:"background 0.15s ease"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.12)";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}>
+            <a.Icon size={15} strokeWidth={2} />
           </button>
-        ))}
+        )}
       </div>
     </div>
   );
