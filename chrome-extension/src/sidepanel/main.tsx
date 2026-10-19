@@ -18,6 +18,13 @@ try {
 
 /* When the floating-panel wrapper or the main popup switches theme,
    the sidepanel iframe must follow so all surfaces stay identical. */
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request?.type === "AV_THEME_CHANGED") {
+    initTheme().catch(() => {});
+  }
+});
+
 window.addEventListener("message", (e) => {
   if (e.data?.type === "AV_THEME_CHANGED") {
     initTheme().catch(() => {});

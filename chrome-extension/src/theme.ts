@@ -111,4 +111,9 @@ export function setTheme(mode: ThemeMode): void {
   } catch {
     /* ignore */
   }
+  try {
+    chrome.runtime.sendMessage?.({ type: "AV_THEME_CHANGED" });
+  } catch {
+    /* ignore */
+  }
 }
