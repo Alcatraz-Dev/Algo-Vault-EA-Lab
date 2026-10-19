@@ -26,6 +26,9 @@ export async function POST(
         if (!deployment) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
+        if (!access.isAdmin && deployment.ownerId !== access.uid) {
+            return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
+        }
 
         const body = await request.json();
         const targetState: BotLifecycleState = body?.targetState;

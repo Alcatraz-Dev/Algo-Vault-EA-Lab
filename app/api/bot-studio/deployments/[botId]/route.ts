@@ -26,6 +26,9 @@ export async function GET(
         if (!deployment) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
+        if (!access.isAdmin && deployment.ownerId !== access.uid) {
+            return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
+        }
 
         const [strategy, logs, signals, executions] = await Promise.all([
             getStrategy(deployment.strategyId),
@@ -63,6 +66,9 @@ export async function PATCH(
         const { botId } = await context.params;
         const deployment = await getDeployment(botId);
         if (!deployment) {
+            return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
+        }
+        if (!access.isAdmin && deployment.ownerId !== access.uid) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
 
