@@ -25,6 +25,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import { shadowTokenCSS } from "./shadow-tokens";
 import type { ChartContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { getOverlayState, setOverlayState, getSettings } from "@/storage/storage";
@@ -514,13 +515,12 @@ function AlgoVaultOverlay() {
         fontSize: 12,
         userSelect: "none",
         color: C.text,
-        background: C.panel,
+        background: "hsl(var(--card) / 1)",
         border: C.border,
         borderRadius: "0.875rem",
         boxShadow: isDragging
-          ? "0 18px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 77, 0, 0.25)"
-          : "0 10px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 77, 0, 0.08)",
-        backdropFilter: "blur(14px)",
+          ? "0 18px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px hsl(var(--brand) / 0.25)"
+          : "0 10px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px hsl(var(--brand) / 0.1)",
         overflow: "hidden",
         transition: isDragging ? "none" : "box-shadow 0.2s ease",
       }}
@@ -583,6 +583,7 @@ function AlgoVaultOverlay() {
         </span>
       </div>
 
+      <div style={{ paddingLeft: 44 }}>
       {/* price row */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "8px 10px 4px" }}>
         <span
@@ -616,7 +617,6 @@ function AlgoVaultOverlay() {
                 borderRadius: "50%",
                 background: C.green,
                 boxShadow: "0 0 6px rgba(52, 211, 153, 0.9)",
-                animation: "algovaultPulse 1.6s ease-in-out infinite",
               }}
             />
             LIVE
@@ -737,30 +737,16 @@ function AlgoVaultOverlay() {
         )}
       </div>
 
-      {/* actions */}
-      <div
-        style={{
-          display: "flex",
-          gap: 5,
-          padding: "9px 8px 10px",
-          borderTop: `1px solid ${C.borderSoft}`,
-          marginTop: 6,
-          background: "hsl(var(--secondary) / 0.25)",
-        }}
-      >
-        {ACTIONS.map((a) => (
-          <ActionButton
-            key={a.id}
-            label={a.label}
-            Icon={a.Icon}
-            accent={a.accent}
-            onClick={() => handleAction(a.view)}
-          />
-        ))}
       </div>
 
-      {/* keyframes for the LIVE pulse */}
-      <style>{`@keyframes algovaultPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }`}</style>
+      {/* vertical side rail */}
+      <div style={{position:"absolute",left:0,top:38,bottom:0,width:44,display:"flex",flexDirection:"column",gap:2,padding:"6px 4px 8px",borderRight:`1px solid ${C.borderSoft}`,background:"hsl(var(--secondary) / 0.35)"}}>
+        {ACTIONS.map(a=>
+          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:a.accent,cursor:"pointer",transition:"all 0.15s ease"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background=`${a.accent}18`;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}>
+            <a.Icon size={15} strokeWidth={2}/>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -806,8 +792,6 @@ function IconButton({
 
 /* ── boot ────────────────────────────────────────────────────────────── */
 
-import { shadowTokenCSS } from "./shadow-tokens";
-
 function createShadowContainer(): HTMLDivElement {
   const host = document.createElement("div");
   host.id = "algovault-overlay-host";
@@ -815,19 +799,29 @@ function createShadowContainer(): HTMLDivElement {
 
   const shadow = host.attachShadow({ mode: "open" });
 
-  const tokenStyle = document.createElement("style");
-  tokenStyle.textContent = shadowTokenCSS;
-  shadow.appendChild(tokenStyle);
-
   const style = document.createElement("style");
   style.textContent = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :host { all: initial; }
     button { font: inherit; }
+    ${shadowTokenCSS}
   `;
 
   const container = document.createElement("div");
+  container.className = "av-tokens";
   container.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: visible;";
+
+  function setThemeFromStorage() {
+    try {
+      chrome.storage.local.get(["avTheme"], (r) => {
+        const mode = (r?.avTheme as string) || "system";
+        const isLight = mode === "light" || (mode === "system" && window.matchMedia?.("(prefers-color-scheme: light)").matches);
+        container.setAttribute("data-theme", isLight ? "" : "dark");
+      });
+    } catch { container.setAttribute("data-theme", "dark"); }
+  }
+  setThemeFromStorage();
+  try { chrome.storage.onChanged.addListener((ch, a) => { if (a === "local" && ch.avTheme) setThemeFromStorage(); }); } catch { /* ignore */ }
 
   shadow.appendChild(style);
   shadow.appendChild(container);

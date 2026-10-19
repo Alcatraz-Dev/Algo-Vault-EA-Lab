@@ -1,22 +1,14 @@
 import raw from "../styles/tokens.css?inline";
 
-function extract(root: string): string {
-  const start = raw.indexOf(root + " {");
-  if (start === -1) return "";
-  let depth = 1;
-  let i = start + root.length + 2;
-  while (i < raw.length && depth > 0) {
-    if (raw[i] === "{") depth++;
-    else if (raw[i] === "}") depth--;
-    i++;
-  }
-  return raw.slice(start + root.length + 2, i - 1);
+function extract(selector: string): string {
+  const s = raw.indexOf(selector + " {");
+  if (s === -1) return "";
+  let d = 1, i = s + selector.length + 2;
+  while (i < raw.length && d > 0) { if (raw[i] === "{") d++; else if (raw[i] === "}") d--; i++; }
+  return raw.slice(s + selector.length + 2, i - 1);
 }
 
-const light = extract(":root");
-const dark = extract(".dark");
-
 export const shadowTokenCSS = `
-:host { ${light} }
-:host([data-theme="dark"]) { ${dark} }
+.av-tokens { ${extract(":root")} }
+.av-tokens[data-theme="dark"] { ${extract(".dark")} }
 `;
