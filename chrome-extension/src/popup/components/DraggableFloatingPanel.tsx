@@ -42,7 +42,7 @@ export function DraggableFloatingPanel({
   return (
     <div
       className={cn(
-        "absolute z-50 w-72 rounded-2xl border border-border bg-card/95 shadow-2xl backdrop-blur-xl select-none",
+        "absolute z-50 w-72 rounded-2xl border border-border bg-card shadow-2xl backdrop-blur-xl select-none",
         dragging ? "cursor-grabbing" : "cursor-default",
         "transition-shadow duration-200"
       )}

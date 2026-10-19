@@ -1154,10 +1154,10 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
-                {/* Bottom Positions / Orders / History Tabs */}
-                <div className="rounded-lg border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                    <div className="flex border-b border-border px-4 pt-3">
-                        <div className="flex gap-2">
+                {/* Bottom Positions / Orders / History Tabs — compact terminal dock */}
+                <div className="rounded-xl border border-border bg-card shadow-sm">
+                    <div className="flex items-center justify-between border-b border-border px-3 pt-2">
+                        <div className="flex gap-1">
                             <button
                                 type="button"
                                 onClick={() =>
