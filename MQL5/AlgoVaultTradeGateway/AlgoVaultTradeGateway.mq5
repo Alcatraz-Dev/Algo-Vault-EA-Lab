@@ -1499,6 +1499,120 @@ bool SendSnapshot()
 //| Build closed-deal history JSON (MT5 deal history — closes)        |
 //+------------------------------------------------------------------+
 
+//+------------------------------------------------------------------+
+//| Report one closing deal the moment it happens                    |
+//+------------------------------------------------------------------+
+
+bool ReportClosedDeal(ulong dealTicket)
+{
+   if(!isRegistered)
+      return false;
+
+   if(!HistorySelect(0, TimeCurrent()))
+      return false;
+
+   long entry = HistoryDealGetInteger(dealTicket, DEAL_ENTRY);
+
+   // Only closing deals complete a trade.
+   if(entry != DEAL_ENTRY_OUT && entry != DEAL_ENTRY_INOUT)
+      return false;
+
+   long   positionId = HistoryDealGetInteger(dealTicket, DEAL_POSITION_ID);
+   string symbol     = HistoryDealGetString(dealTicket, DEAL_SYMBOL);
+   double volume     = HistoryDealGetDouble(dealTicket, DEAL_VOLUME);
+   double closePrice = HistoryDealGetDouble(dealTicket, DEAL_PRICE);
+   double profit     = HistoryDealGetDouble(dealTicket, DEAL_PROFIT);
+   double swap       = HistoryDealGetDouble(dealTicket, DEAL_SWAP);
+   long   dealType   = HistoryDealGetInteger(dealTicket, DEAL_TYPE);
+   long   closeTime  = HistoryDealGetInteger(dealTicket, DEAL_TIME);
+   long   magic      = HistoryDealGetInteger(dealTicket, DEAL_MAGIC);
+   string comment    = HistoryDealGetString(dealTicket, DEAL_COMMENT);
+
+   // Exit deal type is the opposite of the position side.
+   string posType = (dealType == DEAL_TYPE_BUY) ? "SELL" : "BUY";
+
+   // Find the opening deal of the same position for open price / time.
+   double openPrice = 0;
+   long   openTime  = 0;
+   if(positionId > 0 && HistorySelectByPosition(positionId))
+   {
+      int total = HistoryDealsTotal();
+      for(int i = 0; i < total; i++)
+      {
+         ulong t = HistoryDealGetTicket(i);
+         if(t == 0)
+            continue;
+         if(HistoryDealGetInteger(t, DEAL_ENTRY) == DEAL_ENTRY_IN)
+         {
+            openPrice = HistoryDealGetDouble(t, DEAL_PRICE);
+            openTime  = HistoryDealGetInteger(t, DEAL_TIME);
+            break;
+         }
+      }
+   }
+
+   string deal =
+      "{" +
+      "\"dealTicket\":" + IntegerToString((long)dealTicket) + "," +
+      "\"positionId\":" + IntegerToString((long)positionId) + "," +
+      "\"symbol\":\"" + JsonEscape(symbol) + "\"," +
+      "\"type\":\"" + posType + "\"," +
+      "\"volume\":" + DoubleToString(volume, 8) + "," +
+      "\"openPrice\":" + DoubleToString(openPrice, 10) + "," +
+      "\"closePrice\":" + DoubleToString(closePrice, 10) + "," +
+      "\"profit\":" + DoubleToString(profit, 2) + "," +
+      "\"swap\":" + DoubleToString(swap, 2) + "," +
+      "\"magic\":" + IntegerToString((long)magic) + "," +
+      "\"comment\":\"" + JsonEscape(comment) + "\"," +
+      "\"openedAt\":" + IntegerToString(openTime) + "," +
+      "\"closedAt\":" + IntegerToString(closeTime) +
+      "}";
+
+   string payload =
+      "{\"accountNumber\":\"" +
+      JsonEscape(IntegerToString((long)accInfo.Login())) +
+      "\",\"closedDeal\":" + deal + "}";
+
+   string url = RuntimePlatformURL + "/api/trading/gateway/execution";
+   string response;
+   string responseHeaders;
+   int httpCode = -1;
+
+   bool sent = SendHTTPRequest("POST", url, payload, response, httpCode, responseHeaders);
+
+   if(!sent || httpCode < 200 || httpCode >= 300)
+   {
+      Print("Closed deal report failed. Deal: ", IntegerToString((long)dealTicket),
+            " HTTP: ", httpCode);
+      return false;
+   }
+
+   return true;
+}
+
+
+//+------------------------------------------------------------------+
+//| Trade transaction - streams closing deals in real time            |
+//+------------------------------------------------------------------+
+
+void OnTradeTransaction(const MqlTradeTransaction &trans,
+                        const MqlTradeRequest &request,
+                        const MqlTradeResult &result)
+{
+   if(trans.type != TRADE_TRANSACTION_DEAL_ADD)
+      return;
+
+   if(trans.deal == 0)
+      return;
+
+   ReportClosedDeal(trans.deal);
+}
+
+
+//+------------------------------------------------------------------+
+//| Closed deals (snapshot backfill)                                 |
+//+------------------------------------------------------------------+
+
 string BuildClosedDealsJson()
 {
    string json = "[";

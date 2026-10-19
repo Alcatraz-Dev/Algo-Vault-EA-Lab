@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
+import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,41 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json().catch(() => ({})) as Record<string, unknown>;
         const gatewayToken = resolveGatewayToken(request.headers.get("authorization"), body);
+
+        // Real-time closed deal: the EA posts each closing deal as it happens
+        // (OnTradeTransaction) so Trade History streams like the Execution Log.
+        if (body.closedDeal && typeof body.closedDeal === "object") {
+            if (!gatewayToken) {
+                return NextResponse.json(
+                    { success: false, error: "gatewayToken is required." },
+                    { status: 400, headers: corsHeaders }
+                );
+            }
+            const gatewayUser = await verifyGatewayToken(gatewayToken);
+            if (!gatewayUser) {
+                return NextResponse.json(
+                    { success: false, error: "Invalid gateway token." },
+                    { status: 403, headers: corsHeaders }
+                );
+            }
+            const accountNumber = String(body.accountNumber || "").trim();
+            if (!accountNumber) {
+                return NextResponse.json(
+                    { success: false, error: "accountNumber is required." },
+                    { status: 400, headers: corsHeaders }
+                );
+            }
+            const ticket = await writeClosedDealHistory(
+                gatewayUser.userId,
+                `gateway_${accountNumber}`,
+                body.closedDeal as Record<string, unknown>
+            );
+            return NextResponse.json(
+                { success: Boolean(ticket), ticket },
+                { status: ticket ? 200 : 400, headers: corsHeaders }
+            );
+        }
+
         const clientOrderId = String(body.clientOrderId || body.commandId || "").trim();
         const mt5Ticket = String(body.mt5Ticket || body.order || "").trim();
         const executionPrice = Number(body.executionPrice || body.price || 0);
