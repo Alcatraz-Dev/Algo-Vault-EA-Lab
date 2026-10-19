@@ -175,6 +175,7 @@ ulong  FindOrderTicket(string symbol);
 string BuildAccountJson();
 string BuildPositionsJson();
 string BuildOrdersJson();
+string BuildClosedDealsJson();
 
 string JsonEscape(string value);
 string JsonGetString(string json, string key, string defaultValue = "");
@@ -1468,9 +1469,9 @@ bool SendSnapshot()
       "," +
 
       "\"orders\":" +
-      BuildOrdersJson() + ",
+      BuildOrdersJson() + "," +
 
-      \"closedDeals\":" +
+      "\"closedDeals\":" +
       BuildClosedDealsJson() +
 
       "}";
