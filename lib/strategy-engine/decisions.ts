@@ -141,7 +141,9 @@ export function evaluateRule(rule: StrategyRule, feats: CandleFeatures | null): 
             break;
         }
         case "liquidity": {
-            if (typeof rule.value === "number") {
+            if (rule.value === "buy_side_sweep_20") ok = feats.ind.buy_side_sweep_20 === 1;
+            else if (rule.value === "sell_side_sweep_20") ok = feats.ind.sell_side_sweep_20 === 1;
+            else if (typeof rule.value === "number") {
                 ok = compareNumeric(rule.operator, feats.lastSweepBarsAgo, rule.value as number);
             } else if (Array.isArray(rule.value)) {
                 ok = compareStringsArray(rule.operator, feats.lastSweep?.side ?? "none", rule.value as string[]);
@@ -163,12 +165,18 @@ export function evaluateRule(rule: StrategyRule, feats: CandleFeatures | null): 
                 case "hl": ok = feats.higherLow; break;
                 case "lh": ok = feats.lowerHigh; break;
                 case "ll": ok = feats.lowerLow; break;
+                case "bos_break_up": ok = feats.structureBreakUp; break;
+                case "bos_break_down": ok = feats.structureBreakDown; break;
+                case "choch_up": ok = feats.structureShiftUp; break;
+                case "choch_down": ok = feats.structureShiftDown; break;
                 default: ok = false;
             }
             break;
         }
         case "fvg": {
-            if (typeof rule.value === "number") {
+            if (rule.value === "bullish_retest") ok = feats.bullishFvgRetest;
+            else if (rule.value === "bearish_retest") ok = feats.bearishFvgRetest;
+            else if (typeof rule.value === "number") {
                 ok = compareNumeric(rule.operator, feats.fvgBarsAgo, rule.value as number);
             } else if (Array.isArray(rule.value)) {
                 const dir = feats.fvgDirection ?? "none";
@@ -179,7 +187,9 @@ export function evaluateRule(rule: StrategyRule, feats: CandleFeatures | null): 
             break;
         }
         case "order_block": {
-            ok = compareStrings(rule.operator, feats.obDirection ?? "none", String(rule.value));
+            if (rule.value === "bullish_retest") ok = feats.bullishOrderBlockRetest;
+            else if (rule.value === "bearish_retest") ok = feats.bearishOrderBlockRetest;
+            else ok = compareStrings(rule.operator, feats.obDirection ?? "none", String(rule.value));
             break;
         }
         case "session": {

@@ -14,7 +14,8 @@ export type IndicatorFamily =
     | "Trend strength"
     | "Volatility"
     | "Channels"
-    | "Candle";
+    | "Candle"
+    | "Smart money";
 
 export interface IndicatorDef {
     key: string;
@@ -94,6 +95,20 @@ const DEFS = [
 
     // Candle
     { key: "candle_body_pct", label: "Candle body %", family: "Candle", description: "Size of the candle body as percent of its high-low range. High values mean a decisive candle.", defaultValue: 50 },
+
+    // Smart money concepts: mechanical, candle-only definitions (not broker/session dependent).
+    { key: "premium_discount_20", label: "Premium / discount (20)", family: "Smart money", description: "Close position in the prior 20 completed candles' high-low range; 0=discount, 50=midpoint, 100=premium.", defaultValue: 50 },
+    { key: "buy_side_sweep_20", label: "Buy-side sweep (20)", family: "Smart money", description: "Current high exceeds the prior 20-bar high and closes back below that level; 1=true, 0=false.", defaultValue: 0 },
+    { key: "sell_side_sweep_20", label: "Sell-side sweep (20)", family: "Smart money", description: "Current low breaks the prior 20-bar low and closes back above that level; 1=true, 0=false.", defaultValue: 0 },
+    { key: "bullish_fvg_3", label: "Bullish FVG (3-candle)", family: "Smart money", description: "Third candle low is above the first candle high; 1 on formation, otherwise 0.", defaultValue: 0 },
+    { key: "bearish_fvg_3", label: "Bearish FVG (3-candle)", family: "Smart money", description: "Third candle high is below the first candle low; 1 on formation, otherwise 0.", defaultValue: 0 },
+    { key: "swing_high_3", label: "Confirmed swing high (3)", family: "Smart money", description: "Last confirmed 3-left/3-right pivot high; only available after three right-side candles close.", defaultCompareTo: "close" },
+    { key: "swing_low_3", label: "Confirmed swing low (3)", family: "Smart money", description: "Last confirmed 3-left/3-right pivot low; only available after three right-side candles close.", defaultCompareTo: "close" },
+    { key: "body_atr_14", label: "Candle body / ATR 14", family: "Smart money", description: "Absolute candle body divided by Wilder ATR(14), for measuring displacement.", defaultValue: 1 },
+    { key: "bullish_displacement_14", label: "Bullish displacement", family: "Smart money", description: "Bull candle body is at least 1 ATR and at least 70% of its range; 1=true, 0=false.", defaultValue: 1 },
+    { key: "bearish_displacement_14", label: "Bearish displacement", family: "Smart money", description: "Bear candle body is at least 1 ATR and at least 70% of its range; 1=true, 0=false.", defaultValue: 1 },
+    { key: "bullish_fvg_retest_3", label: "Bullish FVG retest", family: "Smart money", description: "Candle overlaps the most recent bullish 3-candle FVG after its formation; 1=true, 0=false.", defaultValue: 1 },
+    { key: "bearish_fvg_retest_3", label: "Bearish FVG retest", family: "Smart money", description: "Candle overlaps the most recent bearish 3-candle FVG after its formation; 1=true, 0=false.", defaultValue: 1 },
 ] as const satisfies readonly IndicatorDef[];
 
 export type IndicatorKey = (typeof DEFS)[number]["key"];
@@ -111,6 +126,7 @@ export const INDICATOR_FAMILIES: readonly IndicatorFamily[] = [
     "Volatility",
     "Channels",
     "Candle",
+    "Smart money",
 ];
 
 export function isIndicatorKey(value: string): value is IndicatorKey {
@@ -464,6 +480,67 @@ export function buildIndicatorSeries(candles: MarketCandle[]): Record<string, nu
     const d55 = donchian(high, low, 55);
     series.donchian_high_55 = d55.hi;
     series.donchian_low_55 = d55.lo;
+
+    const d20Prior = donchian(high, low, 20);
+    series.premium_discount_20 = close.map((c, i) => {
+        const top = d20Prior.hi[i];
+        const bottom = d20Prior.lo[i];
+        return !Number.isFinite(top) || !Number.isFinite(bottom) || top === bottom
+            ? Number.NaN
+            : ((c - bottom) / (top - bottom)) * 100;
+    });
+    series.buy_side_sweep_20 = close.map((c, i) =>
+        Number.isFinite(d20Prior.hi[i]) && high[i] > d20Prior.hi[i] && c < d20Prior.hi[i] ? 1 : 0,
+    );
+    series.sell_side_sweep_20 = close.map((c, i) =>
+        Number.isFinite(d20Prior.lo[i]) && low[i] < d20Prior.lo[i] && c > d20Prior.lo[i] ? 1 : 0,
+    );
+    series.bullish_fvg_3 = close.map((_, i) => i >= 2 && low[i] > high[i - 2] ? 1 : 0);
+    series.bearish_fvg_3 = close.map((_, i) => i >= 2 && high[i] < low[i - 2] ? 1 : 0);
+    const swingHigh = filled(close.length);
+    const swingLow = filled(close.length);
+    for (let i = 2 * 3; i < close.length; i++) {
+        const pivot = i - 3;
+        let isHigh = true;
+        let isLow = true;
+        for (let j = pivot - 3; j <= pivot + 3; j++) {
+            if (j === pivot) continue;
+            if (high[j] >= high[pivot]) isHigh = false;
+            if (low[j] <= low[pivot]) isLow = false;
+        }
+        swingHigh[i] = isHigh ? high[pivot] : (i > 0 ? swingHigh[i - 1] : Number.NaN);
+        swingLow[i] = isLow ? low[pivot] : (i > 0 ? swingLow[i - 1] : Number.NaN);
+    }
+    series.swing_high_3 = swingHigh;
+    series.swing_low_3 = swingLow;
+
+    const bullishFvgRetest = filled(close.length).fill(0);
+    const bearishFvgRetest = filled(close.length).fill(0);
+    let bullishGap: { low: number; high: number; formedAt: number } | null = null;
+    let bearishGap: { low: number; high: number; formedAt: number } | null = null;
+    for (let i = 2; i < close.length; i++) {
+        if (series.bullish_fvg_3[i] === 1) bullishGap = { low: high[i - 2], high: low[i], formedAt: i };
+        else if (bullishGap && i > bullishGap.formedAt && low[i] <= bullishGap.high && high[i] >= bullishGap.low) {
+            bullishFvgRetest[i] = 1;
+            bullishGap = null;
+        }
+        if (series.bearish_fvg_3[i] === 1) bearishGap = { low: high[i], high: low[i - 2], formedAt: i };
+        else if (bearishGap && i > bearishGap.formedAt && high[i] >= bearishGap.low && low[i] <= bearishGap.high) {
+            bearishFvgRetest[i] = 1;
+            bearishGap = null;
+        }
+    }
+    series.bullish_fvg_retest_3 = bullishFvgRetest;
+    series.bearish_fvg_retest_3 = bearishFvgRetest;
+    series.body_atr_14 = close.map((c, i) => finiteOrNaN(Math.abs(c - open[i]) / atr14[i]));
+    series.bullish_displacement_14 = close.map((c, i) =>
+        c > open[i] && Number.isFinite(atr14[i]) && c - open[i] >= atr14[i] &&
+        high[i] - low[i] > 0 && (c - open[i]) / (high[i] - low[i]) >= 0.7 ? 1 : 0,
+    );
+    series.bearish_displacement_14 = close.map((c, i) =>
+        c < open[i] && Number.isFinite(atr14[i]) && open[i] - c >= atr14[i] &&
+        high[i] - low[i] > 0 && (open[i] - c) / (high[i] - low[i]) >= 0.7 ? 1 : 0,
+    );
 
     return series;
 }

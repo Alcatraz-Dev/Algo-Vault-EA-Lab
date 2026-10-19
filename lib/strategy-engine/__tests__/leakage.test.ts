@@ -27,7 +27,13 @@ export function runLeakageTests(): boolean {
     check(prefix.length === k && full.length === candles.length, "feature arrays cover their inputs");
     const comparable = (f: (typeof full)[number]) => ({
         ema20: f.ema20, ema50: f.ema50, rsi: f.rsi, atr: f.atr, trend: f.trend,
-        bos: f.bos, choch: f.choch, fvgDirection: f.fvgDirection, obDirection: f.obDirection,
+        bos: f.bos, choch: f.choch, fvgDirection: f.fvgDirection, fvgZoneHigh: f.fvgZoneHigh, fvgZoneLow: f.fvgZoneLow,
+        obDirection: f.obDirection, obZoneHigh: f.obZoneHigh, obZoneLow: f.obZoneLow,
+        bullishFvgRetest: f.bullishFvgRetest, bearishFvgRetest: f.bearishFvgRetest,
+        bullishOrderBlockRetest: f.bullishOrderBlockRetest, bearishOrderBlockRetest: f.bearishOrderBlockRetest,
+        structureBreakUp: f.structureBreakUp, structureBreakDown: f.structureBreakDown,
+        structureShiftUp: f.structureShiftUp, structureShiftDown: f.structureShiftDown,
+        ind: f.ind, indPrev: f.indPrev,
         session: f.session, momentumPct: f.momentumPct, breakoutHigh: f.breakoutHigh,
         higherHigh: f.higherHigh, lastSweep: f.lastSweep,
     });

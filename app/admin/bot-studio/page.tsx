@@ -36,6 +36,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { auth } from "@/lib/firebase";
+import { Input } from "@/components/ui/input";
 import type { BotStrategy, BotDeployment } from "@/lib/bot-studio/types";
 import { STATE_LABELS } from "@/lib/bot-studio/lifecycle";
 
@@ -47,6 +48,8 @@ export default function BotStudioDashboard() {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [renameId, setRenameId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState("");
 
     // Deploy Modal State
     const [deployModalOpen, setDeployModalOpen] = useState(false);
@@ -144,16 +147,26 @@ export default function BotStudioDashboard() {
         }
     };
 
-    const handleRename = async (strategyId: string, currentName: string) => {
-        const name = prompt("Rename strategy", currentName);
-        if (!name || name.trim() === currentName) return;
+    const startRename = (strategyId: string, currentName: string) => {
+        setRenameId(strategyId);
+        setRenameValue(currentName);
+    };
+
+    const cancelRename = () => {
+        setRenameId(null);
+        setRenameValue("");
+    };
+
+    const handleRename = async (strategyId: string, name: string) => {
+        const trimmed = name.trim();
+        if (!trimmed) return;
         setActionLoading(`rename-${strategyId}`);
         try {
             const headers = await getAuthHeaders();
             const res = await fetch(`/api/bot-studio/strategies/${strategyId}`, {
                 method: "PATCH",
                 headers,
-                body: JSON.stringify({ name: name.trim() }),
+                body: JSON.stringify({ name: trimmed }),
             });
             const data = await res.json();
             if (!data.ok) alert(`Rename failed: ${data.error}`);
@@ -162,6 +175,8 @@ export default function BotStudioDashboard() {
             alert(`Rename failed: ${e instanceof Error ? e.message : String(e)}`);
         } finally {
             setActionLoading(null);
+            setRenameId(null);
+            setRenameValue("");
         }
     };
 
@@ -549,9 +564,36 @@ export default function BotStudioDashboard() {
                                             <div>
                                                 <div className="flex items-start justify-between gap-2 min-w-0">
                                                     <div className="min-w-0">
-                                                        <h3 className="font-bold text-base leading-snug break-words">
-                                                            {strat.name}
-                                                        </h3>
+                                                        {renameId === strat.id ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <Input
+                                                                    value={renameValue}
+                                                                    onChange={(e) => setRenameValue(e.target.value)}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === "Enter") { e.preventDefault(); if (renameValue.trim() && renameValue.trim() !== strat.name) void handleRename(strat.id, renameValue); }
+                                                                        if (e.key === "Escape") cancelRename();
+                                                                    }}
+                                                                    className="h-7 text-sm"
+                                                                    autoFocus
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleRename(strat.id, renameValue)}
+                                                                    disabled={actionLoading === `rename-${strat.id}` || !renameValue.trim() || renameValue.trim() === strat.name}
+                                                                    className="px-2 py-1 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors shrink-0 disabled:opacity-50 disabled:pointer-events-none"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                                <button
+                                                                    onClick={cancelRename}
+                                                                    disabled={actionLoading === `rename-${strat.id}`}
+                                                                    className="px-2 py-1 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors shrink-0 disabled:opacity-50 disabled:pointer-events-none"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <h3 className="font-bold text-base leading-snug break-words">{strat.name}</h3>
+                                                        )}
                                                         <span className="text-xs text-muted-foreground font-mono break-all">
                                                             {strat.id}
                                                         </span>
@@ -646,7 +688,7 @@ export default function BotStudioDashboard() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end" className="min-w-[140px]">
                                                             <DropdownMenuItem
-                                                                onClick={() => handleRename(strat.id, strat.name)}
+                                                                onClick={() => startRename(strat.id, strat.name)}
                                                                 disabled={actionLoading === `rename-${strat.id}`}
                                                             >
                                                                 Rename

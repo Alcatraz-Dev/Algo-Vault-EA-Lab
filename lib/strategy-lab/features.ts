@@ -48,6 +48,16 @@ export interface CandleFeatures {
     lastSweepBarsAgo: number | null;
     choch: BreakerFeature | null;
     bos: BreakerFeature | null;
+    /** Close broke the latest already-confirmed swing high/low on this bar. */
+    structureBreakUp: boolean;
+    structureBreakDown: boolean;
+    /** A close-confirmed swing break against the latest break direction. */
+    structureShiftUp: boolean;
+    structureShiftDown: boolean;
+    bullishFvgRetest: boolean;
+    bearishFvgRetest: boolean;
+    bullishOrderBlockRetest: boolean;
+    bearishOrderBlockRetest: boolean;
     fvgDirection: TrendLabel | null;
     fvgIndex: number | null;
     fvgBarsAgo: number | null;
@@ -121,15 +131,16 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
     const bosAt: Record<number, BreakerFeature> = {};
     const fvgAt: Record<number, BreakerFeature> = {};
     const obAt: Record<number, BreakerFeature> = {};
+    const fvgZonesAt: Record<number, { high: number; low: number }> = {};
+    const obZonesAt: Record<number, { high: number; low: number }> = {};
+    let lastStructureBreak: TrendLabel | null = null;
+    let activeOrderBlock: { direction: TrendLabel; index: number; formedAt: number; high: number; low: number; invalidation: number } | null = null;
+    let activeBullishFvg: { high: number; low: number; formedAt: number } | null = null;
+    let activeBearishFvg: { high: number; low: number; formedAt: number } | null = null;
 
     let atrSum = 0;
     const atrWindow: number[] = [];
     const trValues: number[] = [];
-
-    let lastFvgZoneHigh: number | null = null;
-    let lastFvgZoneLow: number | null = null;
-    let lastObZoneHigh: number | null = null;
-    let lastObZoneLow: number | null = null;
 
     for (let i = 0; i < n; i++) {
         const c = candles[i];
@@ -178,16 +189,25 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
 
         const lastHigh = [...confirmedSwings].reverse().find((s) => s.type === "high");
         const lastLow = [...confirmedSwings].reverse().find((s) => s.type === "low");
+        const priorHigh = [...confirmedSwings].reverse().find((s) => s.type === "high" && s.index < i - SWING_LOOKBACK);
+        const priorLow = [...confirmedSwings].reverse().find((s) => s.type === "low" && s.index < i - SWING_LOOKBACK);
+        const previousClose = i > 0 ? candles[i - 1].close : null;
+        const structureBreakUp = !!priorHigh && previousClose !== null && previousClose <= priorHigh.price && c.close > priorHigh.price;
+        const structureBreakDown = !!priorLow && previousClose !== null && previousClose >= priorLow.price && c.close < priorLow.price;
+        const structureShiftUp = structureBreakUp && lastStructureBreak === "bearish";
+        const structureShiftDown = structureBreakDown && lastStructureBreak === "bullish";
+        if (structureBreakUp) lastStructureBreak = "bullish";
+        if (structureBreakDown) lastStructureBreak = "bearish";
 
         // Sweep detection against confirmed levels (break + close back).
         for (const s of confirmedSwings) {
             if (s.index >= i - SWING_LOOKBACK) continue; // only levels confirmed before this bar
-            if (s.type === "low" && c.low < s.price && c.close > s.price) {
-                sweepAt[i] = { side: "buy_side", index: i, level: s.price, confirmed: c.close > c.open };
+            if (s.type === "high" && c.high > s.price && c.close < s.price) {
+                sweepAt[i] = { side: "buy_side", index: i, level: s.price, confirmed: c.close < c.open };
                 break;
             }
-            if (s.type === "high" && c.high > s.price && c.close < s.price) {
-                sweepAt[i] = { side: "sell_side", index: i, level: s.price, confirmed: c.close < c.open };
+            if (s.type === "low" && c.low < s.price && c.close > s.price) {
+                sweepAt[i] = { side: "sell_side", index: i, level: s.price, confirmed: c.close > c.open };
                 break;
             }
         }
@@ -212,34 +232,67 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
             }
         }
 
-        // FVG: candle[i-1] gap between candle[i-2] and candle[i].
+        // One-shot retest of the latest unfilled FVG, strictly after its
+        // three-candle formation bar has closed.
+        const bullishFvgRetest = !!activeBullishFvg && i > activeBullishFvg.formedAt &&
+            c.low <= activeBullishFvg.high && c.high >= activeBullishFvg.low;
+        const bearishFvgRetest = !!activeBearishFvg && i > activeBearishFvg.formedAt &&
+            c.high >= activeBearishFvg.low && c.low <= activeBearishFvg.high;
+        if (bullishFvgRetest) activeBullishFvg = null;
+        if (bearishFvgRetest) activeBearishFvg = null;
+
+        // FVG: the first and third candle wicks do not overlap; detected only
+        // once the third candle closes, so the event is available causally at i.
         if (i >= 2) {
-            const c2 = candles[i - 2];
-            const c1 = candles[i - 1];
-            if (c1.low > c2.high) {
+            const first = candles[i - 2];
+            if (c.low > first.high) {
                 fvgAt[i] = { direction: "bullish", index: i };
-                lastFvgZoneHigh = c1.low;
-                lastFvgZoneLow = c2.high;
-            } else if (c1.high < c2.low) {
+                fvgZonesAt[i] = { high: c.low, low: first.high };
+                activeBullishFvg = { high: c.low, low: first.high, formedAt: i };
+            } else if (c.high < first.low) {
                 fvgAt[i] = { direction: "bearish", index: i };
-                lastFvgZoneHigh = c2.low;
-                lastFvgZoneLow = c1.high;
+                fvgZonesAt[i] = { high: first.low, low: c.high };
+                activeBearishFvg = { high: first.low, low: c.high, formedAt: i };
             }
         }
 
-        // Order block: strong candle against prior candle.
-        if (i >= 1) {
-            const prev = candles[i - 1];
-            const bodySize = Math.abs(c.close - c.open);
-            const prevBody = Math.abs(prev.close - prev.open);
-            if (c.close > c.open && prev.close < prev.open && bodySize > prevBody * 1.5) {
-                obAt[i] = { direction: "bullish", index: i };
-                lastObZoneHigh = prev.high;
-                lastObZoneLow = prev.open;
-            } else if (c.close < c.open && prev.close > prev.open && bodySize > prevBody * 1.5) {
-                obAt[i] = { direction: "bearish", index: i };
-                lastObZoneHigh = prev.open;
-                lastObZoneLow = prev.low;
+        // Order block convention used here: nearest opposing candle in the
+        // three bars before a same-direction displacement candle (body >= 1 ATR
+        // and >= 70% of range). This is an explicit mechanical proxy, not a
+        // claim that all SMC schools define order blocks identically.
+        const currentBody = Math.abs(c.close - c.open);
+        const currentRange = c.high - c.low;
+        const displacement = currentBody >= atr && currentRange > 0 && currentBody / currentRange >= 0.7;
+        let bullishOrderBlockRetest = false;
+        let bearishOrderBlockRetest = false;
+        if (activeOrderBlock && i > activeOrderBlock.formedAt) {
+            const invalidated = activeOrderBlock.direction === "bullish"
+                ? c.close < activeOrderBlock.invalidation
+                : c.close > activeOrderBlock.invalidation;
+            if (invalidated) activeOrderBlock = null;
+            else if (c.low <= activeOrderBlock.high && c.high >= activeOrderBlock.low) {
+                bullishOrderBlockRetest = activeOrderBlock.direction === "bullish";
+                bearishOrderBlockRetest = activeOrderBlock.direction === "bearish";
+                activeOrderBlock = null;
+            }
+        }
+        if (displacement) {
+            for (let j = i - 1; j >= Math.max(0, i - 3); j--) {
+                const candidate = candles[j];
+                const opposite = c.close > c.open ? candidate.close < candidate.open : candidate.close > candidate.open;
+                if (!opposite) continue;
+                const direction = c.close > c.open ? "bullish" : "bearish";
+                obAt[i] = { direction, index: i };
+                obZonesAt[i] = { high: candidate.high, low: candidate.low };
+                activeOrderBlock = {
+                    direction,
+                    index: j,
+                    formedAt: i,
+                    high: candidate.high,
+                    low: candidate.low,
+                    invalidation: direction === "bullish" ? candidate.low : candidate.high,
+                };
+                break;
             }
         }
 
@@ -323,15 +376,23 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
             lastSweepBarsAgo: lastSweep ? i - lastSweep.index : null,
             choch: lastChoch,
             bos: lastBos,
+            structureBreakUp,
+            structureBreakDown,
+            structureShiftUp,
+            structureShiftDown,
+            bullishFvgRetest,
+            bearishFvgRetest,
+            bullishOrderBlockRetest,
+            bearishOrderBlockRetest,
             fvgDirection: lastFvg ? lastFvg.direction : null,
             fvgIndex: lastFvg ? lastFvg.index : null,
             fvgBarsAgo: lastFvg ? i - lastFvg.index : null,
-            fvgZoneHigh: lastFvg ? lastFvgZoneHigh : null,
-            fvgZoneLow: lastFvg ? lastFvgZoneLow : null,
+            fvgZoneHigh: lastFvg ? fvgZonesAt[lastFvg.index]?.high ?? null : null,
+            fvgZoneLow: lastFvg ? fvgZonesAt[lastFvg.index]?.low ?? null : null,
             obDirection: lastOb ? lastOb.direction : null,
             obIndex: lastOb ? lastOb.index : null,
-            obZoneHigh: lastOb ? lastObZoneHigh : null,
-            obZoneLow: lastOb ? lastObZoneLow : null,
+            obZoneHigh: lastOb ? obZonesAt[lastOb.index]?.high ?? null : null,
+            obZoneLow: lastOb ? obZonesAt[lastOb.index]?.low ?? null : null,
             session: sessionOf(c.timestamp),
             hour: new Date(c.timestamp).getUTCHours(),
             weekday: new Date(c.timestamp).getUTCDay(),

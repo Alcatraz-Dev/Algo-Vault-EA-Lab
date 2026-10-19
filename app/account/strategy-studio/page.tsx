@@ -7,6 +7,7 @@ import { Code2, Layers, Pencil, Copy, Rocket, RefreshCw } from "lucide-react";
 import AccountShell from "@/components/account/AccountShell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -69,6 +70,8 @@ export default function AccountBotStudioPage() {
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
+    const [renameId, setRenameId] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState("");
 
     const loadData = async () => {
         setLoading(true);
@@ -107,9 +110,20 @@ export default function AccountBotStudioPage() {
         };
     }, []);
 
-    const handleRename = async (strategyId: string, currentName: string) => {
-        const name = prompt("Rename strategy", currentName);
-        if (!name || name.trim() === currentName) return;
+    const startRename = (strategyId: string, currentName: string) => {
+        setActionError(null);
+        setRenameId(strategyId);
+        setRenameValue(currentName);
+    };
+
+    const cancelRename = () => {
+        setRenameId(null);
+        setRenameValue("");
+    };
+
+    const handleRename = async (strategyId: string, name: string) => {
+        const trimmed = name.trim();
+        if (!trimmed) return;
         setActionLoading(`rename-${strategyId}`);
         setActionError(null);
         try {
@@ -117,7 +131,7 @@ export default function AccountBotStudioPage() {
             const res = await fetch(`/api/bot-studio/strategies/${strategyId}`, {
                 method: "PATCH",
                 headers,
-                body: JSON.stringify({ name: name.trim() }),
+                body: JSON.stringify({ name: trimmed }),
             });
             if (!res.ok) {
                 const err = await res.json();
@@ -128,6 +142,8 @@ export default function AccountBotStudioPage() {
             setActionError(`Rename failed: ${e instanceof Error ? e.message : String(e)}`);
         } finally {
             setActionLoading(null);
+            setRenameId(null);
+            setRenameValue("");
         }
     };
 
@@ -178,8 +194,39 @@ export default function AccountBotStudioPage() {
                     return (
                         <li key={strat.id}>
                             <Card className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="min-w-0">
-                                    <h3 className="truncate text-sm font-semibold text-foreground">{strat.name}</h3>
+                                <div className="min-w-0 flex-1">
+                                    {renameId === strat.id ? (
+                                        <div className="flex items-center gap-2">
+                                            <Input
+                                                value={renameValue}
+                                                onChange={(e) => setRenameValue(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        if (renameValue.trim() && renameValue.trim() !== strat.name) {
+                                                            void handleRename(strat.id, renameValue);
+                                                        }
+                                                    }
+                                                    if (e.key === "Escape") cancelRename();
+                                                }}
+                                                className="h-8 text-sm"
+                                                placeholder="Strategy name"
+                                                autoFocus
+                                            />
+                                            <Button
+                                                size="sm"
+                                                disabled={busy || !renameValue.trim() || renameValue.trim() === strat.name}
+                                                onClick={() => handleRename(strat.id, renameValue)}
+                                            >
+                                                Save
+                                            </Button>
+                                            <Button size="sm" variant="outline" onClick={cancelRename} disabled={busy}>
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <h3 className="truncate text-sm font-semibold text-foreground">{strat.name}</h3>
+                                    )}
                                     <p className="font-numeric mt-0.5 text-xs text-muted-foreground">
                                         Updated {formatDate(strat.updatedAt)}
                                     </p>
@@ -197,7 +244,7 @@ export default function AccountBotStudioPage() {
                                         variant="ghost"
                                         size="sm"
                                         disabled={busy}
-                                        onClick={() => handleRename(strat.id, strat.name)}
+                                        onClick={() => startRename(strat.id, strat.name)}
                                     >
                                         <Pencil />
                                         {actionLoading === `rename-${strat.id}` ? "Renaming…" : "Rename"}

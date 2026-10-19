@@ -21,6 +21,9 @@ import { evaluateRule } from "@/lib/strategy-engine/decisions";
 import type { CandleFeatures } from "@/lib/strategy-lab/features";
 import { buildIndicatorSeries, describeIndicatorCondition, indicatorRowAt, INDICATOR_DEFS } from "@/lib/strategy-lab/indicator-library";
 import { BOT_TEMPLATES } from "../templates";
+import { duplicateGraphSelection } from "../graph-operations";
+import { computeFeatures } from "@/lib/strategy-lab/features";
+import { ENGINE_NODE_CATALOG, engineNodeToRule } from "../compiler/engine-nodes";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) {
@@ -274,6 +277,74 @@ export function runBotStudioTests(): void {
         "A direction rule must read as a sentence without a threshold",
     );
     console.log("  ✓ Extended indicators and direction rules passed.");
+
+    // ── 3e. Smart-money rules and graph duplication ──
+    console.log("• Testing smart-money rules and graph duplication...");
+    const smcCandles: MarketCandle[] = Array.from({ length: 34 }, (_, i) => ({
+        timestamp: i * 3600000, open: 10, high: 11, low: 9, close: 10, volume: 1,
+    }));
+    smcCandles[29] = { timestamp: 29 * 3600000, open: 12.2, high: 13, low: 12, close: 12.7, volume: 1 };
+    smcCandles[30] = { timestamp: 30 * 3600000, open: 12.2, high: 12.8, low: 10.5, close: 10.8, volume: 1 };
+    const smcSeries = buildIndicatorSeries(smcCandles);
+    const smcFeatures = computeFeatures(smcCandles);
+    const prefixSmcSeries = buildIndicatorSeries(smcCandles.slice(0, 30));
+    assert(smcSeries.bullish_fvg_3[29] === 1, "Bullish three-candle FVG forms only when candle 3 leaves a gap above candle 1");
+    assert(smcSeries.bullish_fvg_retest_3[29] === 0 && smcSeries.bullish_fvg_retest_3[30] === 1, "Bullish FVG retest is detected after, not on, its formation bar");
+    assert(smcFeatures[29].fvgDirection === "bullish" && smcFeatures[29].fvgZoneLow === 11 && smcFeatures[29].fvgZoneHigh === 12, "Feature FVG zone belongs to its actual formation candles");
+    assert(smcFeatures[30].bullishFvgRetest, "Engine feature detects the later bullish FVG retest");
+    assert(smcSeries.swing_high_3[31] !== 13 && smcSeries.swing_high_3[32] === 13, "Swing high becomes available only after three right-side candles close");
+    assert(Math.abs(smcSeries.premium_discount_20[29] - 185) < 1e-9, "Premium/discount uses the prior completed 20-bar range without clamping");
+    assert(smcSeries.bullish_fvg_3[29] === prefixSmcSeries.bullish_fvg_3[29], "FVG at bar 29 is invariant when later candles are removed");
+    const retestRule = engineNodeToRule("fvg-retest", "engine_fvg_retest_bullish", "H1");
+    assert(!!retestRule && evaluateRule(retestRule, smcFeatures[30]), "Builder FVG retest rule evaluates against computed engine features");
+    const sweepCandles = Array.from({ length: 23 }, (_, i) => ({
+        timestamp: i * 3600000, open: 10, high: 11, low: 9, close: 10, volume: 1,
+    }));
+    sweepCandles[22] = { timestamp: 22 * 3600000, open: 10, high: 11.5, low: 9, close: 10.5, volume: 1 };
+    const sweepSeries = buildIndicatorSeries(sweepCandles);
+    assert(sweepSeries.buy_side_sweep_20[21] === 0 && sweepSeries.buy_side_sweep_20[22] === 1, "Buy-side sweep uses previous 20-bar high and requires a close back below it");
+    const sweepFeatures = computeFeatures(sweepCandles);
+    const buySweepRule = engineNodeToRule("sweep", "engine_sweep_high20", "H1");
+    assert(!!buySweepRule && evaluateRule(buySweepRule, sweepFeatures[22]), "Builder 20-bar sweep rule evaluates on the sweep candle");
+    const orderBlockCandles: MarketCandle[] = Array.from({ length: 22 }, (_, i) => ({
+        timestamp: i * 3600000, open: 10, high: 10.2, low: 9.8, close: 10, volume: 1,
+    }));
+    orderBlockCandles[19] = { timestamp: 19 * 3600000, open: 10.1, high: 10.2, low: 9.8, close: 9.9, volume: 1 };
+    orderBlockCandles[20] = { timestamp: 20 * 3600000, open: 9.9, high: 10.4, low: 9.85, close: 10.35, volume: 1 };
+    orderBlockCandles[21] = { timestamp: 21 * 3600000, open: 10.1, high: 10.15, low: 9.95, close: 10, volume: 1 };
+    const orderBlockFeatures = computeFeatures(orderBlockCandles);
+    assert(orderBlockFeatures[21].bullishOrderBlockRetest, "Order block retest fires only after the displacement forms the block");
+    const obRetestRule = engineNodeToRule("ob-retest", "engine_order_block_retest_bullish", "H1");
+    assert(!!obRetestRule && evaluateRule(obRetestRule, orderBlockFeatures[21]), "Builder order-block retest rule evaluates against feature engine data");
+    const catalogKinds = new Set(ENGINE_NODE_CATALOG.map((def) => def.kind));
+    assert(catalogKinds.size === ENGINE_NODE_CATALOG.length, "Engine condition node kinds must be unique");
+    const premiumRule = engineNodeToRule("premium", "engine_premium_20", "M5");
+    assert(premiumRule?.group === "indicator" && premiumRule.indicator === "premium_discount_20", "Premium node compiles to an indicator rule");
+    const graphNodes = [
+        { id: "a", position: { x: 0, y: 0 }, data: { kind: "condition_and", custom: { flag: true } }, selected: false },
+        { id: "b", position: { x: 100, y: 0 }, data: { kind: "indicator_condition", value: 50 }, selected: false },
+        { id: "c", position: { x: 200, y: 0 }, data: { kind: "action_enter_long" }, selected: false },
+    ];
+    const graphEdges: Array<{ id: string; source: string; target: string; sourceHandle?: string; animated?: boolean; selected?: boolean }> = [
+        { id: "ab", source: "a", target: "b", sourceHandle: "out", animated: true },
+        { id: "bc", source: "b", target: "c" },
+    ];
+    let duplicateId = 0;
+    const makeId = (kind: "node" | "edge") => `${kind}_${++duplicateId}`;
+    const internalCopy = duplicateGraphSelection(graphNodes, graphEdges, ["a", "b"], "internal", makeId);
+    assert(internalCopy.nodes.length === 5 && internalCopy.edges.length === 3, "Internal duplication copies selected nodes and only their internal edge");
+    assert(internalCopy.edges[2].source === internalCopy.nodes[3].id && internalCopy.edges[2].target === internalCopy.nodes[4].id, "Internal duplicated edge reconnects both cloned nodes");
+    assert((internalCopy.nodes[3].data.custom as { flag: boolean }).flag, "Cloned nested node data is independent and retained");
+    const connectedCopy = duplicateGraphSelection(graphNodes, graphEdges, ["b"], "connected", makeId);
+    assert(connectedCopy.edges.length === 4, "Connected duplication copies both incident edges");
+    assert(connectedCopy.edges[2].source === "a" && connectedCopy.edges[2].target === connectedCopy.nodes[3].id, "Incoming edge reconnects original outside node to clone");
+    assert(connectedCopy.edges[3].source === connectedCopy.nodes[3].id && connectedCopy.edges[3].target === "c", "Outgoing edge reconnects clone to original outside node");
+    assert(connectedCopy.edges[2].sourceHandle === "out" && connectedCopy.edges[2].animated === true, "Duplicated edges preserve handle IDs and edge presentation settings");
+    assert(graphNodes[1].data.value === 50, "Duplicating must not mutate the original node data");
+    assert(!internalCopy.nodes[0].selected && internalCopy.nodes[3].selected && internalCopy.nodes[4].selected, "Duplicates become selected while originals are deselected");
+    assert(!graphNodes[0].selected && !graphNodes[1].selected, "Selection changes on duplicate must not mutate input nodes");
+    assert(!internalCopy.edges[2].selected, "Copied edges are not implicitly selected");
+    console.log("  ✓ Smart-money catalog and graph duplication passed.");
 
     // ── 3c. Bot templates ──
     console.log("• Testing bot templates...");

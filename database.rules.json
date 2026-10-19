@@ -1092,7 +1092,7 @@
           },
           "versions": {
             ".read": "auth != null && auth.uid === $userId",
-            ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+            ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
           }
         }
       }
@@ -1102,7 +1102,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1111,7 +1111,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1120,7 +1120,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1129,7 +1129,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1138,7 +1138,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1147,7 +1147,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1156,7 +1156,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1165,7 +1165,7 @@
         "$portfolioId": {
           ".indexOn": ["timestamp", "generatedAt", "createdAt", "eventCreatedAt", "observedAt"],
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },
@@ -1173,7 +1173,7 @@
       "$userId": {
         "$portfolioId": {
           ".read": "auth != null && auth.uid === $userId",
-          ".write": "auth != null && auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".write": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },

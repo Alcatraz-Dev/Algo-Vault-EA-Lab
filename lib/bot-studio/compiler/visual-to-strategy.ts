@@ -448,7 +448,13 @@ export function compileNodeGraph(
             }
 
             if (findEngineNode(node.kind)) {
-                const rule = engineNodeToRule(node.id, node.kind, entryTf);
+                const engineData = node.data as { label?: string; value?: string | number | boolean | string[]; negate?: boolean; operator?: StrategyRule["operator"] };
+                const rule = engineNodeToRule(node.id, node.kind, entryTf, {
+                    ...(typeof engineData.label === "string" ? { label: engineData.label } : {}),
+                    ...(engineData.value !== undefined ? { value: engineData.value } : {}),
+                    ...(engineData.operator ? { operator: engineData.operator } : {}),
+                    ...(typeof engineData.negate === "boolean" ? { negate: engineData.negate } : {}),
+                });
                 if (rule) entryRules.push(rule);
                 continue;
             }

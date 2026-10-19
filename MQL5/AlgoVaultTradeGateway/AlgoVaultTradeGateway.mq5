@@ -65,6 +65,13 @@ bool isConnected  = false;
 int consecutiveFails = 0;
 int pendingCommands  = 0;
 
+// Account-mode enforcement state.
+// The connected account mode is re-verified on every command so a terminal
+// account switch from Demo to Real cannot leave the EA authorized to execute
+// on stale registration state.
+bool g_isDemoAccount = false;
+bool g_tradingAuthorized = false;
+
 
 //+------------------------------------------------------------------+
 //| Chart UI                                                         |
@@ -193,6 +200,9 @@ void   CopyTradeResult(MqlTradeResult &result);
 
 bool   IsTradeSuccess(MqlTradeResult &result);
 
+bool   IsAccountDemoMode();
+bool   RefreshAccountMode();
+
 string RetcodeToString(uint retcode);
 
 void   DebugPrint(string message);
@@ -253,6 +263,11 @@ int OnInit()
    trade.SetExpertMagicNumber(MagicNumber);
    trade.SetDeviationInPoints(50);
    trade.SetAsyncMode(false);
+
+   // Verify the connected account mode before registering or trading.
+   // Demo-only enforcement is fail-closed: any mode other than
+   // ACCOUNT_TRADE_MODE_DEMO denies trading execution.
+   RefreshAccountMode();
 
    // Create chart UI.
    CreateChartDisplay();
@@ -995,6 +1010,12 @@ bool RegisterGateway()
       "," +
 
       "\"eaVersion\":\"1.3.0\"" +
+
+      ",\"accountMode\":" +
+      IntegerToString((long)AccountInfoInteger(ACCOUNT_TRADE_MODE)) +
+
+      ",\"tradingAuthorized\":" +
+      (g_tradingAuthorized ? "true" : "false") +
 
       "}";
 
@@ -1877,6 +1898,20 @@ bool ExecuteCommand(string commandJson)
    bool success = false;
    string errorMessage = "";
 
+   // Fail-closed Demo-only enforcement.
+   // Re-verify the account mode on every command so a terminal account
+   // switch from Demo to Real cannot leave the EA authorized to execute
+   // on stale registration state. Any non-Demo mode (REAL, CONTEST, or
+   // unknown/unavailable) denies trading execution.
+   if(!RefreshAccountMode() || !g_tradingAuthorized)
+   {
+      errorMessage = "Trading not authorized: account is not a verified Demo account.";
+      result.retcode = TRADE_RETCODE_INVALID;
+      result.comment = errorMessage;
+      ReportExecution(commandId, action, result, false, errorMessage);
+      return false;
+   }
+
    // ---------------------------------------------------------------
    // BUY
    // ---------------------------------------------------------------
@@ -2578,6 +2613,51 @@ bool IsTradeSuccess(MqlTradeResult &result)
    }
 
    return false;
+}
+
+
+//+------------------------------------------------------------------+
+//| Account-mode enforcement                                         |
+//+------------------------------------------------------------------+
+
+// Returns true only when the connected terminal account is a Demo account,
+// as reported by the official MQL5 ACCOUNT_TRADE_MODE property.
+// Any other mode (REAL, CONTEST) or a failed/unavailable read returns false.
+bool IsAccountDemoMode()
+{
+   long tradeMode = AccountInfoInteger(ACCOUNT_TRADE_MODE);
+
+   if(tradeMode == ACCOUNT_TRADE_MODE_DEMO)
+      return true;
+
+   return false;
+}
+
+// Re-verifies the connected account mode and updates the runtime
+// trading-authorized flag. Call on initialization and on every command
+// so a terminal account switch from Demo to Real is detected immediately.
+// Returns true when the account is a verified Demo account.
+bool RefreshAccountMode()
+{
+   g_isDemoAccount = IsAccountDemoMode();
+   g_tradingAuthorized = g_isDemoAccount;
+
+   if(g_isDemoAccount)
+   {
+      DebugPrint("Account mode verified: DEMO — trading authorized.");
+   }
+   else
+   {
+      long tradeMode = AccountInfoInteger(ACCOUNT_TRADE_MODE);
+      Print("Account mode check failed: trading NOT authorized. ",
+            "ACCOUNT_TRADE_MODE=", IntegerToString(tradeMode),
+            " (", (tradeMode == ACCOUNT_TRADE_MODE_REAL ? "REAL" :
+             tradeMode == ACCOUNT_TRADE_MODE_CONTEST ? "CONTEST" :
+             tradeMode == ACCOUNT_TRADE_MODE_DEMO ? "DEMO" : "UNKNOWN/INVALID"),
+            ").");
+   }
+
+   return g_tradingAuthorized;
 }
 
 

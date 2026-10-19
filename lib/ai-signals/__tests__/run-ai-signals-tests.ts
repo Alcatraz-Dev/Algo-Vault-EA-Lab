@@ -2,6 +2,7 @@ import { runPriceSanityTests } from "./price-sanity.test";
 import { runChartConfluenceTests } from "./chart-confluence.test";
 import { runLifecycleTests } from "./ai-generation.test";
 import { runMonitorTests } from "./monitor.test";
+import { runAccessTests } from "./access.test";
 
 async function runAllAISignalTests(): Promise<boolean> {
     console.log("==========================================");
@@ -14,6 +15,9 @@ async function runAllAISignalTests(): Promise<boolean> {
     const confluenceResult = runChartConfluenceTests();
     console.log("");
 
+    const accessResult = runAccessTests();
+    console.log("");
+
     const lifecycleResult = await runLifecycleTests();
     console.log("");
 
@@ -21,7 +25,13 @@ async function runAllAISignalTests(): Promise<boolean> {
     console.log("");
 
     console.log("==========================================");
-    if (sanityResult && confluenceResult && lifecycleResult && monitorResult) {
+    if (
+        sanityResult &&
+        confluenceResult &&
+        accessResult &&
+        lifecycleResult &&
+        monitorResult
+    ) {
         console.log("🎉 ALL AI SIGNAL TESTS PASSED (100%)");
         console.log("==========================================");
         return true;

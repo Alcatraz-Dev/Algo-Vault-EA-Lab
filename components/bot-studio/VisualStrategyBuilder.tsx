@@ -17,6 +17,7 @@ import {
     type Edge,
     type Node,
     type NodeProps,
+    SelectionMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import {
@@ -49,7 +50,7 @@ import type {
 } from "@/lib/bot-studio/compiler/types";
 import type { Strategy } from "@/lib/strategy-lab/types";
 import { strategyToAvScript } from "@/lib/bot-studio/compiler/strategy-to-avscript";
-import { ENGINE_NODE_CATALOG, type EngineNodeCategory } from "@/lib/bot-studio/compiler/engine-nodes";
+import { ENGINE_NODE_CATALOG, findEngineNode, type EngineNodeCategory } from "@/lib/bot-studio/compiler/engine-nodes";
 import {
     INDICATOR_DEFS,
     INDICATOR_FAMILIES,
@@ -58,12 +59,14 @@ import {
     indicatorDef,
 } from "@/lib/strategy-lab/indicator-library";
 import { BOT_TEMPLATES, type BotTemplate } from "@/lib/bot-studio/templates";
+import { duplicateGraphSelection, type DuplicateEdgesMode } from "@/lib/bot-studio/graph-operations";
 
 const ENGINE_CATEGORIES: EngineNodeCategory[] = [
     "Trend",
     "Indicators",
     "Market structure",
     "Liquidity & FVG",
+    "Smart money",
     "Sessions",
     "Price action & momentum",
     "Volatility",
@@ -260,7 +263,7 @@ const nodeTypes = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function toFlowNode(n: BotTemplate["nodes"][number]): Node {
-    return { id: n.id, type: n.kind, position: n.position, data: n.data };
+    return { id: n.id, type: n.kind || (n.data?.kind as string) || "indicator_ema", position: n.position, data: n.data };
 }
 
 function toFlowEdge(e: BotTemplate["edges"][number]): Edge {
@@ -382,6 +385,49 @@ function NodeInspector({
                 )}
             </>
         );
+    } else if (findEngineNode(kind)) {
+        const def = findEngineNode(kind)!;
+        const currentValue = d.value ?? def.value;
+        const usesIndicatorRule = def.group === "indicator";
+        body = (
+            <>
+                {usesIndicatorRule && def.editableOperator && (
+                    <label className="block space-y-1">
+                        <span className="text-xs text-muted-foreground">Operator</span>
+                        <select
+                            value={String(d.operator ?? def.operator)}
+                            onChange={(e) => onChange({ operator: e.target.value })}
+                            className={INSPECTOR_FIELD}
+                        >
+                            {INDICATOR_OPERATORS.filter((operator) => !["rising", "falling"].includes(operator.value)).map((operator) => (
+                                <option key={operator.value} value={operator.value}>{operator.label}</option>
+                            ))}
+                        </select>
+                    </label>
+                )}
+                {typeof def.value === "number" && numberInput("value", "Threshold")}
+                {typeof def.value === "string" && (
+                    <label className="block space-y-1">
+                        <span className="text-xs text-muted-foreground">Rule value</span>
+                        <input
+                            type="text"
+                            value={String(currentValue)}
+                            onChange={(e) => onChange({ value: e.target.value })}
+                            className={INSPECTOR_FIELD}
+                        />
+                    </label>
+                )}
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <input
+                        type="checkbox"
+                        checked={d.negate === true}
+                        onChange={(e) => onChange({ negate: e.target.checked })}
+                        className="accent-primary"
+                    />
+                    Invert this condition only
+                </label>
+            </>
+        );
     } else if (kind === "action_enter_long" || kind === "action_enter_short") {
         body = (
             <>
@@ -446,8 +492,38 @@ export function VisualStrategyBuilder() {
     const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
     const [compileError, setCompileError] = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const selectedNodes = nodes.filter((n) => selectedIds.includes(n.id));
+    const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
+    const selectedEdgeCount = edges.filter((edge) => edge.selected).length;
+
+    const handleSelectionChange = useCallback(
+        ({ nodes: selection, edges: selectedEdges }: { nodes: Node[]; edges: Edge[] }) => {
+            const nextSelection = selection.map((node) => node.id);
+            setSelectedIds((prev) =>
+                prev.length === nextSelection.length && prev.every((id, i) => id === nextSelection[i])
+                    ? prev
+                    : nextSelection,
+            );
+            const selectedEdgeIds = new Set(selectedEdges.map((edge) => edge.id));
+            setEdges((current) => {
+                let changed = false;
+                const next = current.map((edge) => {
+                    const selected = selectedEdgeIds.has(edge.id);
+                    if (edge.selected === selected) return edge;
+                    changed = true;
+                    return { ...edge, selected };
+                });
+                return changed ? next : current;
+            });
+        },
+        [setEdges]
+    );
+
+    const handlePaneClick = useCallback(() => {
+        setSelectedIds([]);
+        setEdges((current) => current.map((edge) => edge.selected ? { ...edge, selected: false } : edge));
+    }, [setEdges]);
 
     const onConnect = useCallback(
         (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
@@ -477,8 +553,37 @@ export function VisualStrategyBuilder() {
                         setStrategyName(data.strategy.name);
                         if (data.strategy.source?.kind === "visual_builder") {
                             try {
-                                const parsed = JSON.parse(data.strategy.source.nodeGraph);
-                                if (parsed.nodes) setNodes(parsed.nodes);
+                                const parsed = JSON.parse(data.strategy.source.nodeGraph) as {
+                                    nodes?: Array<{
+                                        id: string;
+                                        kind?: NodeKind;
+                                        type?: string;
+                                        data?: Record<string, unknown>;
+                                        position?: { x: number; y: number };
+                                    }>;
+                                    edges?: Array<{
+                                        id: string;
+                                        source: string;
+                                        target: string;
+                                        sourceHandle?: string | null;
+                                        targetHandle?: string | null;
+                                        animated?: boolean;
+                                        selected?: boolean;
+                                    }>;
+                                    meta?: { symbol?: string; timeframe?: string; direction?: "long" | "short" | "both" };
+                                };
+                                if (parsed.nodes) {
+                                    setNodes(parsed.nodes.map((node) => {
+                                        const dataKind = node.data?.kind;
+                                        const kind = node.kind ?? (typeof dataKind === "string" ? dataKind as NodeKind : undefined) ?? node.type ?? "indicator_ema";
+                                        return {
+                                            id: node.id,
+                                            type: kind,
+                                            position: node.position ?? { x: 0, y: 0 },
+                                            data: { ...node.data, kind },
+                                        };
+                                    }));
+                                }
                                 if (parsed.edges) setEdges(parsed.edges);
                                 if (parsed.meta) {
                                     setSymbol(parsed.meta.symbol || "EURUSD");
@@ -498,16 +603,18 @@ export function VisualStrategyBuilder() {
     }, [strategyId, getAuthHeaders, setNodes, setEdges]);
 
     const serializeGraph = useCallback((): NodeGraph => {
-        const visualNodes: VisualNode[] = nodes.map((n) => ({
-            id: n.id,
-            kind: (n.data?.kind as NodeKind | undefined) || (n.type as NodeKind | undefined) || "indicator_ema",
-            data: n.data as AnyNodeData,
-            position: n.position,
+        const visualNodes: VisualNode[] = nodes.map((node) => ({
+            id: node.id,
+            kind: (node.data?.kind as NodeKind | undefined) || (node.type as NodeKind | undefined) || "indicator_ema",
+            data: node.data as AnyNodeData,
+            position: node.position,
         }));
-        const visualEdges: VisualEdge[] = edges.map((e) => ({
-            id: e.id,
-            source: e.source,
-            target: e.target,
+        const visualEdges: VisualEdge[] = edges.map((edge) => ({
+            id: edge.id,
+            source: edge.source,
+            sourceHandle: edge.sourceHandle ?? undefined,
+            target: edge.target,
+            targetHandle: edge.targetHandle ?? undefined,
         }));
         return {
             nodes: visualNodes,
@@ -710,7 +817,7 @@ export function VisualStrategyBuilder() {
         (id: string) => {
             setNodes((nds) => nds.filter((n) => n.id !== id));
             setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-            setSelectedId((cur) => (cur === id ? null : cur));
+            setSelectedIds((cur) => cur.filter((selectedId) => selectedId !== id));
         },
         [setNodes, setEdges],
     );
@@ -722,8 +829,41 @@ export function VisualStrategyBuilder() {
         setEdges(tpl.edges.map(toFlowEdge));
         setStrategyName(tpl.name);
         setDirection(tpl.direction);
-        setSelectedId(null);
+        setSelectedIds([]);
     };
+
+    const duplicateSelection = useCallback((mode: DuplicateEdgesMode) => {
+        const ids = selectedIds;
+        if (ids.length === 0) return;
+        const nodeIds = new Set(nodes.map((node) => node.id));
+        const edgeIds = new Set(edges.map((edge) => edge.id));
+        let counter = nodeCounter.current;
+        const nextId = (kind: "node" | "edge", originalId: string) => {
+            let id = "";
+            do {
+                counter += 1;
+                id = `${kind === "node" ? "copy" : "edge_copy"}_${counter}_${originalId}`;
+            } while ((kind === "node" ? nodeIds : edgeIds).has(id));
+            (kind === "node" ? nodeIds : edgeIds).add(id);
+            return id;
+        };
+        const result = duplicateGraphSelection(nodes, edges, ids, mode, nextId);
+        nodeCounter.current = counter;
+        setNodes(result.nodes);
+        setEdges(result.edges);
+        setSelectedIds(result.duplicatedNodeIds);
+    }, [nodes, edges, selectedIds, setNodes, setEdges]);
+
+    const deleteSelection = useCallback(() => {
+        const ids = new Set(selectedIds);
+        const selectedEdgeIds = new Set(edges.filter((edge) => edge.selected).map((edge) => edge.id));
+        if (ids.size === 0 && selectedEdgeIds.size === 0) return;
+        setNodes((current) => current.filter((node) => !ids.has(node.id)));
+        setEdges((current) => current.filter((edge) =>
+            !selectedEdgeIds.has(edge.id) && !ids.has(edge.source) && !ids.has(edge.target),
+        ));
+        setSelectedIds([]);
+    }, [selectedIds, edges, setNodes, setEdges]);
 
     return (
         <div className="mx-auto max-w-7xl space-y-4 p-6">
@@ -877,7 +1017,7 @@ export function VisualStrategyBuilder() {
                                             size="sm"
                                             className={PALETTE_BUTTON}
                                             title={def.description}
-                                            onClick={() => addNode(def.kind, def.kind, { label: def.label })}
+                                            onClick={() => addNode(def.kind, def.kind, { label: def.label, ...(def.indicator ? { value: def.value } : {}) })}
                                         >
                                             {def.label}
                                         </Button>
@@ -899,8 +1039,13 @@ export function VisualStrategyBuilder() {
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         nodeTypes={nodeTypes}
-                        onNodeClick={(_, node) => setSelectedId(node.id)}
-                        onPaneClick={() => setSelectedId(null)}
+                        onSelectionChange={handleSelectionChange}
+                        onPaneClick={handlePaneClick}
+                        selectionOnDrag
+                        selectionMode={SelectionMode.Partial}
+                        multiSelectionKeyCode={["Meta", "Control"]}
+                        selectionKeyCode="Shift"
+                        panOnDrag={[1]}
                         fitView
                     >
                         <Background gap={16} size={1} color="currentColor" className="text-border" />
@@ -910,12 +1055,29 @@ export function VisualStrategyBuilder() {
                 </div>
 
                 <div className="flex flex-col space-y-4 overflow-y-auto lg:col-span-4">
+                    {(selectedNodes.length > 0 || selectedEdgeCount > 0) && (
+                        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3">
+                            <span aria-live="polite" className="mr-auto text-xs font-medium text-muted-foreground">
+                                {selectedNodes.length} node{selectedNodes.length === 1 ? "" : "s"} selected
+                                {selectedEdgeCount > 0 ? ` · ${selectedEdgeCount} edge${selectedEdgeCount === 1 ? "" : "s"}` : ""}
+                            </span>
+                            <Button variant="outline" size="sm" onClick={() => duplicateSelection("internal")} disabled={selectedNodes.length === 0}>
+                                Duplicate selection
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => duplicateSelection("connected")} disabled={selectedNodes.length === 0}>
+                                Duplicate connected
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-negative" onClick={deleteSelection}>
+                                Delete selection
+                            </Button>
+                        </div>
+                    )}
                     {selectedNode && (
                         <NodeInspector
                             node={selectedNode}
                             onChange={(patch) => updateNodeData(selectedNode.id, patch)}
                             onDelete={() => deleteNode(selectedNode.id)}
-                            onClose={() => setSelectedId(null)}
+                            onClose={() => setSelectedIds([])}
                         />
                     )}
                     <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">

@@ -369,6 +369,27 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
             { indicator: "rsi_14", operator: "gt", value: 50 },
         ],
     }),
+    makeTemplate({
+        id: "smc_sellside_sweep_fvg_retest",
+        name: "SMC sell-side sweep + FVG retest",
+        description: "Illustrative long setup: a 20-bar sell-side sweep, bullish FVG retest and discount-half filter. Verify definitions and backtest for your market/timeframe.",
+        direction: "long",
+        conditions: [
+            { engine: "engine_sweep_low20", label: "Sweep below 20-bar low" },
+            { engine: "engine_fvg_retest_bullish", label: "Bullish FVG retest" },
+            { engine: "engine_discount_20", label: "Discount of 20-bar range" },
+        ],
+    }),
+    makeTemplate({
+        id: "smc_bullish_structure_ob_retest",
+        name: "SMC bullish shift + order-block retest",
+        description: "Illustrative long setup: close-confirmed bullish structure shift followed by a bullish order-block retest. SMC definitions vary; backtest and review before use.",
+        direction: "long",
+        conditions: [
+            { engine: "engine_choch_close_bullish", label: "CHoCH close bullish" },
+            { engine: "engine_order_block_retest_bullish", label: "Bullish order block retest" },
+        ],
+    }),
 ];
 
 export function findBotTemplate(id: string): BotTemplate | undefined {

@@ -151,8 +151,8 @@ function computeRuleDiagnostics(
 
     const { candles, features } = primary;
     const enabledRules = [
-        ...strategy.entryRules.filter((r) => r.enabled),
-        ...strategy.confirmationRules.filter((r) => r.enabled),
+        ...(strategy.entryRules ?? []).filter((r) => r.enabled),
+        ...(strategy.confirmationRules ?? []).filter((r) => r.enabled),
     ];
     if (enabledRules.length === 0) return diagnostics;
 
@@ -168,14 +168,15 @@ function computeRuleDiagnostics(
     for (let i = 0; i < candles.length; i++) {
         const c = candles[i];
         const f = features[i];
-        if (strategy.filters.daysOfWeek.length > 0 && !strategy.filters.daysOfWeek.includes(new Date(c.timestamp).getUTCDay())) continue;
-        if (strategy.filters.sessions.length > 0 && f && !(strategy.filters.sessions as string[]).includes(f.session)) continue;
+        if ((strategy.filters?.daysOfWeek ?? []).length > 0 && !(strategy.filters?.daysOfWeek ?? []).includes(new Date(c.timestamp).getUTCDay())) continue;
+        const allowedSessions = strategy.filters?.sessions ?? [];
+        if (allowedSessions.length > 0 && f && (f.session === "closed" || !allowedSessions.includes(f.session))) continue;
         diagnostics.sessionBars++;
-        if (strategy.filters.volatilityMinAtrPct > 0 && f && f.atrPct < strategy.filters.volatilityMinAtrPct) continue;
-        if (strategy.filters.volatilityMaxAtrPct > 0 && f && f.atrPct > strategy.filters.volatilityMaxAtrPct) continue;
-        if (strategy.regimeFilter.length > 0 && f) {
+        if ((strategy.filters?.volatilityMinAtrPct ?? 0) > 0 && f && f.atrPct < (strategy.filters?.volatilityMinAtrPct ?? 0)) continue;
+        if ((strategy.filters?.volatilityMaxAtrPct ?? 999) > 0 && f && f.atrPct > (strategy.filters?.volatilityMaxAtrPct ?? 999)) continue;
+        if ((strategy.regimeFilter ?? []).length > 0 && f) {
             const currentRegime = regimeByBar[i] ?? "transitional";
-            if (!strategy.regimeFilter.includes(currentRegime as never)) continue;
+            if (!(strategy.regimeFilter ?? []).includes(currentRegime as never)) continue;
         }
         diagnostics.regimeBars++;
 
@@ -220,7 +221,7 @@ export function backtestStrategy(
     // Precompute regime per bar (stride-sampled on the entry timeframe) so the
     // regimeFilter matches how the live deployment labels regimes.
     const regimeByBar: string[] = new Array(candles.length).fill("transitional");
-    const needRegime = strategy.regimeFilter.length > 0;
+    const needRegime = (strategy.regimeFilter ?? []).length > 0;
     if (needRegime) {
         for (let i = 0; i < candles.length; i += 4) {
             try {
