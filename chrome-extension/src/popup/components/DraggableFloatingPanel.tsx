@@ -56,7 +56,14 @@ export function DraggableFloatingPanel({
         onMouseDown={handleMouseDown}
         title="Drag to move"
       >
-        <Bot size={14} className="text-brand-foreground shrink-0" />
+        <button
+          aria-label="AlgorithmVault AI"
+          className="shrink-0 rounded-full bg-brand/15 p-1.5 text-brand-foreground ring-1 ring-brand/20 transition-colors hover:bg-brand/25 hover:ring-brand/40"
+          onClick={() => window.open(`${(window as any).location?.origin ?? "https://algovault.io"}/strategy-research`, "_blank")}
+          title="AlgoVault AI"
+        >
+          <Bot size={14} strokeWidth={2.5} />
+        </button>
         <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-foreground">{title}</span>
         <button
           onClick={onClose}
