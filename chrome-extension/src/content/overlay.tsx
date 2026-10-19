@@ -34,20 +34,20 @@ import { OVERLAY_CLOSED_EVENT } from "@/content/quick-launcher";
 /* ── theme ───────────────────────────────────────────────────────────── */
 
 const C = {
-  panel: "rgba(16, 16, 18, 0.92)",
-  border: "1px solid rgba(255, 77, 0, 0.35)",
-  borderSoft: "rgba(255, 255, 255, 0.07)",
-  text: "#f5f5f5",
-  textDim: "#a3a3a3",
-  textFaint: "#6b6b6b",
-  accent: "#ff6b26",
-  accentSoft: "rgba(255, 77, 0, 0.12)",
-  accentBorder: "rgba(255, 77, 0, 0.28)",
-  green: "#34d399",
-  red: "#fb7185",
-  amber: "#fbbf24",
-  mono: "'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace",
-  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+  panel: "hsl(var(--card) / 0.92)",
+  border: "1px solid hsl(var(--border) / 0.7)",
+  borderSoft: "hsl(var(--border) / 0.5)",
+  text: "hsl(var(--card-foreground) / 0.95)",
+  textDim: "hsl(var(--muted-foreground) / 1)",
+  textFaint: "hsl(var(--muted-foreground) / 0.5)",
+  accent: "hsl(var(--brand) / 1)",
+  accentSoft: "hsl(var(--brand) / 0.12)",
+  accentBorder: "hsl(var(--brand) / 0.3)",
+  green: "hsl(var(--positive) / 1)",
+  red: "hsl(var(--negative) / 1)",
+  amber: "hsl(var(--warning) / 1)",
+  mono: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  sans: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
 } as const;
 
 /* ── actions ─────────────────────────────────────────────────────────── */
@@ -806,12 +806,18 @@ function IconButton({
 
 /* ── boot ────────────────────────────────────────────────────────────── */
 
+import { shadowTokenCSS } from "./shadow-tokens";
+
 function createShadowContainer(): HTMLDivElement {
   const host = document.createElement("div");
   host.id = "algovault-overlay-host";
   host.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; z-index: 2147483647;";
 
   const shadow = host.attachShadow({ mode: "open" });
+
+  const tokenStyle = document.createElement("style");
+  tokenStyle.textContent = shadowTokenCSS;
+  shadow.appendChild(tokenStyle);
 
   const style = document.createElement("style");
   style.textContent = `
