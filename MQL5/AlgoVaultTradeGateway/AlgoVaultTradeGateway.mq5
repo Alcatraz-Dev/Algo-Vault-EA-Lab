@@ -21,12 +21,11 @@ input int    CommandPollInterval  = 5;
 
 input int    MagicNumber          = 999888;
 
-// When enabled, positions/orders from EVERY magic number (and market
-// comments) are reported so Custom / Legacy EAs linked through the
-// AlgoVault bot registry can also be monitored. When DISABLED (default) the
-// EA keeps reporting only its own MagicNumber — existing behaviour is
-// unchanged. Magic + comment are always sent so the server can attribute
-// activity to the right bot.
+// Positions/orders from EVERY magic number are always reported so
+// manually opened MT5 positions (magic = 0) and positions from other
+// EAs are synchronized into AlgoVault. Kept for backward compatibility;
+// the magic filter no longer suppresses any symbol. Magic + comment
+// are always sent so the server can attribute activity to the right bot.
 input bool   ReportAllMagic       = false;
 
 input bool   DebugMode            = false;
@@ -1201,9 +1200,10 @@ string BuildPositionsJson()
       long magic =
          PositionGetInteger(POSITION_MAGIC);
 
-      if(!ReportAllMagic && magic != MagicNumber)
-         continue;
-
+      // Report every position regardless of magic number so manually
+      // opened MT5 positions (magic = 0) and positions from other EAs
+      // are synchronized into AlgoVault. Magic is still embedded in the
+      // payload so the server can attribute activity to the right bot.
       string symbol =
          PositionGetString(POSITION_SYMBOL);
 
@@ -1332,9 +1332,10 @@ string BuildOrdersJson()
       long magic =
          OrderGetInteger(ORDER_MAGIC);
 
-      if(!ReportAllMagic && magic != MagicNumber)
-         continue;
-
+      // Report every order regardless of magic number so manually
+      // placed MT5 pending orders (magic = 0) and orders from other EAs
+      // are synchronized into AlgoVault. Magic is still embedded in the
+      // payload so the server can attribute activity to the right bot.
       string symbol =
          OrderGetString(ORDER_SYMBOL);
 

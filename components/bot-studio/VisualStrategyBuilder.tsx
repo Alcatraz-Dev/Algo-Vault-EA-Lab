@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -492,38 +492,14 @@ export function VisualStrategyBuilder() {
     const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
     const [compileError, setCompileError] = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const selectedIds = useMemo(() => nodes.filter((n) => n.selected).map((n) => n.id), [nodes]);
     const selectedNodes = nodes.filter((n) => selectedIds.includes(n.id));
     const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
     const selectedEdgeCount = edges.filter((edge) => edge.selected).length;
 
-    const handleSelectionChange = useCallback(
-        ({ nodes: selection, edges: selectedEdges }: { nodes: Node[]; edges: Edge[] }) => {
-            const nextSelection = selection.map((node) => node.id);
-            setSelectedIds((prev) =>
-                prev.length === nextSelection.length && prev.every((id, i) => id === nextSelection[i])
-                    ? prev
-                    : nextSelection,
-            );
-            const selectedEdgeIds = new Set(selectedEdges.map((edge) => edge.id));
-            setEdges((current) => {
-                let changed = false;
-                const next = current.map((edge) => {
-                    const selected = selectedEdgeIds.has(edge.id);
-                    if (edge.selected === selected) return edge;
-                    changed = true;
-                    return { ...edge, selected };
-                });
-                return changed ? next : current;
-            });
-        },
-        [setEdges]
-    );
-
     const handlePaneClick = useCallback(() => {
-        setSelectedIds([]);
-        setEdges((current) => current.map((edge) => edge.selected ? { ...edge, selected: false } : edge));
-    }, [setEdges]);
+        // React Flow clears its own selection; nothing to mirror back into state.
+    }, []);
 
     const onConnect = useCallback(
         (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
@@ -817,7 +793,6 @@ export function VisualStrategyBuilder() {
         (id: string) => {
             setNodes((nds) => nds.filter((n) => n.id !== id));
             setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-            setSelectedIds((cur) => cur.filter((selectedId) => selectedId !== id));
         },
         [setNodes, setEdges],
     );
@@ -825,11 +800,10 @@ export function VisualStrategyBuilder() {
     const loadTemplate = (id: string) => {
         const tpl = BOT_TEMPLATES.find((t) => t.id === id);
         if (!tpl) return;
-        setNodes(tpl.nodes.map(toFlowNode));
-        setEdges(tpl.edges.map(toFlowEdge));
+        setNodes(tpl.nodes.map(toFlowNode).map((n) => ({ ...n, selected: false })));
+        setEdges(tpl.edges.map(toFlowEdge).map((e) => ({ ...e, selected: false })));
         setStrategyName(tpl.name);
         setDirection(tpl.direction);
-        setSelectedIds([]);
     };
 
     const duplicateSelection = useCallback((mode: DuplicateEdgesMode) => {
@@ -849,9 +823,12 @@ export function VisualStrategyBuilder() {
         };
         const result = duplicateGraphSelection(nodes, edges, ids, mode, nextId);
         nodeCounter.current = counter;
-        setNodes(result.nodes);
-        setEdges(result.edges);
-        setSelectedIds(result.duplicatedNodeIds);
+        setNodes((current) =>
+            current.map((n) =>
+                result.duplicatedNodeIds.includes(n.id) ? { ...n, selected: true } : { ...n, selected: false },
+            ),
+        );
+        setEdges(result.edges.map((e) => ({ ...e, selected: false })));
     }, [nodes, edges, selectedIds, setNodes, setEdges]);
 
     const deleteSelection = useCallback(() => {
@@ -862,7 +839,6 @@ export function VisualStrategyBuilder() {
         setEdges((current) => current.filter((edge) =>
             !selectedEdgeIds.has(edge.id) && !ids.has(edge.source) && !ids.has(edge.target),
         ));
-        setSelectedIds([]);
     }, [selectedIds, edges, setNodes, setEdges]);
 
     return (
@@ -1039,7 +1015,6 @@ export function VisualStrategyBuilder() {
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         nodeTypes={nodeTypes}
-                        onSelectionChange={handleSelectionChange}
                         onPaneClick={handlePaneClick}
                         selectionOnDrag
                         selectionMode={SelectionMode.Partial}
@@ -1077,7 +1052,7 @@ export function VisualStrategyBuilder() {
                             node={selectedNode}
                             onChange={(patch) => updateNodeData(selectedNode.id, patch)}
                             onDelete={() => deleteNode(selectedNode.id)}
-                            onClose={() => setSelectedIds([])}
+                            onClose={() => setNodes((current) => current.map((n) => ({ ...n, selected: false })))}
                         />
                     )}
                     <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
