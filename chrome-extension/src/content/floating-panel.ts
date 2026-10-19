@@ -202,7 +202,7 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
 
   // Small account-mode pill: PAPER / LIVE / BROKER — shows TradingView paper/live state
   const accountBadge = document.createElement("span");
-  accountBadge.style.cssText = "flex: 0 0 auto; font-size: 9px; font-weight: 700; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); text-transform: uppercase; line-height: 1.2;";
+  accountBadge.style.cssText = "flex: 0 0 auto; font-size: 9px; font-weight: 700; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; background: hsl(var(--foreground) / 0.08); border: 1px solid hsl(var(--border) / 1); color: hsl(var(--foreground) / 0.85); text-transform: uppercase; line-height: 1.2;";
   try {
     chrome.storage.local.get(["tvPageAccountSignal"], (d) => {
       const s = d?.tvPageAccountSignal as { paperTrading?: boolean; brokerLabel?: string; liveBadge?: boolean } | undefined;
@@ -295,7 +295,7 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
   const frame = document.createElement("iframe");
   frame.src = chrome.runtime.getURL("sidepanel/index.html");
   frame.allow = "clipboard-write";
-  frame.style.cssText = "flex: 1 1 auto; width: 100%; height: 100%; border: 0; background: #0a0a0b;";
+  frame.style.cssText = "flex: 1 1 auto; width: 100%; height: 100%; border: 0; background: hsl(var(--background) / 1);";
   panel.appendChild(frame);
 
   /* ── resize handle (bottom-right corner) ──────────────────────────── */

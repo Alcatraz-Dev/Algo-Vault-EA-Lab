@@ -9,6 +9,7 @@
  * via chrome.storage.local, and a click opens the last overlay state.
  */
 import { getOverlayState, setOverlayState } from "@/storage/storage";
+import { shadowTokenCSS } from "./shadow-tokens";
 
 /** Window event fired by the quick launcher to bring the overlay panel back. */
 export const OVERLAY_CLOSED_EVENT = "algovault:reopen-overlay";
@@ -26,6 +27,31 @@ function isTradingViewPage(): boolean {
   return window.location.hostname.includes("tradingview.com");
 }
 
+/* Container of the currently mounted orb, so the theme listener can reach it. */
+let launcherContainer: HTMLDivElement | null = null;
+
+/* Theme follows the extension's persisted preference (light / dark / system),
+   same source as the floating panel and overlay. */
+function applyLauncherTheme(container: HTMLDivElement): void {
+  try {
+    chrome.storage.local.get(["avTheme"], (r) => {
+      const mode = (r?.avTheme as string) || "system";
+      const isLight =
+        mode === "light" ||
+        (mode === "system" && !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
+      container.classList.toggle("dark", !isLight);
+    });
+  } catch {
+    container.classList.add("dark");
+  }
+}
+
+try {
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.avTheme && launcherContainer) applyLauncherTheme(launcherContainer);
+  });
+} catch { /* storage unavailable — keep current theme */ }
+
 function mountHost(): HTMLDivElement {
   const existing = document.getElementById("algovault-quick-launcher-host");
   if (existing) return existing.querySelector("div") as HTMLDivElement;
@@ -40,9 +66,13 @@ function mountHost(): HTMLDivElement {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :host { all: initial; }
     button { font: inherit; }
+    ${shadowTokenCSS}
   `;
   const container = document.createElement("div");
+  container.className = "av-tokens";
   container.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: visible;";
+  applyLauncherTheme(container);
+  launcherContainer = container;
   shadow.appendChild(style);
   shadow.appendChild(container);
   document.documentElement.appendChild(host);
@@ -64,9 +94,9 @@ function renderOrb(container: HTMLDivElement): void {
     "align-items: center",
     "justify-content: center",
     "border-radius: 50%",
-    "background: rgba(16, 16, 18, 0.92)",
-    "border: 1px solid rgba(255, 255, 255, 0.07)",
-    "box-shadow: 0 4px 14px rgba(0,0,0,0.45)",
+    "background: hsl(var(--card) / 0.92)",
+    "border: 1px solid hsl(var(--border) / 0.9)",
+    "box-shadow: 0 4px 14px hsl(var(--foreground) / 0.18)",
     "color: #ff6b26",
     "cursor: grab",
     "backdrop-filter: blur(10px)",
@@ -144,7 +174,7 @@ function renderOrb(container: HTMLDivElement): void {
       dragging = false;
       pointerId = null;
       orb.style.cursor = "grab";
-      orb.style.boxShadow = "0 4px 14px rgba(0,0,0,0.45)";
+      orb.style.boxShadow = "0 4px 14px hsl(var(--foreground) / 0.18)";
       orb.style.transition = "border-color 0.15s ease, box-shadow 0.2s ease, transform 0.15s ease";
       void setOverlayState({ launcher: pos });
       window.removeEventListener("pointermove", onMove);
@@ -168,7 +198,7 @@ function renderOrb(container: HTMLDivElement): void {
     orb.style.transform = "scale(1.08)";
   });
   orb.addEventListener("mouseleave", () => {
-    orb.style.border = "1px solid rgba(255, 255, 255, 0.07)";
+    orb.style.border = "1px solid hsl(var(--border) / 0.9)";
     orb.style.transform = "scale(1)";
   });
 

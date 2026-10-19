@@ -322,17 +322,6 @@ function AlgoVaultOverlay() {
       if (message.type === "MARKET_CONTEXT_READY" && message.payload) {
         setIntel(message.payload as unknown as EnrichedChartContext);
       }
-      if (message.type === "AV_THEME_CHANGED") {
-        try {
-          chrome.storage.local.get(["avTheme"], (r) => {
-            const mode = (r?.avTheme as string) || "system"
-            const isLight = mode === "light" || (mode === "system" && !!window.matchMedia?.("(prefers-color-scheme: light)").matches)
-            document.documentElement.classList.toggle("dark", !isLight)
-          })
-        } catch {
-          document.documentElement.classList.add("dark")
-        }
-      }
     };
     chrome.runtime.onMessage.addListener(listener);
 
@@ -530,8 +519,8 @@ function AlgoVaultOverlay() {
         fontSize: 12,
         userSelect: "none",
         color: C.text,
-        background: "rgba(16,16,18,0.97)",
-        border: "1px solid rgba(255,255,255,0.12)",
+        background: "hsl(var(--card) / 0.97)",
+        border: "1px solid hsl(var(--border) / 1)",
         borderRadius: "0.875rem",
         boxShadow: isDragging
           ? "0 18px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px hsl(var(--brand) / 0.25)"
@@ -671,7 +660,7 @@ function AlgoVaultOverlay() {
               position: "relative",
               height: 3,
               borderRadius: 3,
-              background: "rgba(255,255,255,0.08)",
+              background: "hsl(var(--foreground) / 0.08)",
               overflow: "hidden",
             }}
           >
@@ -755,9 +744,9 @@ function AlgoVaultOverlay() {
       </div>
 
       {/* sidebar rail — 5 actions (sidepanel style) */}
-      <div style={{position:"absolute",left:0,top:38,bottom:0,width:44,display:"flex",flexDirection:"column",gap:3,padding:"6px 4px 8px",borderRight:"1px solid rgba(255,255,255,0.10)",background:"rgba(255,255,255,0.03)"}}>
+      <div style={{position:"absolute",left:0,top:38,bottom:0,width:44,display:"flex",flexDirection:"column",gap:3,padding:"6px 4px 8px",borderRight:"1px solid hsl(var(--border) / 0.6)",background:"hsl(var(--foreground) / 0.03)"}}>
         {ACTIONS.map(a=>
-          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} aria-label={a.label} style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:"#f5f5f5",cursor:"pointer",transition:"background 0.15s ease"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.12)";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}>
+          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} aria-label={a.label} style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:C.text,cursor:"pointer",transition:"background 0.15s ease"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="hsl(var(--foreground) / 0.12)";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}>
             <a.Icon size={15} strokeWidth={2} />
           </button>
         )}
@@ -792,7 +781,7 @@ function IconButton({
         width: 22,
         height: 22,
         borderRadius: 6,
-        background: hover ? "rgba(255,255,255,0.09)" : "transparent",
+        background: hover ? "hsl(var(--foreground) / 0.09)" : "transparent",
         border: "none",
         color: hover ? C.text : C.textDim,
         cursor: "pointer",
