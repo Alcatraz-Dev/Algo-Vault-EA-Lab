@@ -3,6 +3,7 @@ import {
   Brain, Shield, Target, Play, Layers, ClipboardList, Pencil, AlertCircle, Bot,
   Sparkles, ChevronRight, PanelRight, FlaskConical,
 } from "lucide-react";
+import { DraggableFloatingPanel } from "./DraggableFloatingPanel";
 import { getAlgoVaultUrl } from "@/config/environment";
 import { openCopilotFloatingPanel, primeSidePanelWindowId } from "@/utils/side-panel";
 import type { TradingViewContext, ViewMode } from "@/types";
@@ -60,6 +61,7 @@ export function MainView({
 }: MainViewProps) {
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState(symbol || "");
+  const [showFloating, setShowFloating] = useState(false);
   const [closes, setCloses] = useState<number[]>([]);
   const [tick, setTick] = useState(0);
   const prevRef = useRef<number | null>(null);
@@ -115,6 +117,7 @@ export function MainView({
    * synchronously inside the message hop from this click.
    */
   const openCopilotSidePanel = () => {
+    setShowFloating(true);
     openCopilotFloatingPanel();
   };
 
@@ -132,7 +135,7 @@ export function MainView({
   ];
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="relative flex flex-col h-full">
       {/* ── symbol / price strip ─────────────────────────────────── */}
       <div className="border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2">

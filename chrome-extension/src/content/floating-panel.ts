@@ -123,10 +123,10 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
     "flex-direction: column",
     "border-radius: 14px",
     "overflow: hidden",
-    "background: #0a0a0b",
-    "border: 1px solid rgba(255, 255, 255, 0.09)",
+    "background: hsl(var(--background) / 1)",
+    "border: 1px solid hsl(var(--border) / 1)",
     "box-shadow: 0 18px 48px rgba(0, 0, 0, 0.6)",
-    "color: #e5e5e5",
+    "color: hsl(var(--foreground) / 1)",
     "font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
     "touch-action: none",
   ].join(";");
@@ -140,15 +140,15 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
     "gap: 8px",
     "height: 34px",
     "padding: 0 10px",
-    "background: rgba(255, 255, 255, 0.04)",
-    "border-bottom: 1px solid rgba(255, 255, 255, 0.08)",
+    "background: hsl(var(--secondary) / 0.5)",
+    "border-bottom: 1px solid hsl(var(--border) / 0.5)",
     "cursor: grab",
     "user-select: none",
     "-webkit-user-select: none",
   ].join(";");
 
   const dot = document.createElement("span");
-  dot.style.cssText = "width: 7px; height: 7px; border-radius: 50%; background: #ff6b26; box-shadow: 0 0 6px rgba(255, 107, 38, 0.8);";
+  dot.style.cssText = "width: 7px; height: 7px; border-radius: 50%; background: hsl(var(--brand) / 1); box-shadow: 0 0 6px hsl(var(--brand) / 0.8); box-sizing: border-box;";
   header.appendChild(dot);
 
   const title = document.createElement("span");
@@ -157,7 +157,7 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
   header.appendChild(title);
 
   const dockButton = document.createElement("button");
-  dockButton.textContent = "⇥ Dock";
+  dockButton.textContent = "Dock"; // more UI-neutral label
   dockButton.title = "Open in Chrome's docked side panel instead";
   dockButton.style.cssText = [
     "flex: 0 0 auto",
@@ -168,18 +168,19 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
     "min-width: 64px",
     "height: 26px",
     "padding: 0 10px",
-    "border: 1px solid rgba(255, 255, 255, 0.12)",
+    "border: 1px solid hsl(var(--border) / 1)",
     "background: transparent",
-    "color: rgba(255, 255, 255, 0.7)",
+    "color: hsl(var(--muted-foreground) / 1)",
     "font-size: 10.5px",
     "font-weight: 600",
     "line-height: 1",
     "cursor: pointer",
     "border-radius: 6px",
-    "transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease, border-color 0.15s ease",
+    "transition: all 0.15s ease",
+    "box-sizing: border-box",
   ].join(";");
-  const dockHover = () => { dockButton.style.color = "#fff"; dockButton.style.background = "rgba(255,77,0,0.18)"; dockButton.style.borderColor = "rgba(255,77,0,0.5)"; };
-  const dockLeave = () => { dockButton.style.color = "rgba(255, 255, 255, 0.7)"; dockButton.style.background = "transparent"; dockButton.style.borderColor = "rgba(255, 255, 255, 0.12)"; dockButton.style.transform = "scale(1)"; };
+  const dockHover = () => { dockButton.style.color = "hsl(var(--foreground) / 1)"; dockButton.style.background = "hsl(var(--secondary) / 0.6)"; dockButton.style.borderColor = "hsl(var(--border) / 1)"; };
+  const dockLeave = () => { dockButton.style.color = "hsl(var(--muted-foreground) / 1)"; dockButton.style.background = "transparent"; dockButton.style.borderColor = "hsl(var(--border) / 1)"; dockButton.style.transform = "scale(1)"; };
   dockButton.addEventListener("mouseenter", dockHover);
   dockButton.addEventListener("mouseleave", dockLeave);
   dockButton.addEventListener("pointerdown", () => { dockButton.style.transform = "scale(0.94)"; });
@@ -206,17 +207,18 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
     "width: 26px",
     "height: 26px",
     "padding: 0",
-    "border: 1px solid rgba(255, 255, 255, 0.12)",
+    "border: 1px solid hsl(var(--border) / 1)",
     "background: transparent",
-    "color: rgba(255, 255, 255, 0.7)",
+    "color: hsl(var(--muted-foreground) / 1)",
     "font-size: 14px",
     "line-height: 1",
     "cursor: pointer",
     "border-radius: 6px",
-    "transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease, border-color 0.15s ease",
+    "transition: all 0.15s ease",
+    "box-sizing: border-box",
   ].join(";");
-  const closeHover = () => { closeButton.style.color = "#fff"; closeButton.style.background = "rgba(244, 63, 94, 0.22)"; closeButton.style.borderColor = "rgba(244, 63, 94, 0.5)"; };
-  const closeLeave = () => { closeButton.style.color = "rgba(255, 255, 255, 0.7)"; closeButton.style.background = "transparent"; closeButton.style.borderColor = "rgba(255, 255, 255, 0.12)"; closeButton.style.transform = "scale(1)"; };
+  const closeHover = () => { closeButton.style.color = "hsl(var(--destructive) / 1)"; closeButton.style.background = "hsl(var(--destructive) / 0.15)"; closeButton.style.borderColor = "hsl(var(--destructive) / 0.5)"; };
+  const closeLeave = () => { closeButton.style.color = "hsl(var(--muted-foreground) / 1)"; closeButton.style.background = "transparent"; closeButton.style.borderColor = "hsl(var(--border) / 1)"; closeButton.style.transform = "scale(1)"; };
   closeButton.addEventListener("mouseenter", closeHover);
   closeButton.addEventListener("mouseleave", closeLeave);
   closeButton.addEventListener("pointerdown", () => { closeButton.style.transform = "scale(0.9)"; });
