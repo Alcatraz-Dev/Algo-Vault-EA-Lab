@@ -87,6 +87,8 @@ function saveRect(rect: PanelRect): void {
   }
 }
 
+import { shadowTokenCSS } from "./shadow-tokens";
+
 function mountHost(): HTMLDivElement {
   const existing = document.getElementById(HOST_ID);
   if (existing) return existing.shadowRoot?.querySelector("div") as HTMLDivElement;
@@ -100,9 +102,36 @@ function mountHost(): HTMLDivElement {
   style.textContent = `
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :host { all: initial; }
+    button { font: inherit; }
+    ${shadowTokenCSS}
   `;
   const container = document.createElement("div");
+  container.className = "av-tokens";
   container.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: visible;";
+
+  /* Theme follows the extension's persisted preference (light / dark / system),
+     so the floating panel matches the popup and side panel exactly. */
+  function applyTheme() {
+    try {
+      chrome.storage.local.get(["avTheme"], (r) => {
+        const mode = (r?.avTheme as string) || "system";
+        const isLight =
+          mode === "light" ||
+          (mode === "system" &&
+            !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
+        container.setAttribute("data-theme", isLight ? "light" : "dark");
+      });
+    } catch {
+      container.setAttribute("data-theme", "dark");
+    }
+  }
+  applyTheme();
+  try {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === "local" && changes.avTheme) applyTheme();
+    });
+  } catch { /* storage unavailable — keep current theme */ }
+
   shadow.appendChild(style);
   shadow.appendChild(container);
   document.documentElement.appendChild(host);
@@ -159,6 +188,20 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
   title.textContent = "AlgoVault Copilot";
   title.style.cssText = "flex: 1 1 auto; font-size: 11px; font-weight: 600; letter-spacing: 0.2px; pointer-events: none;";
   header.appendChild(title);
+
+  // Small account-mode pill: PAPER / LIVE / BROKER — shows TradingView paper/live state
+  const accountBadge = document.createElement("span");
+  accountBadge.style.cssText = "flex: 0 0 auto; font-size: 9px; font-weight: 700; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); text-transform: uppercase; line-height: 1.2;";
+  try {
+    chrome.storage.local.get(["tvPageAccountSignal"], (d) => {
+      const s = d?.tvPageAccountSignal as { paperTrading?: boolean; brokerLabel?: string; liveBadge?: boolean } | undefined;
+      if (s?.paperTrading) accountBadge.textContent = "PAPER";
+      else if (s?.liveBadge) accountBadge.textContent = "LIVE";
+      else if (s?.brokerLabel) accountBadge.textContent = "BROKER";
+      else accountBadge.textContent = "TEST";
+    });
+  } catch { accountBadge.textContent = "TEST"; }
+  header.appendChild(accountBadge);
 
   const dockButton = document.createElement("button");
   dockButton.textContent = "Dock"; // more UI-neutral label

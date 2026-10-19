@@ -36,11 +36,13 @@ import {
     Trash2,
     BarChart3,
     X,
+    Code2,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
 import { auth } from "@/lib/firebase";
 import type { NodeGraph, VisualNode, VisualEdge, CompilerDiagnostic } from "@/lib/bot-studio/compiler/types";
 import type { Strategy } from "@/lib/strategy-lab/types";
+import { strategyToAvScript } from "@/lib/bot-studio/compiler/strategy-to-avscript";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Custom Node Components
@@ -206,6 +208,7 @@ export default function VisualBuilderPage() {
     const [backtestResult, setBacktestResult] = useState<any>(null);
     const [backtestModalOpen, setBacktestModalOpen] = useState(false);
     const [compiledStrategy, setCompiledStrategy] = useState<Strategy | null>(null);
+    const [generatedAvs, setGeneratedAvs] = useState<string | null>(null);
     const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
     const [compileError, setCompileError] = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
@@ -308,6 +311,17 @@ export default function VisualBuilderPage() {
             setCompiling(false);
         }
     }, [serializeGraph, getAuthHeaders]);
+
+    const handleGenerateAvs = useCallback(() => {
+        if (!compiledStrategy) return;
+        const result = strategyToAvScript(compiledStrategy);
+        setGeneratedAvs(result.source);
+        if (result.unsupported.length > 0) {
+            setCompileError(`AVS generation reported unsupported constructs: ${result.unsupported.join("; ")}`);
+        } else {
+            setCompileError(null);
+        }
+    }, [compiledStrategy]);
 
     // Auto compile when loaded
     useEffect(() => {
@@ -439,6 +453,14 @@ export default function VisualBuilderPage() {
                         >
                             <RefreshCw className={`h-4 w-4 ${compiling ? "animate-spin" : ""}`} />
                             Compile Graph
+                        </button>
+                        <button
+                            onClick={handleGenerateAvs}
+                            disabled={!compiledStrategy}
+                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-card hover:bg-muted text-sm font-medium transition disabled:opacity-50"
+                        >
+                            <Code2 className="h-4 w-4" />
+                            Generate AVS
                         </button>
                         <button
                             onClick={handleBacktest}
@@ -628,6 +650,13 @@ export default function VisualBuilderPage() {
                                         ))}
                                     </div>
                                 </div>
+
+                                {generatedAvs && (
+                                    <div className="mt-3">
+                                        <span className="text-muted-foreground font-semibold block mb-1">Generated AVS</span>
+                                        <textarea readOnly value={generatedAvs} className="w-full h-48 font-mono text-[11px] p-2 rounded bg-muted/60 border border-border" />
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
