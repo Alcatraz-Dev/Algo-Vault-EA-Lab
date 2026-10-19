@@ -17,10 +17,6 @@
  * down and the service worker shows the "use the docked side panel" hint.
  */
 
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { Bot, BarChart3, Zap, Shield, Bell } from "lucide-react";
-
 const HOST_ID = "algovault-floating-panel-host";
 const PANEL_ID = "algovault-floating-panel";
 const RECT_KEY = "floatingPanelRect";
@@ -289,49 +285,6 @@ function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
   header.appendChild(closeButton);
 
   panel.appendChild(header);
-
-  /* ── 5 action buttons — open main popup / copilot / analyze / signal / risk / alert ── */
-  const rail = document.createElement("div");
-  rail.style.cssText = [
-    "flex: 0 0 auto",
-    "display: flex",
-    "gap: 4px",
-    "padding: 0 10px 6px",
-    "border-bottom: 1px solid hsl(var(--border) / 0.5)",
-    "background: hsl(var(--secondary) / 0.35)",
-  ].join(";");
-  const actions = [
-    { label: "Copilot", Icon: Bot, view: "ai-copilot" },
-    { label: "Analyze", Icon: BarChart3, view: "analysis" },
-    { label: "Signal", Icon: Zap, view: "signal" },
-    { label: "Risk", Icon: Shield, view: "risk" },
-    { label: "Alert", Icon: Bell, view: "quick-alert" },
-  ];
-  actions.forEach(({ label, Icon, view }) => {
-    const btn = document.createElement("button");
-    btn.title = label;
-    btn.setAttribute("aria-label", label);
-    btn.style.cssText = "flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 0 5px; border-radius:0.625rem; border:1px solid hsl(var(--border)/0.55); background:hsl(var(--card)/0.85); color:hsl(var(--card-foreground)/0.95); font-family:ui-sans-serif,system-ui,sans-serif; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s ease; box-sizing:border-box;";
-    btn.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault();
-      if (view === "quick-alert") {
-        try { chrome.runtime.sendMessage({ type: "AUTO_CREATE_ALERT" }).catch(() => {}); } catch {}
-        try { chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view: "alerts" }); } catch {}
-      } else {
-        try { chrome.runtime.sendMessage({ type: "OPEN_EXTENSION_VIEW", view }); } catch {}
-      }
-    });
-    const iconWrap = document.createElement("span");
-    iconWrap.style.cssText = "display:inline-flex; align-items:center; justify-content:center; color:hsl(var(--brand)/1);";
-    btn.appendChild(iconWrap);
-    const iconRoot = createRoot(iconWrap);
-    iconRoot.render(React.createElement(Icon, { size: 15, strokeWidth: 2 }));
-    const lbl = document.createElement("span");
-    lbl.textContent = label;
-    lbl.style.cssText = "font-size:11px; font-weight:600; letter-spacing:0.01em; white-space:nowrap;";
-    btn.appendChild(lbl);
-    rail.appendChild(btn);
-  });
-  panel.appendChild(rail);
 
   /* ── iframe body (the full side-panel app) ────────────────────────── */
   const frame = document.createElement("iframe");
