@@ -21,6 +21,8 @@ const HOST_ID = "algovault-floating-panel-host";
 const PANEL_ID = "algovault-floating-panel";
 const RECT_KEY = "floatingPanelRect";
 const READY_TIMEOUT_MS = 4000;
+  let floatingPanelContainer: HTMLDivElement | null = null;
+
 
 const DEFAULT_WIDTH = 400;
 const DEFAULT_HEIGHT = 640;
@@ -89,6 +91,20 @@ function saveRect(rect: PanelRect): void {
 
 import { shadowTokenCSS } from "./shadow-tokens";
 
+  function applyTheme(container: HTMLDivElement) {
+    try {
+      chrome.storage.local.get(["avTheme"], (r) => {
+        const mode = (r?.avTheme as string) || "system";
+        const isLight =
+          mode === "light" ||
+          (mode === "system" &&
+            !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
+        container.classList.toggle("dark", !isLight);
+      });
+    } catch {
+      container.classList.add("dark");
+    }
+  }
 function mountHost(): HTMLDivElement {
   const existing = document.getElementById(HOST_ID);
   if (existing) return existing.shadowRoot?.querySelector("div") as HTMLDivElement;
@@ -111,24 +127,10 @@ function mountHost(): HTMLDivElement {
 
   /* Theme follows the extension's persisted preference (light / dark / system),
      so the floating panel matches the popup and side panel exactly. */
-  function applyTheme() {
-    try {
-      chrome.storage.local.get(["avTheme"], (r) => {
-        const mode = (r?.avTheme as string) || "system";
-        const isLight =
-          mode === "light" ||
-          (mode === "system" &&
-            !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
-        container.classList.toggle("dark", !isLight);
-      });
-    } catch {
-      container.classList.add("dark");
-    }
-  }
-  applyTheme();
+  applyTheme(container)
   try {
     chrome.storage.onChanged.addListener((changes, area) => {
-      if (area === "local" && changes.avTheme) applyTheme();
+      if (area === "local" && changes.avTheme) applyTheme(container)
       // Propagate theme change to embedded side-panel iframe so it stays in sync.
       const panelHost = document.querySelector("#algovault-floating-panel");
       const frame = panelHost ? (panelHost.querySelector("iframe") as HTMLIFrameElement | null) : null;
@@ -142,7 +144,10 @@ function mountHost(): HTMLDivElement {
   shadow.appendChild(container);
   document.documentElement.appendChild(host);
 
+    floatingPanelContainer = container;
+
   return container;
+
 }
 
 function buildPanel(container: HTMLDivElement, rect: PanelRect): HTMLElement {
@@ -453,6 +458,15 @@ chrome.runtime.onMessage.addListener(
     if (message?.type === "TOGGLE_FLOATING_PANEL") {
       togglePanel();
       sendResponse({ ok: true, open: !!document.getElementById(PANEL_ID) });
+    }
+    if (message?.type === "AV_THEME_CHANGED") {
+      applyTheme(floatingPanelContainer!)
+      // Also propagate to embedded side-panel iframe
+      const panelHost = document.querySelector("#algovault-floating-panel");
+      const frame = panelHost ? (panelHost.querySelector("iframe") as HTMLIFrameElement | null) : null;
+      if (frame?.contentWindow) {
+        try { frame.contentWindow.postMessage({ type: "AV_THEME_CHANGED" }, "*"); } catch {}
+      }
     }
     return false;
   }

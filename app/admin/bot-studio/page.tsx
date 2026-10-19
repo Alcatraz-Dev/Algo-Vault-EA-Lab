@@ -135,6 +135,46 @@ export default function BotStudioDashboard() {
         }
     };
 
+    const handleRename = async (strategyId: string, currentName: string) => {
+        const name = prompt("Rename strategy", currentName);
+        if (!name || name.trim() === currentName) return;
+        setActionLoading(`rename-${strategyId}`);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`/api/bot-studio/strategies/${strategyId}`, {
+                method: "PATCH",
+                headers,
+                body: JSON.stringify({ name: name.trim() }),
+            });
+            const data = await res.json();
+            if (!data.ok) alert(`Rename failed: ${data.error}`);
+            await loadData();
+        } catch (e) {
+            alert(`Rename failed: ${e instanceof Error ? e.message : String(e)}`);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleDuplicate = async (strategyId: string) => {
+        setActionLoading(`dup-${strategyId}`);
+        try {
+            const headers = await getAuthHeaders();
+            const res = await fetch(`/api/bot-studio/strategies/${strategyId}`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({}),
+            });
+            const data = await res.json();
+            if (!data.ok) alert(`Duplicate failed: ${data.error}`);
+            await loadData();
+        } catch (e) {
+            alert(`Duplicate failed: ${e instanceof Error ? e.message : String(e)}`);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const handleDeploy = async () => {
         if (!selectedStrategyId) return;
         setActionLoading("deploying");
@@ -576,6 +616,20 @@ export default function BotStudioDashboard() {
                                                     >
                                                         <BarChart3 className={`h-3 w-3 ${actionLoading === `backtest-${strat.id}` ? "animate-spin" : ""}`} />
                                                         {actionLoading === `backtest-${strat.id}` ? "Testing..." : "Backtest"}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleRename(strat.id, strat.name)}
+                                                        disabled={actionLoading === `rename-${strat.id}`}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
+                                                    >
+                                                        Rename
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDuplicate(strat.id)}
+                                                        disabled={actionLoading === `dup-${strat.id}`}
+                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
+                                                    >
+                                                        Duplicate
                                                     </button>
                                                     <button
                                                         onClick={() => {

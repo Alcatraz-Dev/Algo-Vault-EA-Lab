@@ -322,6 +322,17 @@ function AlgoVaultOverlay() {
       if (message.type === "MARKET_CONTEXT_READY" && message.payload) {
         setIntel(message.payload as unknown as EnrichedChartContext);
       }
+      if (message.type === "AV_THEME_CHANGED") {
+        try {
+          chrome.storage.local.get(["avTheme"], (r) => {
+            const mode = (r?.avTheme as string) || "system"
+            const isLight = mode === "light" || (mode === "system" && !!window.matchMedia?.("(prefers-color-scheme: light)").matches)
+            document.documentElement.classList.toggle("dark", !isLight)
+          })
+        } catch {
+          document.documentElement.classList.add("dark")
+        }
+      }
     };
     chrome.runtime.onMessage.addListener(listener);
 
@@ -830,7 +841,9 @@ function createShadowContainer(): HTMLDivElement {
     }
   }
   setThemeFromStorage();
-  try { chrome.storage.onChanged.addListener((ch, a) => { if (a === "local" && ch.avTheme) setThemeFromStorage(); }); } catch { /* ignore */ }
+  chrome.storage.onChanged.addListener((ch, a) => {
+    if (a === "local" && ch.avTheme) setThemeFromStorage();
+  });
 
   shadow.appendChild(tokenStyle);
   shadow.appendChild(style);

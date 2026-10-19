@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html><head><title>Theme Probe</title></head>
+<body style="background:#000; color:#fff; padding:20px; font-family:sans-serif;">
+<h2>Theme Probe — Floating Panel + Overlay Simulation</h2>
+<p>Simulates chrome.storage.local.avTheme = <strong>light</strong></p>
+<p>Floating wrapper uses <code>.av-tokens</code> (light by default) + toggle <code>.dark</code></p>
+<p>Overlay uses <code>.av-tokens</code> + <code>.dark</code></p>
+<div id="result"></div>
+<script>
+// Minimal mock storage
+window.chromeStorageMock = { avTheme: "light" };
+window.chrome = {
+  storage: {
+    local: {
+      get: (keys, cb) => {
+        const r = {}; if (keys?.avTheme != null) r.avTheme = window.chromeStorageMock.avTheme;
+        else if (Array.isArray(keys)) { keys.forEach(k => r[k] = window.chromeStorageMock[k]); }
+        else { r[keys] = window.chromeStorageMock[keys]; }
+        cb(r);
+      },
+      set: ({avTheme}) => { window.chromeStorageMock.avTheme = avTheme; location.reload(); },
+      onChanged: { addListener: ()=>{} }
+    },
+    onChanged: { addListener: ()=>{} }
+  },
+  runtime: { getURL: (p) => p, sendMessage:()=>{} }
+};
+</script>
+</body></html>
