@@ -25,7 +25,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { shadowTokenCSS } from "./shadow-tokens";
+
 import type { ChartContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { getOverlayState, setOverlayState, getSettings } from "@/storage/storage";
@@ -35,20 +35,20 @@ import { OVERLAY_CLOSED_EVENT } from "@/content/quick-launcher";
 /* ── theme ───────────────────────────────────────────────────────────── */
 
 const C = {
-  panel: "hsl(var(--card) / 0.92)",
-  border: "1px solid hsl(var(--border) / 0.7)",
-  borderSoft: "hsl(var(--border) / 0.5)",
-  text: "hsl(var(--card-foreground) / 0.95)",
-  textDim: "hsl(var(--muted-foreground) / 1)",
-  textFaint: "hsl(var(--muted-foreground) / 0.5)",
-  accent: "hsl(var(--brand) / 1)",
-  accentSoft: "hsl(var(--brand) / 0.12)",
-  accentBorder: "hsl(var(--brand) / 0.3)",
-  green: "hsl(var(--positive) / 1)",
-  red: "hsl(var(--negative) / 1)",
-  amber: "hsl(var(--warning) / 1)",
-  mono: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
-  sans: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif",
+  panel: "rgba(16, 16, 18, 0.97)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderSoft: "rgba(255,255,255,0.07)",
+  text: "#f5f5f5",
+  textDim: "#a3a3a3",
+  textFaint: "#6b6b6b",
+  accent: "#ff6b26",
+  accentSoft: "rgba(255, 77, 0, 0.12)",
+  accentBorder: "rgba(255, 77, 0, 0.28)",
+  green: "#34d399",
+  red: "#fb7185",
+  amber: "#fbbf24",
+  mono: "'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace",
+  sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 } as const;
 
 /* ── actions ─────────────────────────────────────────────────────────── */
@@ -515,8 +515,8 @@ function AlgoVaultOverlay() {
         fontSize: 12,
         userSelect: "none",
         color: C.text,
-        background: "hsl(var(--card) / 1)",
-        border: C.border,
+        background: "rgba(16,16,18,0.97)",
+        border: "1px solid rgba(255,255,255,0.12)",
         borderRadius: "0.875rem",
         boxShadow: isDragging
           ? "0 18px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px hsl(var(--brand) / 0.25)"
@@ -583,7 +583,6 @@ function AlgoVaultOverlay() {
         </span>
       </div>
 
-      <div style={{ paddingLeft: 44 }}>
       {/* price row */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "8px 10px 4px" }}>
         <span
@@ -737,15 +736,14 @@ function AlgoVaultOverlay() {
         )}
       </div>
 
-      </div>
-
-      {/* vertical side rail */}
-      <div style={{position:"absolute",left:0,top:38,bottom:0,width:44,display:"flex",flexDirection:"column",gap:2,padding:"6px 4px 8px",borderRight:`1px solid ${C.borderSoft}`,background:"hsl(var(--secondary) / 0.35)"}}>
-        {ACTIONS.map(a=>
-          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} style={{display:"flex",alignItems:"center",justifyContent:"center",width:36,height:36,borderRadius:8,border:"none",background:"transparent",color:a.accent,cursor:"pointer",transition:"all 0.15s ease"}} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background=`${a.accent}18`;}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="transparent";}}>
-            <a.Icon size={15} strokeWidth={2}/>
+      {/* actions — simple row like other popups */}
+      <div style={{ display: "flex", gap: 4, padding: "7px 10px 8px", borderTop: "1px solid rgba(255,255,255,0.09)", background: "rgba(255,255,255,0.03)" }}>
+        {ACTIONS.map((a) => (
+          <button key={a.id} data-overlay-action onClick={()=>handleAction(a.view)} title={a.label} style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", alignItems:"center", gap:2, padding:"6px 0 5px", borderRadius:"0.75rem", background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.12)", color:"#f5f5f5", fontFamily:C.sans, fontSize:11, fontWeight:600, cursor:"pointer", transition:"all 0.15s ease" }} onMouseEnter={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.12)";}} onMouseLeave={e=>{(e.currentTarget as HTMLButtonElement).style.background="rgba(255,255,255,0.06)";}}>
+            <a.Icon size={14} strokeWidth={2} />
+            <span style={{fontSize:11,fontWeight:600,whiteSpace:"nowrap"}}>{a.label}</span>
           </button>
-        )}
+        ))}
       </div>
     </div>
   );
@@ -804,11 +802,10 @@ function createShadowContainer(): HTMLDivElement {
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :host { all: initial; }
     button { font: inherit; }
-    ${shadowTokenCSS}
   `;
 
   const container = document.createElement("div");
-  container.className = "av-tokens";
+  container.className = "";
   container.style.cssText = "position: fixed; top: 0; left: 0; width: 0; height: 0; overflow: visible;";
 
   function setThemeFromStorage() {
