@@ -1,15 +1,17 @@
 import { WifiOff } from "lucide-react";
 import { useState, useEffect, useCallback, useMemo } from "react";
 
+import { Button } from "@/components/ui/button";
 import { checkHealth, getGatewayStatus, openStrategyLab, runBacktestFromExtension } from "@/api/algovault";
 import { TooltipProvider } from "@/components/ui";
+import { useProAccess } from "@/services/pro-service";
 import { getAuthToken, getCachedContext, getUser, getLastView, saveLastView } from "@/storage/storage";
 import type { TradingViewContext, ViewMode } from "@/types";
 import type { EnrichedChartContext } from "@/services/chart-intelligence";
 import { resolveMarketSymbol, classifyMarket } from "@/utils/symbols";
 import { primeSidePanelWindowId, openSidePanelFromExtensionPage } from "@/utils/side-panel";
 import { Header } from "./components/Header";
-import { TabBar, type TabId } from "./components/TabBar";
+import { NavRail, type PopupTabId } from "./components/NavRail";
 import { MainView } from "./components/MainView";
 import { AnalysisView } from "./components/AnalysisView";
 import { AICopilotView } from "./components/AICopilotView";
@@ -23,14 +25,14 @@ import { AlertView } from "./components/AlertView";
 import { SettingsView } from "./components/SettingsView";
 import { LoginView } from "./components/LoginView";
 
-const TAB_VIEWS: Record<TabId, ViewMode> = {
+const TAB_VIEWS: Record<PopupTabId, ViewMode> = {
   home: "main",
   analysis: "analysis",
   copilot: "ai-copilot",
   settings: "settings",
 };
 
-function tabForView(view: ViewMode): TabId {
+function tabForView(view: ViewMode): PopupTabId {
   if (view === "analysis") return "analysis";
   if (view === "ai-copilot") return "copilot";
   if (view === "settings" || view === "diagnostics") return "settings";
@@ -78,6 +80,10 @@ function PopupApp() {
   const [enriched, setEnriched] = useState<EnrichedChartContext | null>(null);
   const [view, setView] = useState<ViewMode>("main");
   const [offlineNotice, setOfflineNotice] = useState(false);
+  const [showOverride, setShowOverride] = useState(false);
+  const [manualSymbol, setManualSymbol] = useState("");
+  const [manualTimeframe, setManualTimeframe] = useState("");
+  const { isPro } = useProAccess();
 
   /**
    * Canonical chart context handed to every feature: the enriched chart
@@ -94,6 +100,18 @@ function PopupApp() {
   const activeSymbol = effectiveContext?.symbol || null;
   const activeTimeframe = effectiveContext?.timeframe || null;
   const activePrice = enriched?.market?.currentPrice ?? effectiveContext?.price ?? null;
+
+  /** Refresh chart context from the service worker — same call the side
+   *  panel header uses, so the popup and the docked workspace stay in sync. */
+  const refreshContext = useCallback(() => {
+    chrome.runtime.sendMessage({ type: "GET_AI_READY_CONTEXT" }, (resp) => {
+      if (resp?.enriched) setEnriched(resp.enriched as EnrichedChartContext);
+      if (resp?.chart) {
+        setContext(resp.chart as TradingViewContext);
+        setContextTimestamp(Date.now());
+      }
+    });
+  }, []);
 
   /* Prime the side-panel window id in the popup SHELL, not per-view: the
      v3.1 popup-resume feature can reopen the popup onto any view, and views
@@ -234,6 +252,46 @@ function PopupApp() {
     notifyManualContext(next);
   }, [notifyManualContext]);
 
+  /** Apply a manual symbol/timeframe override — mirrors the side panel's
+   *  override strip so the popup can re-identify a chart without opening the
+   *  full workspace. */
+  const applyManual = useCallback(() => {
+    const sym = manualSymbol.trim().toUpperCase();
+    if (!sym) return;
+    const tf = manualTimeframe.trim().toUpperCase() || activeTimeframe || "H1";
+    const resolution = resolveMarketSymbol(sym);
+    const resolved = "symbol" in resolution ? resolution : null;
+    const manual: TradingViewContext = {
+      symbol: sym,
+      exchange: context?.exchange ?? null,
+      timeframe: tf,
+      price: null,
+      isTradingView: false,
+      rawSymbol: sym,
+      ticker: sym,
+      market: resolved?.market ?? classifyMarket(sym),
+      rawTimeframe: tf,
+      priceSource: "unavailable",
+      priceDisplay: null,
+      status: "active",
+      source: "manual",
+      manualOverride: true,
+      marketSymbol: resolved?.symbol ?? sym,
+      marketSync: resolved ? "unknown" : "unsupported",
+      unsupportedReason: resolved ? null : ("reason" in resolution ? resolution.reason : null),
+      timestamp: Date.now(),
+      indicators: [],
+      drawings: [],
+      visibleRange: context?.visibleRange ?? { from: null, to: null, fromLabel: null, toLabel: null, bars: null, source: "unavailable" },
+      symbolSources: ["manual"],
+      timeframeSource: "manual",
+    };
+    handleContextChange(manual);
+    setShowOverride(false);
+    setManualSymbol("");
+    setManualTimeframe("");
+  }, [manualSymbol, manualTimeframe, activeTimeframe, context, handleContextChange]);
+
   const handleSelectSymbol = useCallback((s: string) => {
     const symbol = s.trim().toUpperCase();
     if (!symbol) return;
@@ -289,14 +347,16 @@ function PopupApp() {
   if (isLoading) {
     return (
       <div className="flex h-full flex-col bg-background">
-        <div className="h-11 shrink-0 border-b border-border" />
-        <div className="min-h-0 flex-1 space-y-3 overflow-hidden p-3">
-          <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
-          <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
-          <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
-          <div className="h-16 animate-pulse rounded-xl border border-border bg-card" />
+        <div className="h-12 shrink-0 border-b border-border" />
+        <div className="flex min-h-0 flex-1">
+          <div className="w-11 shrink-0 border-r border-border bg-card" />
+          <div className="min-w-0 flex-1 space-y-3 overflow-hidden p-3">
+            <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+            <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
+            <div className="h-20 animate-pulse rounded-xl border border-border bg-card" />
+            <div className="h-16 animate-pulse rounded-xl border border-border bg-card" />
+          </div>
         </div>
-        <div className="h-12 shrink-0 border-t border-border" />
       </div>
     );
   }
@@ -357,7 +417,7 @@ function PopupApp() {
     }
   };
 
-  const isTab = view === "main" || view === "analysis" || view === "ai-copilot" || view === "settings" || view === "diagnostics";
+  const isRailView = view === "main" || view === "analysis" || view === "ai-copilot" || view === "settings" || view === "diagnostics";
   const activeTab = tabForView(view);
 
   return (
@@ -366,8 +426,13 @@ function PopupApp() {
         isHealthy={isHealthy}
         gatewayConnected={gatewayConnected}
         userEmail={user ? (user.email as string || null) : null}
-        onBack={!isTab ? () => handleSetView("main") : undefined}
+        isPro={isPro}
+        activeSymbol={activeSymbol}
+        activeTimeframe={activeTimeframe}
+        onBack={!isRailView ? () => handleSetView("main") : undefined}
         onSettings={view === "main" ? () => handleSetView("settings") : undefined}
+        onRefresh={refreshContext}
+        onOverride={() => setShowOverride(true)}
         onOpenSidePanel={openSidePanelFromExtensionPage}
       />
       {offlineNotice && (
@@ -378,8 +443,37 @@ function PopupApp() {
           </p>
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto">{renderView()}</div>
-      {isTab && <TabBar active={activeTab} onChange={(tab) => handleSetView(TAB_VIEWS[tab])} />}
+      {showOverride && (
+        <div className="flex shrink-0 items-center gap-2 border-b border-border bg-secondary/40 px-2.5 py-2">
+          <input
+            autoFocus
+            value={manualSymbol}
+            onChange={(e) => setManualSymbol(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && applyManual()}
+            placeholder="Symbol (XAUUSD)"
+            className="h-7 w-28 rounded-md border border-input bg-background px-2 font-numeric text-[11px]"
+            aria-label="Symbol"
+          />
+          <input
+            value={manualTimeframe}
+            onChange={(e) => setManualTimeframe(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && applyManual()}
+            placeholder="TF"
+            className="h-7 w-14 rounded-md border border-input bg-background px-2 font-numeric text-[11px]"
+            aria-label="Timeframe"
+          />
+          <Button size="sm" variant="brand" onClick={applyManual}>
+            Apply
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setShowOverride(false)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+      <div className="flex min-h-0 flex-1">
+        {isRailView && <NavRail active={activeTab} onSelect={(tab) => handleSetView(TAB_VIEWS[tab])} isPro={isPro} />}
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto">{renderView()}</div>
+      </div>
     </div>
   );
 }
