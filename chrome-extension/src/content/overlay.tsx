@@ -35,19 +35,22 @@ import { shadowTokenCSS } from "./shadow-tokens";
 
 /* ── theme ───────────────────────────────────────────────────────────── */
 
+/* Colors resolve against the `.av-tokens` custom properties injected into the
+   shadow root, so the overlay follows the extension's light/dark theme exactly
+   like the popup and side panel. */
 const C = {
-  panel: "rgba(16, 16, 18, 0.97)",
-  border: "1px solid rgba(255,255,255,0.12)",
-  borderSoft: "rgba(255,255,255,0.07)",
-  text: "#f5f5f5",
-  textDim: "#a3a3a3",
-  textFaint: "#6b6b6b",
-  accent: "#ff6b26",
-  accentSoft: "rgba(255, 77, 0, 0.12)",
-  accentBorder: "rgba(255, 77, 0, 0.28)",
-  green: "#34d399",
-  red: "#fb7185",
-  amber: "#fbbf24",
+  panel: "hsl(var(--card) / 0.98)",
+  border: "1px solid hsl(var(--border) / 1)",
+  borderSoft: "1px solid hsl(var(--border) / 0.6)",
+  text: "hsl(var(--foreground) / 1)",
+  textDim: "hsl(var(--muted-foreground) / 1)",
+  textFaint: "hsl(var(--muted-foreground) / 0.7)",
+  accent: "hsl(var(--brand) / 1)",
+  accentSoft: "hsl(var(--brand) / 0.12)",
+  accentBorder: "hsl(var(--brand) / 0.28)",
+  green: "hsl(var(--positive) / 1)",
+  red: "hsl(var(--negative) / 1)",
+  amber: "hsl(var(--warning) / 1)",
   mono: "'SF Mono', 'Cascadia Mono', 'JetBrains Mono', Menlo, Consolas, monospace",
   sans: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 } as const;
@@ -816,10 +819,15 @@ function createShadowContainer(): HTMLDivElement {
     try {
       chrome.storage.local.get(["avTheme"], (r) => {
         const mode = (r?.avTheme as string) || "system";
-        const isLight = mode === "light" || (mode === "system" && window.matchMedia?.("(prefers-color-scheme: light)").matches);
-        container.setAttribute("data-theme", isLight ? "light" : "dark");
+        const isLight =
+          mode === "light" ||
+          (mode === "system" &&
+            !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
+        container.classList.toggle("dark", !isLight);
       });
-    } catch { container.setAttribute("data-theme", "dark"); }
+    } catch {
+      container.classList.add("dark");
+    }
   }
   setThemeFromStorage();
   try { chrome.storage.onChanged.addListener((ch, a) => { if (a === "local" && ch.avTheme) setThemeFromStorage(); }); } catch { /* ignore */ }

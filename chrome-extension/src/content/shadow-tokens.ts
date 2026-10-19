@@ -1,6 +1,40 @@
+/* Exact mirror of src/styles/tokens.css (:root light, .dark dark) for
+   shadow-DOM surfaces (floating panel, overlay, chart overlays). */
 export const shadowTokenCSS = `
 .av-tokens {
   --radius: 0.625rem;
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 240 5.9% 10%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 4% 40%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 240 10% 3.9%;
+  --brand: 21 82% 49%;
+  --brand-foreground: 24 79% 33%;
+  --brand-ring: 21 82% 49%;
+  --brand-fill: 24 79% 39%;
+  --brand-fill-hover: 24 85% 35%;
+  --positive: 161 94% 25%;
+  --negative: 347 81% 46%;
+  --warning: 26 90% 37%;
+  --positive-fill: 161 94% 24%;
+  --negative-fill: 347 75% 40%;
+  --destructive-fill: 0 72% 45%;
+}
+.av-tokens.dark {
   --background: 240 10% 3.9%;
   --foreground: 0 0% 98%;
   --card: 240 10% 10%;
@@ -28,32 +62,8 @@ export const shadowTokenCSS = `
   --positive: 158 64% 52%;
   --negative: 350 89% 71%;
   --warning: 48 96% 67%;
-  --destructive-fill: 0 72% 45%;
   --positive-fill: 161 94% 24%;
   --negative-fill: 347 75% 40%;
-}
-.av-tokens[data-theme="light"] {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 4% 40%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 10% 3.9%;
-  --brand-foreground: 24 79% 33%;
-  --positive: 161 94% 25%;
-  --negative: 347 81% 46%;
-  --warning: 26 90% 37%;
-  --destructive: 0 72% 45%;
+  --destructive-fill: 0 72% 45%;
 }
 `;

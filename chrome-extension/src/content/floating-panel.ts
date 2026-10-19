@@ -119,10 +119,10 @@ function mountHost(): HTMLDivElement {
           mode === "light" ||
           (mode === "system" &&
             !!window.matchMedia?.("(prefers-color-scheme: light)").matches);
-        container.setAttribute("data-theme", isLight ? "light" : "dark");
+        container.classList.toggle("dark", !isLight);
       });
     } catch {
-      container.setAttribute("data-theme", "dark");
+      container.classList.add("dark");
     }
   }
   applyTheme();
