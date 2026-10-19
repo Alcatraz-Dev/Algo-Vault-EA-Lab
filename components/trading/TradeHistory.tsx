@@ -81,6 +81,10 @@ export function closePercentOf(trade: ClosedTrade): number | null {
   return Math.round(((exit - entry) / entry) * 100 * direction * 100) / 100;
 }
 
+/** Compact, muted header cells — 11px is the type floor. */
+const headCls =
+  "h-8 px-2 py-1.5 text-[11px] font-medium tracking-normal text-muted-foreground";
+
 function SideLabel({ side }: { side: string }) {
   const isBuy = String(side).toUpperCase() === "BUY";
   return (
@@ -218,17 +222,17 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
 
       <div className="overflow-x-auto rounded-lg border border-border">
         <Table className="min-w-[860px]">
-          <TableHeader>
+          <TableHeader className="bg-muted/30">
             <TableRow>
-              <TableHead>Closed</TableHead>
-              <TableHead>Symbol</TableHead>
-              <TableHead>Side</TableHead>
-              <TableHead className="text-right">Volume</TableHead>
-              <TableHead className="text-right">Entry → Exit</TableHead>
-              <TableHead className="text-right">P/L</TableHead>
-              <TableHead className="text-right">Close %</TableHead>
-              <TableHead className="text-right">Held</TableHead>
-              <TableHead className="text-right">Ticket</TableHead>
+              <TableHead className={headCls}>Closed</TableHead>
+              <TableHead className={headCls}>Symbol</TableHead>
+              <TableHead className={headCls}>Side</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>Volume</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>Entry → Exit</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>P/L</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>Close %</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>Held</TableHead>
+              <TableHead className={cn(headCls, "text-right")}>Ticket</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

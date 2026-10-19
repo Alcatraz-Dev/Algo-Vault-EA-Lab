@@ -219,22 +219,39 @@ export default function AccountTradingPage() {
         // execution endpoint under the client-readable `trading_logs` rules.
         const logsScopedRef = (accountId: string) =>
             `trading_logs/${uid}/${accountId}`;
-        // Closed trades are persisted by the gateway snapshot diff — every
-        // position that leaves an MT5 snapshot is recorded with its close
-        // price, realized P/L and close %, and streams here in real time.
-        const historyScopedRef = (accountId: string) =>
-            `trading_history/${uid}/${accountId}`;
-
         let posUnsub: (() => void) | undefined;
         let ordUnsub: (() => void) | undefined;
         let logUnsub: (() => void) | undefined;
-        let histUnsub: (() => void) | undefined;
+        // Closed trades are recorded by the gateway snapshot diff and read via
+        // the authenticated /api/trading/closed-trades route (polled), so the
+        // tab does not depend on the client-side RTDB rules for that path.
+        let histTimer: ReturnType<typeof setInterval> | undefined;
+        let histCancelled = false;
+
+        const loadClosedTrades = async (accountId: string) => {
+            if (!firebaseUser) return;
+            try {
+                const token = await firebaseUser.getIdToken();
+                const res = await fetch(
+                    `/api/trading/closed-trades?accountId=${encodeURIComponent(accountId)}`,
+                    { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" }
+                );
+                const body = (await res.json()) as { success?: boolean; trades?: ClosedTrade[] };
+                if (histCancelled) return;
+                setClosedTrades(res.ok && body.success && Array.isArray(body.trades) ? body.trades : []);
+            } catch {
+                // Keep the last loaded rows on a transient network error.
+            }
+        };
 
         const attachScopedListeners = (accountId: string) => {
             if (posUnsub) posUnsub();
             if (ordUnsub) ordUnsub();
             if (logUnsub) logUnsub();
-            if (histUnsub) histUnsub();
+            if (histTimer) clearInterval(histTimer);
+            histCancelled = false;
+            void loadClosedTrades(accountId);
+            histTimer = setInterval(() => void loadClosedTrades(accountId), 10000);
 
             posUnsub = onValue(
                 ref(database, scopeRef(accountId)),
@@ -430,65 +447,6 @@ export default function AccountTradingPage() {
                     }
                 }
             );
-            histUnsub = onValue(
-                ref(database, historyScopedRef(accountId)),
-                (snap) => {
-                    const val = snap.val();
-                    if (val) {
-                        const histList: ClosedTrade[] = Object.entries(
-                            val
-                        ).map(([ticket, t]) => {
-                            const raw = t as Record<string, unknown>;
-                            return {
-                                ticket,
-                                symbol:
-                                    (raw.symbol as string | undefined) || "—",
-                                type:
-                                    (raw.type as string | undefined) || "BUY",
-                                volume:
-                                    raw.volume === undefined
-                                        ? 0
-                                        : Number(raw.volume) || 0,
-                                openPrice:
-                                    raw.openPrice === undefined
-                                        ? 0
-                                        : Number(raw.openPrice) || 0,
-                                closePrice:
-                                    raw.closePrice === undefined
-                                        ? 0
-                                        : Number(raw.closePrice) || 0,
-                                profit:
-                                    raw.profit === undefined
-                                        ? 0
-                                        : Number(raw.profit) || 0,
-                                swap:
-                                    raw.swap === undefined
-                                        ? 0
-                                        : Number(raw.swap) || 0,
-                                openedAt:
-                                    raw.openedAt === undefined
-                                        ? 0
-                                        : Number(raw.openedAt) || 0,
-                                closedAt:
-                                    raw.closedAt === undefined
-                                        ? Date.now()
-                                        : Number(raw.closedAt) || Date.now(),
-                                closeSource:
-                                    (raw.closeSource as string | undefined) ||
-                                    "gateway_snapshot",
-                                priceMovePct:
-                                    raw.priceMovePct === undefined ||
-                                    raw.priceMovePct === null
-                                        ? null
-                                        : Number(raw.priceMovePct),
-                            };
-                        });
-                        setClosedTrades(histList);
-                    } else {
-                        setClosedTrades([]);
-                    }
-                }
-            );
         };
 
         if (selectedAccountId) {
@@ -500,7 +458,8 @@ export default function AccountTradingPage() {
             posUnsub?.();
             ordUnsub?.();
             logUnsub?.();
-            histUnsub?.();
+            histCancelled = true;
+            if (histTimer) clearInterval(histTimer);
         };
     }, [firebaseUser, hasAccess, selectedAccountId]);
 
