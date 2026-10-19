@@ -16,7 +16,10 @@
 // Node kinds
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { EngineNodeKind } from "./engine-nodes";
+
 export type NodeKind =
+    | EngineNodeKind
     | "market_data"
     | "indicator_ema"
     | "indicator_sma"

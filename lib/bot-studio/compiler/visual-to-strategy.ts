@@ -23,6 +23,7 @@ import type {
     CompileResult,
 } from "./types";
 import { VISUAL_COMPILER_VERSION } from "./types";
+import { engineNodeToRule, findEngineNode } from "./engine-nodes";
 
 const VALID_TIMEFRAMES: Timeframe[] = ["M1", "M3", "M5", "M15", "M30", "H1", "H4", "D1", "W1"];
 const DEFAULT_TF: Timeframe = "M5";
@@ -373,6 +374,12 @@ export function compileNodeGraph(
                 for (const src of sourcesOf(edges, node.id)) {
                     if (!visited.has(src)) queue.push(src);
                 }
+                continue;
+            }
+
+            if (findEngineNode(node.kind)) {
+                const rule = engineNodeToRule(node.id, node.kind, entryTf);
+                if (rule) entryRules.push(rule);
                 continue;
             }
 

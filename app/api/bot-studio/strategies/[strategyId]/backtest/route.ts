@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessStrategy } from "@/lib/bot-studio/auth";
 import { getStrategy, saveStrategy, appendAudit } from "@/lib/bot-studio/database";
 import { loadDataBundle } from "@/lib/strategy-lab/market-data";
 import { backtestStrategy, defaultBacktestConfig } from "@/lib/strategy-lab/backtest";
@@ -29,6 +29,11 @@ export async function POST(
         const { strategyId } = await context.params;
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
+        }
+        // A backtest run PERSISTS results onto the strategy record, so it must
+        // be ownership-checked exactly like a write.
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
 

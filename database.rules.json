@@ -321,7 +321,28 @@
       ".indexOn": ["subscription/stripeSubscriptionId", "developerSubscription/stripeSubscriptionId"],
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (auth.uid === $uid || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && (auth.uid === $uid || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        "role": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() == root.child('users').child($uid).child('role').val() || newData.val() == 'customer'"
+        },
+        "subscription": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
+        "developerPlan": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() == 'dev_starter'"
+        },
+        "developerSubscription": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.child('plan').val() == 'dev_starter'"
+        },
+        "developerApproved": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
+        "developerStatus": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
+        "stripeConnect": {
+          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
       }
     },
     "tradingviewMcp": {
@@ -752,8 +773,8 @@
     },
     "workflowContexts": {
       "$executionId": {
-        ".read": "auth != null && (auth.uid === data.child('user.uid').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-        ".write": "auth != null && (auth.uid === data.child('user.uid').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".read": "auth != null && (auth.uid === data.child('user').child('uid').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && (auth.uid === data.child('user').child('uid').val() || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "workflowAutomation": {
@@ -1025,40 +1046,34 @@
       }
     },
     "performanceArena": {
-      "_comment": "Performance Arena is server-authoritative: clients never read or write this tree directly — all access goes through authenticated API routes using the Admin SDK. Balances, results, rewards, leaderboard entries and fraud flags cannot be edited client-side.",
       ".read": false,
       ".write": false
     },
     "alerts": {
-      "_comment": "User price/structure alerts. Phase 11 audit: this path was written by app/api/alerts via the Admin SDK but had NO rule, so with the deny-by-default root every client read was refused. Owner-scoped, never cross-user readable.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "monitoring": {
-      "_comment": "Setup Memory (MEMORY_PATHS in lib/market-intelligence/memory/repository.ts -> monitoring/setups/$uid). Phase 11 audit: the repository wrote here but no rule existed, so clients were denied while the Admin SDK wrote — setups were invisible on every client. Owner-scoped: a setup is private by default and is never readable by another user.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "auth != null && (auth.uid === $userId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     },
     "deviceWorkspace": {
-      "_comment": "Phase 11 cross-device workspace. SERVER-AUTHORITATIVE: clients may read their own workspace (so every surface — desktop, PWA, native — sees the same state) but may NEVER write directly. Writes go through /api/mobile/workspace so revision is bumped by the server and validation is enforced. Denying .write here is what makes deterministic conflict resolution possible.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "false"
       }
     },
     "userPreferences": {
-      "_comment": "Phase 11 cross-device preferences. Same model as deviceWorkspace: owner-readable, server-only writes via /api/mobile/preferences. Separate from deviceWorkspace so a new device can render in the right theme before the workspace record resolves.",
       "$userId": {
         ".read": "auth != null && auth.uid === $userId",
         ".write": "false"
       }
     },
     "mobileDevices": {
-      "_comment": "Phase 11 device registry. Server-only in both directions: it records deviceId, platform, app version and last-seen for admin observability and conflict attribution. Clients must never be able to enumerate or edit another device's record.",
       "$userId": {
         ".read": false,
         ".write": false

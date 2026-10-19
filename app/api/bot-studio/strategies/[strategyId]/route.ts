@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessStrategy } from "@/lib/bot-studio/auth";
 import { getStrategy, saveStrategy, newStrategyId, deleteStrategy, appendAudit } from "@/lib/bot-studio/database";
 import crypto from "crypto";
 
@@ -18,7 +18,7 @@ export async function GET(
         if (!strategy) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
-        if (!access.isAdmin && strategy.authorId !== access.uid) {
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
         return NextResponse.json({ ok: true, strategy });
@@ -42,6 +42,9 @@ export async function PATCH(
         const { strategyId } = await context.params;
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
+        }
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
         const body = await request.json().catch(() => ({}));
@@ -76,6 +79,9 @@ export async function POST(
         const { strategyId } = await context.params;
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
+        }
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
         const body = await request.json().catch(() => ({}));
@@ -127,6 +133,9 @@ export async function DELETE(
         const { strategyId } = await context.params;
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
+        }
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json({ ok: false, error: "Strategy not found" }, { status: 404 });
         }
         const success = await deleteStrategy(strategyId);

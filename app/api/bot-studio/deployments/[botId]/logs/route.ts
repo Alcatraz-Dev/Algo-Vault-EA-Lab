@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
 import { getRecentLogs, getRecentAudit, getDeployment } from "@/lib/bot-studio/database";
 
 export async function GET(
@@ -21,7 +21,7 @@ export async function GET(
         if (!deployment) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
-        if (!access.isAdmin && deployment.ownerId !== access.uid) {
+        if (!canAccessDeployment(access, deployment)) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
         const [logs, audit] = await Promise.all([

@@ -48,6 +48,17 @@ import type {
 } from "@/lib/bot-studio/compiler/types";
 import type { Strategy } from "@/lib/strategy-lab/types";
 import { strategyToAvScript } from "@/lib/bot-studio/compiler/strategy-to-avscript";
+import { ENGINE_NODE_CATALOG, type EngineNodeCategory } from "@/lib/bot-studio/compiler/engine-nodes";
+
+const ENGINE_CATEGORIES: EngineNodeCategory[] = [
+    "Trend",
+    "Indicators",
+    "Market structure",
+    "Liquidity & FVG",
+    "Sessions",
+    "Price action & momentum",
+    "Volatility",
+];
 
 type CompileOutcome =
     | { ok: true; strategy: Strategy; diagnostics: CompilerDiagnostic[] }
@@ -178,7 +189,24 @@ function ActionNodeComponent({ data }: NodeProps) {
     );
 }
 
-const nodeTypes = {
+/** Engine-backed condition nodes: one shared card, label comes from the catalog. */
+function EngineNodeComponent({ data }: NodeProps) {
+    const d = (data || {}) as { label?: string };
+    return (
+        <div className={`${NODE_CARD} min-w-[200px]`}>
+            <div className={NODE_HEAD}>
+                <span className={`${NODE_ICON} bg-muted text-foreground`}>
+                    <Zap className="h-3.5 w-3.5" />
+                </span>
+                <span>{d.label || "Engine condition"}</span>
+            </div>
+            <div className={NODE_META}>Evaluated by the strategy engine</div>
+            <Handle type="source" position={Position.Right} className={HANDLE} />
+        </div>
+    );
+}
+
+const legacyNodeTypes = {
     market_data: MarketDataNodeComponent,
     indicator_ema: IndicatorNodeComponent,
     indicator_sma: IndicatorNodeComponent,
@@ -189,6 +217,11 @@ const nodeTypes = {
     condition_lt: ConditionNodeComponent,
     action_enter_long: ActionNodeComponent,
     action_enter_short: ActionNodeComponent,
+};
+
+const nodeTypes = {
+    ...legacyNodeTypes,
+    ...Object.fromEntries(ENGINE_NODE_CATALOG.map((d) => [d.kind, EngineNodeComponent])),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -596,6 +629,39 @@ export function VisualStrategyBuilder() {
                     })}>
                     Enter long
                 </Button>
+            </div>
+
+            {/* Engine-backed condition library: every node compiles to a rule the strategy engine evaluates. */}
+            <div className="space-y-2 rounded-xl border border-border bg-card p-2.5 shadow-sm">
+                <span className="text-xs font-medium text-muted-foreground">
+                    Condition library · each node is evaluated by the strategy engine
+                </span>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    {ENGINE_CATEGORIES.map((category) => {
+                        const defs = ENGINE_NODE_CATALOG.filter((d) => d.category === category);
+                        return (
+                            <details key={category} className="rounded-lg border border-border p-2" open={category === "Trend"}>
+                                <summary className="cursor-pointer text-xs font-semibold text-foreground">
+                                    {category} <span className="font-numeric font-normal text-muted-foreground">({defs.length})</span>
+                                </summary>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {defs.map((def) => (
+                                        <Button
+                                            key={def.kind}
+                                            variant="outline"
+                                            size="sm"
+                                            className={PALETTE_BUTTON}
+                                            title={def.description}
+                                            onClick={() => addNode(def.kind, def.kind, { label: def.label })}
+                                        >
+                                            {def.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </details>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Canvas and compiler panel */}

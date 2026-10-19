@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessStrategy } from "@/lib/bot-studio/auth";
 import {
     listAllDeployments,
     getStrategy,
@@ -18,7 +18,14 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const deployments = await listAllDeployments();
+        const all = await listAllDeployments();
+        // Non-admin callers only ever see their OWN deployments. These records
+        // carry the owner's MT5 account, runtime state and live counters, so
+        // listing every deployment for any authenticated Pro user would leak
+        // another user's private trading data.
+        const deployments = access.isAdmin
+            ? all
+            : all.filter((d: BotDeployment) => d.ownerId === access.uid);
         return NextResponse.json({ ok: true, deployments });
     } catch (error) {
         return NextResponse.json(
@@ -44,6 +51,16 @@ export async function POST(request: NextRequest) {
 
         const strategy = await getStrategy(strategyId);
         if (!strategy) {
+            return NextResponse.json(
+                { ok: false, error: `Strategy ${strategyId} does not exist` },
+                { status: 404 }
+            );
+        }
+        // A deployment may only be created from a strategy the caller owns
+        // (admins may deploy any strategy). Without this check a Pro user
+        // could deploy somebody else's strategy against their own MT5
+        // account.
+        if (!canAccessStrategy(access, strategy)) {
             return NextResponse.json(
                 { ok: false, error: `Strategy ${strategyId} does not exist` },
                 { status: 404 }

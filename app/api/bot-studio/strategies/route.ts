@@ -1,12 +1,13 @@
 import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessStrategy } from "@/lib/bot-studio/auth";
 import {
     listAllStrategies,
     saveStrategy,
     newStrategyId,
     appendAudit,
+    getStrategy,
 } from "@/lib/bot-studio/database";
 import { deriveMagicNumber } from "@/lib/bot-studio/magic-numbers";
 import { validateStrategyDefinition } from "@/lib/strategy-engine/validation";
@@ -76,6 +77,18 @@ export async function POST(request: NextRequest) {
 
         const now = Date.now();
         const id = body.id || newStrategyId();
+        // When the caller supplies an id, the record is UPSERTED. Guard the
+        // upsert so one Pro user cannot overwrite another user's strategy by
+        // posting a known strategy id.
+        if (body.id) {
+            const existing = await getStrategy(id);
+            if (existing && !canAccessStrategy(access, existing)) {
+                return NextResponse.json(
+                    { ok: false, error: `Strategy ${id} does not exist` },
+                    { status: 404 }
+                );
+            }
+        }
         const magicNumber = deriveMagicNumber(id);
         const fingerprint = crypto.createHash("sha256").update(JSON.stringify(canonicalStrategy)).digest("hex").slice(0, 16);
 

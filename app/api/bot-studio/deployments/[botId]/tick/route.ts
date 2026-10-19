@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
 import { getDeployment, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
 import { BotRuntimeSession } from "@/lib/bot-studio/runtime";
 import { fetchCandles } from "@/lib/market-data/normalizer";
@@ -24,7 +24,7 @@ export async function POST(
         if (!deployment) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
-        if (!access.isAdmin && deployment.ownerId !== access.uid) {
+        if (!canAccessDeployment(access, deployment)) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
 

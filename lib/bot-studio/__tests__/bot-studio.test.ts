@@ -17,6 +17,8 @@ import { compileAvScript } from "../compiler/avscript-to-strategy";
 import type { NodeGraph } from "../compiler/types";
 import { backtestStrategy, defaultBacktestConfig } from "@/lib/strategy-lab/backtest";
 import type { MarketCandle } from "@/lib/market-data/types";
+import { evaluateRule } from "@/lib/strategy-engine/decisions";
+import type { CandleFeatures } from "@/lib/strategy-lab/features";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) {
@@ -136,6 +138,45 @@ export function runBotStudioTests(): void {
     const emptyResult = compileNodeGraph(emptyGraph, "STRAT_EMPTY");
     assert(!emptyResult.ok, "Empty graph must fail compilation");
     console.log("  ✓ Visual Compiler validation guards passed.");
+
+    // Engine-backed condition nodes compile to rules the engine evaluates
+    console.log("• Testing Engine-backed condition nodes...");
+    const engineGraph: NodeGraph = {
+        nodes: [
+            { id: "trend", kind: "engine_trend_bullish", data: { label: "Trend is bullish" } },
+            { id: "rsi", kind: "engine_rsi_gt_50", data: { label: "RSI(14) > 50" } },
+            { id: "sess", kind: "engine_session_london", data: { label: "London session" } },
+            { id: "action", kind: "action_enter_long", data: { riskPercent: 1.0 } },
+        ],
+        edges: [
+            { id: "e1", source: "trend", target: "action" },
+            { id: "e2", source: "rsi", target: "action" },
+            { id: "e3", source: "sess", target: "action" },
+        ],
+        meta: { name: "Engine Nodes", symbol: "EURUSD", timeframe: "H1", direction: "long" },
+    };
+    const engineResult = compileNodeGraph(engineGraph, "STRAT_ENGINE_TEST");
+    assert(engineResult.ok, `Engine-node compile failed: ${engineResult.diagnostics.map((d) => d.message).join(", ")}`);
+    assert(engineResult.value?.entryRules.length === 3, "Each engine node must yield one entry rule");
+    const stubFeatures = {
+        trend: "bullish",
+        rsi: 55,
+        session: "london",
+        ema20: 1.1,
+        ema50: 1.0,
+        close: 1.2,
+    } as unknown as CandleFeatures;
+    for (const rule of engineResult.value?.entryRules ?? []) {
+        assert(evaluateRule(rule, stubFeatures), `Engine rule ${rule.id} must pass on matching features`);
+    }
+    const bearishGraph: NodeGraph = {
+        ...engineGraph,
+        nodes: [{ id: "bear", kind: "engine_trend_bearish", data: {} }, engineGraph.nodes[3]],
+        edges: [{ id: "e1", source: "bear", target: "action" }],
+    };
+    const bearishRules = compileNodeGraph(bearishGraph, "STRAT_ENGINE_BEAR").value?.entryRules ?? [];
+    assert(bearishRules.length === 1 && !evaluateRule(bearishRules[0], stubFeatures), "Bearish trend rule must fail on bullish features");
+    console.log("  ✓ Engine-backed condition nodes passed.");
 
     // ── 4. AvScript Compiler ──
     console.log("• Testing AvScript Compiler...");

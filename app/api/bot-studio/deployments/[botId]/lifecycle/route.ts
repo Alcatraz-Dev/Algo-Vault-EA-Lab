@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
-import { requireBotStudioAccess } from "@/lib/bot-studio/auth";
+import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
 import {
     getDeployment,
     updateDeploymentState,
@@ -26,7 +26,7 @@ export async function POST(
         if (!deployment) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
-        if (!access.isAdmin && deployment.ownerId !== access.uid) {
+        if (!canAccessDeployment(access, deployment)) {
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
 

@@ -7,6 +7,48 @@ export interface BotStudioAccess {
     isAdmin: boolean;
 }
 
+/** Minimal shape needed to decide strategy ownership. */
+export interface StrategyOwnerRef {
+    authorId?: string;
+}
+
+/** Minimal shape needed to decide deployment ownership. */
+export interface DeploymentOwnerRef {
+    ownerId?: string;
+}
+
+/**
+ * Resource ownership check for Bot Studio strategies.
+ *
+ * Every Bot Studio API route performs its reads and writes through the
+ * Firebase Admin SDK, which BYPASSES Realtime Database security rules.
+ * Ownership therefore has to be enforced here, in the route handler — an
+ * API-level check is the only thing standing between one Pro user and
+ * another Pro user's private strategy.
+ */
+export function canAccessStrategy(
+    access: BotStudioAccess,
+    strategy: StrategyOwnerRef | null | undefined,
+): boolean {
+    if (!strategy) return false;
+    return access.isAdmin || strategy.authorId === access.uid;
+}
+
+/**
+ * Resource ownership check for Bot Studio deployments.
+ *
+ * Same rationale as {@link canAccessStrategy}: Admin SDK writes are not
+ * covered by RTDB rules, so the route must compare the deployment owner
+ * with the authenticated caller.
+ */
+export function canAccessDeployment(
+    access: BotStudioAccess,
+    deployment: DeploymentOwnerRef | null | undefined,
+): boolean {
+    if (!deployment) return false;
+    return access.isAdmin || deployment.ownerId === access.uid;
+}
+
 export async function requireBotStudioAccess(request: Request): Promise<BotStudioAccess | null> {
     // 1. Try admin path first (preserves existing admin privileges).
     const admin = await requireAdmin(request as any);
