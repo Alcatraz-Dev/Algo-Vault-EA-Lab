@@ -11,6 +11,7 @@
 import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import type { Strategy, StrategyRule } from "@/lib/strategy-lab/types";
+import { isIndicatorKey, isIndicatorOperator } from "@/lib/strategy-lab/indicator-library";
 
 const VALID_TIMEFRAMES: Timeframe[] = ["M1", "M3", "M5", "M15", "M30", "H1", "H4", "D1", "W1"];
 const VALID_SESSIONS = ["asian", "london", "new_york", "overlap"];
@@ -191,9 +192,21 @@ function validateRule(rule: StrategyRule, issues: ValidationIssue[]): void {
     }
     if (rule.group === "indicator") {
         if (!rule.indicator) {
-            issues.push(issue(where, "Indicator rule must specify which indicator (rsi | ema_cross | close_vs_ema20 | atr).", "error"));
-        } else if (!VALID_INDICATORS.includes(rule.indicator)) {
+            issues.push(issue(where, "Indicator rule must specify which indicator (rsi | ema_cross | close_vs_ema20 | atr | an indicator library key).", "error"));
+        } else if (!VALID_INDICATORS.includes(rule.indicator) && !isIndicatorKey(rule.indicator)) {
             issues.push(issue(where, `Unsupported indicator: ${rule.indicator}.`, "error"));
+        }
+        if (rule.indicator && isIndicatorKey(rule.indicator)) {
+            if (rule.compareTo !== undefined && !isIndicatorKey(rule.compareTo)) {
+                issues.push(issue(where, `Unsupported comparison series: ${rule.compareTo}.`, "error"));
+            }
+            if (rule.operator === "crosses_above" || rule.operator === "crosses_below") {
+                if (rule.compareTo === undefined && typeof rule.value !== "number") {
+                    issues.push(issue(where, "A crossover rule needs a comparison series or a numeric level.", "error"));
+                }
+            } else if (!isIndicatorOperator(rule.operator)) {
+                issues.push(issue(where, `Unsupported operator for an indicator rule: ${rule.operator}.`, "error"));
+            }
         }
         if (rule.indicator === "rsi") {
             const v = Number(rule.value);

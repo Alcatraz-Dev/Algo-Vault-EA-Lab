@@ -19,6 +19,8 @@ import { backtestStrategy, defaultBacktestConfig } from "@/lib/strategy-lab/back
 import type { MarketCandle } from "@/lib/market-data/types";
 import { evaluateRule } from "@/lib/strategy-engine/decisions";
 import type { CandleFeatures } from "@/lib/strategy-lab/features";
+import { buildIndicatorSeries, describeIndicatorCondition, indicatorRowAt, INDICATOR_DEFS } from "@/lib/strategy-lab/indicator-library";
+import { BOT_TEMPLATES } from "../templates";
 
 function assert(condition: boolean, msg: string) {
     if (!condition) {
@@ -177,6 +179,119 @@ export function runBotStudioTests(): void {
     const bearishRules = compileNodeGraph(bearishGraph, "STRAT_ENGINE_BEAR").value?.entryRules ?? [];
     assert(bearishRules.length === 1 && !evaluateRule(bearishRules[0], stubFeatures), "Bearish trend rule must fail on bullish features");
     console.log("  ✓ Engine-backed condition nodes passed.");
+
+    // ── 3b. Indicator library ──
+    console.log("• Testing indicator library and indicator conditions...");
+    const libCandles: MarketCandle[] = Array.from({ length: 300 }, (_, i) => {
+        const close = 100 + Math.sin(i / 5) * 5 + i * 0.01;
+        return { timestamp: i * 3600000, open: close, high: close + 1, low: close - 1, close, volume: 1 };
+    });
+    const libSeries = buildIndicatorSeries(libCandles);
+    const sma5At4 = libSeries.sma_5[4];
+    const expectedSma5 = libCandles.slice(0, 5).reduce((s, c) => s + c.close, 0) / 5;
+    assert(Math.abs(sma5At4 - expectedSma5) < 1e-9, "sma_5 must equal the mean of the first 5 closes");
+    assert(indicatorRowAt(libSeries, 3).sma_5 === null, "sma_5 must be null during warm-up");
+    for (const def of INDICATOR_DEFS) {
+        assert(Array.isArray(libSeries[def.key]), `Indicator ${def.key} must have a series`);
+    }
+    // Causality: a value at bar i must not change when later candles are added.
+    const prefixSeries = buildIndicatorSeries(libCandles.slice(0, 150));
+    for (const key of ["ema_20", "rsi_14", "donchian_high_20", "adx_14", "stoch_k_14", "bb_upper_20", "macd_line"]) {
+        for (let i = 0; i < 150; i++) {
+            const a = libSeries[key][i];
+            const b = prefixSeries[key][i];
+            const bothMissing = !Number.isFinite(a) && !Number.isFinite(b);
+            assert(bothMissing || Math.abs(a - b) < 1e-9, `${key} at bar ${i} must not use future candles`);
+        }
+    }
+    const crossCompile = compileNodeGraph({
+        nodes: [
+            { id: "c", kind: "indicator_condition", data: { indicator: "ema_20", operator: "crosses_above", compareTo: "ema_50" } },
+            { id: "action", kind: "action_enter_long", data: { riskPercent: 1 } },
+        ],
+        edges: [{ id: "e1", source: "c", target: "action" }],
+        meta: { name: "Cross", symbol: "EURUSD", timeframe: "H1", direction: "long" },
+    }, "STRAT_CROSS");
+    assert(crossCompile.ok, `Crossover condition must compile: ${crossCompile.diagnostics.map((d) => d.message).join(", ")}`);
+    const crossRule = crossCompile.value?.entryRules[0];
+    assert(!!crossRule, "Crossover condition must yield a rule");
+    const crossedFeatures = {
+        ind: { ema_20: 1.1, ema_50: 1.0 },
+        indPrev: { ema_20: 0.9, ema_50: 1.0 },
+    } as unknown as CandleFeatures;
+    const notCrossedFeatures = {
+        ind: { ema_20: 1.1, ema_50: 1.0 },
+        indPrev: { ema_20: 1.2, ema_50: 1.0 },
+    } as unknown as CandleFeatures;
+    assert(evaluateRule(crossRule!, crossedFeatures), "crosses_above must pass when the series crosses this bar");
+    assert(!evaluateRule(crossRule!, notCrossedFeatures), "crosses_above must fail when it was already above");
+    const badCompile = compileNodeGraph({
+        nodes: [
+            { id: "c", kind: "indicator_condition", data: { indicator: "not_a_real_indicator", operator: "gt", value: 1 } },
+            { id: "action", kind: "action_enter_long", data: { riskPercent: 1 } },
+        ],
+        edges: [{ id: "e1", source: "c", target: "action" }],
+        meta: { name: "Bad", symbol: "EURUSD", timeframe: "H1", direction: "long" },
+    }, "STRAT_BAD");
+    assert(!badCompile.ok, "Unknown indicator must be a compile error");
+    console.log("  ✓ Indicator library and conditions passed.");
+
+    // ── 3d. Extended indicators and direction rules ──
+    console.log("• Testing extended indicators and direction rules...");
+    const flatCandles: MarketCandle[] = Array.from({ length: 40 }, (_, i) => ({
+        timestamp: i * 3600000, open: 100, high: 101, low: 99, close: 100, volume: 1,
+    }));
+    const flatSeries = buildIndicatorSeries(flatCandles);
+    assert(Math.abs(flatSeries.atr_14[20] - 2) < 1e-9, "ATR of a constant 2-point range must be 2");
+    assert(Math.abs(flatSeries.atr_pct_14[20] - 2) < 1e-9, "ATR % must be ATR / close * 100");
+    assert(Math.abs(flatSeries.keltner_upper_20[39] - (flatSeries.ema_20[39] + 4)) < 1e-9, "Keltner upper must be EMA 20 + 2 ATR");
+    assert(Math.abs(flatSeries.wma_20[19] - 100) < 1e-9, "WMA of constant closes must equal the close");
+    assert(flatSeries.momentum_10[10] === 0, "Momentum of flat closes must be 0");
+    assert(flatSeries.candle_body_pct[5] === 0, "A doji candle must have 0% body");
+    const wmaExpected = libCandles.slice(0, 20).reduce((s, c, k) => s + c.close * (k + 1), 0) / 210;
+    assert(Math.abs(libSeries.wma_20[19] - wmaExpected) < 1e-9, "WMA 20 must weight the newest bar most");
+    assert(Math.abs(libSeries.momentum_10[10] - (libCandles[10].close - libCandles[0].close)) < 1e-9, "Momentum 10 must be close minus close 10 bars ago");
+    const bandPos = libSeries.bb_percent_b_20[50];
+    assert(bandPos >= -1 && bandPos <= 2, "Bollinger %B must be a position around the bands");
+    const risingCompile = compileNodeGraph({
+        nodes: [
+            { id: "c", kind: "indicator_condition", data: { indicator: "ema_20", operator: "rising" } },
+            { id: "action", kind: "action_enter_long", data: { riskPercent: 1 } },
+        ],
+        edges: [{ id: "e1", source: "c", target: "action" }],
+        meta: { name: "Rising", symbol: "EURUSD", timeframe: "H1", direction: "long" },
+    }, "STRAT_RISING");
+    assert(risingCompile.ok, "A rising condition needs no threshold and must compile");
+    const risingRule = risingCompile.value?.entryRules[0];
+    assert(!!risingRule, "Rising condition must yield a rule");
+    const risingFeatures = { ind: { ema_20: 1.2 }, indPrev: { ema_20: 1.1 } } as unknown as CandleFeatures;
+    const fallingFeatures = { ind: { ema_20: 1.0 }, indPrev: { ema_20: 1.1 } } as unknown as CandleFeatures;
+    assert(evaluateRule(risingRule!, risingFeatures), "rising must pass when the indicator went up");
+    assert(!evaluateRule(risingRule!, fallingFeatures), "rising must fail when the indicator went down");
+    assert(!evaluateRule(risingRule!, { ind: { ema_20: 1.2 }, indPrev: null } as unknown as CandleFeatures), "rising must fail on the first bar");
+    assert(
+        describeIndicatorCondition({ indicator: "ema_20", operator: "falling" }) === "EMA 20 is falling",
+        "A direction rule must read as a sentence without a threshold",
+    );
+    console.log("  ✓ Extended indicators and direction rules passed.");
+
+    // ── 3c. Bot templates ──
+    console.log("• Testing bot templates...");
+    const templateIds = new Set<string>();
+    for (const template of BOT_TEMPLATES) {
+        assert(!templateIds.has(template.id), `Duplicate template id ${template.id}`);
+        templateIds.add(template.id);
+        const compiled = compileNodeGraph({
+            nodes: template.nodes as NodeGraph["nodes"],
+            edges: template.edges,
+            meta: { name: template.name, symbol: "EURUSD", timeframe: "H1", direction: template.direction },
+        }, `STRAT_T_${template.id}`);
+        assert(
+            compiled.ok,
+            `Template ${template.id} must compile: ${compiled.diagnostics.map((d) => d.message).join(", ")}`,
+        );
+    }
+    console.log(`  ✓ ${BOT_TEMPLATES.length} bot templates compiled.`);
 
     // ── 4. AvScript Compiler ──
     console.log("• Testing AvScript Compiler...");

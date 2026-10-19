@@ -277,6 +277,8 @@ export type PatternDiscoveryResult = {
 // Strategy
 // ─────────────────────────────────────────────────────────────────────────────
 
+import type { IndicatorKey } from "./indicator-library";
+
 export type RuleOperator =
     | "eq"
     | "neq"
@@ -286,7 +288,11 @@ export type RuleOperator =
     | "lt"
     | "in"
     | "contains"
-    | "not_in";
+    | "not_in"
+    | "crosses_above"
+    | "crosses_below"
+    | "rising"
+    | "falling";
 
 export type RuleGroup =
     | "trend"
@@ -311,8 +317,16 @@ export type StrategyRule = {
     value: string | number | boolean | string[];
     negate?: boolean;
     groupLogic: "AND" | "OR";
-    /** Only for group "indicator": which indicator (rsi | ema_cross | close_vs_ema20 | atr). */
-    indicator?: "rsi" | "ema_cross" | "close_vs_ema20" | "atr";
+    /**
+     * Only for group "indicator": which indicator. Either a legacy built-in
+     * (rsi | ema_cross | close_vs_ema20 | atr) or a key from the indicator library.
+     */
+    indicator?: "rsi" | "ema_cross" | "close_vs_ema20" | "atr" | IndicatorKey;
+    /**
+     * Library indicators only: compare against this series instead of `value`.
+     * `crosses_above` / `crosses_below` need this or a numeric `value`.
+     */
+    compareTo?: IndicatorKey;
 };
 
 export type SLMode = "atr" | "level";

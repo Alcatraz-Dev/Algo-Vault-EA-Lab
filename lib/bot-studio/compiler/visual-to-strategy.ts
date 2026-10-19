@@ -12,6 +12,12 @@
 import type { Strategy, StrategyRule, StrategySL, StrategyTP, StrategyRisk, StrategyFilters, TimeframeHierarchy } from "@/lib/strategy-lab/types";
 import type { SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
+import {
+    describeIndicatorCondition,
+    isIndicatorKey,
+    isIndicatorOperator,
+} from "@/lib/strategy-lab/indicator-library";
+import type { IndicatorConditionNodeData } from "./types";
 // Suppress unused-var on the type-only import used in TS generics below
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type {
@@ -256,18 +262,35 @@ function conditionNodeToRule(
 // Extract SL/TP/Risk from RiskControl node
 // ─────────────────────────────────────────────────────────────────────────────
 
+interface RiskParams {
+    slType?: string;
+    slAtrMultiplier?: number;
+    slMultiplier?: number;
+    slPips?: number;
+    tpType?: string;
+    tpRatio?: number;
+    tpPips?: number;
+    riskMode?: StrategyRisk["mode"];
+    riskPercent?: number;
+    fixedLot?: number;
+    maxOpenPositions?: number;
+    maxDailyLossPct?: number;
+    allowedSessions?: StrategyFilters["sessions"];
+    cooldownMs?: number;
+}
+
 function extractRisk(
     riskNode: VisualNode | undefined,
     actionNode: VisualNode | undefined,
     diag: CompilerDiagnostic[],
 ): { sl: StrategySL; tp: StrategyTP; risk: StrategyRisk; filters: StrategyFilters } {
     const rd = (riskNode?.data ?? {}) as Partial<RiskControlNodeData>;
-    const ad = (actionNode?.data ?? {}) as Record<string, any>;
-    const d: any = { ...ad, ...rd };
+    const ad = (actionNode?.data ?? {}) as RiskParams;
+    const d = { ...ad, ...rd } as RiskParams;
 
     const sl: StrategySL = {
         mode: d.slType === "atr" ? "atr" : "level",
-        atrMultiple: d.slAtrMultiplier ?? 2.0,
+        atrMultiple: d.slAtrMultiplier ?? d.slMultiplier ?? 2.0,
         levelOffset: d.slPips ?? 30,
         useSwing: false,
     };
@@ -313,6 +336,53 @@ function extractRisk(
 // ─────────────────────────────────────────────────────────────────────────────
 // Main compiler
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compile an `indicator_condition` node into an indicator rule. Returns null and
+ * records a diagnostic when the node is misconfigured, so the strategy is never
+ * built from a broken condition.
+ */
+function indicatorConditionToRule(
+    node: VisualNode,
+    entryTf: Timeframe,
+    diag: CompilerDiagnostic[],
+): StrategyRule | null {
+    const data = node.data as IndicatorConditionNodeData;
+    const indicator = String(data.indicator ?? "");
+    const operator = String(data.operator ?? "");
+    const compareRaw = data.compareTo ? String(data.compareTo) : undefined;
+    const fail = (message: string): null => {
+        diag.push({ nodeId: node.id, message, severity: "error" });
+        return null;
+    };
+
+    if (!isIndicatorKey(indicator)) return fail(`Unknown indicator "${indicator}".`);
+    if (!isIndicatorOperator(operator)) return fail(`Unknown comparison "${operator}".`);
+    if (compareRaw !== undefined && !isIndicatorKey(compareRaw)) {
+        return fail(`Unknown comparison series "${compareRaw}".`);
+    }
+    const compareTo = compareRaw && isIndicatorKey(compareRaw) ? compareRaw : undefined;
+    const numeric = typeof data.value === "number" && Number.isFinite(data.value) ? data.value : undefined;
+    const directional = operator === "rising" || operator === "falling";
+    if (!directional && compareTo === undefined && numeric === undefined) {
+        return fail("Set a threshold value or a comparison series.");
+    }
+    const value = numeric ?? 0;
+
+    return {
+        id: `indicator_${node.id}`,
+        enabled: true,
+        group: "indicator",
+        label: describeIndicatorCondition({ indicator, operator, value, compareTo }),
+        operator,
+        timeframe: entryTf,
+        value,
+        negate: false,
+        groupLogic: "AND",
+        indicator,
+        ...(compareTo ? { compareTo } : {}),
+    } as StrategyRule;
+}
 
 export function compileNodeGraph(
     graph: NodeGraph,
@@ -379,6 +449,12 @@ export function compileNodeGraph(
 
             if (findEngineNode(node.kind)) {
                 const rule = engineNodeToRule(node.id, node.kind, entryTf);
+                if (rule) entryRules.push(rule);
+                continue;
+            }
+
+            if (node.kind === "indicator_condition") {
+                const rule = indicatorConditionToRule(node, entryTf, diag);
                 if (rule) entryRules.push(rule);
                 continue;
             }

@@ -1,5 +1,6 @@
 import { MarketCandle, MarketSession } from "@/lib/market-data/types";
 import { rsi as rsiSeries } from "@/lib/analytics/indicators";
+import { buildIndicatorSeries, indicatorRowAt } from "./indicator-library";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-candle feature computation used by BOTH the pattern discovery engine and
@@ -67,6 +68,10 @@ export interface CandleFeatures {
     higherLow: boolean;
     lowerHigh: boolean;
     lowerLow: boolean;
+    /** Indicator library values at this bar (see indicator-library.ts). null during warm-up. */
+    ind: Record<string, number | null>;
+    /** Indicator library values at the previous bar, for crossover rules. null on the first bar. */
+    indPrev: Record<string, number | null> | null;
 }
 
 const SWING_LOOKBACK = 3;
@@ -338,7 +343,19 @@ export function computeFeatures(candles: MarketCandle[]): CandleFeatures[] {
             higherLow,
             lowerHigh,
             lowerLow,
+            ind: {},
+            indPrev: null,
         });
+    }
+
+    // Indicator library: computed once over the whole series (causal per bar).
+    const indicatorSeries = buildIndicatorSeries(candles);
+    let prevRow: Record<string, number | null> | null = null;
+    for (let i = 0; i < n; i++) {
+        const row = indicatorRowAt(indicatorSeries, i);
+        features[i].ind = row;
+        features[i].indPrev = prevRow;
+        prevRow = row;
     }
 
     // CHOCH = a BOS against the prevailing direction (detected post-hoc, backdated).

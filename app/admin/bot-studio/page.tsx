@@ -25,8 +25,16 @@ import {
     Zap,
     BarChart3,
     X,
+    MoreHorizontal,
 } from "lucide-react";
 import AdminShell from "@/components/admin/AdminShell";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { auth } from "@/lib/firebase";
 import type { BotStrategy, BotDeployment } from "@/lib/bot-studio/types";
 import { STATE_LABELS } from "@/lib/bot-studio/lifecycle";
@@ -536,25 +544,29 @@ export default function BotStudioDashboard() {
                                     return (
                                         <div
                                             key={strat.id}
-                                            className="p-5 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] flex flex-col justify-between space-y-4"
+                                            className="p-5 rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] flex flex-col justify-between space-y-4 min-w-0"
                                         >
                                             <div>
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div>
-                                                        <h3 className="font-bold text-base leading-snug">{strat.name}</h3>
-                                                        <span className="text-xs text-muted-foreground font-mono">
+                                                <div className="flex items-start justify-between gap-2 min-w-0">
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-bold text-base leading-snug break-words">
+                                                            {strat.name}
+                                                        </h3>
+                                                        <span className="text-xs text-muted-foreground font-mono break-all">
                                                             {strat.id}
                                                         </span>
                                                     </div>
-                                                    <span
-                                                        className={`text-xs px-2 py-0.5 rounded font-semibold ${
-                                                            isVisual
-                                                                ? "bg-sky-500/10 text-sky-500 border border-sky-500/20"
-                                                                : "bg-purple-500/10 text-purple-500 border border-purple-500/20"
-                                                        }`}
-                                                    >
-                                                        {isVisual ? "Visual Graph" : "AvScript"}
-                                                    </span>
+                                                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                                                        <span
+                                                            className={`text-xs px-2 py-0.5 rounded font-semibold ${
+                                                                isVisual
+                                                                    ? "bg-sky-500/10 text-sky-500 border border-sky-500/20"
+                                                                    : "bg-purple-500/10 text-purple-500 border border-purple-500/20"
+                                                            }`}
+                                                        >
+                                                            {isVisual ? "Visual Graph" : "AvScript"}
+                                                        </span>
+                                                    </div>
                                                 </div>
 
                                                 <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
@@ -562,28 +574,28 @@ export default function BotStudioDashboard() {
                                                 </p>
 
                                                 <div className="mt-4 pt-3 border-t border-border/60 grid grid-cols-2 gap-2 text-xs">
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <span className="text-muted-foreground">Asset: </span>
-                                                        <span className="font-semibold">{strat.definition.asset}</span>
+                                                        <span className="font-semibold break-all">{strat.definition.asset}</span>
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <span className="text-muted-foreground">Timeframe: </span>
                                                         <span className="font-semibold">{strat.definition.timeframes.entry}</span>
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <span className="text-muted-foreground">Magic: </span>
-                                                        <span className="font-mono">{strat.magicNumber}</span>
+                                                        <span className="font-mono break-all">{strat.magicNumber}</span>
                                                     </div>
-                                                    <div>
+                                                    <div className="min-w-0">
                                                         <span className="text-muted-foreground">Rules: </span>
                                                         <span>{strat.definition.entryRules?.length || 0} entry</span>
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-3 pt-2.5 border-t border-border/40 flex items-center justify-between">
-                                                    <span className="text-[11px] text-muted-foreground">Backtest:</span>
+                                                <div className="mt-3 pt-2.5 border-t border-border/40 flex flex-wrap items-center gap-2 justify-between min-w-0">
+                                                    <span className="text-[11px] text-muted-foreground shrink-0">Backtest:</span>
                                                     {strat.lastBacktestAt ? (
-                                                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded ${
+                                                        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded whitespace-normal break-words ${
                                                             (strat.lastBacktestNetPnl ?? 0) >= 0 ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                                                         }`}>
                                                             <BarChart3 className="h-3 w-3" />
@@ -598,57 +610,72 @@ export default function BotStudioDashboard() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center justify-between pt-2 border-t border-border">
-                                                <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center justify-between gap-3 pt-2 border-t border-border min-w-0">
+                                                <div className="flex items-center gap-1.5 min-w-0">
                                                     <Link
                                                         href={
                                                             isVisual
                                                                 ? `/admin/bot-studio/builder?id=${strat.id}`
                                                                 : `/admin/bot-studio/editor?id=${strat.id}`
                                                         }
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
+                                                        className="px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors shrink-0"
                                                     >
                                                         Edit
                                                     </Link>
                                                     <button
                                                         onClick={() => handleRunBacktest(strat.id)}
                                                         disabled={actionLoading === `backtest-${strat.id}`}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors inline-flex items-center gap-1"
+                                                        className="px-3 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors inline-flex items-center gap-1 shrink-0"
                                                     >
                                                         <BarChart3 className={`h-3 w-3 ${actionLoading === `backtest-${strat.id}` ? "animate-spin" : ""}`} />
                                                         {actionLoading === `backtest-${strat.id}` ? "Testing..." : "Backtest"}
                                                     </button>
-                                                    <button
-                                                        onClick={() => handleRename(strat.id, strat.name)}
-                                                        disabled={actionLoading === `rename-${strat.id}`}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
-                                                    >
-                                                        Rename
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDuplicate(strat.id)}
-                                                        disabled={actionLoading === `dup-${strat.id}`}
-                                                        className="px-2.5 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
-                                                    >
-                                                        Duplicate
-                                                    </button>
+                                                </div>
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger
+                                                            render={
+                                                                <button
+                                                                    className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-border hover:bg-muted text-xs font-medium transition-colors"
+                                                                    title="More actions"
+                                                                />
+                                                            }
+                                                        >
+                                                            <MoreHorizontal className="h-3 w-3" />
+                                                            <span className="hidden sm:inline">More</span>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="min-w-[140px]">
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleRename(strat.id, strat.name)}
+                                                                disabled={actionLoading === `rename-${strat.id}`}
+                                                            >
+                                                                Rename
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDuplicate(strat.id)}
+                                                                disabled={actionLoading === `dup-${strat.id}`}
+                                                            >
+                                                                Duplicate
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDeleteStrategy(strat.id)}
+                                                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                                            >
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                     <button
                                                         onClick={() => {
                                                             setSelectedStrategyId(strat.id);
                                                             setDeployModalOpen(true);
                                                         }}
-                                                        className="px-2.5 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors"
+                                                        className="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition-colors shrink-0"
                                                     >
                                                         Deploy
                                                     </button>
                                                 </div>
-                                                <button
-                                                    onClick={() => handleDeleteStrategy(strat.id)}
-                                                    className="p-1.5 text-muted-foreground hover:text-destructive rounded-lg hover:bg-destructive/10 transition-colors"
-                                                    title="Delete strategy"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </button>
                                             </div>
                                         </div>
                                     );

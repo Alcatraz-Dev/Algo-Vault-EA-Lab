@@ -22,7 +22,7 @@ import { MarketRegime, SupportedSymbol, Timeframe } from "@/lib/market-data/type
 import { getSymbolSpec } from "@/lib/ai-signals/symbol-specs";
 
 const VALID_RULE_GROUPS = new Set<RuleGroup>(["trend", "liquidity", "structure", "fvg", "order_block", "session", "volatility", "price_action", "confirmation"]);
-const VALID_OPERATORS = new Set<RuleOperator>(["eq", "neq", "gte", "lte", "gt", "lt", "in", "contains", "not_in"]);
+const VALID_OPERATORS = new Set<RuleOperator>(["eq", "neq", "gte", "lte", "gt", "lt", "in", "contains", "not_in", "crosses_above", "crosses_below", "rising", "falling"]);
 const VALID_REGIMES = new Set<MarketRegime>(["trending_bullish", "trending_bearish", "ranging", "breakout", "high_volatility", "low_volatility", "transitional"]);
 const VALID_TIMEFRAMES = new Set<string>(["M1", "M3", "M5", "M15", "M30", "H1", "H4", "D1"]);
 

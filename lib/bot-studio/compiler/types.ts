@@ -20,6 +20,7 @@ import type { EngineNodeKind } from "./engine-nodes";
 
 export type NodeKind =
     | EngineNodeKind
+    | "indicator_condition"
     | "market_data"
     | "indicator_ema"
     | "indicator_sma"
@@ -44,6 +45,19 @@ export type NodeKind =
 // ─────────────────────────────────────────────────────────────────────────────
 // Node data payloads
 // ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Configurable condition: any indicator-library series compared with a
+ * threshold or with another series. Compiled to an `indicator` rule.
+ */
+export interface IndicatorConditionNodeData {
+    indicator: string;
+    operator: string;
+    /** Numeric threshold, used when `compareTo` is not set. */
+    value?: number;
+    /** Another indicator-library series to compare against. */
+    compareTo?: string;
+}
 
 export interface MarketDataNodeData {
     symbol: string;
@@ -192,7 +206,8 @@ export type AnyNodeData =
     | EnterShortNodeData
     | CloseLongNodeData
     | CloseShortNodeData
-    | RiskControlNodeData;
+    | RiskControlNodeData
+    | IndicatorConditionNodeData;
 
 export interface VisualNode {
     id: string;

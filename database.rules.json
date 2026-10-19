@@ -322,26 +322,27 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": "auth != null && (auth.uid === $uid || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".validate": "auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || ((!root.child('users').child($uid).child('subscription').exists() || newData.child('subscription').exists()) && (!root.child('users').child($uid).child('developerSubscription').exists() || newData.child('developerSubscription').exists()) && (!root.child('users').child($uid).child('developerPlan').exists() || newData.child('developerPlan').exists()) && (!root.child('users').child($uid).child('developerApproved').exists() || newData.child('developerApproved').exists()) && (!root.child('users').child($uid).child('developerStatus').exists() || newData.child('developerStatus').exists()) && (!root.child('users').child($uid).child('stripeConnect').exists() || newData.child('stripeConnect').exists()))",
         "role": {
           ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() == root.child('users').child($uid).child('role').val() || newData.val() == 'customer'"
         },
         "subscription": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         },
         "developerPlan": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() == 'dev_starter'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.val() == 'dev_starter')"
         },
         "developerSubscription": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.child('plan').val() == 'dev_starter'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin' || newData.child('plan').val() == 'dev_starter')"
         },
         "developerApproved": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         },
         "developerStatus": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         },
         "stripeConnect": {
-          ".validate": "newData.exists() == false || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin'"
+          ".validate": "newData.exists() && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')"
         }
       }
     },

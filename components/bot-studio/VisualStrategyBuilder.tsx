@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -34,6 +34,7 @@ import {
     BarChart3,
     X,
     Code2,
+    Trash2,
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -49,6 +50,14 @@ import type {
 import type { Strategy } from "@/lib/strategy-lab/types";
 import { strategyToAvScript } from "@/lib/bot-studio/compiler/strategy-to-avscript";
 import { ENGINE_NODE_CATALOG, type EngineNodeCategory } from "@/lib/bot-studio/compiler/engine-nodes";
+import {
+    INDICATOR_DEFS,
+    INDICATOR_FAMILIES,
+    INDICATOR_OPERATORS,
+    defaultConditionFor,
+    indicatorDef,
+} from "@/lib/strategy-lab/indicator-library";
+import { BOT_TEMPLATES, type BotTemplate } from "@/lib/bot-studio/templates";
 
 const ENGINE_CATEGORIES: EngineNodeCategory[] = [
     "Trend",
@@ -206,6 +215,27 @@ function EngineNodeComponent({ data }: NodeProps) {
     );
 }
 
+function IndicatorConditionNodeComponent({ data }: NodeProps) {
+    const d = (data || {}) as { indicator?: string; operator?: string; value?: number; compareTo?: string };
+    const lhs = (d.indicator && indicatorDef(d.indicator)?.label) || d.indicator || "Indicator";
+    const op = INDICATOR_OPERATORS.find((o) => o.value === d.operator)?.label ?? d.operator ?? "";
+    const rhs = d.compareTo ? indicatorDef(d.compareTo)?.label ?? d.compareTo : String(d.value ?? 0);
+    return (
+        <div className={`${NODE_CARD} min-w-[220px]`}>
+            <div className={NODE_HEAD}>
+                <span className={`${NODE_ICON} bg-info-muted text-info`}>
+                    <Sliders className="h-3.5 w-3.5" />
+                </span>
+                <span>Indicator condition</span>
+            </div>
+            <div className="font-numeric text-foreground">
+                {lhs} {op} {rhs}
+            </div>
+            <Handle type="source" position={Position.Right} className={HANDLE} />
+        </div>
+    );
+}
+
 const legacyNodeTypes = {
     market_data: MarketDataNodeComponent,
     indicator_ema: IndicatorNodeComponent,
@@ -221,6 +251,7 @@ const legacyNodeTypes = {
 
 const nodeTypes = {
     ...legacyNodeTypes,
+    indicator_condition: IndicatorConditionNodeComponent,
     ...Object.fromEntries(ENGINE_NODE_CATALOG.map((d) => [d.kind, EngineNodeComponent])),
 };
 
@@ -228,57 +259,169 @@ const nodeTypes = {
 // Initial Strategy Template Graph
 // ─────────────────────────────────────────────────────────────────────────────
 
-const INITIAL_NODES: Node[] = [
-    {
-        id: "feed_1",
-        type: "market_data",
-        position: { x: 50, y: 150 },
-        data: { kind: "market_data", symbol: "EURUSD", timeframe: "H1", priceField: "close" },
-    },
-    {
-        id: "ema_fast",
-        type: "indicator_ema",
-        position: { x: 280, y: 80 },
-        data: { kind: "indicator_ema", period: 20 },
-    },
-    {
-        id: "ema_slow",
-        type: "indicator_ema",
-        position: { x: 280, y: 220 },
-        data: { kind: "indicator_ema", period: 50 },
-    },
-    {
-        id: "cond_cross",
-        type: "condition_cross_above",
-        position: { x: 520, y: 140 },
-        data: { kind: "condition_cross_above", label: "EMA20 crosses above EMA50" },
-    },
-    {
-        id: "action_entry",
-        type: "action_enter_long",
-        position: { x: 780, y: 140 },
-        data: {
-            kind: "action_enter_long",
-            riskPercent: 1.0,
-            slType: "atr",
-            slMultiplier: 2.0,
-            tpType: "risk_reward",
-            tpRatio: 2.0,
-        },
-    },
-];
+function toFlowNode(n: BotTemplate["nodes"][number]): Node {
+    return { id: n.id, type: n.kind, position: n.position, data: n.data };
+}
 
-const INITIAL_EDGES: Edge[] = [
-    { id: "e1", source: "feed_1", target: "ema_fast" },
-    { id: "e2", source: "feed_1", target: "ema_slow" },
-    { id: "e3", source: "ema_fast", target: "cond_cross" },
-    { id: "e4", source: "ema_slow", target: "cond_cross" },
-    { id: "e5", source: "cond_cross", target: "action_entry" },
-];
+function toFlowEdge(e: BotTemplate["edges"][number]): Edge {
+    return { id: e.id, source: e.source, target: e.target };
+}
+
+const DEFAULT_TEMPLATE = BOT_TEMPLATES[0];
+const INITIAL_NODES: Node[] = DEFAULT_TEMPLATE.nodes.map(toFlowNode);
+const INITIAL_EDGES: Edge[] = DEFAULT_TEMPLATE.edges.map(toFlowEdge);
 
 const PALETTE_BUTTON = "h-8 rounded-lg px-2.5 text-xs font-medium";
 
 const METRIC_TILE = "rounded-xl border border-border bg-card p-3.5";
+
+const INSPECTOR_FIELD = "h-8 w-full rounded-lg border border-border bg-background px-2 text-xs text-foreground";
+
+function NodeInspector({
+    node,
+    onChange,
+    onDelete,
+    onClose,
+}: {
+    node: Node;
+    onChange: (patch: Record<string, unknown>) => void;
+    onDelete: () => void;
+    onClose: () => void;
+}) {
+    const d = (node.data || {}) as Record<string, unknown>;
+    const kind = String(d.kind ?? node.type ?? "");
+    const num = (key: string) => (typeof d[key] === "number" ? (d[key] as number) : Number(d[key] ?? 0));
+    const numberInput = (key: string, label: string, step = "any") => (
+        <label className="block space-y-1">
+            <span className="text-xs text-muted-foreground">{label}</span>
+            <input
+                type="number"
+                step={step}
+                value={num(key)}
+                onChange={(e) => onChange({ [key]: Number(e.target.value) })}
+                className={`${INSPECTOR_FIELD} font-numeric`}
+            />
+        </label>
+    );
+
+    let body: ReactNode;
+    if (kind === "indicator_condition") {
+        const indicator = String(d.indicator ?? "");
+        const isSeries = typeof d.compareTo === "string";
+        const directional = d.operator === "rising" || d.operator === "falling";
+        body = (
+            <>
+                <label className="block space-y-1">
+                    <span className="text-xs text-muted-foreground">Indicator</span>
+                    <select
+                        value={indicator}
+                        onChange={(e) => onChange({ indicator: e.target.value })}
+                        className={INSPECTOR_FIELD}
+                    >
+                        {INDICATOR_FAMILIES.map((family) => (
+                            <optgroup key={family} label={family}>
+                                {INDICATOR_DEFS.filter((def) => def.family === family).map((def) => (
+                                    <option key={def.key} value={def.key}>
+                                        {def.label}
+                                    </option>
+                                ))}
+                            </optgroup>
+                        ))}
+                    </select>
+                </label>
+                <label className="block space-y-1">
+                    <span className="text-xs text-muted-foreground">Operator</span>
+                    <select
+                        value={String(d.operator ?? "gt")}
+                        onChange={(e) => onChange({ operator: e.target.value })}
+                        className={INSPECTOR_FIELD}
+                    >
+                        {INDICATOR_OPERATORS.map((op) => (
+                            <option key={op.value} value={op.value}>
+                                {op.label}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+                {!directional && (
+                <>
+                <label className="block space-y-1">
+                    <span className="text-xs text-muted-foreground">Compare with</span>
+                    <select
+                        value={isSeries ? "series" : "value"}
+                        onChange={(e) =>
+                            e.target.value === "series"
+                                ? onChange({ compareTo: defaultConditionFor(indicator).compareTo ?? "close" })
+                                : onChange({ compareTo: undefined, value: Number(defaultConditionFor(indicator).value ?? 0) })
+                        }
+                        className={INSPECTOR_FIELD}
+                    >
+                        <option value="value">A fixed number</option>
+                        <option value="series">Another indicator</option>
+                    </select>
+                </label>
+                {isSeries ? (
+                    <label className="block space-y-1">
+                        <span className="text-xs text-muted-foreground">Other indicator</span>
+                        <select
+                            value={String(d.compareTo)}
+                            onChange={(e) => onChange({ compareTo: e.target.value })}
+                            className={INSPECTOR_FIELD}
+                        >
+                            {INDICATOR_DEFS.map((def) => (
+                                <option key={def.key} value={def.key}>
+                                    {def.label}
+                                </option>
+                            ))}
+                        </select>
+                    </label>
+                ) : (
+                    numberInput("value", "Value")
+                )}
+                </>
+                )}
+            </>
+        );
+    } else if (kind === "action_enter_long" || kind === "action_enter_short") {
+        body = (
+            <>
+                {numberInput("riskPercent", "Risk per trade (%)", "0.1")}
+                {numberInput("slMultiplier", "Stop loss (ATR ×)", "0.1")}
+                {numberInput("tpRatio", "Take profit (R:R)", "0.1")}
+            </>
+        );
+    } else {
+        body = <p className="text-xs text-muted-foreground">This node has no editable values.</p>;
+    }
+
+    const title =
+        kind === "indicator_condition"
+            ? "Indicator condition"
+            : typeof d.label === "string"
+              ? d.label
+              : kind;
+
+    return (
+        <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-sm font-semibold text-foreground">{title}</span>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close editor"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+            </div>
+            {body}
+            <Button variant="outline" size="sm" className="w-full text-negative" onClick={onDelete}>
+                <Trash2 />
+                Delete node
+            </Button>
+        </div>
+    );
+}
 
 export function VisualStrategyBuilder() {
     const router = useRouter();
@@ -303,6 +446,8 @@ export function VisualStrategyBuilder() {
     const [diagnostics, setDiagnostics] = useState<CompilerDiagnostic[]>([]);
     const [compileError, setCompileError] = useState<string | null>(null);
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
 
     const onConnect = useCallback(
         (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
@@ -535,15 +680,49 @@ export function VisualStrategyBuilder() {
     };
 
     // Quick node adders
+    const nodeCounter = useRef(0);
     const addNode = (type: string, kind: string, defaultData: Record<string, unknown>) => {
-        const id = `node_${Date.now()}`;
-        const newNode: Node = {
-            id,
-            type,
-            position: { x: 300 + Math.random() * 100, y: 150 + Math.random() * 100 },
-            data: { kind, ...defaultData },
-        };
-        setNodes((nds) => [...nds, newNode]);
+        nodeCounter.current += 1;
+        const id = `added_${nodeCounter.current}`;
+        setNodes((nds) => {
+            const newNode: Node = {
+                id,
+                type,
+                position: { x: 300 + (nds.length % 5) * 40, y: 150 + (nds.length % 7) * 30 },
+                data: { kind, ...defaultData },
+            };
+            return [...nds, newNode];
+        });
+    };
+
+    const addIndicatorCondition = (key: string) => {
+        addNode("indicator_condition", "indicator_condition", { ...defaultConditionFor(key), indicator: key });
+    };
+
+    const updateNodeData = useCallback(
+        (id: string, patch: Record<string, unknown>) => {
+            setNodes((nds) => nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...patch } } : n)));
+        },
+        [setNodes],
+    );
+
+    const deleteNode = useCallback(
+        (id: string) => {
+            setNodes((nds) => nds.filter((n) => n.id !== id));
+            setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
+            setSelectedId((cur) => (cur === id ? null : cur));
+        },
+        [setNodes, setEdges],
+    );
+
+    const loadTemplate = (id: string) => {
+        const tpl = BOT_TEMPLATES.find((t) => t.id === id);
+        if (!tpl) return;
+        setNodes(tpl.nodes.map(toFlowNode));
+        setEdges(tpl.edges.map(toFlowEdge));
+        setStrategyName(tpl.name);
+        setDirection(tpl.direction);
+        setSelectedId(null);
     };
 
     return (
@@ -597,38 +776,84 @@ export function VisualStrategyBuilder() {
                 </div>
             </div>
 
-            {/* Node palette */}
+            {/* Actions and templates */}
             <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-2.5 shadow-sm">
                 <span className="mr-1 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
                     <Plus className="h-3.5 w-3.5" />
-                    Add node
+                    Add action
                 </span>
-                <Button variant="outline" className={`${PALETTE_BUTTON} border-warning/30 text-warning`}
-                    onClick={() => addNode("indicator_ema", "indicator_ema", { period: 20 })}>
-                    EMA indicator
-                </Button>
-                <Button variant="outline" className={`${PALETTE_BUTTON} border-warning/30 text-warning`}
-                    onClick={() => addNode("indicator_rsi", "indicator_rsi", { period: 14 })}>
-                    RSI indicator
-                </Button>
-                <Button variant="outline" className={`${PALETTE_BUTTON}`}
-                    onClick={() => addNode("condition_cross_above", "condition_cross_above", { label: "Cross above" })}>
-                    Cross above
-                </Button>
-                <Button variant="outline" className={`${PALETTE_BUTTON}`}
-                    onClick={() => addNode("condition_lt", "condition_lt", { label: "Less than", threshold: 70 })}>
-                    Less than
-                </Button>
-                <Button variant="outline" className={`${PALETTE_BUTTON} border-positive/30 text-positive`}
-                    onClick={() => addNode("action_enter_long", "action_enter_long", {
-                        riskPercent: 1.0,
-                        slType: "atr",
-                        slMultiplier: 2.0,
-                        tpType: "risk_reward",
-                        tpRatio: 2.0,
-                    })}>
-                    Enter long
-                </Button>
+                {([
+                    ["action_enter_long", "Enter long", "border-positive/30 text-positive"],
+                    ["action_enter_short", "Enter short", "border-negative/30 text-negative"],
+                ] as const).map(([kind, label, tone]) => (
+                    <Button
+                        key={kind}
+                        variant="outline"
+                        className={`${PALETTE_BUTTON} ${tone}`}
+                        onClick={() =>
+                            addNode(kind, kind, {
+                                riskPercent: 1.0,
+                                slType: "atr",
+                                slMultiplier: 2.0,
+                                tpType: "risk_reward",
+                                tpRatio: 2.0,
+                            })
+                        }
+                    >
+                        {label}
+                    </Button>
+                ))}
+                <span className="ml-auto flex items-center gap-2">
+                    <label htmlFor="bot-template" className="text-xs font-medium text-muted-foreground">
+                        Start from a bot template
+                    </label>
+                    <select
+                        id="bot-template"
+                        value=""
+                        onChange={(e) => e.target.value && loadTemplate(e.target.value)}
+                        className="h-8 rounded-lg border border-border bg-card px-2 text-xs text-foreground"
+                    >
+                        <option value="">Choose a template…</option>
+                        {BOT_TEMPLATES.map((t) => (
+                            <option key={t.id} value={t.id}>
+                                {t.name}
+                            </option>
+                        ))}
+                    </select>
+                </span>
+            </div>
+
+            {/* Indicator library: each click adds an editable indicator condition to the canvas. */}
+            <div className="space-y-2 rounded-xl border border-border bg-card p-2.5 shadow-sm">
+                <span className="text-xs font-medium text-muted-foreground">
+                    Indicator library · click to add an editable condition
+                </span>
+                <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    {INDICATOR_FAMILIES.map((family) => {
+                        const defs = INDICATOR_DEFS.filter((def) => def.family === family);
+                        return (
+                            <details key={family} className="rounded-lg border border-border p-2">
+                                <summary className="cursor-pointer text-xs font-semibold text-foreground">
+                                    {family} <span className="font-numeric font-normal text-muted-foreground">({defs.length})</span>
+                                </summary>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {defs.map((def) => (
+                                        <Button
+                                            key={def.key}
+                                            variant="outline"
+                                            size="sm"
+                                            className={PALETTE_BUTTON}
+                                            title={def.description}
+                                            onClick={() => addIndicatorCondition(def.key)}
+                                        >
+                                            {def.label}
+                                        </Button>
+                                    ))}
+                                </div>
+                            </details>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Engine-backed condition library: every node compiles to a rule the strategy engine evaluates. */}
@@ -674,6 +899,8 @@ export function VisualStrategyBuilder() {
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         nodeTypes={nodeTypes}
+                        onNodeClick={(_, node) => setSelectedId(node.id)}
+                        onPaneClick={() => setSelectedId(null)}
                         fitView
                     >
                         <Background gap={16} size={1} color="currentColor" className="text-border" />
@@ -683,6 +910,14 @@ export function VisualStrategyBuilder() {
                 </div>
 
                 <div className="flex flex-col space-y-4 overflow-y-auto lg:col-span-4">
+                    {selectedNode && (
+                        <NodeInspector
+                            node={selectedNode}
+                            onChange={(patch) => updateNodeData(selectedNode.id, patch)}
+                            onDelete={() => deleteNode(selectedNode.id)}
+                            onClose={() => setSelectedId(null)}
+                        />
+                    )}
                     <div className="space-y-3 rounded-xl border border-border bg-card p-4 shadow-sm">
                         <div className="flex items-center justify-between">
                             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

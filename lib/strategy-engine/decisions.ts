@@ -15,6 +15,7 @@
 import { detectRegime } from "@/lib/analytics/market-regime";
 import type { MarketCandle, Timeframe } from "@/lib/market-data/types";
 import type { CandleFeatures } from "@/lib/strategy-lab/features";
+import { isIndicatorKey } from "@/lib/strategy-lab/indicator-library";
 import { computeFeatures, featureAtOrBefore } from "@/lib/strategy-lab/features";
 import type { Strategy, StrategyRule } from "@/lib/strategy-lab/types";
 import type { TraceCondition } from "./types";
@@ -85,6 +86,45 @@ function compareNumeric(op: StrategyRule["operator"], actual: number | null | un
         case "lt": return actual < value;
         case "eq": return Math.abs(actual - value) < 0.0001;
         case "neq": return Math.abs(actual - value) >= 0.0001;
+        default: return false;
+    }
+}
+
+/**
+ * Indicator-library rule: compares `feats.ind[indicator]` with a constant or with
+ * another library series. Crossovers also use the previous bar's values.
+ * Any unready (null) value makes the rule false.
+ */
+function evaluateLibraryRule(rule: StrategyRule, feats: CandleFeatures): boolean {
+    const key = rule.indicator;
+    if (!key) return false;
+    const compareKey = rule.compareTo;
+    const lhs = feats.ind[key] ?? null;
+    if (rule.operator === "rising" || rule.operator === "falling") {
+        // Direction rules compare the indicator with its own previous bar.
+        const prev = feats.indPrev?.[key] ?? null;
+        if (lhs === null || prev === null || !Number.isFinite(lhs) || !Number.isFinite(prev)) return false;
+        return rule.operator === "rising" ? lhs > prev : lhs < prev;
+    }
+    const rhs = compareKey ? feats.ind[compareKey] ?? null : Number(rule.value);
+    if (lhs === null || rhs === null || !Number.isFinite(lhs) || !Number.isFinite(rhs)) return false;
+
+    switch (rule.operator) {
+        case "gt": return lhs > rhs;
+        case "gte": return lhs >= rhs;
+        case "lt": return lhs < rhs;
+        case "lte": return lhs <= rhs;
+        case "crosses_above":
+        case "crosses_below": {
+            const lhsPrev = feats.indPrev?.[key] ?? null;
+            const rhsPrev = compareKey ? feats.indPrev?.[compareKey] ?? null : rhs;
+            if (lhsPrev === null || rhsPrev === null || !Number.isFinite(lhsPrev) || !Number.isFinite(rhsPrev)) {
+                return false;
+            }
+            return rule.operator === "crosses_above"
+                ? lhsPrev <= rhsPrev && lhs > rhs
+                : lhsPrev >= rhsPrev && lhs < rhs;
+        }
         default: return false;
     }
 }
@@ -180,6 +220,10 @@ export function evaluateRule(rule: StrategyRule, feats: CandleFeatures | null): 
         }
         case "indicator": {
             const name = rule.indicator ?? "";
+            if (isIndicatorKey(name)) {
+                ok = evaluateLibraryRule(rule, feats);
+                break;
+            }
             switch (name) {
                 case "rsi":
                     ok = compareNumeric(rule.operator, feats.rsi, Number(rule.value));
