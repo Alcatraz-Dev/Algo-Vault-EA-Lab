@@ -107,7 +107,7 @@ function clampPosition(
 }
 
 /* Measured panel size is kept in a ref so dragging can clamp correctly. */
-const PANEL_SIZE = { w: 268, h: 320 };
+const PANEL_SIZE = { w: 288, h: 320 };
 
 /* ── small presentational pieces ─────────────────────────────────────── */
 
@@ -163,19 +163,23 @@ function ActionButton({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 2,
-        padding: "6px 0 5px",
-        borderRadius: 8,
-        background: hover ? `${accent}26` : C.accentSoft,
-        border: `1px solid ${hover ? `${accent}66` : C.accentBorder}`,
-        color: hover ? accent : "#ffe6db",
+        gap: 3,
+        padding: "7px 3px 6px",
+        borderRadius: "0.875rem",
+        background: hover ? `${accent}14` : "hsl(var(--card) / 0.85)",
+        border: `1px solid ${hover ? `${accent}55` : "hsl(var(--border) / 0.65)"}`,
+        color: hover ? accent : "hsl(var(--card-foreground) / 0.95)",
         cursor: "pointer",
-        transition: "background 0.15s ease, border-color 0.15s ease, color 0.15s ease",
+        transition: "all 0.15s ease",
         fontFamily: C.sans,
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: "0.01em",
+        boxShadow: hover ? `0 2px 8px ${accent}20` : "none",
       }}
     >
-      <Icon size={13} strokeWidth={2} />
-      <span style={{ fontSize: 8.5, fontWeight: 600, letterSpacing: "0.02em", whiteSpace: "nowrap" }}>
+      <Icon size={15} strokeWidth={2} />
+      <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.01em", whiteSpace: "nowrap" }}>
         {label}
       </span>
     </button>
@@ -512,7 +516,7 @@ function AlgoVaultOverlay() {
         color: C.text,
         background: C.panel,
         border: C.border,
-        borderRadius: 12,
+        borderRadius: "0.875rem",
         boxShadow: isDragging
           ? "0 18px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 77, 0, 0.25)"
           : "0 10px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 77, 0, 0.08)",
@@ -737,10 +741,11 @@ function AlgoVaultOverlay() {
       <div
         style={{
           display: "flex",
-          gap: 4,
-          padding: "8px 10px 10px",
+          gap: 5,
+          padding: "9px 8px 10px",
           borderTop: `1px solid ${C.borderSoft}`,
           marginTop: 6,
+          background: "hsl(var(--secondary) / 0.25)",
         }}
       >
         {ACTIONS.map((a) => (
