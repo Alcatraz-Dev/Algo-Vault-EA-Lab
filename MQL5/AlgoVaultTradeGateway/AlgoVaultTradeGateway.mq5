@@ -1,6 +1,6 @@
 #property copyright "AlgoVault Trading Platform"
 #property link      "https://algovault.com"
-#property version   "1.3.0"
+#property version   "1.3"
 #property strict
 
 #include <Trade\Trade.mqh>
@@ -1320,8 +1320,8 @@ string BuildOrdersJson()
       string comment =
          OrderGetString(ORDER_COMMENT);
 
-      long type =
-         OrderGetInteger(ORDER_TYPE);
+      ENUM_ORDER_TYPE type =
+         (ENUM_ORDER_TYPE)OrderGetInteger(ORDER_TYPE);
 
       double volume =
          OrderGetDouble(ORDER_VOLUME_CURRENT);
@@ -1613,6 +1613,32 @@ void OnTradeTransaction(const MqlTradeTransaction &trans,
 //| Closed deals (snapshot backfill)                                 |
 //+------------------------------------------------------------------+
 
+// Finds the opening (DEAL_ENTRY_IN) deal of a position in the CURRENT history
+// selection without reselecting, so callers iterating the selection are safe.
+void FindOpenDealInSelection(long positionId, double &openPrice, long &openTime)
+{
+   openPrice = 0;
+   openTime  = 0;
+   if(positionId <= 0)
+      return;
+
+   int total = HistoryDealsTotal();
+   for(int i = 0; i < total; i++)
+   {
+      ulong t = HistoryDealGetTicket(i);
+      if(t == 0)
+         continue;
+      if(HistoryDealGetInteger(t, DEAL_POSITION_ID) != positionId)
+         continue;
+      if(HistoryDealGetInteger(t, DEAL_ENTRY) == DEAL_ENTRY_IN)
+      {
+         openPrice = HistoryDealGetDouble(t, DEAL_PRICE);
+         openTime  = HistoryDealGetInteger(t, DEAL_TIME);
+         return;
+      }
+   }
+}
+
 string BuildClosedDealsJson()
 {
    string json = "[";
@@ -1629,9 +1655,6 @@ string BuildClosedDealsJson()
 
    for(int i = total - 1; i >= 0; i--) // newest first
    {
-      if(!HistoryDealSelectByIndex(i))
-         continue;
-
       ulong ticket = HistoryDealGetTicket(i);
       if(ticket == 0)
          continue;
@@ -1649,7 +1672,6 @@ string BuildClosedDealsJson()
       long magic = HistoryDealGetInteger(ticket, DEAL_MAGIC);
 
       long positionId = HistoryDealGetInteger(ticket, DEAL_POSITION_ID);
-      long entryDeal  = HistoryDealGetInteger(ticket, DEAL_POSITION_BY_ID);
 
       string symbol     = HistoryDealGetString(ticket, DEAL_SYMBOL);
       double volume     = HistoryDealGetDouble(ticket, DEAL_VOLUME);
@@ -1675,13 +1697,10 @@ string BuildClosedDealsJson()
       else if(dealType == DEAL_TYPE_SELL)
          posType = "BUY";
 
+      // Opening deal of the same position (scans the current selection).
       double openPrice = 0;
       long   openTime  = 0;
-      if(entryDeal > 0)
-      {
-         openPrice = HistoryDealGetDouble(entryDeal, DEAL_PRICE);
-         openTime  = HistoryDealGetInteger(entryDeal, DEAL_TIME);
-      }
+      FindOpenDealInSelection(positionId, openPrice, openTime);
 
       if(!first)
          json += ",";
