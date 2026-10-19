@@ -32,7 +32,7 @@ function StatusBadge({ status }: { status: string }) {
   switch (s) {
     case "filled":
       return (
-        <Badge className="bg-positive/15 text-positive border-positive/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
+        <Badge className="bg-positive text-background border-positive shadow-none font-semibold">
           <Check size={10} className="mr-0.5" />
           Filled
         </Badge>
@@ -41,14 +41,14 @@ function StatusBadge({ status }: { status: string }) {
     case "failed":
     case "error":
       return (
-        <Badge className="bg-negative/15 text-negative border-negative/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
+        <Badge className="bg-negative text-background border-negative shadow-none font-semibold">
           <X size={10} className="mr-0.5" />
           Rejected
         </Badge>
       );
     case "pending":
       return (
-        <Badge className="bg-warning/15 text-warning border-warning/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
+        <Badge className="bg-warning text-background border-warning shadow-none font-semibold">
           <Clock size={10} className="mr-0.5" />
           Pending
         </Badge>
@@ -56,7 +56,7 @@ function StatusBadge({ status }: { status: string }) {
     case "executing":
     case "queued":
       return (
-        <Badge className="bg-info/15 text-info border-info/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
+        <Badge className="bg-info text-background border-info shadow-none font-semibold">
           <Zap size={10} className="mr-0.5" />
           Executing
         </Badge>
@@ -98,7 +98,7 @@ export default function ExecutionLog({
         <span className="font-numeric text-[10px] tabular-nums text-muted-foreground">@ {fmtNum(log.executionPrice, 5)}</span>
       )}
       {log.errorMessage && (
-        <span className="flex items-center gap-0.5 text-[11px] text-negative">
+        <span className="flex items-center gap-0.5 text-[11px] text-warning">
           <AlertTriangle size={9} />{log.errorMessage}
         </span>
       )}
