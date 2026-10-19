@@ -918,6 +918,30 @@ function probeTradingViewAccountSignals(): TradingViewPageAccountSignal | null {
   };
 }
 
+/* Native TV paper/live order bridge — creates real orders via keyboard
+ * shortcuts (Shift+O for BUY / Shift+S for SELL order lines) so demo
+ * trades and linked-broker trades actually appear in TradingView. */
+interface NativeOrderPayload { side: "BUY" | "SELL"; symbol?: string; lots?: number; }
+function placeNativeTvOrder(payload: NativeOrderPayload, sendResponse: (r: unknown) => void) {
+  const signal = probeTradingViewAccountSignals();
+  const hasAccount = signal?.paperTrading || !!signal?.brokerLabel || signal?.liveBadge;
+  if (!hasAccount) {
+    sendResponse({ ok: false, error: "No active TradingView paper/live account detected." });
+    return;
+  }
+  const chartEl = document.querySelector(".chart-container, .main-chart-gui") as HTMLElement || document.body;
+  chartEl.focus();
+  try {
+    const letter = payload.side === "BUY" ? "O" : "S";
+    const eventInit: KeyboardEventInit = { key: letter, code: `Key${letter}`, shiftKey: true, bubbles: true, cancelable: true };
+    chartEl.dispatchEvent(new KeyboardEvent("keydown", eventInit));
+    chartEl.dispatchEvent(new KeyboardEvent("keyup", eventInit));
+    sendResponse({ ok: true, nativeOrder: true, method: "tv-keyboard-shortcut", paperTrading: signal?.paperTrading, broker: signal?.brokerLabel });
+  } catch (e) {
+    sendResponse({ ok: false, error: String(e) });
+  }
+}
+
 function broadcastAccountSignal(): void {
   const signal = probeTradingViewAccountSignals();
   if (!signal) return;
@@ -992,6 +1016,9 @@ function handleMessage(
       // pending action). Refresh our own context snapshot in passing.
       updateContext();
       sendResponse({ ok: true });
+      return;
+    case "TV_NATIVE_ORDER":
+      placeNativeTvOrder(message.payload as unknown as NativeOrderPayload, sendResponse);
       return;
     default:
       sendResponse({ received: true });

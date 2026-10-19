@@ -239,6 +239,10 @@ export function DemoTradingView({ symbol, context, contextTimestamp, onBack }: D
     persist(state);
     setNewlyPlacedId(position.id);
     prevPositionIds.current.add(position.id);
+    // Create native TradingView paper/live order when account is linked
+    try {
+      chrome.runtime.sendMessage({ type: "TV_NATIVE_ORDER", payload: { side: direction, symbol: displaySymbol || marketSymbol || "" } });
+    } catch { /* TV not open — no harm */ }
     setFeedback({
       kind: "success",
       msg: market
