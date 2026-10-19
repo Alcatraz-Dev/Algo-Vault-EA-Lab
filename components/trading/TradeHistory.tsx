@@ -156,7 +156,7 @@ export default function TradeHistory({ trades }: { trades: ClosedTrade[] }) {
 
   if (sorted.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-10 text-center">
+      <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-6 text-center">
         <History className="size-5 text-muted-foreground" />
         <p className="text-sm font-medium">No closed trades yet</p>
         <p className="max-w-md text-xs text-muted-foreground">

@@ -1,14 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Check,
-  X,
-  Clock,
-  Zap,
-  AlertTriangle,
-} from "lucide-react";
+import { Check, X, Clock, Zap, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ExecutionLogEntry {
@@ -26,21 +19,12 @@ export interface ExecutionLogEntry {
   executedAt: number;
 }
 
-function formatNumber(value: number, decimals = 2): string {
-  return value.toLocaleString("en-US", {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  });
+function fmtNum(v: number, d = 2) {
+  return v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 }
-
-function formatTimestamp(ts: number): string {
+function fmtTime(ts: number) {
   if (!ts) return "—";
-  const d = new Date(ts);
-  return d.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+  return new Date(ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -48,22 +32,23 @@ function StatusBadge({ status }: { status: string }) {
   switch (s) {
     case "filled":
       return (
-        <Badge className="bg-positive/10 text-positive dark:text-positive">
+        <Badge className="bg-positive/15 text-positive border-positive/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
           <Check size={10} className="mr-0.5" />
           Filled
         </Badge>
       );
     case "rejected":
     case "failed":
+    case "error":
       return (
-        <Badge className="bg-negative/10 text-negative dark:text-negative">
+        <Badge className="bg-negative/15 text-negative border-negative/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
           <X size={10} className="mr-0.5" />
           Rejected
         </Badge>
       );
     case "pending":
       return (
-        <Badge className="bg-warning/10 text-warning dark:text-warning">
+        <Badge className="bg-warning/15 text-warning border-warning/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
           <Clock size={10} className="mr-0.5" />
           Pending
         </Badge>
@@ -71,99 +56,85 @@ function StatusBadge({ status }: { status: string }) {
     case "executing":
     case "queued":
       return (
-        <Badge className="bg-info/10 text-info dark:text-info">
+        <Badge className="bg-info/15 text-info border-info/30 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)]">
           <Zap size={10} className="mr-0.5" />
           Executing
         </Badge>
       );
     default:
-      return <Badge variant="secondary">{status}</Badge>;
+      return <Badge variant="outline" className="text-[10px]">{status}</Badge>;
   }
 }
 
 export default function ExecutionLog({
   logs,
+  variant = "card",
 }: {
   logs: ExecutionLogEntry[];
+  variant?: "card" | "bare";
 }) {
   const sorted = [...logs].sort((a, b) => b.createdAt - a.createdAt);
 
+  const rows = sorted.map((log) => (
+    <div
+      key={log.clientOrderId}
+      className="flex flex-wrap items-center gap-2 rounded-md border border-border/60 bg-card/50 px-2.5 py-1.5"
+    >
+      <span className="font-numeric text-[11px] text-muted-foreground tabular-nums">
+        {fmtTime(log.createdAt)}
+      </span>
+      <span className={cn("text-xs font-semibold tabular-nums", log.action.toUpperCase().includes("BUY") ? "text-positive" : "text-negative")}>
+        {log.action}
+      </span>
+      <span className="text-xs font-bold">{log.symbol}</span>
+      <span className="font-numeric text-[11px] text-muted-foreground tabular-nums">
+        {fmtNum(log.volume, 2)}
+      </span>
+      <StatusBadge status={log.status} />
+      {log.mt5Ticket && (
+        <span className="font-numeric text-[10px] text-muted-foreground tabular-nums">#{log.mt5Ticket}</span>
+      )}
+      {log.executionPrice > 0 && (
+        <span className="font-numeric text-[10px] tabular-nums text-muted-foreground">@ {fmtNum(log.executionPrice, 5)}</span>
+      )}
+      {log.errorMessage && (
+        <span className="flex items-center gap-0.5 text-[11px] text-negative">
+          <AlertTriangle size={9} />{log.errorMessage}
+        </span>
+      )}
+    </div>
+  ));
+
   if (sorted.length === 0) {
+    if (variant === "bare") {
+      return (
+        <div className="rounded-md border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          No executions yet.
+        </div>
+      );
+    }
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Execution Log</CardTitle>
-        </CardHeader>
-        <CardContent className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-          No execution history.
-        </CardContent>
-      </Card>
+      <div className="rounded-xl border border-border bg-card shadow-sm p-4 text-center text-sm text-muted-foreground">
+        No execution history.
+      </div>
+    );
+  }
+
+  if (variant === "bare") {
+    return (
+      <div className="flex flex-col gap-1">
+        <div className="mb-1 flex items-center justify-between">
+          <h3 className="text-xs font-semibold">Execution Log ({sorted.length})</h3>
+        </div>
+        <div className="flex flex-col gap-1">{rows}</div>
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Execution Log ({sorted.length})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {sorted.map((log) => (
-            <div
-              key={log.clientOrderId}
-              className="flex flex-wrap items-center gap-3 rounded-none border border-border px-3 py-2.5"
-            >
-              {/* Timestamp */}
-              <span className="font-numeric text-micro text-muted-foreground tabular-nums">
-                {formatTimestamp(log.createdAt)}
-              </span>
-
-              {/* Action + Symbol + Volume */}
-              <span className="flex items-center gap-1.5 text-sm">
-                <span
-                  className={cn(
-                    "font-semibold",
-                    log.action.toUpperCase().includes("BUY") || log.action.toUpperCase() === "BUY"
-                      ? "text-positive"
-                      : "text-negative"
-                  )}
-                >
-                  {log.action}
-                </span>
-                <span className="font-semibold">{log.symbol}</span>
-                <span className="font-numeric text-muted-foreground tabular-nums">
-                  {formatNumber(log.volume)}
-                </span>
-              </span>
-
-              {/* Status */}
-              <StatusBadge status={log.status} />
-
-              {/* MT5 Ticket */}
-              {log.mt5Ticket && (
-                <span className="font-numeric text-micro text-muted-foreground tabular-nums">
-                  #{log.mt5Ticket}
-                </span>
-              )}
-
-              {/* Execution Price */}
-              {log.executionPrice > 0 && (
-                <span className="font-numeric text-micro tabular-nums">
-                  @ {formatNumber(log.executionPrice, 5)}
-                </span>
-              )}
-
-              {/* Error */}
-              {log.errorMessage && (
-                <span className="flex items-center gap-1 text-micro text-negative">
-                  <AlertTriangle size={10} />
-                  {log.errorMessage}
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="rounded-xl border border-border bg-card shadow-sm p-4">
+      <h3 className="mb-2 text-sm font-semibold">Execution Log ({sorted.length})</h3>
+      <div className="flex flex-col gap-2">{rows}</div>
+    </div>
   );
 }

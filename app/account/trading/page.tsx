@@ -1164,17 +1164,17 @@ export default function AccountTradingPage() {
                                     setActiveTab("positions")
                                 }
                                 className={cn(
-                                    "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                                    "flex items-center gap-1.5 border-b-2 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                                     activeTab === "positions"
                                         ? "border-primary text-primary"
                                         : "border-transparent text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <BarChart2 className="size-4" />
+                                <BarChart2 className="size-3.5" />
                                 <span>Positions</span>
                                 <Badge
                                     variant="secondary"
-                                    className="ml-1 text-xs"
+                                    className="ml-0.5 text-[10px]"
                                 >
                                     {positions.length}
                                 </Badge>
@@ -1186,17 +1186,17 @@ export default function AccountTradingPage() {
                                     setActiveTab("orders")
                                 }
                                 className={cn(
-                                    "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                                    "flex items-center gap-1.5 border-b-2 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                                     activeTab === "orders"
                                         ? "border-primary text-primary"
                                         : "border-transparent text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <ListOrdered className="size-4" />
+                                <ListOrdered className="size-3.5" />
                                 <span>Pending Orders</span>
                                 <Badge
                                     variant="secondary"
-                                    className="ml-1 text-xs"
+                                    className="ml-0.5 text-[10px]"
                                 >
                                     {orders.length}
                                 </Badge>
@@ -1208,17 +1208,17 @@ export default function AccountTradingPage() {
                                     setActiveTab("history")
                                 }
                                 className={cn(
-                                    "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                                    "flex items-center gap-1.5 border-b-2 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                                     activeTab === "history"
                                         ? "border-primary text-primary"
                                         : "border-transparent text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <History className="size-4" />
+                                <History className="size-3.5" />
                                 <span>Trade History</span>
                                 <Badge
                                     variant="secondary"
-                                    className="ml-1 text-xs"
+                                    className="ml-0.5 text-[10px]"
                                 >
                                     {closedTrades.length}
                                 </Badge>
@@ -1228,17 +1228,17 @@ export default function AccountTradingPage() {
                                 type="button"
                                 onClick={() => setActiveTab("log")}
                                 className={cn(
-                                    "flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-semibold transition-colors",
+                                    "flex items-center gap-1.5 border-b-2 px-2.5 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
                                     activeTab === "log"
                                         ? "border-primary text-primary"
                                         : "border-transparent text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <ScrollText className="size-4" />
+                                <ScrollText className="size-3.5" />
                                 <span>Execution Log</span>
                                 <Badge
                                     variant="secondary"
-                                    className="ml-1 text-xs"
+                                    className="ml-0.5 text-[10px]"
                                 >
                                     {executionLogs.length}
                                 </Badge>
@@ -1246,14 +1246,14 @@ export default function AccountTradingPage() {
                         </div>
                     </div>
 
-                    <div className="p-4">
+                    <div className="p-3">
                         {actionError ? (
-                            <p className="mb-3 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
+                            <p className="mb-2 rounded-lg border border-warning/20 bg-warning/[0.07] px-3 py-1.5 text-xs font-medium text-warning">
                                 {actionError}
                             </p>
                         ) : null}
                         {lastExecution ? (
-                            <p className="mb-3 text-micro text-muted-foreground">
+                            <p className="mb-2 text-[11px] text-muted-foreground">
                                 Last execution:{" "}
                                 {lastExecution.status === "SUCCEEDED"
                                     ? "filled"
@@ -1289,7 +1289,7 @@ export default function AccountTradingPage() {
                             <TradeHistory trades={closedTrades} />
                         )}
                         {activeTab === "log" && (
-                            <ExecutionLog logs={executionLogs} />
+                            <ExecutionLog logs={executionLogs} variant="bare" />
                         )}
                     </div>
                 </div>

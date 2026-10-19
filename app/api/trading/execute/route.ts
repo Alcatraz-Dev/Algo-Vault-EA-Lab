@@ -71,6 +71,70 @@ export async function POST(request: NextRequest) {
         const service = createUnifiedTradingService();
         const { result, httpStatus } = await service.execute(input);
 
+        // Real-time trade history: a confirmed close is written to
+        // `trading_history` immediately so the terminal's Trade History tab
+        // updates without waiting for the next gateway snapshot diff.
+        if (executionType === "CLOSE_POSITION" || executionType === "PARTIAL_CLOSE") {
+            if (result.status === "SUCCEEDED" && token?.uid) {
+                try {
+                    const { adminDatabase } = await import("@/lib/firebase-admin");
+                    const accountId = String(body.accountId || "").trim();
+
+                    // The closed position's last known state (entry price,
+                    // open time, side) as last mirrored by the gateway.
+                    const posId = String(body.positionId || result.position?.id || "").trim();
+                    let openState: Record<string, unknown> = {};
+                    if (posId) {
+                        const posSnap = await adminDatabase
+                            .ref(`trading_positions/${token.uid}/${accountId}/${posId}`)
+                            .get();
+                        openState = (posSnap.val() || {}) as Record<string, unknown>;
+                    }
+
+                    const historyTicket = String(
+                        result.providerRef ||
+                            posId ||
+                            result.position?.providerRef ||
+                            result.position?.id ||
+                            body.clientRequestId ||
+                            ""
+                    ).trim();
+                    if (!historyTicket) throw new Error("No ticket for the closed trade.");
+
+                    const openPrice = Number(openState.openPrice ?? result.position?.entryPrice ?? 0);
+                    const closePrice = Number(result.filledPrice ?? result.position?.currentPrice ?? 0);
+                    const direction = String(
+                        openState.type || result.position?.side || body.side || "BUY"
+                    ).toUpperCase() === "SELL" ? -1 : 1;
+                    const priceMovePct =
+                        openPrice > 0 && closePrice > 0
+                            ? Math.round(((closePrice - openPrice) / openPrice) * 100 * direction * 100) / 100
+                            : null;
+
+                    await adminDatabase
+                        .ref(`trading_history/${token.uid}/${accountId}/${historyTicket}`)
+                        .set({
+                            ticket: historyTicket,
+                            symbol: String(openState.symbol || result.position?.symbol || body.symbol || ""),
+                            type: String(openState.type || result.position?.side || body.side || "BUY"),
+                            volume: Number(result.filledVolume ?? openState.volume ?? result.position?.volume ?? 0),
+                            openPrice,
+                            closePrice,
+                            profit: Number(result.position?.profit ?? openState.profit ?? 0),
+                            swap: Number(result.position?.swap ?? openState.swap ?? 0),
+                            magic: String(openState.magic ?? ""),
+                            comment: String(openState.comment ?? ""),
+                            openedAt: Number(openState.openedAt ?? result.position?.openedAt ?? 0),
+                            closedAt: Date.now(),
+                            closeSource: "execute",
+                            priceMovePct,
+                        });
+                } catch (e) {
+                    console.error("[execute] trading_history write failed:", e);
+                }
+            }
+        }
+
         return NextResponse.json(
             {
                 // EXECUTED_PENDING_SYNC is a real provider-confirmed outcome:
