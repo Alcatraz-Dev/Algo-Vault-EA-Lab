@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useCallback, useTransition } from "react";
+import { useState, useEffect, useCallback, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -61,7 +61,12 @@ enterLong({
 });
 `;
 
-export default function AvScriptEditorPage() {
+function EditorFrame({ embedded, children }: { embedded: boolean; children: ReactNode }) {
+    // Account routes render this editor inside AccountShell, so skip the admin shell there.
+    return embedded ? <>{children}</> : <AdminShell title="AvScript Strategy Editor">{children}</AdminShell>;
+}
+
+export default function AvScriptEditorPage({ embedded = false }: { embedded?: boolean }) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const strategyId = searchParams.get("id");
@@ -224,7 +229,7 @@ export default function AvScriptEditorPage() {
     };
 
     return (
-        <AdminShell title="AvScript Strategy Editor">
+        <EditorFrame embedded={embedded}>
             <div className="p-6 max-w-7xl mx-auto space-y-5">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
@@ -570,6 +575,6 @@ export default function AvScriptEditorPage() {
                     </div>
                 )}
             </div>
-        </AdminShell>
+        </EditorFrame>
     );
 }

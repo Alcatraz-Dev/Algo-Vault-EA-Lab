@@ -3,14 +3,14 @@ export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
 import AccountShell from "@/components/account/AccountShell";
-import VisualBuilderPage from "@/app/admin/bot-studio/builder/page";
+import { VisualStrategyBuilder } from "@/components/bot-studio/VisualStrategyBuilder";
 
 export default function AccountBuilderPage() {
     return (
         <AccountShell title="Visual Strategy Builder" subtitle="Design strategies with a node-based editor.">
-            {/* VisualBuilderPage calls useSearchParams(), which needs a Suspense boundary for static prerendering. */}
+            {/* VisualStrategyBuilder calls useSearchParams(), which needs a Suspense boundary for static prerendering. */}
             <Suspense fallback={null}>
-                <VisualBuilderPage />
+                <VisualStrategyBuilder />
             </Suspense>
         </AccountShell>
     );
