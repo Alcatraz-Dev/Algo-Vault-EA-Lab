@@ -30,6 +30,7 @@ function tpToAvs(tp: Strategy["takeProfit"]): string {
 }
 
 function ruleToCondition(rule: StrategyRule, unsupported: string[]): string | null {
+    // EMA cross: gt/eq with ema20_above_ema50 value -> crossesAbove/crossesBelow
     if (rule.indicator === "ema_cross") {
         if (rule.operator === "eq" || rule.operator === "gt") {
             const above = rule.value === "ema20_above_ema50";
@@ -38,21 +39,32 @@ function ruleToCondition(rule: StrategyRule, unsupported: string[]): string | nu
         unsupported.push(`rule ${rule.id}: ema_cross operator ${rule.operator} not expressible in AVS`);
         return null;
     }
+    // RSI: lt/gt with numeric value -> rsiValue < / > <value>
     if (rule.indicator === "rsi") {
         const v = rule.value;
         if (rule.operator === "lt") return `rsiValue < ${v}`;
         if (rule.operator === "gt") return `rsiValue > ${v}`;
+        if (rule.operator === "lte") return `rsiValue <= ${v}`;
+        if (rule.operator === "gte") return `rsiValue >= ${v}`;
         unsupported.push(`rule ${rule.id}: rsi operator ${rule.operator} not expressible in AVS`);
         return null;
     }
-    if (rule.indicator === "close_vs_ema20" || rule.indicator === "atr") {
+    // close_vs_ema20: always unsupported (uses different AVS construct)
+    if (rule.indicator === "close_vs_ema20") {
         unsupported.push(`rule ${rule.id}: indicator ${rule.indicator} not expressible in AVS`);
         return null;
     }
+    // ATR: unsupported in AVS (uses stopLoss atr mode instead)
+    if (rule.indicator === "atr") {
+        unsupported.push(`rule ${rule.id}: indicator ${rule.indicator} not expressible in AVS`);
+        return null;
+    }
+    // price_action group: always unsupported (different AVS construct)
     if (rule.group === "price_action") {
         unsupported.push(`rule ${rule.id}: price_action group not expressible in AVS`);
         return null;
     }
+    // Generic fallback: record as unsupported
     unsupported.push(`rule ${rule.id}: unsupported group/indicator`);
     return null;
 }
