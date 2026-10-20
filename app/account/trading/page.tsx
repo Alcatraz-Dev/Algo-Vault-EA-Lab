@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
@@ -27,8 +27,9 @@ import TradeHistory, {
 } from "@/components/trading/TradeHistory";
 import { cn } from "@/lib/utils";
 import {
+    ExecutionOutcomeTracker,
     executeUnified,
-    newClientRequestId,
+    isUnknownOutcome,
     friendlyMessage,
 } from "@/lib/trading/unified/client";
 import type { TradingExecutionResult } from "@/lib/trading/unified/domain";
@@ -84,6 +85,7 @@ export default function AccountTradingPage() {
     const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
+    const outcomes = useRef(new ExecutionOutcomeTracker());
     const [actionError, setActionError] = useState<string | null>(null);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
@@ -543,12 +545,15 @@ export default function AccountTradingPage() {
     ) => {
         if (!firebaseUser || !selectedAccountId) return;
         setActionError(null);
+        // Outcome guard: an UNKNOWN outcome locks new submissions for this action.
+        // A repeat click replays the SAME clientRequestId; nothing is resent automatically.
+        const key = `${payload.executionType}:${payload.positionId ?? payload.orderId ?? ""}`;
+        const tracker = outcomes.current;
         try {
             const token = await firebaseUser.getIdToken();
-            const result = await executeUnified(
-                { ...payload, clientRequestId: newClientRequestId("pt") },
-                token
-            );
+            const result = tracker.hasUnresolved(key)
+                ? await tracker.retry(key, token)
+                : await tracker.submit(key, payload, token);
             setLastExecution(result);
             if (result.status === "EXECUTED_PENDING_SYNC") {
                 setActionError(
@@ -558,7 +563,10 @@ export default function AccountTradingPage() {
             handleRefresh();
         } catch (err) {
             const message = err instanceof Error ? err.message : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
-            setActionError(`${describe}: ${message}`);
+            const suffix = isUnknownOutcome(err)
+                ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
+                : "";
+            setActionError(`${describe}: ${message}${suffix}`);
         }
     };
 
@@ -1268,7 +1276,9 @@ export default function AccountTradingPage() {
                                         ? "rejected"
                                         : lastExecution.status === "FAILED"
                                           ? "failed"
-                                          : lastExecution.status.toLowerCase()}
+                                          : lastExecution.status === "UNKNOWN"
+                                            ? "outcome unknown — verify in MT5 before retrying"
+                                            : lastExecution.status.toLowerCase()}
                                 {lastExecution.filledVolume ? ` ${lastExecution.filledVolume} lots` : ""}
                                 {lastExecution.position?.symbol || lastExecution.order?.symbol ? ` ${lastExecution.position?.symbol ?? lastExecution.order?.symbol}` : ""}
                                 {lastExecution.filledPrice ? ` @ ${lastExecution.filledPrice}` : ""}

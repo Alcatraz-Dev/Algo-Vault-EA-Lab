@@ -672,8 +672,9 @@ export class BotRuntimeSession {
                 await this.failExecution(botId, executionId, "Gateway submission failed.");
                 return { ok: false, executionId, error: "Gateway submission failed." };
             }
-            if (outcome.result.status === "REJECTED" || outcome.result.status === "FAILED") {
-                const isUncertain = outcome.result.error?.code === "EXECUTION_TIMEOUT"
+            if (outcome.result.status === "REJECTED" || outcome.result.status === "FAILED" || outcome.result.status === "UNKNOWN") {
+                const isUncertain = outcome.result.status === "UNKNOWN"
+                    || outcome.result.error?.code === "EXECUTION_TIMEOUT"
                     || outcome.result.error?.code === "DUPLICATE_REQUEST";
                 if (!isUncertain) {
                     const msg = outcome.result.error?.message || "Gateway submission failed.";

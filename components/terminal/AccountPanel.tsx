@@ -13,7 +13,7 @@
  * established account (fail closed, §27).
   */
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ListOrdered, TrendingUp, Wallet, Loader2, Lock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -22,8 +22,8 @@ import PendingOrders from "@/components/trading/PendingOrders";
 import AccountHeader from "@/components/trading/AccountHeader";
 import { TradingProviderStatus } from "./TradingProviderStatus";
 import {
-    executeUnified,
-    newClientRequestId,
+    ExecutionOutcomeTracker,
+    isUnknownOutcome,
     type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import { useTerminal } from "./TerminalContext";
@@ -41,6 +41,7 @@ const TABS: Array<{ id: Tab; label: string; icon: typeof TrendingUp }> = [
 export function AccountPanel() {
     const [tab, setTab] = useState<Tab>("positions");
     const [actionError, setActionError] = useState<string | null>(null);
+    const outcomes = useRef(new ExecutionOutcomeTracker());
     const { state } = useTerminal();
     const data = useTerminalData();
     const token = data.token;
@@ -58,16 +59,24 @@ export function AccountPanel() {
     ): Promise<void> => {
         if (!token || !accountId) return;
         setActionError(null);
+        // One outcome slot per position action: an UNKNOWN outcome locks further
+        // submissions for it. A repeat click replays the SAME clientRequestId.
+        const key = `${payload.executionType}:${payload.positionId ?? ""}`;
+        const tracker = outcomes.current;
         try {
-            const result = await executeUnified(
-                { ...payload, clientRequestId: newClientRequestId("pt") },
-                token
-            );
+            const result = tracker.hasUnresolved(key)
+                ? await tracker.retry(key, token)
+                : await tracker.submit(key, payload, token);
             if (result.status === "EXECUTED_PENDING_SYNC") {
                 setActionError(`${describe}: executed — syncing on the next snapshot.`);
             }
         } catch (error) {
-            setActionError(`${describe}: ${error instanceof Error ? error.message : "execution failed."}`);
+            const suffix = isUnknownOutcome(error)
+                ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
+                : "";
+            setActionError(
+                `${describe}: ${error instanceof Error ? error.message : "execution failed."}${suffix}`
+            );
         }
     };
 

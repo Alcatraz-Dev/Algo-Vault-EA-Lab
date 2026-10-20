@@ -85,6 +85,23 @@ export function createFakeStore() {
             }
         },
 
+        /** Same guarded contract as RTDB: writes only over a stored UNKNOWN. */
+        async resolveUnknown(userId: string, resolved: TradingExecutionResult): Promise<TradingExecutionResult | null> {
+            const k = key(userId, resolved.clientRequestId);
+            const existing = requests.get(k);
+            if (!existing) return null;
+            if (!existing.result || existing.result.status !== "UNKNOWN") return existing.result;
+            requests.set(k, {
+                record: { ...existing.record, status: resolved.status, completedAt: resolved.completedAt },
+                result: resolved,
+            });
+            // One canonical record per request, as in RTDB: replace the UNKNOWN entry in place.
+            const index = results.findIndex((r) => r.clientRequestId === resolved.clientRequestId);
+            if (index >= 0) results[index] = resolved;
+            else results.push(resolved);
+            return resolved;
+        },
+
         async persistAccount(account: UnifiedAccountRecord): Promise<void> {
             const index = accounts.findIndex((a) => a.userId === account.userId && a.id === account.id);
             if (index >= 0) accounts[index] = account;

@@ -19,7 +19,7 @@
  * Mobile degrades to tabs over the same panels (§36) — no second engine.
   */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import {
     Bot,
     CandlestickChart,
@@ -41,8 +41,8 @@ import {
     type ChartTradeFill,
 } from "@/components/pro-scalping-terminal/chart-settings";
 import {
-    executeUnified,
-    newClientRequestId,
+    ExecutionOutcomeTracker,
+    isUnknownOutcome,
     type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import type { PanelId } from "@/lib/terminal/types";
@@ -183,6 +183,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
      * CURRENT VOLUME — computed and re-validated server-side (min lot / lot
      * step aware), never derived from profit.
      */
+    const outcomes = useRef(new ExecutionOutcomeTracker());
     const act = useCallback(
         async (
             payload: Omit<UnifiedExecutePayload, "clientRequestId">,
@@ -201,17 +202,25 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 return false;
             }
             setActionError(null);
+            // Same outcome guard as AccountPanel: an UNKNOWN outcome locks new
+            // submissions for this action; a repeat click replays the SAME request.
+            const key = `${payload.executionType}:${payload.positionId ?? payload.symbol ?? ""}:${payload.side ?? ""}`;
+            const tracker = outcomes.current;
             try {
-                const result = await executeUnified(
-                    { ...payload, clientRequestId: newClientRequestId("pt") },
-                    authToken
-                );
+                const result = tracker.hasUnresolved(key)
+                    ? await tracker.retry(key, authToken)
+                    : await tracker.submit(key, payload, authToken);
                 if (result.status === "EXECUTED_PENDING_SYNC") {
                     setActionError(`${describe}: executed on the broker — position syncs on the next account snapshot.`);
                 }
                 return true;
             } catch (error) {
-                setActionError(`${describe}: ${error instanceof Error ? error.message : "execution failed."}`);
+                const suffix = isUnknownOutcome(error)
+                    ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
+                    : "";
+                setActionError(
+                    `${describe}: ${error instanceof Error ? error.message : "execution failed."}${suffix}`
+                );
                 return false;
             }
         },

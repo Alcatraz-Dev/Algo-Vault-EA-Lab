@@ -452,6 +452,7 @@ async function reconScenario(): Promise<ReconciliationScenario> {
         registry: new TradingProviderRegistry([provider]),
         idempotency: store.idempotency,
         persistResult: store.persistResult,
+        resolveUnknown: store.resolveUnknown,
         persistAccount: store.persistAccount,
         audit: store.audit,
         entitlement: async () => true,
@@ -600,7 +601,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     const transportOutcome = await transport.provider.execute(transport.input);
     const transportResult = valueOf(transportOutcome);
     const transportRequestPath = requestPath(transport.input.request.clientRequestId);
-    s.check(transportOutcome.ok && transportResult?.status === "FAILED", "a missing EA execution report is FAILED — the provider never confirmed");
+    s.check(transportOutcome.ok && transportResult?.status === "UNKNOWN", "a missing EA execution report is UNKNOWN — never a confirmed failure, never a fill");
     s.check(transportResult?.providerRef === null, "no ticket is invented without provider confirmation");
     s.check(
         transportResult?.status !== "SUCCEEDED" && transportResult?.status !== "EXECUTED_PENDING_SYNC",
@@ -620,7 +621,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     const lateOutcome = await late.provider.execute(late.input);
     const lateResult = valueOf(lateOutcome);
     // T3: the configured waiting boundary is reached with no confirmation.
-    s.check(lateOutcome.ok && lateResult?.status === "FAILED", "T3: at the waiting-window boundary the provider had not confirmed — FAILED, per the existing production contract");
+    s.check(lateOutcome.ok && lateResult?.status === "UNKNOWN", "T3: at the waiting-window boundary the provider had not confirmed — UNKNOWN, not a confirmed failure");
     s.check(lateResult?.error?.code === "EXECUTION_TIMEOUT", "the boundary expiry is surfaced as EXECUTION_TIMEOUT");
     s.check(lateResult?.providerRef === null, "no ticket is invented before provider confirmation");
     s.check(
@@ -679,6 +680,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         registry: new TradingProviderRegistry([svcProvider]),
         idempotency: svcStore.idempotency,
         persistResult: svcStore.persistResult,
+        resolveUnknown: svcStore.resolveUnknown,
         persistAccount: svcStore.persistAccount,
         audit: svcStore.audit,
         entitlement: async () => true,
@@ -699,8 +701,8 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     // T0–T3: no EA report inside the window → the service settles FAILED.
     const first = await svcService.execute({ ...svcInput });
     s.check(
-        first.result.status === "FAILED" && first.httpStatus === 504 && first.result.error?.code === "EXECUTION_TIMEOUT",
-        "T3: an unconfirmed waiting window settles as FAILED / EXECUTION_TIMEOUT / 504 — the existing production contract"
+        first.result.status === "UNKNOWN" && first.httpStatus === 504 && first.result.error?.code === "EXECUTION_TIMEOUT",
+        "T3: an unconfirmed waiting window settles as UNKNOWN / EXECUTION_TIMEOUT / 504 — never a confirmed failure"
     );
     s.check(first.result.providerRef === null, "no provider reference exists before the provider confirms");
     s.check(svcProvider.executeCount === 1, "T0–T3: providerExecutionCount = 1 (one command, one execution attempt)");
@@ -728,15 +730,15 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         Array.from({ length: 5 }, () => svcService.execute({ ...svcInput }))
     );
     s.check(
-        retries.every((r) => r.result.duplicate === true && r.result.status === "FAILED" && r.httpStatus === 200),
-        "every retry replays the SAME canonical result (FAILED + duplicate marker) — a late report never revises a settled result"
+        retries.every((r) => r.result.duplicate === true && r.result.status === "SUCCEEDED" && r.httpStatus === 200),
+        "every retry reconciles against history before replying: the confirmed late fill resolves UNKNOWN to SUCCEEDED (duplicate marker, HTTP 200)"
     );
     s.check(
         retries.every(
             (r) =>
                 r.result.clientRequestId === svcKey &&
-                r.result.providerRef === first.result.providerRef &&
-                r.result.error?.code === first.result.error?.code
+                r.result.providerRef === TICKET &&
+                r.result.error === null
         ),
         "all retries converge on one canonical result: same key, same state, no fabricated ticket"
     );
@@ -756,7 +758,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     );
     const svcAudits = svcStore.auditLog().filter((e) => e.clientRequestId === svcKey);
     s.check(svcAudits.filter((e) => e.action === "EXECUTION_ACCEPTED").length === 1, "one EXECUTION_ACCEPTED — the idempotency key was claimed once");
-    s.check(svcAudits.filter((e) => e.action === "EXECUTION_FAILED").length === 1, "one EXECUTION_FAILED — one settlement");
+    s.check(svcAudits.filter((e) => e.action === "EXECUTION_UNKNOWN").length === 1, "one EXECUTION_UNKNOWN — one settlement of the timeout");
     s.check(svcAudits.filter((e) => e.action === "EXECUTION_DUPLICATE").length === 5, "each of the 5 late retries is audited as EXECUTION_DUPLICATE");
 
     // ── Late-report reconciliation (the T4 contract) ─────────────────────────
@@ -765,13 +767,13 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     // command node that getHistory() derives FILLED orders from, and nothing
     // ever executes, enqueues or writes a position.
 
-    s.section("TEST 1 — Late report after timeout: FAILED stays canonical, getHistory exposes the fill");
+    s.section("TEST 1 — Late report after timeout: UNKNOWN stays canonical, getHistory exposes the fill");
     const t1 = await reconScenario();
     s.check(
-        t1.first.result.status === "FAILED" &&
+        t1.first.result.status === "UNKNOWN" &&
             t1.first.httpStatus === 504 &&
             t1.first.result.error?.code === "EXECUTION_TIMEOUT",
-        "T3: the execution settles FAILED / EXECUTION_TIMEOUT / 504 — the frozen contract"
+        "T3: the execution settles UNKNOWN / EXECUTION_TIMEOUT / 504 — the frozen contract"
     );
     s.check(t1.first.result.providerRef === null, "no provider reference is invented before provider confirmation");
     s.check(
@@ -797,10 +799,10 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         .filter((r) => r.clientRequestId === t1.input.clientRequestId);
     s.check(
         t1Results.length === 1 &&
-            t1Results[0]?.status === "FAILED" &&
+            t1Results[0]?.status === "UNKNOWN" &&
             t1Results[0]?.error?.code === "EXECUTION_TIMEOUT" &&
             t1Results[0]?.providerRef === null,
-        "T4: the canonical result is immutable — still FAILED / EXECUTION_TIMEOUT with providerRef null"
+        "T4: the canonical result is immutable — still UNKNOWN / EXECUTION_TIMEOUT with providerRef null"
     );
     s.check(
         t1.provider.executeCount === 1 && t1.db.writeCount(t1.requestPath) === 1,
@@ -823,7 +825,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         "the reconciled fill carries the late ticket, volume and execution price, keyed by the original clientRequestId"
     );
     s.check(
-        t1Results[0]?.status === "FAILED" && t1Fill?.state === "FILLED",
+        t1Results[0]?.status === "UNKNOWN" && t1Fill?.state === "FILLED",
         "the client can tell both outcomes apart: request timed out, provider trade filled — one clientRequestId"
     );
     const t1Positions = await t1.provider.getPositions(USER, ACCOUNT_ID);
@@ -835,7 +837,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
 
     s.section("TEST 2 — Replay after the late report: one canonical result, history keeps the fill");
     const t2 = await reconScenario();
-    s.check(t2.first.result.status === "FAILED", "T3: the original settles FAILED");
+    s.check(t2.first.result.status === "UNKNOWN", "T3: the original settles UNKNOWN");
     await deliverGatewayReport(t2.db, t2.clock, USER, t2.input.clientRequestId, {
         mt5Ticket: TICKET,
         executionPrice: 1.165,
@@ -847,8 +849,8 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         Array.from({ length: 3 }, () => t2.service.execute({ ...t2.input }))
     );
     s.check(
-        t2Replays.every((r) => r.result.duplicate === true && r.result.status === "FAILED" && r.httpStatus === 200),
-        "every identical replay returns the canonical FAILED result with the duplicate marker (HTTP 200)"
+        t2Replays.every((r) => r.result.duplicate === true && r.result.status === "SUCCEEDED" && r.result.providerRef === TICKET && r.httpStatus === 200),
+        "every identical replay reconciles the UNKNOWN to the confirmed fill (duplicate marker, HTTP 200)"
     );
     s.check(
         t2.provider.executeCount === 1 && t2.db.writeCount(t2.requestPath) === 1,
@@ -899,9 +901,9 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         .filter((r) => r.clientRequestId === t3.input.clientRequestId);
     s.check(
         t3Results.length === 1 &&
-            t3Results[0]?.status === "FAILED" &&
+            t3Results[0]?.status === "UNKNOWN" &&
             t3Results[0]?.error?.code === "EXECUTION_TIMEOUT",
-        "the canonical execution result remains the original FAILED / EXECUTION_TIMEOUT"
+        "the canonical execution result remains the original UNKNOWN / EXECUTION_TIMEOUT"
     );
     const t3History = await historyOf(t3.service, USER, ACCOUNT_ID);
     const t3Fill = t3History.ok
@@ -958,7 +960,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         .resultLog()
         .filter((r) => r.clientRequestId === t4.input.clientRequestId);
     s.check(
-        t4Results.length === 1 && t4Results[0]?.status === "FAILED" && t4Results[0]?.providerRef === null,
+        t4Results.length === 1 && t4Results[0]?.status === "UNKNOWN" && t4Results[0]?.providerRef === null,
         "user A's canonical result stays FAILED with no fabricated ticket"
     );
     s.check(
@@ -1034,7 +1036,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         .resultLog()
         .filter((r) => r.clientRequestId === t6.input.clientRequestId);
     s.check(
-        t6Results.length === 1 && t6Results[0]?.status === "FAILED",
+        t6Results.length === 1 && t6Results[0]?.status === "UNKNOWN",
         "the canonical result is still the single FAILED record"
     );
     const t6Replay = await t6.service.execute({ ...t6.input });
@@ -1084,9 +1086,9 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
         .filter((r) => r.clientRequestId === t7.input.clientRequestId);
     s.check(
         t7Results.length === 1 &&
-            t7Results[0]?.status === "FAILED" &&
+            t7Results[0]?.status === "UNKNOWN" &&
             t7Results[0]?.error?.code === "EXECUTION_TIMEOUT",
-        "the real timed-out request stays unreconciled — FAILED / EXECUTION_TIMEOUT, never guessed into success"
+        "the real timed-out request stays unreconciled — UNKNOWN / EXECUTION_TIMEOUT, never guessed into success"
     );
     const t7Positions = await t7.provider.getPositions(USER, ACCOUNT_ID);
     s.check(

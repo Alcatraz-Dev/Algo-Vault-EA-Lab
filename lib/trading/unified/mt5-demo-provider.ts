@@ -567,14 +567,13 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
 
         const report = await this.awaitExecutionReport(request.userId, request.clientRequestId);
         if (!report) {
-            // Existing unified-trading contract: a provider that never confirmed
-            // settles FAILED / EXECUTION_TIMEOUT and never fabricates a fill.
-            // The command stays durable and idempotent, so a late report is
-            // still visible in execution history — but the canonical result is
-            // not rewritten. Callers must not treat this as a license to
-            // resubmit blindly; the idempotency key absorbs any replay.
+            // A provider that never confirmed is UNKNOWN, not FAILED: the order
+            // may still have executed on MT5. The command stays durable and
+            // idempotent (same clientRequestId), so a late report is visible in
+            // history and reconcileExecution() can resolve it. Nothing here
+            // resends the order, and nothing claims a fill.
             return finish({
-                status: "FAILED",
+                status: "UNKNOWN",
                 error: tradingError(
                     "EXECUTION_TIMEOUT",
                     "The MetaTrader 5 gateway did not confirm the execution in time."

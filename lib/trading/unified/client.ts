@@ -87,9 +87,10 @@ export async function executeUnified(
             body: JSON.stringify({ ...payload, source: payload.source ?? "pro_terminal" }),
         });
     } catch {
-        // Transport failure — the outcome is unknown, never a fill.
+        // Transport failure — the request may or may not have reached the
+        // server, so the outcome is UNKNOWN (never a failure, never a fill).
         throw new UnifiedExecutionError(
-            "Could not reach the execution service — nothing was sent.",
+            "Could not confirm the order reached the execution service — check MT5 before retrying.",
             { code: "NETWORK", status: 0, result: null }
         );
     }
@@ -106,7 +107,7 @@ export async function executeUnified(
 
     // A structured service rejection carries the full result envelope.
     if (body.result && body.result.error) {
-        if (body.result.status === "REJECTED" || body.result.status === "FAILED") {
+        if (body.result.status === "REJECTED" || body.result.status === "FAILED" || body.result.status === "UNKNOWN") {
             throw new UnifiedExecutionError(
                 userFacingMessageFor(body.result.error, body.result.error.message),
                 { code: body.result.error.code, status: response.status, result: body.result }
@@ -156,6 +157,102 @@ const FRIENDLY: Record<string, string> = {
 };
 
 /** Never exposes stack traces or internals; provider detail is appended only. */
+/**
+ * Error codes whose outcome is UNKNOWN rather than failed: the order may have
+ * executed on the broker even though the client never received a confirmation.
+ * A timeout is never a confirmed failure, and these must never be auto-retried.
+ */
+const UNKNOWN_OUTCOME_CODES: ReadonlySet<string> = new Set([
+    "EXECUTION_TIMEOUT",
+    "NETWORK",
+    "UNREADABLE_RESPONSE",
+]);
+
+/** True when the execution may have happened but was not confirmed. */
+export function isUnknownOutcome(error: unknown): boolean {
+    return error instanceof UnifiedExecutionError && UNKNOWN_OUTCOME_CODES.has(error.code);
+}
+
+/**
+ * Per-entry-point guard for submissions whose outcome is UNKNOWN.
+ *
+ * - A key with an unresolved outcome blocks any NEW submission for that key
+ *   (duplicate-submission protection). Nothing is ever resent automatically.
+ * - `retry` replays the stored payload with its ORIGINAL clientRequestId, so the
+ *   server idempotency key deduplicates it. It is only reachable from an explicit
+ *   user action.
+ * - The lock is released only when the server returns a settled (non-UNKNOWN)
+ *   outcome, or a definite error that is not an unknown outcome.
+ */
+export class ExecutionOutcomeTracker {
+    private readonly unresolved = new Map<string, UnifiedExecutePayload>();
+    private readonly inFlight = new Set<string>();
+
+    isLocked(key: string): boolean {
+        return this.unresolved.has(key) || this.inFlight.has(key);
+    }
+
+    /** True when the last submission for this key ended UNKNOWN and is not yet settled. */
+    hasUnresolved(key: string): boolean {
+        return this.unresolved.has(key);
+    }
+
+    /** Submit a new request. Blocked while the key has an unresolved or in-flight outcome. */
+    async submit(
+        key: string,
+        payload: Omit<UnifiedExecutePayload, "clientRequestId">,
+        authToken: string
+    ): Promise<TradingExecutionResult> {
+        if (this.isLocked(key)) {
+            throw new UnifiedExecutionError(
+                "A previous order for this action is still unconfirmed — confirm it on MT5 or retry it before sending another.",
+                { code: "OUTCOME_UNRESOLVED", status: 0, result: null }
+            );
+        }
+        const stored = { ...payload, clientRequestId: newClientRequestId("pt") };
+        this.unresolved.set(key, stored);
+        return this.send(key, stored, authToken);
+    }
+
+    /** Replay the unresolved request with its original clientRequestId (explicit user action only). */
+    async retry(key: string, authToken: string): Promise<TradingExecutionResult> {
+        const stored = this.unresolved.get(key);
+        if (!stored) {
+            throw new UnifiedExecutionError("Nothing to retry — no unconfirmed order for this action.", {
+                code: "NOTHING_TO_RETRY",
+                status: 0,
+                result: null,
+            });
+        }
+        if (this.inFlight.has(key)) {
+            throw new UnifiedExecutionError("This order is already being confirmed.", {
+                code: "OUTCOME_UNRESOLVED",
+                status: 0,
+                result: null,
+            });
+        }
+        return this.send(key, stored, authToken);
+    }
+
+    private async send(
+        key: string,
+        payload: UnifiedExecutePayload,
+        authToken: string
+    ): Promise<TradingExecutionResult> {
+        this.inFlight.add(key);
+        try {
+            const result = await executeUnified(payload, authToken);
+            if (result.status !== "UNKNOWN") this.unresolved.delete(key);
+            return result;
+        } catch (error) {
+            if (!isUnknownOutcome(error)) this.unresolved.delete(key);
+            throw error;
+        } finally {
+            this.inFlight.delete(key);
+        }
+    }
+}
+
 export function friendlyMessage(code: string, detail?: string | null): string {
     const base = FRIENDLY[code] ?? "The order could not be executed.";
     const extra = detail && detail !== base && detail.length < 200 ? ` (${detail})` : "";
@@ -169,7 +266,7 @@ export function friendlyMessage(code: string, detail?: string | null): string {
  * everything afterwards is mapped from the server's terminal status. There is
  * no path that produces FILLED without the server saying so.
  */
-export type ClientDisplayPhase = TradingExecutionPhase | "SUBMITTING";
+export type ClientDisplayPhase = TradingExecutionPhase | "SUBMITTING" | "UNRESOLVED";
 
 export function phaseFromStatus(status: TradingExecutionStatus | null | undefined): ClientDisplayPhase {
     switch (status) {
@@ -181,6 +278,8 @@ export function phaseFromStatus(status: TradingExecutionStatus | null | undefine
             return "REJECTED";
         case "FAILED":
             return "FAILED";
+        case "UNKNOWN":
+            return "UNRESOLVED";
         case "DUPLICATE":
             return "FILLED"; // a replayed terminal result — the original outcome
         case "ACCEPTED":
@@ -202,6 +301,7 @@ export const PHASE_LABEL: Record<ClientDisplayPhase, string> = {
     FAILED: "Failed",
     EXECUTED_PENDING_SYNC: "Executed — syncing position",
     CANCELLED: "Cancelled",
+    UNRESOLVED: "Outcome unknown — verify in MT5",
 };
 
 export const PHASE_TONE: Record<ClientDisplayPhase, "neutral" | "progress" | "good" | "bad" | "warn"> = {
@@ -216,4 +316,5 @@ export const PHASE_TONE: Record<ClientDisplayPhase, "neutral" | "progress" | "go
     FAILED: "bad",
     EXECUTED_PENDING_SYNC: "warn",
     CANCELLED: "neutral",
+    UNRESOLVED: "warn",
 };

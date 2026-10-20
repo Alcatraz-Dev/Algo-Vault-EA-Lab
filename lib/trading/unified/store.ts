@@ -169,6 +169,41 @@ export async function saveExecutionResult(
     ]);
 }
 
+/**
+ * Writes a reconciled outcome over a stored UNKNOWN result — and only over
+ * one. Runs as an RTDB transaction so a concurrent reconciler cannot revise a
+ * result that has already been settled. Returns the settled result: this call's
+ * write, or the winner's when another reconciler settled it first.
+ */
+export async function resolveUnknownExecutionResult(
+    userId: string,
+    resolved: TradingExecutionResult
+): Promise<TradingExecutionResult | null> {
+    const outcome: { written: boolean } = { written: false };
+    const txn = await adminDatabase
+        .ref(UNIFIED_PATHS.result(userId, resolved.clientRequestId))
+        .transaction(
+            (current) => {
+                const stored = current as TradingExecutionResult | null;
+                if (!stored || stored.status !== "UNKNOWN") return undefined;
+                outcome.written = true;
+                return resolved;
+            },
+            undefined,
+            false
+        );
+    const settled = (txn.snapshot.val() as TradingExecutionResult | null) ?? null;
+    if (outcome.written) {
+        await adminDatabase.ref(UNIFIED_PATHS.request(userId, resolved.clientRequestId)).update({
+            status: resolved.status,
+            completedAt: resolved.completedAt ?? Date.now(),
+            updatedAt: Date.now(),
+        });
+    }
+    // The settled value: our write, or the winner's if another reconciler got there first.
+    return outcome.written ? resolved : settled;
+}
+
 export interface UnifiedAccountRecord {
     id: string;
     userId: string;

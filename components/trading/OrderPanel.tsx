@@ -43,7 +43,9 @@ import {
   PHASE_TONE,
   phaseFromStatus,
   UnifiedExecutionError,
+  isUnknownOutcome,
   type ClientDisplayPhase,
+  type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import type {
   TradingExecutionResult,
@@ -116,6 +118,8 @@ export default function OrderPanel({
    *  synchronous double-click guard inside the submit handler. */
   const [inFlight, setInFlight] = useState(false);
   const inFlightKey = useRef<string | null>(null);
+  /** The exact payload of an UNKNOWN submission: replayed under the same key, never re-sent fresh. */
+  const unresolvedPayload = useRef<UnifiedExecutePayload | null>(null);
 
   const parsedVolume = parseFloat(volume) || 0;
   const parsedSL = parseFloat(stopLoss) || 0;
@@ -134,11 +138,57 @@ export default function OrderPanel({
       : 0;
 
   const processing = ticket !== null && PHASE_TONE[ticket.phase] === "progress";
+  // An UNRESOLVED ticket blocks new submissions until the user confirms in MT5:
+  // a timeout may already have filled, and a fresh clientRequestId would duplicate it.
+  const unresolved = ticket?.phase === "UNRESOLVED";
   const canSubmit =
     account?.status === "connected" &&
     parsedVolume >= 0.01 &&
     !processing &&
+    !unresolved &&
     !inFlight;
+
+  /**
+   * Replays the SAME request under its SAME key. The server reconciles it
+   * against MT5 history and never re-executes a stored UNKNOWN. The panel
+   * unlocks only when the server returns a settled outcome.
+   */
+  async function handleReconcile() {
+    const payload = unresolvedPayload.current;
+    const user = auth.currentUser;
+    if (!payload || !user || inFlightKey.current !== null) return;
+    inFlightKey.current = payload.clientRequestId;
+    setInFlight(true);
+    setError("");
+    try {
+      const token = await user.getIdToken();
+      const result = await executeUnified(payload, token);
+      unresolvedPayload.current = null;
+      setTicket({ phase: phaseFromStatus(result.status), clientRequestId: payload.clientRequestId, result, error: null });
+      onOrderPlaced(result.clientRequestId);
+    } catch (err) {
+      if (isUnknownOutcome(err)) {
+        setError("Still unresolved — the outcome is not confirmed yet. Try again shortly.");
+      } else {
+        // A server-settled rejection/failure is an outcome: unlock with it.
+        unresolvedPayload.current = null;
+        const settled = err instanceof UnifiedExecutionError ? err.result : null;
+        setTicket((prev) =>
+          prev
+            ? {
+                ...prev,
+                phase: settled ? phaseFromStatus(settled.status) : "FAILED",
+                result: settled ?? prev.result,
+                error: err instanceof Error ? err.message : null,
+              }
+            : prev
+        );
+      }
+    } finally {
+      inFlightKey.current = null;
+      setInFlight(false);
+    }
+  }
 
   async function handleSubmit() {
     if (!canSubmit || !account) return;
@@ -151,26 +201,26 @@ export default function OrderPanel({
     setTicket({ phase: "SUBMITTING", clientRequestId, result: null, error: null });
 
     const executionType: TradingExecutionType = "PLACE_ORDER";
+    const payload: UnifiedExecutePayload = {
+      accountId: account.accountId,
+      clientRequestId,
+      executionType,
+      symbol: symbol.toUpperCase(),
+      side,
+      volume: parsedVolume,
+      kind: orderType === "market" ? "MARKET" : orderType === "limit" ? "LIMIT" : "STOP",
+      price: orderType !== "market" && parsedPrice > 0 ? parsedPrice : null,
+      stopLoss: parsedSL > 0 ? parsedSL : null,
+      takeProfit: parsedTP > 0 ? parsedTP : null,
+    };
+    unresolvedPayload.current = payload;
     try {
       const user = auth.currentUser;
       if (!user) throw new UnifiedExecutionError("Not authenticated.", { code: "PERMISSION_DENIED", status: 0, result: null });
       const token = await user.getIdToken();
 
-      const result = await executeUnified(
-        {
-          accountId: account.accountId,
-          clientRequestId,
-          executionType,
-          symbol: symbol.toUpperCase(),
-          side,
-          volume: parsedVolume,
-          kind: orderType === "market" ? "MARKET" : orderType === "limit" ? "LIMIT" : "STOP",
-          price: orderType !== "market" && parsedPrice > 0 ? parsedPrice : null,
-          stopLoss: parsedSL > 0 ? parsedSL : null,
-          takeProfit: parsedTP > 0 ? parsedTP : null,
-        },
-        token
-      );
+      const result = await executeUnified(payload, token);
+      unresolvedPayload.current = null;
 
       // The server's terminal state, verbatim — no upgrade, no timeout.
       setTicket({
@@ -186,7 +236,24 @@ export default function OrderPanel({
           ? err.message
           : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
       setError(message);
-      setTicket((prev) => (prev ? { ...prev, phase: "FAILED", error: message } : prev));
+      if (!isUnknownOutcome(err)) unresolvedPayload.current = null;
+      // A timeout/transport loss is NOT a confirmed failure: keep the request id
+      // visible and lock submission until the server confirms the outcome.
+      const settled = err instanceof UnifiedExecutionError ? err.result : null;
+      setTicket((prev) =>
+        prev
+          ? {
+              ...prev,
+              phase: isUnknownOutcome(err)
+                ? "UNRESOLVED"
+                : settled
+                  ? phaseFromStatus(settled.status)
+                  : "FAILED",
+              result: settled ?? prev.result,
+              error: message,
+            }
+          : prev
+      );
     } finally {
       inFlightKey.current = null;
       setInFlight(false);
@@ -424,6 +491,18 @@ export default function OrderPanel({
             {error}
           </div>
         )}
+
+        {unresolved && ticket ? (
+          <div className="space-y-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
+            <p>
+              Request <span className="font-numeric font-medium">{ticket.clientRequestId}</span> is
+              unresolved. Check the MT5 terminal for this order before placing another.
+            </p>
+            <Button variant="outline" size="sm" onClick={handleReconcile} disabled={inFlight}>
+              Check status
+            </Button>
+          </div>
+        ) : null}
 
         {executionDetails}
 

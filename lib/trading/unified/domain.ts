@@ -284,6 +284,15 @@ export type TradingExecutionStatus =
     | "DUPLICATE"
     | "FAILED"
     /**
+     * The provider never confirmed or refused the command in time. The order
+     * MAY have executed. This is NOT a confirmed failure and NOT a fill:
+     * the request is unresolved until reconciled against MT5 history. The
+     * original clientRequestId/idempotency key stays bound to it and it is
+     * never resent automatically. Error code stays EXECUTION_TIMEOUT for
+     * clients that key on the code. See UNIFIED_TRADING.md §6c.
+     */
+    | "UNKNOWN"
+    /**
      * Provider-confirmed execution whose synced ticket had not appeared in
      * the account snapshot before the verification timeout. The trade IS
      * real (the provider confirmed it); only the local mirror is late.
@@ -373,6 +382,7 @@ export type TradingAuditAction =
     | "CONNECTION_REJECTED"
     | "EXECUTION_REQUESTED"
     | "EXECUTION_ACCEPTED"
+    | "EXECUTION_UNKNOWN"
     | "EXECUTION_SUCCEEDED"
     | "EXECUTION_REJECTED"
     | "EXECUTION_DUPLICATE"
