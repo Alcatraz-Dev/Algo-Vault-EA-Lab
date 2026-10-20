@@ -536,14 +536,12 @@ export class BotRuntimeSession {
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Submit an approved signal through the EXISTING gateway boundary:
-     *   mt5_orders/{accountKey}/{clientOrderId}          (the EA polls this queue)
-     *   live_positions/live_{accountNumber}/{clientOrderId} (tracking)
+     * Submit an approved signal through the gateway.
      *
-     * Identical record shape to every other execution path (see
-     * lib/ai-execution/runtime.ts submitApprovedPlan) — the only differences
-     * are the bot's magic number and source label. No ticket is fabricated:
-     * the real MT5 ticket arrives later via the gateway state sync.
+     * Routes through the unified trading service (trading_order_requests) which
+     * is the queue consumed by the AlgoVaultTradeGateway EA via
+     * /api/trading/gateway/commands. No longer writes directly to mt5_orders
+     * to avoid queue mismatches.
      */
     private async submitToGateway(
         signal: BotSignal,
@@ -613,53 +611,49 @@ export class BotRuntimeSession {
         }
 
         try {
-            const clientOrderId = newClientOrderId(`bot_${botId.slice(0, 12)}`);
-            const mt5AccountNumber = account.startsWith("gateway_") ? account.slice("gateway_".length) : account;
-
-            const orderRecord = {
-                ticket: clientOrderId,
-                symbol: signal.symbol.replace("/", ""),
-                type: signal.direction,
-                volume: Number(volume.toFixed(2)),
-                openPrice: signal.proposedEntry ?? 0,
-                currentPrice: signal.proposedEntry ?? 0,
-                stopLoss: signal.proposedSl ?? 0,
-                takeProfit: signal.proposedTp ?? 0,
-                profit: 0,
-                swap: 0,
-                // Bot Studio magic number — isolates this bot's positions from
-                // manual trades and every other bot/EA on the account.
-                magic: this.magicNumber,
-                source: "AlgoVault Bot Studio",
-                comment: buildOrderComment(this.strategy.id),
-                strategyId: this.strategy.id,
-                signalId: signal.id,
-                botId,
+            const clientRequestId = newClientOrderId(`bot_${botId.slice(0, 12)}`);
+            const service = createUnifiedTradingService();
+            const input: ExecuteInput = {
                 userId,
-                openedAt: now,
-                lastSeenAt: now,
-                updatedAt: now,
-                status: "PENDING_MT5_EXECUTION",
+                accountId: account,
+                clientRequestId,
+                executionType: "PLACE_ORDER",
+                symbol: signal.symbol,
+                side: signal.direction,
+                volume: Number(volume.toFixed(2)),
+                kind: "MARKET",
+                price: null,
+                stopLoss: signal.proposedSl ?? null,
+                takeProfit: signal.proposedTp ?? null,
+                source: "bot-studio",
             };
 
-            await adminDatabase.ref(`mt5_orders/${account}/${clientOrderId}`).set(orderRecord);
-            await adminDatabase.ref(`live_positions/live_${mt5AccountNumber}/${clientOrderId}`).set(orderRecord);
+            const outcome = await service.execute(input);
+            if (!outcome.result) {
+                await this.failExecution(botId, executionId, "Gateway submission failed.");
+                return { ok: false, executionId, error: "Gateway submission failed." };
+            }
+            if (outcome.result.status === "REJECTED" || outcome.result.status === "FAILED") {
+                const msg = outcome.result.error?.message || "Gateway submission failed.";
+                await this.failExecution(botId, executionId, msg);
+                return { ok: false, executionId, error: msg };
+            }
 
             await updateExecution(botId, executionId, {
                 status: "submitted",
-                clientOrderId,
+                clientOrderId: outcome.result.providerRef || clientRequestId,
                 submittedAt: now,
             });
             await appendAudit(botId, this.strategy.id, "execution_attempted", userId, {
                 executionId,
-                clientOrderId,
+                clientOrderId: outcome.result.providerRef || clientRequestId,
                 signal: signal.direction,
                 symbol: signal.symbol,
                 volume,
             });
-            await appendLog(botId, "execution", `Submitted to gateway: ${signal.direction} ${signal.symbol} (clientOrderId=${clientOrderId})`, {
+            await appendLog(botId, "execution", `Submitted to gateway: ${signal.direction} ${signal.symbol} (clientRequestId=${clientRequestId})`, {
                 executionId,
-                clientOrderId,
+                clientRequestId,
             });
 
             return { ok: true, executionId };
