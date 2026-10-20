@@ -59,6 +59,7 @@
     "test:release-notes": "node scripts/jiti-tsrun.mjs tests/release-notes.test.ts",
     "desktop:release-manifest": "node scripts/desktop-release-manifest.mjs",
     "test:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti tests/run-seo-security-tests.ts",
+    "archil:check": "node scripts/jiti-tsrun.mjs scripts/archil-persistence-check.ts",
     "validate:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti scripts/validate-seo-ai.ts"
   },
   "dependencies": {
@@ -75,6 +76,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cn": "^0.3.0",
+    "disk": "1.8.0",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.4.0",
     "flyonui": "^2.4.1",

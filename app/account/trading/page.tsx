@@ -52,6 +52,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BotDeployment, BotDeploymentSummary } from "@/lib/bot-studio/types";
+import { buildDeploymentSummaries } from "@/lib/bot-studio/summaries";
 
 type Tab = "positions" | "orders" | "history" | "log";
 
@@ -80,6 +81,8 @@ export default function AccountTradingPage() {
     // Bot Studio Deployments
     const [deployments, setDeployments] = useState<BotDeployment[]>([]);
     const [deploymentsSummaries, setDeploymentsSummaries] = useState<Record<string, BotDeploymentSummary>>({});
+    const [deploymentsLoading, setDeploymentsLoading] = useState(false);
+    const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
@@ -132,6 +135,48 @@ export default function AccountTradingPage() {
 
         checkAccess();
     }, [firebaseUser]);
+
+    // Bot Studio Deployments fetch
+    useEffect(() => {
+        if (!firebaseUser || !hasAccess) {
+            setDeployments([]);
+            setDeploymentsSummaries({});
+            return;
+        }
+
+        const uid = firebaseUser!.uid;
+        async function fetchDeployments() {
+            setDeploymentsLoading(true);
+            try {
+                const token = await firebaseUser!.getIdToken();
+                const res = await fetch("/api/bot-studio/deployments", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    setDeploymentsError(err.error || "Failed to load bot deployments");
+                    setDeployments([]);
+                    setDeploymentsSummaries({});
+                    return;
+                }
+                const data = await res.json();
+                // Filter to only the user's own deployments (same as the API does)
+                const userDeployments = data.deployments.filter((d: any) => d.ownerId === uid);
+                setDeployments(userDeployments);
+                // Build summaries for the UI
+                buildDeploymentSummaries(uid, userDeployments).then((summaries) => {
+                    setDeploymentsSummaries(summaries);
+                    setDeploymentsLoading(false);
+                });
+            } catch (err) {
+                setDeploymentsError(err instanceof Error ? err.message : "Unknown error");
+                setDeployments([]);
+                setDeploymentsSummaries({});
+            }
+        }
+
+        fetchDeployments();
+    }, [firebaseUser, hasAccess]);
 
     // RTDB listener for the account ledger — the source of truth for which
     // accounts exist and which one is selected.
