@@ -23,6 +23,20 @@ interface FakeSnapshot {
     val(): unknown;
 }
 
+// Fake RTDB query — the `orderByChild` / `equalTo` / `limitToLast` chain.
+//
+// The append-only feeds (bot logs, signals, executions, audit trail) are read
+// through these queries. The stub orders the children by the requested key and
+// applies the limit, so a route that reads "the newest N" sees the same
+// ordering it would see against real RTDB instead of an arbitrary one.
+interface FakeQuery {
+    orderByChild(child: string): FakeQuery;
+    equalTo(value: unknown): FakeQuery;
+    limitToLast(limit: number): FakeQuery;
+    limitToFirst(limit: number): FakeQuery;
+    get(): Promise<FakeSnapshot>;
+}
+
 // Fake RTDB reference with the `get`/`set`/`update`/`remove`/`child` shape the
 // guards (and lib/gateway's token helpers) use.
 interface FakeRef {
@@ -33,6 +47,9 @@ interface FakeRef {
     remove(): Promise<void>;
     child(c: string): FakeRef;
     push(): FakeRef & { key: string };
+    orderByChild(child: string): FakeQuery;
+    limitToLast(limit: number): FakeQuery;
+    limitToFirst(limit: number): FakeQuery;
     transaction(
         update: (current: unknown) => unknown
     ): Promise<{ committed: boolean; snapshot: FakeSnapshot }>;
@@ -65,6 +82,90 @@ function getFakeSnapshot(path: string): FakeSnapshot {
         node[parts[parts.length - 1]] = value;
     }
     return { exists: () => Object.keys(children).length > 0, val: () => children };
+}
+
+// Children of a path, whether the path holds a node (its keys are the
+// children) or only deeper records exist (their immediate children are).
+function readChildren(path: string): Record<string, unknown> {
+    const raw = rtDbStore.get(path);
+    if (isPlainObject(raw)) return raw;
+
+    const children: Record<string, unknown> = {};
+    for (const [key, value] of rtDbStore.entries()) {
+        if (!key.startsWith(path + "/")) continue;
+
+        const parts = key.slice(path.length + 1).split("/");
+        let node = children;
+        for (let i = 0; i < parts.length - 1; i++) {
+            const part = parts[i];
+            const next = node[part];
+            const child: Record<string, unknown> = isPlainObject(next) ? next : {};
+            node[part] = child;
+            node = child;
+        }
+        node[parts[parts.length - 1]] = value;
+    }
+    return children;
+}
+
+// Ordering by a child key: numeric when both sides are numbers, otherwise
+// lexicographic — the same comparison RTDB applies.
+function compareByChild(a: unknown, b: unknown, childKey: string): number {
+    const av = (a as Record<string, unknown>)[childKey];
+    const bv = (b as Record<string, unknown>)[childKey];
+    const an = Number(av);
+    const bn = Number(bv);
+    if (Number.isFinite(an) && Number.isFinite(bn)) return an - bn;
+    return String(av ?? "").localeCompare(String(bv ?? ""));
+}
+
+function makeFakeQuery(path: string): FakeQuery {
+    let childKey: string | null = null;
+    let equalValue: unknown;
+    let hasEqual = false;
+    let limit: number | null = null;
+    let takeLast = false;
+
+    const query: FakeQuery = {
+        orderByChild(child: string): FakeQuery {
+            childKey = child;
+            return query;
+        },
+        equalTo(value: unknown): FakeQuery {
+            equalValue = value;
+            hasEqual = true;
+            return query;
+        },
+        limitToLast(n: number): FakeQuery {
+            limit = n;
+            takeLast = true;
+            return query;
+        },
+        limitToFirst(n: number): FakeQuery {
+            limit = n;
+            takeLast = false;
+            return query;
+        },
+        async get(): Promise<FakeSnapshot> {
+            let rows = Object.entries(readChildren(path)).filter(([, v]) => isPlainObject(v));
+            const key = childKey;
+            if (key) {
+                rows = rows.sort((a, b) => compareByChild(a[1], b[1], key));
+                if (hasEqual) {
+                    rows = rows.filter(([, v]) => (v as Record<string, unknown>)[key] === equalValue);
+                }
+            }
+            if (limit !== null) {
+                rows = takeLast
+                    ? rows.slice(Math.max(0, rows.length - limit))
+                    : rows.slice(0, limit);
+            }
+            const out: Record<string, unknown> = {};
+            for (const [k, v] of rows) out[k] = v;
+            return { exists: () => Object.keys(out).length > 0, val: () => out };
+        },
+    };
+    return query;
 }
 
 // Stub Auth: deterministic token -> { uid, role }. Server-side only.
@@ -136,6 +237,15 @@ function makeFakeRef(path: string): FakeRef {
         },
         child(c: string): FakeRef {
             return makeFakeRef(`${path}/${c}`);
+        },
+        orderByChild(child: string): FakeQuery {
+            return makeFakeQuery(path).orderByChild(child);
+        },
+        limitToLast(limit: number): FakeQuery {
+            return makeFakeQuery(path).limitToLast(limit);
+        },
+        limitToFirst(limit: number): FakeQuery {
+            return makeFakeQuery(path).limitToFirst(limit);
         },
         // Mirrors RTDB push(): a child with a unique, monotonically ordered key.
         push(): FakeRef & { key: string } {

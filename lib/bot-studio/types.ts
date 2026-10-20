@@ -344,3 +344,84 @@ export interface BotDeployInput {
     mt5Account: string;
     accountMode: BotAccountMode;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Execution eligibility
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Why a bot can (or cannot) turn its next signal into a broker order. */
+export type BotEligibilityCode =
+    | "eligible"
+    | "no_strategy"
+    | "strategy_changed"
+    | "live_disabled"
+    | "gateway_offline"
+    | "runtime_error";
+
+/** Output of the single eligibility rule (`lib/bot-studio/eligibility`). */
+export interface BotEligibility {
+    /** May a START transition be initiated right now? */
+    eligible: boolean;
+    code: BotEligibilityCode;
+    /** Operator-facing explanation. Null when nothing is wrong. */
+    reason: string | null;
+    /**
+     * True when the bot can still run but needs attention first (today: a
+     * runtime error, which a restart clears). A warning never blocks start.
+     */
+    warning: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Terminal-facing summaries
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * One open position attributed to a bot, as the gateway last reported it.
+ *
+ * These are the SAME positions indexed from the account snapshot under
+ * `bot_positions/{botId}` — the terminal never derives a position the broker
+ * did not report.
+ */
+export interface BotOpenPosition {
+    ticket: string;
+    symbol: string;
+    /** BUY / SELL as reported by MT5 (normalised). */
+    type: "BUY" | "SELL";
+    volume: number;
+    openPrice: number;
+    currentPrice: number;
+    profit: number;
+    sl: number;
+    tp: number;
+    openedAt: number;
+}
+
+/** Realized + floating performance attributed to a bot (never account-wide). */
+export interface BotPerformanceSummary {
+    totalPnl: number;
+    todayPnl: number;
+    winRate: number;
+    totalTrades: number;
+    openTrades: number;
+}
+
+/**
+ * Compact, owner-scoped view of one deployment for execution surfaces
+ * (the terminal Bots panel). Rendered exactly as the server computed it: no
+ * figure here is derived in the browser.
+ */
+export interface BotDeploymentSummary {
+    botId: string;
+    strategyName: string | null;
+    strategyPresent: boolean;
+    fingerprintMatches: boolean;
+    symbol: string | null;
+    timeframe: string | null;
+    openPositions: number;
+    floatingPnl: number;
+    performance: BotPerformanceSummary | null;
+    lastExecutionAt: number | null;
+    lastExecutionStatus: BotExecutionStatus | null;
+    eligibility: BotEligibility;
+}

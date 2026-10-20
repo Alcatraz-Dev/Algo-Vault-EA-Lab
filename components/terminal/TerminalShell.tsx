@@ -21,6 +21,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import {
+    Bot,
     CandlestickChart,
     LayoutList,
     LineChart,
@@ -54,15 +55,18 @@ import { AccountPanel } from "./AccountPanel";
 import { RiskHud } from "./RiskHud";
 import { TradingChat } from "./TradingChat";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
+import { BotsPanel } from "./BotsPanel";
+import { BotsDataProvider } from "./BotsData";
 import { useTerminal, useTerminalClock } from "./TerminalContext";
 import { useTerminalData } from "./TerminalData";
 
-type MobileTab = "watchlist" | "chart" | "intelligence" | "account" | "chat";
+type MobileTab = "watchlist" | "chart" | "intelligence" | "bots" | "account" | "chat";
 
 const MOBILE_TABS: Array<{ id: MobileTab; label: string; icon: typeof LineChart }> = [
     { id: "watchlist", label: "Watch", icon: PanelsTopLeft },
     { id: "chart", label: "Chart", icon: CandlestickChart },
     { id: "intelligence", label: "Intel", icon: Signal },
+    { id: "bots", label: "Bots", icon: Bot },
     { id: "account", label: "Account", icon: Shield },
     { id: "chat", label: "Chat", icon: MessagesSquare },
 ];
@@ -71,6 +75,7 @@ const PANEL_TOGGLE: Array<{ id: PanelId; label: string }> = [
     { id: "watchlist", label: "Watchlist" },
     { id: "intelligence", label: "Intelligence" },
     { id: "events", label: "Monitor" },
+    { id: "bots", label: "Bots" },
     { id: "account", label: "Account" },
     { id: "chat", label: "Chat" },
 ];
@@ -252,6 +257,10 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     );
 
     const visible = (id: PanelId) => state.panels[id]?.visible !== false;
+    // The Bots panel is the only bot source; its provider polls only while the
+    // panel is actually on screen (desktop panel or the mobile tab).
+    const botsVisible = visible("bots");
+    const botsEnabled = botsVisible || mobileTab === "bots";
 
     /**
      * SL/TP drag commit from the chart: merge the dragged stop with the
@@ -359,6 +368,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     }
 
     return (
+        <BotsDataProvider enabled={botsEnabled}>
         <div className="mx-auto flex w-full max-w-full min-w-0 flex-col gap-2.5 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-3">
             <TerminalTopBar now={now} isPro={isPro} />
 
@@ -472,6 +482,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             {actionError}
                         </p>
                     ) : null}
+                    {botsVisible ? (
+                        <PanelErrorBoundary name="Bots">
+                            <BotsPanel now={now} />
+                        </PanelErrorBoundary>
+                    ) : null}
                     {visible("account") ? <AccountPanel /> : null}
                 </main>
 
@@ -507,6 +522,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         {visible("events") ? <EventFeed now={now} /> : null}
                     </>
                 ) : null}
+                {mobileTab === "bots" ? (
+                    <PanelErrorBoundary name="Bots">
+                        <BotsPanel now={now} />
+                    </PanelErrorBoundary>
+                ) : null}
                 {mobileTab === "account" ? (
                     <>
                         {actionError ? (
@@ -527,5 +547,6 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 Nothing on this screen is simulated unless the account badge reads PAPER. Not financial advice.
             </p>
         </div>
+        </BotsDataProvider>
     );
 }

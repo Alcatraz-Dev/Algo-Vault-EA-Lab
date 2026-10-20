@@ -9,6 +9,7 @@ import {
     appendAudit,
     appendLog,
 } from "@/lib/bot-studio/database";
+import { buildDeploymentSummaries } from "@/lib/bot-studio/summaries";
 import type { BotDeployment } from "@/lib/bot-studio/types";
 
 export async function GET(request: NextRequest) {
@@ -26,7 +27,17 @@ export async function GET(request: NextRequest) {
         const deployments = access.isAdmin
             ? all
             : all.filter((d: BotDeployment) => d.ownerId === access.uid);
-        return NextResponse.json({ ok: true, deployments });
+
+        // Compact execution summaries for the CALLER'S OWN bots. They carry
+        // strategy, live performance and eligibility so execution surfaces
+        // (Terminal Trading → Bots) need one request, not one per bot. An
+        // admin's view of somebody else's deployment deliberately carries no
+        // summary: eligibility depends on that owner's gateway, not the
+        // admin's, so computing it here would be a guess.
+        const own = deployments.filter((d: BotDeployment) => d.ownerId === access.uid);
+        const summaries = own.length > 0 ? await buildDeploymentSummaries(access.uid, own) : {};
+
+        return NextResponse.json({ ok: true, deployments, summaries });
     } catch (error) {
         return NextResponse.json(
             { ok: false, error: errMessage(error, "Failed to load bot deployments") },

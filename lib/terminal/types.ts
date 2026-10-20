@@ -33,6 +33,7 @@ export const PANEL_IDS = [
     "chart",
     "intelligence",
     "account",
+    "bots",
     "events",
     "chat",
     "sessions",

@@ -45,6 +45,8 @@
     "test:rtdb-rules": "node tests/security/rtdb-rules.emulator.mjs",
     "test:api-accounts": "node scripts/jiti-tsrun.mjs tests/security/api-v1-accounts.test.ts",
     "test:terminal": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/run-terminal-tests.ts",
+    "test:terminal-bots": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/bots.test.ts",
+    "test:terminal-bots-api": "node scripts/jiti-tsrun.mjs tests/security/terminal-bots.test.ts",
     "test:trading": "node scripts/jiti-tsrun.mjs lib/trading/__tests__/run-trading-tests.ts",
     "test:unified-trading": "node scripts/jiti-tsrun.mjs lib/trading/unified/__tests__/run-unified-trading-tests.ts",
     "test:trading-history": "node scripts/jiti-tsrun.mjs lib/trading/unified/__tests__/run-history-read-tests.ts",
