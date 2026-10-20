@@ -66,6 +66,8 @@ import type {
     BotExecution,
     BotSignal,
 } from "./types";
+import { createUnifiedTradingService } from "@/lib/trading/unified/server";
+import type { ExecuteInput } from "@/lib/trading/unified/service";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
