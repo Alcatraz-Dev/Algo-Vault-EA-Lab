@@ -41,7 +41,6 @@ import {
     executionStatusLabel,
     executionStatusTone,
     formatSignedUsd,
-    gatewayConnected,
     relativeAgeLabel,
     resolveBotsPanelState,
     summariseBots,
@@ -52,6 +51,9 @@ const BOT_STUDIO_HREF = "/account/strategy-studio";
 
 function GatewayChip({ now }: { now: number }) {
     const data = useTerminalData();
+    // Use the any-connected flag from context so a stale heartbeat on one account
+    // does not cause all accounts to appear offline.
+    const anyConnected = data.gatewayAnyConnected;
     const account = data.account;
     if (!account) {
         return (
@@ -61,10 +63,7 @@ function GatewayChip({ now }: { now: number }) {
             </span>
         );
     }
-    const connected = gatewayConnected(
-        { status: account.status, lastHeartbeatAt: account.lastHeartbeatAt },
-        now
-    );
+    const connected = anyConnected;
     return (
         <span
             className={cn(
@@ -528,10 +527,7 @@ export function BotsPanel({ now }: { now: number }) {
                 </ul>
             ) : null}
 
-            {panelState === "ready" && !gatewayConnected(
-                data.account ? { status: data.account.status, lastHeartbeatAt: data.account.lastHeartbeatAt } : null,
-                now
-            ) ? (
+            {panelState === "ready" && !data.gatewayAnyConnected ? (
                 <p className="flex items-center gap-1.5 border-t border-warning/30 bg-warning/10 px-2 py-1 text-[10px] text-warning">
                     <WifiOff className="size-3" aria-hidden="true" />
                     The MT5 gateway is offline — bots are visible but cannot execute until it reconnects.
