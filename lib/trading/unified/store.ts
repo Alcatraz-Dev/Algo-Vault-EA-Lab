@@ -74,6 +74,12 @@ export function hashRequest(input: {
     percentage?: number;
     positionId?: string;
     orderId?: string;
+    /**
+     * The trusted bot identity is part of the request body, so two different
+     * bots can never collide on one clientRequestId and be mistaken for a
+     * replay of each other.
+     */
+    botAttribution?: { botId: string; executionId: string };
 }): string {
     const payload = [
         input.userId,
@@ -87,6 +93,8 @@ export function hashRequest(input: {
         input.percentage ?? "",
         input.positionId ?? "",
         input.orderId ?? "",
+        input.botAttribution?.botId ?? "",
+        input.botAttribution?.executionId ?? "",
     ].join("|");
     return crypto.createHash("sha256").update(payload).digest("hex").slice(0, 32);
 }

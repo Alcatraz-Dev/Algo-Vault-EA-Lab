@@ -265,6 +265,15 @@ export interface TradingExecutionRequest {
     orderId?: string;
     /** Free-form origin marker (terminal, ai, signal, bot, tradingview). */
     source?: string;
+    /** Trusted server-side bot attribution; public routes do not accept this field. */
+    botAttribution?: {
+        botId: string;
+        strategyId: string;
+        executionId: string;
+        magicNumber: number;
+        comment: string;
+        signalGeneratedAt: number;
+    };
     timestamp: number;
 }
 

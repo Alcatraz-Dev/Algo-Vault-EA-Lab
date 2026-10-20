@@ -11,7 +11,7 @@
  */
 
 import { deriveMagicNumber, isBotStudioMagicNumber } from "../magic-numbers";
-import { canTransitionTo, validateTransition } from "../lifecycle";
+import { canTransitionTo, validateTransition, transitionPath } from "../lifecycle";
 import { compileNodeGraph } from "../compiler/visual-to-strategy";
 import { compileAvScript } from "../compiler/avscript-to-strategy";
 import type { NodeGraph } from "../compiler/types";
@@ -73,6 +73,26 @@ export function runBotStudioTests(): void {
         threw = true;
     }
     assert(threw, "validateTransition must throw on illegal transition");
+
+    // UI intent → shortest legal path (never a bypass of the state machine).
+    assert(
+        JSON.stringify(transitionPath("ready", "running")) === JSON.stringify(["starting", "running"]),
+        "start from ready must walk ready → starting → running",
+    );
+    assert(
+        JSON.stringify(transitionPath("stopped", "running")) === JSON.stringify(["starting", "running"]),
+        "start from stopped must walk stopped → starting → running",
+    );
+    assert(
+        JSON.stringify(transitionPath("running", "paused")) === JSON.stringify(["pausing", "paused"]),
+        "pause must walk running → pausing → paused",
+    );
+    assert(
+        JSON.stringify(transitionPath("paused", "running")) === JSON.stringify(["starting", "running"]),
+        "resume from paused must re-enter through starting",
+    );
+    assert(transitionPath("stopped", "paused") === null, "an unreachable intent must be rejected");
+    assert(transitionPath("running", "running")?.length === 0, "same-state transition is a no-op path");
     console.log("  ✓ Lifecycle state machine passed.");
 
     // ── 3. Visual Compiler ──

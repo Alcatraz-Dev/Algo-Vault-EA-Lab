@@ -84,6 +84,42 @@ export function validateTransition(
     }
 }
 
+/**
+ * Resolve the LEGAL path from `current` to `requested`.
+ *
+ * The UI speaks user intent ("start", "pause", "stop"), while the state
+ * machine requires intermediate states (`ready → starting → running`,
+ * `running → pausing → paused`). Callers must not bypass the machine, so the
+ * route walks this path one validated step at a time and only then persists
+ * the final state. Returns null when no path exists within `maxSteps`.
+ */
+export function transitionPath(
+    current: BotLifecycleState,
+    requested: BotLifecycleState,
+    maxSteps = 3,
+): BotLifecycleState[] | null {
+    if (current === requested) return [];
+
+    // Breadth-first search keeps the path shortest and deterministic.
+    const queue: Array<{ state: BotLifecycleState; path: BotLifecycleState[] }> = [
+        { state: current, path: [] },
+    ];
+    const seen = new Set<BotLifecycleState>([current]);
+
+    while (queue.length > 0) {
+        const node = queue.shift()!;
+        if (node.path.length >= maxSteps) continue;
+        for (const next of ALLOWED[node.state] ?? []) {
+            if (seen.has(next)) continue;
+            const path = [...node.path, next];
+            if (next === requested) return path;
+            seen.add(next);
+            queue.push({ state: next, path });
+        }
+    }
+    return null;
+}
+
 /** All terminal states — no automatic progress from these. */
 export const TERMINAL_STATES: ReadonlySet<BotLifecycleState> = new Set([
     "stopped",

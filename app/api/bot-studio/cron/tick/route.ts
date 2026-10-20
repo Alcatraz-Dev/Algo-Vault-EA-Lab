@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, errMessage } from "@/lib/admin-auth";
 import { listAllDeployments, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
 import { BotRuntimeSession, type BotTickResult } from "@/lib/bot-studio/runtime";
-import { fetchCandles } from "@/lib/market-data/normalizer";
-import type { MarketCandle, SupportedSymbol } from "@/lib/market-data/types";
+import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
+import type { SupportedSymbol } from "@/lib/market-data/types";
 import { isCronRequest } from "@/lib/security/cron-auth";
 
 export const runtime = "nodejs";
@@ -66,11 +66,11 @@ export async function GET(request: NextRequest) {
                 }
 
                 const symbol = strategy.definition.asset as SupportedSymbol;
-                const timeframe = strategy.definition.timeframes.entry;
-
-                // Load latest candle
-                const candles = await fetchCandles(symbol, timeframe, { to: Date.now() });
-                if (!Array.isArray(candles) || candles.length === 0) {
+                // Server-side candles on the strategy's setup timeframe plus any
+                // rule-referenced timeframes — the same decision inputs the
+                // backtest uses.
+                const { candles, timeframe, series } = await loadBotStrategySeries(strategy.definition, symbol);
+                if (candles.length === 0) {
                     results.push({
                         botId: bot.id,
                         strategyId: bot.strategyId,
@@ -90,9 +90,12 @@ export async function GET(request: NextRequest) {
                     });
                     await session.initialize();
                     sessions.set(bot.id, session);
+                } else {
+                    // Lifecycle intent changed since this session was cached.
+                    session.refreshDeployment(bot);
                 }
 
-                const tickResult = await session.tick({ candles, timeframe });
+                const tickResult = await session.tick({ candles, timeframe, series });
 
                 await updateDeploymentState(bot.id, {
                     lastTickAt: Date.now(),

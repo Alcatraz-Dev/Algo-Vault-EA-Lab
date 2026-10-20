@@ -92,6 +92,20 @@ export interface ExecuteInput {
     correlationId?: string;
     source?: string;
     /**
+     * Server-derived Bot Studio attribution. Never accepted from a public
+     * route: only the bot runtime sets it, and the adapter uses it solely to
+     * stamp the trusted magic/comment/job identity on its own queue write.
+     */
+    botAttribution?: TradingExecutionRequest["botAttribution"];
+    /**
+     * When false the call returns as soon as the command is durable in the
+     * provider queue, instead of waiting for the gateway report. Callers that
+     * already receive the authenticated execution report out-of-band (the bot
+     * runtime) use this to avoid blocking a worker on an EA poll cycle.
+     * Defaults to true, preserving every existing caller's behaviour.
+     */
+    waitForReport?: boolean;
+    /**
      * Ignored for validation on purpose: the client never chooses the
      * environment. It is accepted only so a hostile `environment: "LIVE"`
      * is explicitly rejected rather than silently ignored.
@@ -398,6 +412,7 @@ export class UnifiedTradingService {
             positionId: input.positionId,
             orderId: input.orderId,
             source: input.source,
+            botAttribution: input.botAttribution,
             timestamp: startedAt,
         };
 
@@ -424,6 +439,7 @@ export class UnifiedTradingService {
                 percentage: input.percentage,
                 positionId: input.positionId,
                 orderId: input.orderId,
+                botAttribution: request.botAttribution,
             }),
         });
 
@@ -537,6 +553,7 @@ export class UnifiedTradingService {
             position,
             order,
             volume,
+            waitForReport: input.waitForReport,
         });
 
         if (!executed.ok) {
@@ -552,7 +569,9 @@ export class UnifiedTradingService {
                   ? "EXECUTION_PENDING_SYNC"
                   : result.status === "REJECTED"
                     ? "EXECUTION_REJECTED"
-                    : "EXECUTION_FAILED";
+                    : result.status === "ACCEPTED"
+                      ? "EXECUTION_ACCEPTED"
+                      : "EXECUTION_FAILED";
 
         await this.persistResult(request.userId, result);
         void this.writeAudit({
@@ -572,9 +591,13 @@ export class UnifiedTradingService {
             // confirmed the fill and only the local mirror is late. 200 with
             // the status payload keeps retries (which idempotency already
             // absorbs) from ever re-submitting a confirmed trade.
+            // ACCEPTED without an error is a queued command awaiting an
+            // authenticated gateway report — 202, never a fabricated outcome.
             httpStatus: result.status === "SUCCEEDED" || result.status === "EXECUTED_PENDING_SYNC"
                 ? 200
-                : errorCodeToStatus(result.error ?? tradingError("ORDER_REJECTED", "Order rejected.")),
+                : result.status === "ACCEPTED" && !result.error
+                  ? 202
+                  : errorCodeToStatus(result.error ?? tradingError("ORDER_REJECTED", "Order rejected.")),
         };
     }
 

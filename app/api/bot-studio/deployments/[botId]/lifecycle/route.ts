@@ -7,7 +7,7 @@ import {
     appendLog,
     appendAudit,
 } from "@/lib/bot-studio/database";
-import { validateTransition } from "@/lib/bot-studio/lifecycle";
+import { transitionPath } from "@/lib/bot-studio/lifecycle";
 import { isLiveTradingEnabled } from "@/lib/trading/feature-flags";
 import type { BotLifecycleState, BotDesiredState } from "@/lib/bot-studio/types";
 
@@ -52,12 +52,16 @@ export async function POST(
             );
         }
 
-        // Validate state machine transition (throws if invalid)
-        try {
-            validateTransition(botId, deployment.runtimeState, targetState);
-        } catch (transErr) {
+        // The UI sends user intent ("running"/"paused"/"stopped") while the
+        // state machine requires intermediate states. Resolve the shortest
+        // LEGAL path and reject anything unreachable — never bypass the machine.
+        const path = transitionPath(deployment.runtimeState, targetState);
+        if (!path) {
             return NextResponse.json(
-                { ok: false, error: errMessage(transErr) },
+                {
+                    ok: false,
+                    error: `Bot ${botId}: invalid lifecycle transition ${deployment.runtimeState} → ${targetState}.`,
+                },
                 { status: 400 }
             );
         }
@@ -86,8 +90,8 @@ export async function POST(
         await appendLog(
             botId,
             "info",
-            `Lifecycle transition: ${deployment.runtimeState} → ${targetState}`,
-            { previous: deployment.runtimeState, next: targetState }
+            `Lifecycle transition: ${[deployment.runtimeState, ...path].join(" → ")}`,
+            { previous: deployment.runtimeState, next: targetState, path }
         );
 
         const auditAction = targetState === "running" ? "bot_started"

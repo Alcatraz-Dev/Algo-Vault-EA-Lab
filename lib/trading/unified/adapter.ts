@@ -115,6 +115,15 @@ export interface AdapterExecutionInput {
      * P/L amount.
      */
     volume?: number | null;
+    /**
+     * False when the caller receives the authenticated execution report
+     * out-of-band: the adapter then returns ACCEPTED as soon as the command is
+     * durable, instead of blocking on the gateway report.
+     *
+     * Absent/true keeps the default wait-then-verify behaviour. An adapter that
+     * cannot confirm must still never fabricate a fill either way.
+     */
+    waitForReport?: boolean;
 }
 
 /**

@@ -4,6 +4,7 @@ import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { isCopiedLedgerPosition, mirrorMasterClose, mirrorMasterOrder, recordMasterPerformance } from "@/lib/copy-trading";
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 import { getBotOwnedMagics, findMatchingBots, indexBotPosition, clearBotPositions, indexBotTrade } from "@/lib/bots";
+import { listDeploymentsForOwner, updateExecution } from "@/lib/bot-studio/database";
 
 export const runtime = "nodejs";
 
@@ -163,6 +164,42 @@ export async function POST(request: NextRequest) {
             (t) => !(t in positionsData)
         );
 
+        // Bot Studio attribution for THIS gateway account: deployments and
+        // strategy magics are read ONCE per snapshot, never per position. A
+        // magic claimed by two deployments on the same account is ambiguous
+        // and is deliberately left unattributed rather than guessed.
+        const studioByMagic = new Map<string, { botId: string; strategyId: string }>();
+        try {
+            const deployments = (await listDeploymentsForOwner(userId)).filter(
+                (deployment) => String(deployment.mt5Account || "").replace(/^gateway_/, "") === accountNumber,
+            );
+            if (deployments.length > 0) {
+                const strategySnap = await adminDatabase.ref("bot_strategies").get();
+                const strategies = (strategySnap.val() || {}) as Record<string, { magicNumber?: number }>;
+                const ambiguous = new Set<string>();
+                for (const deployment of deployments) {
+                    const magic = String(strategies[deployment.strategyId]?.magicNumber ?? "");
+                    if (!magic) continue;
+                    if (studioByMagic.has(magic)) ambiguous.add(magic);
+                    else studioByMagic.set(magic, { botId: deployment.id, strategyId: deployment.strategyId });
+                }
+                for (const magic of ambiguous) studioByMagic.delete(magic);
+            }
+        } catch (error) {
+            console.error("[gateway/snapshot] bot attribution lookup failed", {
+                error: error instanceof Error ? error.message : "unknown",
+            });
+        }
+        // Executions are read at most once per bot per snapshot.
+        const studioExecutions = new Map<string, Record<string, Record<string, unknown>>>();
+        const loadStudioExecutions = async (botId: string) => {
+            if (!studioExecutions.has(botId)) {
+                const snap = await adminDatabase.ref(`bot_executions/${botId}`).get();
+                studioExecutions.set(botId, (snap.val() || {}) as Record<string, Record<string, unknown>>);
+            }
+            return studioExecutions.get(botId)!;
+        };
+
         // Magics claimed by this user's registered bots (custom + marketplace).
         // Positions carrying one of these belong to a bot and are never pushed
         // into the live marketplace mirror/copy pipeline. The same positions
@@ -174,7 +211,45 @@ export async function POST(request: NextRequest) {
         for (const [ticket, posRaw] of Object.entries(positionsData)) {
             const pos = posRaw as Record<string, unknown>;
             const magic = String(pos.magic ?? "");
-            if (magic === "" || !ownedMagics.includes(magic)) continue;
+            if (magic === "") continue;
+
+            const studioMatch = studioByMagic.get(magic);
+            if (studioMatch) {
+                await indexBotPosition(studioMatch.botId, {
+                    ...pos,
+                    ticket,
+                    strategyId: studioMatch.strategyId,
+                    accountId,
+                });
+                const studioTickets = perBotTickets.get(studioMatch.botId) || [];
+                studioTickets.push(ticket);
+                perBotTickets.set(studioMatch.botId, studioTickets);
+
+                // Broker-confirmed position: settle the execution whose reported
+                // MT5 ticket this is. Ticket equality is the only match — a
+                // manual trade (no bot magic) never reaches this branch.
+                const executions = await loadStudioExecutions(studioMatch.botId);
+                const matching = Object.entries(executions).find(
+                    ([, execution]) => String(execution.mt5Ticket ?? "") === ticket,
+                );
+                if (matching) {
+                    const execution = matching[1];
+                    await updateExecution(studioMatch.botId, matching[0], {
+                        status: "filled",
+                        executionOutcome: "confirmed",
+                        synchronizedAt: now,
+                        latencyMs: {
+                            ...((execution.latencyMs as Record<string, number | undefined>) ?? {}),
+                            brokerToSync: typeof execution.brokerConfirmedAt === "number"
+                                ? Math.max(0, now - Number(execution.brokerConfirmedAt))
+                                : undefined,
+                        },
+                    });
+                }
+                continue;
+            }
+
+            if (!ownedMagics.includes(magic)) continue;
 
             const matches = await findMatchingBots(
                 userId,
@@ -200,7 +275,10 @@ export async function POST(request: NextRequest) {
         const isBotOwned = (pos: Record<string, unknown> | undefined) => {
             if (!pos) return false;
             const magic = String(pos.magic ?? "");
-            return magic !== "" && ownedMagics.includes(magic);
+            if (magic === "") return false;
+            // Bot Studio positions are bot-owned too: they must never be
+            // mirrored into copy-trading followers as if they were manual.
+            return ownedMagics.includes(magic) || studioByMagic.has(magic);
         };
 
         for (const ticket of openedTickets) {
@@ -265,6 +343,31 @@ export async function POST(request: NextRequest) {
                     closeSource: "gateway_snapshot",
                     priceMovePct,
                 });
+
+            // Bot Studio close: index the realized trade under the studio bot
+            // so its performance statistics reflect real broker outcomes.
+            const studioClosed = studioByMagic.get(String(closedPos?.magic ?? ""));
+            if (studioClosed) {
+                await indexBotTrade(studioClosed.botId, {
+                    ticket,
+                    symbol: String(closedPos?.symbol || ""),
+                    type: String(closedPos?.type || ""),
+                    volume: Number(closedPos?.volume || 0),
+                    openPrice,
+                    closePrice,
+                    profit: Number(closedPos?.profit || 0),
+                    swap: Number(closedPos?.swap || 0),
+                    magic: String(closedPos?.magic ?? ""),
+                    comment: String(closedPos?.comment || ""),
+                    mt5Account: accountNumber,
+                    accountId,
+                    strategyId: studioClosed.strategyId,
+                    openedAt: Number(closedPos?.openedAt || 0),
+                    closedAt: now,
+                    closeSource: "gateway_snapshot",
+                });
+                continue;
+            }
 
             if (isBotOwned(closedPos)) {
                 // Bot-owned position closed: index a trade so the bot's stats

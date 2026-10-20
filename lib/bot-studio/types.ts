@@ -221,9 +221,11 @@ export interface BotSignal {
 export type BotExecutionStatus =
     | "gate_passed"
     | "gate_rejected"
-    | "submitted"           // written to mt5_orders/ or trading_order_requests/
+    | "submitted"           // queued in trading_order_requests; broker outcome pending
+    | "uncertain"           // report timed out after enqueue; reconciliation required
     | "acknowledged"        // EA reported it received the command
     | "filled"              // EA reported the order filled
+    | "executed_pending_sync" // EA confirmed execution; position snapshot is late
     | "rejected_by_broker"
     | "failed"
     | "cancelled"
@@ -239,6 +241,24 @@ export interface BotExecution {
     clientOrderId?: string;
     /** MT5 ticket number returned by the gateway (null until confirmed). */
     mt5Ticket?: number;
+    /** Provider-neutral correlation ID shared with the unified command/result. */
+    correlationId?: string;
+    /** Bar timestamp at which this strategy signal was generated. */
+    signalGeneratedAt?: number;
+    /** Time the unified trading service started authorizing this request. */
+    authorizationStartedAt?: number;
+    /** Time the command was durably queued for the MT5 Gateway. */
+    queuedAt?: number;
+    /** Time the MT5 Gateway EA reported this command. */
+    gatewayReportedAt?: number;
+    /** Time the broker confirmed the reported result. */
+    brokerConfirmedAt?: number;
+    /** Time the gateway snapshot exposed the position/order. */
+    synchronizedAt?: number;
+    /** Timestamp markers use epoch milliseconds unless explicitly sourced from the EA. */
+    latencyMs?: Partial<Record<"authorization" | "queueToReport" | "brokerToSync", number>>;
+    /** Provider execution outcome; used to distinguish queued, uncertain, and confirmed orders. */
+    executionOutcome?: "accepted" | "uncertain" | "confirmed" | "rejected";
     status: BotExecutionStatus;
     /** All gate check results. */
     gateChecks?: Array<{ stage: string; passed: boolean; code: string; reason?: string }>;

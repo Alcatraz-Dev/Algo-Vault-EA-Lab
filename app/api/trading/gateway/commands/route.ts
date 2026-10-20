@@ -49,17 +49,23 @@ export async function GET(request: NextRequest) {
         const commandsData = commandsSnap.val() || {};
         const now = Date.now();
         const pendingCommands: Array<Record<string, unknown>> = [];
+        const commandUpdates: Record<string, unknown> = {};
 
         for (const [commandId, raw] of Object.entries(commandsData)) {
             if (!raw || typeof raw !== "object") continue;
             const cmd = raw as Record<string, unknown>;
-            if (cmd.status === "queued" && String(cmd.accountId || "") === accountId) {
-                pendingCommands.push({ ...cmd, id: commandId });
+            if (cmd.status !== "queued" || String(cmd.accountId || "") !== accountId) continue;
 
-                await adminDatabase
-                    .ref(`trading_order_requests/${userId}/${commandId}`)
-                    .update({ status: "executing", executingAt: now });
-            }
+            pendingCommands.push({ ...cmd, id: commandId });
+            commandUpdates[`trading_order_requests/${userId}/${commandId}/status`] = "executing";
+            commandUpdates[`trading_order_requests/${userId}/${commandId}/executingAt`] = now;
+            commandUpdates[`trading_order_requests/${userId}/${commandId}/gatewayRetrievedAt`] = now;
+        }
+
+        // One atomic multi-path update replaces one API/database round-trip per
+        // command while retaining the same status transition.
+        if (Object.keys(commandUpdates).length > 0) {
+            await adminDatabase.ref().update(commandUpdates);
         }
 
         return NextResponse.json(

@@ -2,16 +2,16 @@
  * Bot Studio — server-side bot runtime.
  *
  * This module manages the tick loop for a single deployed bot. It:
- *   1. Receives market candle events (via `tick()`).
- *   2. Runs the canonical StrategyEngine against them — as the strategy
- *      EVALUATOR. The engine's adapter is never given quotes, so it can
- *      never simulate a fill: no fabricated positions, ever.
- *   3. If the engine fires an entry on the signal bar, routes a TradePlan
+ *   1. Receives the primary (setup-timeframe) candle page (via `tick()`).
+ *   2. Runs the canonical live-signal evaluator (`evaluateStrategySignal`) —
+ *      the SAME decision core as the Strategy Lab backtest — over the
+ *      strategy's own timeframes. No simulation state exists here, so no
+ *      position or fill can ever be fabricated.
+ *   3. If the evaluator fires an entry on the newly closed signal bar, routes a TradePlan
  *      through `evaluateGate()` (the AI Execution Gate) — the same gate that
  *      protects all other automated trading on this platform.
- *   4. If the gate approves, submits through the EXISTING gateway boundary
- *      (mt5_orders + live_positions — the same records every other
- *      execution path writes).
+ *   4. If the gate approves, submits through the Unified Trading Service
+ *      (trading_order_requests), which is consumed by the existing MT5 Gateway.
  *   5. Persists signals, executions, and logs to the bot-studio RTDB paths.
  *
  * INVARIANTS:
@@ -27,24 +27,14 @@
 
 import type { MarketCandle, Timeframe } from "@/lib/market-data/types";
 import type { Strategy } from "@/lib/strategy-lab/types";
-import {
-    StrategyEngine,
-    PaperAdapter,
-    computeStops,
-    simSymbolSpec,
-    sizePosition,
-    type EngineBarResult,
-} from "@/lib/strategy-engine";
-import { createAccount } from "@/lib/strategy-engine/account";
+import { computeStops, simSymbolSpec, sizePosition } from "@/lib/strategy-engine";
+import { evaluateStrategySignal } from "@/lib/strategy-lab/backtest";
 import { evaluateGate } from "@/lib/ai-execution/gate";
-import {
-    getKillSwitch,
-    checkAndRecordSubmission,
-} from "@/lib/ai-execution/database";
+import { getKillSwitch } from "@/lib/ai-execution/database";
 import type { AutomationPolicy, TradePlan, EvidenceItem, EvidenceSourceId } from "@/lib/ai-execution/types";
 import { clampAutomationPolicy } from "@/lib/ai-execution/types";
 import { isLiveTradingEnabled } from "@/lib/trading/feature-flags";
-import { newClientOrderId, getGatewayTokenForUser, hasActiveTradingLicense } from "@/lib/gateway";
+import { getGatewayTokenForUser, hasActiveTradingLicense } from "@/lib/gateway";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { loadAccountRiskSnapshot, accountKey } from "@/lib/risk/account-state";
 import { getMarketTruth } from "@/lib/market-data/market-truth";
@@ -55,19 +45,19 @@ import {
     updateSignal,
     saveExecution,
     updateExecution,
+    getExecution,
     updateDeploymentState,
-    newSignalId,
-    newExecutionId,
 } from "./database";
 import { canGenerateSignals } from "./lifecycle";
 import { buildOrderComment } from "./magic-numbers";
+import { createHash } from "node:crypto";
 import type {
     BotDeployment,
     BotExecution,
     BotSignal,
 } from "./types";
 import { createUnifiedTradingService } from "@/lib/trading/unified/server";
-import type { ExecuteInput } from "@/lib/trading/unified/service";
+import type { ExecuteInput, UnifiedTradingService } from "@/lib/trading/unified/service";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -121,11 +111,24 @@ export interface BotRuntimeOptions {
     magicNumber: number;
     /** Override automation policy bounds (still clamped to hard ceilings). */
     policyOverride?: Partial<AutomationPolicy>;
+    /**
+     * Test-only seams. Production callers never pass these: the defaults are
+     * the real market-truth reader and the real unified-trading composition.
+     */
+    marketTruth?: typeof getMarketTruth;
+    serviceFactory?: () => UnifiedTradingService;
 }
 
 export interface BotTickInput {
+    /** Primary (setup-timeframe) candles — the canonical evaluation series. */
     candles: MarketCandle[];
     timeframe: Timeframe;
+    /**
+     * Additional strategy timeframes referenced by rule.timeframe. Rules are
+     * resolved by timestamp at or before the signal bar, exactly like the
+     * backtest, so live signals and backtests share rule semantics.
+     */
+    series?: Partial<Record<Timeframe, MarketCandle[]>>;
 }
 
 export interface BotTickResult {
@@ -147,67 +150,46 @@ interface GateOutcome {
 }
 
 export class BotRuntimeSession {
-    private readonly deployment: BotDeployment;
+    private deployment: BotDeployment;
     private readonly strategy: Strategy;
     private readonly magicNumber: number;
     private readonly policy: Partial<AutomationPolicy>;
-    private engine: StrategyEngine | null = null;
-    /** Candles already fed to the engine (sequential feed — never re-fed). */
-    private fedCount = 0;
-    private lastBar: MarketCandle | null = null;
-    private lastBarResult: EngineBarResult | null = null;
+    private readonly marketTruth: typeof getMarketTruth;
+    private readonly serviceFactory: () => UnifiedTradingService;
+    /** Latest closed bar already evaluated (pages roll forward, length is fixed). */
+    private lastEvaluatedTimestamp: number | null = null;
+    /** A single in-process tick per deployment prevents concurrent duplicate evaluation. */
+    private tickInFlight = false;
+    /** The bar that already produced a signal; one attempt per closed bar. */
+    private lastSignaledBarTimestamp: number | null = null;
 
     constructor(options: BotRuntimeOptions) {
         this.deployment = options.deployment;
         this.strategy = options.strategy;
         this.magicNumber = options.magicNumber;
         this.policy = { ...BOT_AUTOMATION_POLICY, ...options.policyOverride };
+        this.marketTruth = options.marketTruth ?? getMarketTruth;
+        this.serviceFactory = options.serviceFactory ?? createUnifiedTradingService;
     }
 
-    /** Initialize the strategy engine (call once before first tick). */
+    /** Refresh persisted lifecycle intent on every request; workers may cache sessions. */
+    refreshDeployment(deployment: BotDeployment): void {
+        this.deployment = deployment;
+    }
+
+    /**
+     * Validate the deployment (call once before the first tick).
+     *
+     * There is deliberately NO simulation engine here: bot decisions use the
+     * canonical live-signal evaluator (`evaluateStrategySignal`), so a
+     * backtest-only construct can never stand in for broker state.
+     */
     async initialize(): Promise<void> {
         const accountMode = this.deployment.accountMode;
-        const symbol = this.strategy.asset;
-        const timeframe = this.strategy.timeframes.entry;
 
         if (accountMode === "live" && !isLiveTradingEnabled()) {
             throw new Error("Live trading is disabled (LIVE_TRADING_ENABLED is not set). Use accountMode 'demo' or enable the flag.");
         }
-
-        const spec = simSymbolSpec(symbol);
-
-        // The engine is the strategy EVALUATOR only. Execution happens solely
-        // through the gate + gateway write in submitToGateway(), so the adapter
-        // is deliberately never given a quote: PaperAdapter fails closed
-        // without one (canExecute → false), which means the engine can never
-        // materialize a position here and no state is fabricated.
-        const adapter = new PaperAdapter({
-            symbol,
-            executionModel: this.strategy.executionModel,
-            environment: "paper",
-            spec,
-        });
-
-        this.engine = new StrategyEngine({
-            strategy: this.strategy,
-            symbol,
-            timeframe,
-            adapter,
-            account: createAccount({
-                id: `bot-eval-${this.deployment.id}`,
-                environment: "paper",
-                balance: 10_000,
-                now: Date.now(),
-            }),
-            // Virtual evaluation account — never a real balance; the real
-            // sizing comes from the gate's risk engine over the live account.
-            environment: "paper",
-            // Force next-bar materialization so the adapter's same-bar close
-            // fallback (bar.close) can never open a virtual position.
-            executionModel: "next_bar_open",
-            finalizeAtEnd: false,
-            spec,
-        });
 
         await appendLog(
             this.deployment.id,
@@ -219,49 +201,85 @@ export class BotRuntimeSession {
 
     /** Process new market bars. Returns the tick result. */
     async tick(input: BotTickInput): Promise<BotTickResult> {
-        const { id: botId, runtimeState, ownerId, strategyId } = this.deployment;
+        const { id: botId, runtimeState, desiredState, ownerId, strategyId } = this.deployment;
 
-        // Hard guard: no entries unless the state machine says we're running.
-        if (!canGenerateSignals(runtimeState)) {
+        // Hard guard: persisted desired/runtime state is authoritative. Pausing,
+        // stopping, disabled bots, and stale cached sessions must not add entries.
+        if (!canGenerateSignals(runtimeState) || desiredState !== "running") {
             return { signalGenerated: false };
         }
-
-        if (!this.engine) {
-            return { signalGenerated: false, error: "Engine not initialized. Call initialize() first." };
+        if (this.tickInFlight) return { signalGenerated: false };
+        this.tickInFlight = true;
+        try {
+            return await this.evaluateTick(input, botId, ownerId, strategyId);
+        } finally {
+            this.tickInFlight = false;
         }
+    }
 
+    private async evaluateTick(
+        input: BotTickInput,
+        botId: string,
+        ownerId: string,
+        strategyId: string,
+    ): Promise<BotTickResult> {
         const candles = input.candles;
         if (!Array.isArray(candles) || candles.length === 0) {
             return { signalGenerated: false };
         }
 
-        // Feed every candle the engine has not seen yet (sequential — the
-        // engine throws on out-of-order bars). Only the evaluation of the
-        // LAST bar can produce a signal: an entry that fired on an older
-        // warm-up bar is already stale and must never be submitted.
+        // Candle fetches are rolling pages with a fixed limit; page length does
+        // not grow when new bars arrive. Track the newest CLOSED bar so each
+        // bar is evaluated once, including after a worker restart.
+        const unseen = candles.filter(
+            (candle) => this.lastEvaluatedTimestamp === null || candle.timestamp > this.lastEvaluatedTimestamp,
+        );
+        if (unseen.length === 0) {
+            // Same page polled again (or a roll-forward with no new close):
+            // reusing the previous evaluation would re-enter on a stale bar.
+            return { signalGenerated: false };
+        }
+        const bar = unseen[unseen.length - 1];
+        this.lastEvaluatedTimestamp = bar.timestamp;
+
+        // One signal attempt per closed bar, even if the tick is retried.
+        if (this.lastSignaledBarTimestamp !== null && bar.timestamp <= this.lastSignaledBarTimestamp) {
+            return { signalGenerated: false };
+        }
+
+        let evaluation;
         try {
-            for (let i = this.fedCount; i < candles.length; i++) {
-                this.fedCount = i + 1;
-                this.lastBar = candles[i];
-                this.engine.appendCandle(candles[i]);
-                this.lastBarResult = this.engine.onCandleClose(i);
-            }
+            // Canonical live-signal evaluator: primary = setup timeframe (backtest
+            // parity), rule timeframes resolved by timestamp from their own series.
+            const seriesByTF = {
+                ...(input.series ?? {}),
+                [this.strategy.timeframes.setup]: candles,
+            };
+            evaluation = evaluateStrategySignal(this.strategy, seriesByTF, bar.timestamp);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
-            await appendLog(botId, "error", `Engine error on tick: ${msg}`, { error: msg });
+            await appendLog(botId, "error", `Signal evaluation error on tick: ${msg}`, { error: msg });
             return { signalGenerated: false, error: msg };
         }
 
-        const bar = this.lastBar;
-        const evaluation = this.lastBarResult?.evaluation ?? null;
-        if (!bar || !evaluation?.fired) {
+        if (!evaluation.fired) {
             return { signalGenerated: false };
+        }
+        this.lastSignaledBarTimestamp = bar.timestamp;
+
+        // Exactly one execution attempt per closed bar across worker restarts:
+        // the deterministic execution id is checked against durable state
+        // before any gate work or queue write happens.
+        const signalId = this.signalIdFor(botId, this.strategy.id, bar.timestamp);
+        const existingExecution = await getExecution(botId, this.executionIdFor(signalId)).catch(() => null);
+        if (existingExecution && existingExecution.status !== "failed") {
+            return { signalGenerated: false, signalId, executionId: existingExecution.id };
         }
 
         const direction = this.strategy.direction === "long" ? "BUY" : "SELL";
 
-        // Canonical SL/TP for the signal bar — identical math to the engine's
-        // own entry path (computeStops), using only the signal bar's ATR.
+        // ATR and regime come from the same evaluation the rules were decided
+        // on; no adapter position or simulated fill is authoritative here.
         const spec = simSymbolSpec(this.strategy.asset);
         const stops = computeStops(
             this.strategy,
@@ -273,7 +291,6 @@ export class BotRuntimeSession {
         );
 
         // Build the signal record.
-        const signalId = newSignalId();
         const signal: BotSignal = {
             id: signalId,
             botId,
@@ -297,7 +314,7 @@ export class BotRuntimeSession {
         });
 
         // Route through the AI Execution Gate.
-        const gate = await this.runGate(signal, ownerId, stops.riskPrice);
+        const gate = await this.runGate(signal, ownerId, stops.riskPrice, evaluation.regime);
         if (!gate.approved) {
             await updateSignal(botId, signalId, {
                 outcome: "rejected",
@@ -359,6 +376,7 @@ export class BotRuntimeSession {
         signal: BotSignal,
         userId: string,
         riskPrice: number,
+        regime: string,
     ): Promise<GateOutcome> {
         const botId = this.deployment.id;
         const now = Date.now();
@@ -380,7 +398,7 @@ export class BotRuntimeSession {
         // Load the real context in parallel — market truth, account risk,
         // open positions, authorization.
         const [truth, riskSnapshot, openPositions, hasLicense, gatewayToken] = await Promise.all([
-            getMarketTruth(symbol, this.strategy.timeframes.entry).catch(() => null),
+            this.marketTruth(symbol, this.strategy.timeframes.entry).catch(() => null),
             account
                 ? loadAccountRiskSnapshot(userId, account, symbol).catch(() => null)
                 : Promise.resolve(null),
@@ -457,12 +475,12 @@ export class BotRuntimeSession {
             timeframe: this.strategy.timeframes.entry,
             entry: signal.proposedEntry ?? 0,
             stopLoss: signal.proposedSl ?? 0,
-            takeProfits: [{ index: 0, price: signal.proposedTp ?? 0 }],
+            takeProfits: [{ index: 1, price: signal.proposedTp ?? 0 }],
             riskPercent: this.strategy.risk.riskPercent,
             positionSizeLots: proposedVolume,
             strategyId: this.strategy.id,
             signalId: signal.id,
-            marketRegime: this.lastBarResult?.evaluation?.regime ?? "unknown",
+            marketRegime: regime || "unknown",
             evidence,
             invalidationConditions: [],
             status: "DRAFT",
@@ -535,6 +553,20 @@ export class BotRuntimeSession {
     // Gateway submission
     // ─────────────────────────────────────────────────────────────────────────
 
+    /** Stable signal id for a (bot, strategy, bar) — never a random one. */
+    private signalIdFor(botId: string, strategyId: string, barTimestamp: number): string {
+        return `SIG_${createHash("sha256").update(`${botId}:${strategyId}:${barTimestamp}`).digest("hex").slice(0, 24)}`;
+    }
+
+    /** Deterministic execution id for a signal: retries resolve to the same record. */
+    private executionIdFor(signalId: string): string {
+        return `BEXEC_${createHash("sha256")
+            .update(`${this.deployment.id}:${this.strategy.id}:${signalId}`)
+            .digest("hex")
+            .slice(0, 24)
+            .toUpperCase()}`;
+    }
+
     /**
      * Submit an approved signal through the gateway.
      *
@@ -549,8 +581,18 @@ export class BotRuntimeSession {
         volume: number,
     ): Promise<{ ok: boolean; executionId: string; error?: string }> {
         const botId = this.deployment.id;
-        const executionId = newExecutionId();
+        // Deterministic per (bot, strategy, signal): a worker restart, a duplicate
+        // cron delivery and a tick retry all resolve to the SAME execution and
+        // clientRequestId, so no second command can reach the gateway.
+        const executionId = this.executionIdFor(signal.id);
         const now = Date.now();
+
+        // Never overwrite or resubmit a signal that already has a durable
+        // execution record (queued, confirmed, uncertain or broker-rejected).
+        const existing = await getExecution(botId, executionId).catch(() => null);
+        if (existing && existing.status !== "failed") {
+            return { ok: true, executionId };
+        }
 
         const execution: BotExecution = {
             id: executionId,
@@ -566,6 +608,7 @@ export class BotRuntimeSession {
             tp: signal.proposedTp,
             createdAt: now,
             updatedAt: now,
+            signalGeneratedAt: signal.generatedAt,
         };
 
         await saveExecution(execution);
@@ -576,43 +619,26 @@ export class BotRuntimeSession {
             await this.failExecution(botId, executionId, "No connected MT5 account.");
             return { ok: false, executionId, error: "No connected MT5 account." };
         }
-        const hasLicense = await hasActiveTradingLicense(userId).catch(() => false);
-        const hasToken = Boolean(await getGatewayTokenForUser(userId).catch(() => null));
+        const [hasLicense, gatewayToken] = await Promise.all([
+            hasActiveTradingLicense(userId).catch(() => false),
+            getGatewayTokenForUser(userId).catch(() => null),
+        ]);
+        const hasToken = Boolean(gatewayToken);
         if (!hasLicense && !hasToken) {
             await this.failExecution(botId, executionId, "Not authorized for gateway execution.");
             return { ok: false, executionId, error: "Not authorized for gateway execution." };
         }
 
-        // Duplicate prevention — same 10-minute window as the other paths.
-        const planForKey: TradePlan = {
-            id: signal.id,
-            userId,
-            instrument: signal.symbol,
-            direction: signal.direction,
-            timeframe: this.strategy.timeframes.entry,
-            entry: signal.proposedEntry ?? 0,
-            stopLoss: signal.proposedSl ?? 0,
-            takeProfits: [{ index: 0, price: signal.proposedTp ?? 0 }],
-            riskPercent: this.strategy.risk.riskPercent,
-            marketRegime: "unknown",
-            evidence: [],
-            invalidationConditions: [],
-            status: "DRAFT",
-            executionMode: "AUTOMATION",
-            generatedAt: now,
-            expiresAt: now + SIGNAL_TTL_MS,
-            createdAt: now,
-            updatedAt: now,
-        };
-        const dup = await checkAndRecordSubmission(userId, planForKey).catch(() => ({ duplicate: false, key: "" }));
-        if (dup.duplicate) {
-            await this.failExecution(botId, executionId, "Duplicate order — identical submission already recorded recently.");
-            return { ok: false, executionId, error: "Duplicate order — identical submission already recorded recently." };
-        }
+        // Transaction-backed Unified Trading idempotency is the single
+        // duplicate protection boundary; do not prefilter retries here.
 
         try {
-            const clientRequestId = newClientOrderId(`bot_${botId.slice(0, 12)}`);
-            const service = createUnifiedTradingService();
+            // Stable key per bot + strategy + signal: retries, duplicate cron
+            // deliveries, and worker restarts replay the same service request.
+            const clientRequestId = `bot_${createHash("sha256").update(`${botId}:${this.strategy.id}:${signal.id}`).digest("hex").slice(0, 48)}`;
+            const correlationId = `corr_${createHash("sha256").update(`${botId}:${this.strategy.id}:${signal.id}`).digest("hex").slice(0, 40)}`;
+            const authorizationStartedAt = Date.now();
+            const service = this.serviceFactory();
             const input: ExecuteInput = {
                 userId,
                 accountId: account,
@@ -620,12 +646,25 @@ export class BotRuntimeSession {
                 executionType: "PLACE_ORDER",
                 symbol: signal.symbol,
                 side: signal.direction,
-                volume: Number(volume.toFixed(2)),
+                volume: volume,
                 kind: "MARKET",
                 price: null,
                 stopLoss: signal.proposedSl ?? null,
                 takeProfit: signal.proposedTp ?? null,
                 source: "bot-studio",
+                botAttribution: {
+                    botId,
+                    strategyId: this.strategy.id,
+                    executionId,
+                    magicNumber: this.magicNumber,
+                    comment: buildOrderComment(this.strategy.id),
+                    signalGeneratedAt: signal.generatedAt,
+                },
+                correlationId,
+                // The command queue write is the contract with the EA. The bot
+                // path must not hold the tick open for a report: the authenticated
+                // execution-report endpoint confirms this execution asynchronously.
+                waitForReport: false,
             };
 
             const outcome = await service.execute(input);
@@ -634,19 +673,59 @@ export class BotRuntimeSession {
                 return { ok: false, executionId, error: "Gateway submission failed." };
             }
             if (outcome.result.status === "REJECTED" || outcome.result.status === "FAILED") {
-                const msg = outcome.result.error?.message || "Gateway submission failed.";
-                await this.failExecution(botId, executionId, msg);
-                return { ok: false, executionId, error: msg };
+                const isUncertain = outcome.result.error?.code === "EXECUTION_TIMEOUT"
+                    || outcome.result.error?.code === "DUPLICATE_REQUEST";
+                if (!isUncertain) {
+                    const msg = outcome.result.error?.message || "Gateway submission failed.";
+                    await this.failExecution(botId, executionId, msg);
+                    return { ok: false, executionId, error: msg };
+                }
+                await updateExecution(botId, executionId, {
+                    status: "uncertain",
+                    clientOrderId: clientRequestId,
+                    correlationId,
+                    authorizationStartedAt,
+                    executionOutcome: "uncertain",
+                    submittedAt: now,
+                });
+                return { ok: true, executionId };
             }
 
+            const confirmed = outcome.result.status === "SUCCEEDED";
+            const pendingSync = outcome.result.status === "EXECUTED_PENDING_SYNC";
+            // ACCEPTED without an error is the normal queued response: durable in
+            // the EA queue, broker outcome still owned by the execution report.
+            const queued = outcome.result.status === "ACCEPTED" && !outcome.result.error;
+            const resolvedAt = Date.now();
             await updateExecution(botId, executionId, {
-                status: "submitted",
-                clientOrderId: outcome.result.providerRef || clientRequestId,
-                submittedAt: now,
+                status: confirmed
+                    ? "filled"
+                    : pendingSync
+                      ? "executed_pending_sync"
+                      : queued
+                        ? "submitted"
+                        : "uncertain",
+                clientOrderId: clientRequestId,
+                correlationId,
+                authorizationStartedAt,
+                queuedAt: queued || confirmed || pendingSync ? resolvedAt : undefined,
+                submittedAt: resolvedAt,
+                filledAt: confirmed ? resolvedAt : undefined,
+                mt5Ticket: outcome.result.providerRef ? Number(outcome.result.providerRef) || undefined : undefined,
+                fillPrice: outcome.result.filledPrice ?? undefined,
+                fillVolume: outcome.result.filledVolume ?? undefined,
+                executionOutcome: confirmed
+                    ? "confirmed"
+                    : queued || pendingSync
+                      ? "accepted"
+                      : "uncertain",
+                latencyMs: {
+                    authorization: Math.max(0, resolvedAt - authorizationStartedAt),
+                },
             });
             await appendAudit(botId, this.strategy.id, "execution_attempted", userId, {
                 executionId,
-                clientOrderId: outcome.result.providerRef || clientRequestId,
+                clientOrderId: clientRequestId,
                 signal: signal.direction,
                 symbol: signal.symbol,
                 volume,
@@ -665,7 +744,7 @@ export class BotRuntimeSession {
     }
 
     private async failExecution(botId: string, executionId: string, error: string): Promise<void> {
-        await updateExecution(botId, executionId, { status: "failed" });
+        await updateExecution(botId, executionId, { status: "failed", executionOutcome: "rejected", failedAt: Date.now() });
         await appendAudit(botId, this.strategy.id, "error_occurred", this.deployment.ownerId, {
             executionId,
             error,
@@ -673,9 +752,9 @@ export class BotRuntimeSession {
         await appendLog(botId, "error", `Gateway submission failed: ${error}`, { executionId, error });
     }
 
-    /** Clean up the engine when the bot stops. */
+    /** Release the session when the bot stops. */
     async shutdown(reason: string): Promise<void> {
-        this.engine = null;
+        this.tickInFlight = false;
         await appendLog(this.deployment.id, "info", `Bot runtime shut down: ${reason}`);
     }
 }

@@ -17,7 +17,11 @@ input string PlatformURL          = "https://algovault.com";
 
 input int    HeartbeatInterval    = 15;
 input int    SnapshotInterval     = 30;
-input int    CommandPollInterval  = 5;
+// 1s poll: the timer already fires every second, and this interval is the
+// single largest server-side-controllable delay between a queued command and
+// the EA receiving it (was 5s). Raise it if the terminal/server link needs
+// fewer requests; commands are idempotent so a missed poll is harmless.
+input int    CommandPollInterval  = 1;
 
 input int    MagicNumber          = 999888;
 
@@ -47,6 +51,8 @@ CAccountInfo  accInfo;
 
 string RuntimeGatewayToken = "";
 string RuntimePlatformURL  = "";
+long   RuntimeOrderMagic   = 0;
+string RuntimeOrderComment = "AlgoVault";
 
 
 //+------------------------------------------------------------------+
@@ -1870,6 +1876,15 @@ bool ExecuteCommand(string commandJson)
                     "tp",
                     0.0);
 
+   RuntimeOrderMagic =
+      JsonGetLong(commandJson,
+                  "magicNumber",
+                  MagicNumber);
+   RuntimeOrderComment =
+      JsonGetString(commandJson,
+                    "comment",
+                    "AlgoVault");
+
    long ticketLong =
       JsonGetLong(commandJson,
                   "ticket",
@@ -2207,7 +2222,7 @@ bool ExecuteMarketBuy(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    ResetLastError();
@@ -2218,7 +2233,7 @@ bool ExecuteMarketBuy(string symbol,
                 0.0,
                 sl,
                 tp,
-                "AlgoVault");
+                RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2248,7 +2263,7 @@ bool ExecuteMarketSell(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    ResetLastError();
@@ -2259,7 +2274,7 @@ bool ExecuteMarketSell(string symbol,
                  0.0,
                  sl,
                  tp,
-                 "AlgoVault");
+                 RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2290,7 +2305,7 @@ bool ExecuteBuyLimit(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    bool sent =
@@ -2301,7 +2316,7 @@ bool ExecuteBuyLimit(string symbol,
                      tp,
                      ORDER_TIME_GTC,
                      0,
-                     "AlgoVault");
+                     RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2332,7 +2347,7 @@ bool ExecuteSellLimit(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    bool sent =
@@ -2343,7 +2358,7 @@ bool ExecuteSellLimit(string symbol,
                       tp,
                       ORDER_TIME_GTC,
                       0,
-                      "AlgoVault");
+                      RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2374,7 +2389,7 @@ bool ExecuteBuyStop(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    bool sent =
@@ -2385,7 +2400,7 @@ bool ExecuteBuyStop(string symbol,
                     tp,
                     ORDER_TIME_GTC,
                     0,
-                    "AlgoVault");
+                    RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2416,7 +2431,7 @@ bool ExecuteSellStop(string symbol,
       return false;
    }
 
-   trade.SetExpertMagicNumber(MagicNumber);
+   trade.SetExpertMagicNumber((ulong)RuntimeOrderMagic);
    trade.SetTypeFillingBySymbol(symbol);
 
    bool sent =
@@ -2427,7 +2442,7 @@ bool ExecuteSellStop(string symbol,
                      tp,
                      ORDER_TIME_GTC,
                      0,
-                     "AlgoVault");
+                     RuntimeOrderComment);
 
    CopyTradeResult(result);
 
@@ -2797,6 +2812,10 @@ bool ReportExecution(string commandId,
       JsonEscape(accountNumber) +
       "\"," +
 
+      "\"accountId\":\"gateway_" +
+      JsonEscape(accountNumber) +
+      "\"," +
+
       "\"action\":\"" +
       JsonEscape(action) +
       "\"," +
@@ -2804,6 +2823,10 @@ bool ReportExecution(string commandId,
       "\"success\":" +
       (success ? "true" : "false") +
       "," +
+
+      "\"status\":\"" +
+      (success ? (result.retcode == TRADE_RETCODE_DONE_PARTIAL ? "partially_filled" : "filled") : "rejected") +
+      "\"," +
 
       "\"retcode\":" +
       IntegerToString((long)result.retcode) +

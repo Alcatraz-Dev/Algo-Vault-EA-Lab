@@ -244,6 +244,16 @@ export async function updateExecution(
         .update(deepClean({ ...patch, updatedAt: Date.now() }));
 }
 
+/** One execution by its deterministic ID (gateway-report correlation). */
+export async function getExecution(
+    botId: string,
+    execId: string,
+): Promise<BotExecution | null> {
+    const snap = await adminDatabase.ref(`bot_executions/${botId}/${execId}`).get();
+    if (!snap.exists()) return null;
+    return (snap.val() as BotExecution) ?? null;
+}
+
 export async function getRecentExecutions(botId: string, limit = 50): Promise<BotExecution[]> {
     const snap = await adminDatabase
         .ref(`bot_executions/${botId}`)

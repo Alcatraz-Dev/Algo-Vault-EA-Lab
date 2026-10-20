@@ -3,8 +3,18 @@ import { adminDatabase } from "@/lib/firebase-admin";
 import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
+import { getExecution, updateExecution } from "@/lib/bot-studio/database";
 
 export const runtime = "nodejs";
+
+/**
+ * MT5 `TimeCurrent()` is epoch SECONDS; the platform stores epoch MILLISECONDS.
+ * Mixing them made every bot latency figure ~1000x too large.
+ */
+function toEpochMs(value: number): number {
+    if (!Number.isFinite(value) || value <= 0) return Date.now();
+    return value > 1e12 ? value : value * 1000;
+}
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -60,9 +70,9 @@ export async function POST(request: NextRequest) {
         const executionPrice = Number(body.executionPrice || body.price || 0);
         const volume = Number(body.volume || 0);
         const symbol = String(body.symbol || "").trim();
-        const retcode = Number(body.errorCode || body.retcode || 0);
+        const retcode = Number(body.errorCode ?? body.retcode ?? 0);
         const errorMessage = String(body.errorMessage || body.retcodeText || body.comment || "").trim();
-        const timestamp = Number(body.timestamp || Date.now());
+        const timestamp = toEpochMs(Number(body.timestamp || 0));
 
         if (!gatewayToken || !clientOrderId) {
             return NextResponse.json(
@@ -86,11 +96,17 @@ export async function POST(request: NextRequest) {
         // MT5 success retcodes start at 10009 (TRADE_RETCODE_DONE).
         const validStatuses = ["filled", "partially_filled", "rejected", "failed"];
         const explicitStatus = String(body.status || "").trim();
+        // A failed CTrade submission can still have an uncertain broker outcome
+        // (e.g. a transport interruption). Only an explicit terminal status or
+        // a known failing retcode is a rejection; an ambiguous report is never
+        // promoted into a fabricated fill.
         const status = validStatuses.includes(explicitStatus)
             ? explicitStatus
             : body.success === false || (retcode > 0 && retcode < 10009)
             ? "rejected"
-            : "filled";
+            : body.success === true && (retcode === 10009 || retcode === 10010 || retcode === 10008)
+              ? retcode === 10010 ? "partially_filled" : retcode === 10008 ? "queued" : "filled"
+              : "unknown";
 
         // The originating order request scopes the report to the account and
         // carries the action context (BUY/SELL/CLOSE/…) for the terminal's
@@ -99,8 +115,15 @@ export async function POST(request: NextRequest) {
             .ref(`trading_order_requests/${userId}/${clientOrderId}`)
             .get();
         const orderData = (orderSnap.val() || {}) as Record<string, unknown>;
-        const orderAccountId =
-            String(orderData.accountId || body.accountId || "").trim();
+        const orderAccountId = String(orderData.accountId || "").trim();
+        const reportAccountNumber = String(body.accountNumber || "").trim();
+        const expectedAccountId = reportAccountNumber ? `gateway_${reportAccountNumber}` : "";
+        if (!orderSnap.exists() || !expectedAccountId || orderAccountId !== expectedAccountId) {
+            return NextResponse.json(
+                { success: false, error: "Execution report does not match an existing command for this gateway account." },
+                { status: 403, headers: corsHeaders }
+            );
+        }
 
         await adminDatabase
             .ref(`trading_order_requests/${userId}/${clientOrderId}`)
@@ -112,9 +135,44 @@ export async function POST(request: NextRequest) {
                 symbol,
                 errorCode: retcode,
                 errorMessage,
+                reportReceivedAt: now,
                 executedAt: timestamp || now,
                 updatedAt: now,
             });
+
+        // Bot Studio attribution: the command carries the trusted botId +
+        // executionId written by the server (never by a client), and the
+        // execution record must still own this exact clientOrderId. A report
+        // can therefore never confirm another bot's or another order's record.
+        if (
+            orderData.source === "bot-studio" &&
+            typeof orderData.botId === "string" &&
+            typeof orderData.executionId === "string"
+        ) {
+            const execution = await getExecution(orderData.botId, orderData.executionId);
+            if (execution && execution.clientOrderId === clientOrderId) {
+                const confirmed = status === "filled" || status === "partially_filled";
+                const rejected = status === "rejected" || status === "failed";
+                await updateExecution(orderData.botId, execution.id, {
+                    status: confirmed ? "filled" : rejected ? "rejected_by_broker" : "uncertain",
+                    executionOutcome: confirmed ? "confirmed" : rejected ? "rejected" : "uncertain",
+                    mt5Ticket: mt5Ticket ? Number(mt5Ticket) || undefined : undefined,
+                    fillPrice: confirmed && Number.isFinite(executionPrice) ? executionPrice : undefined,
+                    fillVolume: confirmed && Number.isFinite(volume) ? volume : undefined,
+                    gatewayReportedAt: now,
+                    brokerConfirmedAt: confirmed ? timestamp : undefined,
+                    filledAt: confirmed ? timestamp : undefined,
+                    rejectedAt: rejected ? now : undefined,
+                    // Merge so earlier markers (e.g. authorization) are preserved.
+                    latencyMs: {
+                        ...(execution.latencyMs ?? {}),
+                        queueToReport: typeof orderData.queuedAt === "number"
+                            ? Math.max(0, now - Number(orderData.queuedAt))
+                            : undefined,
+                    },
+                });
+            }
+        }
 
         if (status === "filled" || status === "partially_filled") {
             await adminDatabase

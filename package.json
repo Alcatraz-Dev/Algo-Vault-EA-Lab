@@ -40,6 +40,7 @@
     "test:portfolio-security": "node scripts/jiti-tsrun.mjs lib/portfolio/__tests__/run-portfolio-security-tests.ts",
     "test:security": "node scripts/jiti-tsrun.mjs tests/security/route-auth-negative.test.ts",
     "test:security:bot-studio": "node scripts/jiti-tsrun.mjs tests/security/bot-studio-access.test.ts",
+    "test:bot-execution": "node scripts/jiti-tsrun.mjs tests/security/bot-execution.test.ts",
     "test:rtdb-rules": "node tests/security/rtdb-rules.emulator.mjs",
     "test:api-accounts": "node scripts/jiti-tsrun.mjs tests/security/api-v1-accounts.test.ts",
     "test:terminal": "node scripts/jiti-tsrun.mjs lib/terminal/__tests__/run-terminal-tests.ts",

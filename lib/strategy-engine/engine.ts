@@ -275,7 +275,33 @@ export class StrategyEngine {
         const next = [...this.features];
         for (let i = 0; i < computed.length; i++) next[offset + i] = computed[i];
         this.features = next.slice(0, this.candles.length);
-        this.seriesMap = { [this.timeframe]: { features: this.features, candles: this.candles } };
+        // Preserve any auxiliary timeframe series: a primary append must not
+        // silently drop the higher/lower-timeframe context that strategy rules
+        // resolve against.
+        this.seriesMap = {
+            ...this.seriesMap,
+            [this.timeframe]: { features: this.features, candles: this.candles },
+        };
+    }
+
+    /**
+     * Replace the non-primary timeframe series used by strategy rules.
+     *
+     * The primary (engine) timeframe is fed sequentially through
+     * `appendCandle`; auxiliary timeframes are point-in-time context and are
+     * resolved by timestamp, so they can be refreshed from a rolling page
+     * without disturbing the primary bar index.
+     */
+    setAuxiliarySeries(candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>): void {
+        const next: SeriesMap = {};
+        for (const [tf, candles] of Object.entries(candlesByTF) as [Timeframe, MarketCandle[]][]) {
+            if (tf === this.timeframe || !candles?.length) continue;
+            next[tf] = { candles, features: computeFeatures(candles) };
+        }
+        this.seriesMap = {
+            ...next,
+            [this.timeframe]: { features: this.features, candles: this.candles },
+        };
     }
 
     // ── Accessors ────────────────────────────────────────────────────────────

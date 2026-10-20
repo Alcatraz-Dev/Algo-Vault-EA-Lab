@@ -3,8 +3,8 @@ import { errMessage } from "@/lib/admin-auth";
 import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
 import { getDeployment, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
 import { BotRuntimeSession } from "@/lib/bot-studio/runtime";
-import { fetchCandles } from "@/lib/market-data/normalizer";
-import type { MarketCandle, SupportedSymbol } from "@/lib/market-data/types";
+import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
+import type { SupportedSymbol } from "@/lib/market-data/types";
 
 // In-memory cache of runtime sessions so sequential engine bars are preserved
 const sessions = new Map<string, BotRuntimeSession>();
@@ -33,18 +33,13 @@ export async function POST(
             return NextResponse.json({ ok: false, error: "Strategy definition not found" }, { status: 404 });
         }
 
-        const body = await request.json().catch(() => ({}));
-        let candles: MarketCandle[] = body?.candles;
-
+        // Candles are always loaded server-side on the strategy's OWN
+        // setup timeframe (the canonical evaluation series). A request body
+        // cannot inject prices into the decision path.
         const symbol = strategy.definition.asset as SupportedSymbol;
-        const timeframe = strategy.definition.timeframes.entry;
+        const { candles, timeframe, series } = await loadBotStrategySeries(strategy.definition, symbol);
 
-        if (!Array.isArray(candles) || candles.length === 0) {
-            // Load latest market candles from normalizer
-            candles = await fetchCandles(symbol, timeframe, { to: Date.now() });
-        }
-
-        if (!Array.isArray(candles) || candles.length === 0) {
+        if (candles.length === 0) {
             return NextResponse.json(
                 { ok: false, error: `No market candles available for ${symbol} ${timeframe}` },
                 { status: 400 }
@@ -60,9 +55,12 @@ export async function POST(
             });
             await session.initialize();
             sessions.set(botId, session);
+        } else {
+            // Cached sessions must observe pausing/stopping immediately.
+            session.refreshDeployment(deployment);
         }
 
-        const tickResult = await session.tick({ candles, timeframe });
+        const tickResult = await session.tick({ candles, timeframe, series });
 
         await updateDeploymentState(botId, {
             lastTickAt: Date.now(),

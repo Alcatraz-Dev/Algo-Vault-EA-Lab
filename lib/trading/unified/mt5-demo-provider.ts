@@ -541,13 +541,38 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         }
 
         // Enqueue on the EXISTING gateway command queue. The EA picks queued
-        // commands up on its next poll.
+        // commands up on its next poll. Bot attribution comes only from the
+        // trusted server-side execution context, never from a public request.
+        const attribution = request.botAttribution;
+        if (attribution && request.executionType === "PLACE_ORDER") {
+            command.magicNumber = attribution.magicNumber;
+            command.comment = attribution.comment;
+            command.source = "bot-studio";
+            command.botId = attribution.botId;
+            command.strategyId = attribution.strategyId;
+            command.executionId = attribution.executionId;
+            command.signalGeneratedAt = attribution.signalGeneratedAt;
+        }
         await this.database
             .ref(`trading_order_requests/${request.userId}/${request.clientRequestId}`)
-            .set({ ...command, clientRequestId: request.clientRequestId, correlationId: request.correlationId, status: "queued", createdAt: now, updatedAt: now });
+            .set({ ...command, clientRequestId: request.clientRequestId, correlationId: request.correlationId, status: "queued", createdAt: now, queuedAt: now, updatedAt: now });
+
+        // The caller consumes the authenticated /gateway/execution report
+        // itself (Bot Studio does), so there is nothing to gain from blocking
+        // this request on an EA poll cycle. The command is already durable and
+        // idempotent: no second enqueue can happen for this clientRequestId.
+        if (input.waitForReport === false) {
+            return finish({ status: "ACCEPTED" });
+        }
 
         const report = await this.awaitExecutionReport(request.userId, request.clientRequestId);
         if (!report) {
+            // Existing unified-trading contract: a provider that never confirmed
+            // settles FAILED / EXECUTION_TIMEOUT and never fabricates a fill.
+            // The command stays durable and idempotent, so a late report is
+            // still visible in execution history — but the canonical result is
+            // not rewritten. Callers must not treat this as a license to
+            // resubmit blindly; the idempotency key absorbs any replay.
             return finish({
                 status: "FAILED",
                 error: tradingError(
@@ -645,6 +670,13 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
                     tp: request.takeProfit ?? null,
                     source: "unified",
                     correlationId: request.correlationId,
+                    clientRequestId: request.clientRequestId,
+                    magicNumber: request.botAttribution?.magicNumber ?? null,
+                    comment: request.botAttribution?.comment ?? "AlgoVault",
+                    botId: request.botAttribution?.botId ?? null,
+                    strategyId: request.botAttribution?.strategyId ?? null,
+                    executionId: request.botAttribution?.executionId ?? null,
+                    signalGeneratedAt: request.botAttribution?.signalGeneratedAt ?? null,
                 };
             }
             case "MODIFY_POSITION": {
