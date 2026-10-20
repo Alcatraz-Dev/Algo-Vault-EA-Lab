@@ -52,7 +52,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BotDeployment, BotDeploymentSummary } from "@/lib/bot-studio/types";
-import { buildDeploymentSummaries } from "@/lib/bot-studio/summaries";
 
 type Tab = "positions" | "orders" | "history" | "log";
 
@@ -163,11 +162,9 @@ export default function AccountTradingPage() {
                 // Filter to only the user's own deployments (same as the API does)
                 const userDeployments = data.deployments.filter((d: any) => d.ownerId === uid);
                 setDeployments(userDeployments);
-                // Build summaries for the UI
-                buildDeploymentSummaries(uid, userDeployments).then((summaries) => {
-                    setDeploymentsSummaries(summaries);
-                    setDeploymentsLoading(false);
-                });
+                // Use summaries from the API response (already computed server-side)
+                setDeploymentsSummaries(data.summaries);
+                setDeploymentsLoading(false);
             } catch (err) {
                 setDeploymentsError(err instanceof Error ? err.message : "Unknown error");
                 setDeployments([]);
