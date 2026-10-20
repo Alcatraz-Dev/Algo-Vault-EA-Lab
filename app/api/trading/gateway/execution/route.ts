@@ -4,6 +4,7 @@ import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 import { getExecution, updateExecution } from "@/lib/bot-studio/database";
+import { nextReportStatus, normalizeReportedStatus } from "@/lib/trading/gateway/lifecycle";
 
 export const runtime = "nodejs";
 
@@ -125,36 +126,78 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Delivery/claim gate: only a CLAIMED command (or one already settled) can
+        // receive an execution report. A report for a still-queued command would
+        // let a token confirm a trade the gateway was never given.
+        const commandStatus = String(orderData.status || "");
+        if (commandStatus === "queued") {
+            return NextResponse.json(
+                { success: false, error: "Command has not been claimed by a gateway consumer." },
+                { status: 409, headers: corsHeaders }
+            );
+        }
+
+        // Duplicate / delayed reports must never downgrade a confirmed result:
+        // only a monotonic transition is written. An out-of-order "unknown" or
+        // "rejected" report after a fill is recorded as a receipt, not applied.
+        const previousStatus = String(orderData.status || "");
+        const appliedStatus = nextReportStatus(previousStatus, status);
+        // `unknown` is not a resting state — it is explicit uncertainty. Storing
+        // it verbatim would strand the command outside both the claimable and
+        // the reconciliable sets, so it is persisted as `uncertain` (which the
+        // recovery sweep and the broker snapshot may still settle).
+        const persistedStatus = normalizeReportedStatus(appliedStatus);
+        const staleReport = appliedStatus !== status;
+
         await adminDatabase
             .ref(`trading_order_requests/${userId}/${clientOrderId}`)
-            .update({
-                status,
-                mt5Ticket,
-                executionPrice,
-                volume,
-                symbol,
-                errorCode: retcode,
-                errorMessage,
-                reportReceivedAt: now,
-                executedAt: timestamp || now,
-                updatedAt: now,
-            });
+            .update(
+                staleReport
+                    ? {
+                          reportReceivedAt: now,
+                          duplicateReportAt: now,
+                          updatedAt: now,
+                      }
+                    : {
+                          status: persistedStatus,
+                          reconciliationRequired: persistedStatus === "uncertain",
+                          mt5Ticket,
+                          executionPrice,
+                          volume,
+                          symbol,
+                          errorCode: retcode,
+                          errorMessage,
+                          reportReceivedAt: now,
+                          executedAt: timestamp || now,
+                          updatedAt: now,
+                      }
+            );
 
         // Bot Studio attribution: the command carries the trusted botId +
         // executionId written by the server (never by a client), and the
         // execution record must still own this exact clientOrderId. A report
         // can therefore never confirm another bot's or another order's record.
         if (
+            !staleReport &&
             orderData.source === "bot-studio" &&
             typeof orderData.botId === "string" &&
             typeof orderData.executionId === "string"
         ) {
             const execution = await getExecution(orderData.botId, orderData.executionId);
             if (execution && execution.clientOrderId === clientOrderId) {
-                const confirmed = status === "filled" || status === "partially_filled";
-                const rejected = status === "rejected" || status === "failed";
+                const confirmed = appliedStatus === "filled" || appliedStatus === "partially_filled";
+                const rejected = appliedStatus === "rejected" || appliedStatus === "failed";
+                // A broker-confirmed fill is never downgraded by a later report.
+                const nextStatus = execution.status === "filled"
+                    ? "filled"
+                    : confirmed
+                      ? "filled"
+                      : rejected
+                        ? "rejected_by_broker"
+                        : "uncertain";
                 await updateExecution(orderData.botId, execution.id, {
-                    status: confirmed ? "filled" : rejected ? "rejected_by_broker" : "uncertain",
+                    status: nextStatus,
+                    reconciliationRequired: nextStatus === "uncertain",
                     executionOutcome: confirmed ? "confirmed" : rejected ? "rejected" : "uncertain",
                     mt5Ticket: mt5Ticket ? Number(mt5Ticket) || undefined : undefined,
                     fillPrice: confirmed && Number.isFinite(executionPrice) ? executionPrice : undefined,
@@ -174,13 +217,13 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        if (status === "filled" || status === "partially_filled") {
+        if (appliedStatus === "filled" || appliedStatus === "partially_filled") {
             await adminDatabase
                 .ref(`trading_execution_logs/${userId}/${clientOrderId}`)
                 .set({
                     clientOrderId,
                     mt5Ticket,
-                    status,
+                    status: appliedStatus,
                     executionPrice,
                     volume,
                     symbol,
@@ -206,7 +249,7 @@ export async function POST(request: NextRequest) {
                             "ORDER",
                         symbol: symbol || String(orderData.symbol || ""),
                         volume: volume || Number(orderData.volume || 0),
-                        status,
+                        status: appliedStatus,
                         mt5Ticket,
                         executionPrice,
                         errorCode: retcode,

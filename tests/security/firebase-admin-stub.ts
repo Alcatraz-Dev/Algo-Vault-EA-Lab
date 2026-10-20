@@ -82,6 +82,10 @@ async function fakeVerifyIdToken(token: string): Promise<{ uid: string; role?: s
     }
 }
 
+// Per-path serialization queue: real RTDB serializes transactions that target
+// the same node, so concurrent updaters always observe the previous commit.
+const transactionQueues = new Map<string, Promise<unknown>>();
+
 // Stub Database: ref(path) -> { get, set, update, remove, child }.
 function makeFakeRef(path: string): FakeRef {
     return {
@@ -103,22 +107,32 @@ function makeFakeRef(path: string): FakeRef {
             rtDbStore.delete(path);
             return Promise.resolve();
         },
-        // Mirrors the real SDK contract closely enough for the rate-limit and
-        // usage counters: the updater receives the current value (null when
-        // absent), and returning undefined aborts the write.
+        // Mirrors the real SDK contract: the updater receives the current
+        // value (null when absent), returning undefined aborts the write, and
+        // concurrent transactions on the same node are serialized.
+        //
+        // The initial yield matters for tests: separate clients interleave
+        // between their read and their commit, so a read-then-write claim
+        // loses the race here exactly as it does against real RTDB.
         transaction(
             update: (current: unknown) => unknown
         ): Promise<{ committed: boolean; snapshot: FakeSnapshot }> {
-            const current = rtDbStore.has(path) ? rtDbStore.get(path) : null;
-            const next = update(current);
-            if (next === undefined) {
-                return Promise.resolve({ committed: false, snapshot: getFakeSnapshot(path) });
-            }
-            rtDbStore.set(path, next);
-            return Promise.resolve({
-                committed: true,
-                snapshot: { exists: () => true, val: () => next },
-            });
+            const run = async (): Promise<{ committed: boolean; snapshot: FakeSnapshot }> => {
+                await new Promise<void>((resolve) => setTimeout(resolve, 0));
+                const current = rtDbStore.has(path) ? rtDbStore.get(path) : null;
+                const next = update(current);
+                if (next === undefined) {
+                    return { committed: false, snapshot: getFakeSnapshot(path) };
+                }
+                rtDbStore.set(path, next);
+                return {
+                    committed: true,
+                    snapshot: { exists: () => true, val: () => next },
+                };
+            };
+            const queued = (transactionQueues.get(path) ?? Promise.resolve()).then(run, run);
+            transactionQueues.set(path, queued.catch(() => undefined));
+            return queued;
         },
         child(c: string): FakeRef {
             return makeFakeRef(`${path}/${c}`);

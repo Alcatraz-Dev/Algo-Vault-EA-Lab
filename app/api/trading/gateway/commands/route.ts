@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
+import { COMMAND_CLAIM_TTL_MS, MAX_CLAIMS_PER_POLL } from "@/lib/trading/gateway/lifecycle";
 
 export const runtime = "nodejs";
 
@@ -48,28 +50,64 @@ export async function GET(request: NextRequest) {
 
         const commandsData = commandsSnap.val() || {};
         const now = Date.now();
-        const pendingCommands: Array<Record<string, unknown>> = [];
-        const commandUpdates: Record<string, unknown> = {};
+        const claimable: string[] = [];
 
         for (const [commandId, raw] of Object.entries(commandsData)) {
             if (!raw || typeof raw !== "object") continue;
             const cmd = raw as Record<string, unknown>;
+            // Cheap pre-filter; the transaction below is the authority.
             if (cmd.status !== "queued" || String(cmd.accountId || "") !== accountId) continue;
-
-            pendingCommands.push({ ...cmd, id: commandId });
-            commandUpdates[`trading_order_requests/${userId}/${commandId}/status`] = "executing";
-            commandUpdates[`trading_order_requests/${userId}/${commandId}/executingAt`] = now;
-            commandUpdates[`trading_order_requests/${userId}/${commandId}/gatewayRetrievedAt`] = now;
+            claimable.push(commandId);
+            if (claimable.length >= MAX_CLAIMS_PER_POLL) break;
         }
 
-        // One atomic multi-path update replaces one API/database round-trip per
-        // command while retaining the same status transition.
-        if (Object.keys(commandUpdates).length > 0) {
-            await adminDatabase.ref().update(commandUpdates);
-        }
+        // CLAIM = one RTDB transaction per command. RTDB transactions are
+        // atomic and re-run on contention, so when two gateway consumers poll
+        // concurrently only the first commit can observe `status === "queued"`.
+        // The loser re-runs, sees `executing`, aborts (returns undefined) and
+        // therefore never receives the command.
+        const claims = await Promise.all(
+            claimable.map(async (commandId) => {
+                const claimId = randomUUID();
+                const outcome = await adminDatabase
+                    .ref(`trading_order_requests/${userId}/${commandId}`)
+                    .transaction((current) => {
+                        if (!current || typeof current !== "object") return undefined;
+                        const cmd = current as Record<string, unknown>;
+                        if (cmd.status !== "queued") return undefined;
+                        if (String(cmd.accountId || "") !== accountId) return undefined;
+                        return {
+                            ...cmd,
+                            status: "executing",
+                            executingAt: now,
+                            gatewayRetrievedAt: now,
+                            claimedAt: now,
+                            claimId,
+                            claimExpiresAt: now + COMMAND_CLAIM_TTL_MS,
+                            claimAttempts: Number(cmd.claimAttempts ?? 0) + 1,
+                            updatedAt: now,
+                        };
+                    });
+
+                if (!outcome.committed) return null;
+                const claimed = outcome.snapshot.val();
+                if (!claimed || typeof claimed !== "object") return null;
+                return { ...(claimed as Record<string, unknown>), id: commandId };
+            })
+        );
+
+        const commands = claims.filter(
+            (command): command is NonNullable<typeof command> => command !== null
+        );
 
         return NextResponse.json(
-            { success: true, commands: pendingCommands },
+            {
+                success: true,
+                commands,
+                // Tells the EA how long its claim is valid. After this the
+                // command is reconciled, never re-queued for blind retry.
+                claimExpiresAt: now + COMMAND_CLAIM_TTL_MS,
+            },
             { status: 200, headers: corsHeaders }
         );
     } catch (error) {

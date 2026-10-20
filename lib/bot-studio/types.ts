@@ -259,6 +259,14 @@ export interface BotExecution {
     latencyMs?: Partial<Record<"authorization" | "queueToReport" | "brokerToSync", number>>;
     /** Provider execution outcome; used to distinguish queued, uncertain, and confirmed orders. */
     executionOutcome?: "accepted" | "uncertain" | "confirmed" | "rejected";
+    /** True when the gateway outcome could not be established and needs review. */
+    reconciliationRequired?: boolean;
+    /** Time a reconciliation sweep or broker snapshot settled this execution. */
+    reconciledAt?: number;
+    /** Time broker state proved this execution (a lost report was recovered). */
+    recoveredAt?: number;
+    /** Evidence source for a recovered execution. Never invented. */
+    recoverySource?: "broker_snapshot" | "execution_report";
     status: BotExecutionStatus;
     /** All gate check results. */
     gateChecks?: Array<{ stage: string; passed: boolean; code: string; reason?: string }>;

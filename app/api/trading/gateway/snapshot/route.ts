@@ -5,6 +5,12 @@ import { isCopiedLedgerPosition, mirrorMasterClose, mirrorMasterOrder, recordMas
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 import { getBotOwnedMagics, findMatchingBots, indexBotPosition, clearBotPositions, indexBotTrade } from "@/lib/bots";
 import { listDeploymentsForOwner, updateExecution } from "@/lib/bot-studio/database";
+import {
+    EXECUTION_RECOVERY_WINDOW_MS,
+    canSettleFromBrokerEvidence,
+    positionSide,
+    singleCandidate,
+} from "@/lib/trading/gateway/lifecycle";
 
 export const runtime = "nodejs";
 
@@ -245,6 +251,86 @@ export async function POST(request: NextRequest) {
                                 : undefined,
                         },
                     });
+                    continue;
+                }
+
+                // Lost/delayed execution report: broker state is authoritative.
+                // Adopt a ticket ONLY when exactly one in-flight execution for
+                // this bot/symbol/side has no ticket yet. Ambiguity stays
+                // `uncertain` (surfaced by the reconciliation sweep) — a ticket
+                // is never guessed onto one of several candidates.
+                const orphan = singleCandidate(
+                    Object.entries(executions).filter(([, execution]) => {
+                        const status = String(execution.status ?? "");
+                        const isInFlight = status === "submitted"
+                            || status === "uncertain"
+                            || status === "executed_pending_sync";
+                        const submittedAt = Number(execution.submittedAt ?? execution.createdAt ?? 0);
+                        return isInFlight
+                            && (execution.mt5Ticket == null || String(execution.mt5Ticket) === "")
+                            && String(execution.symbol ?? "").toUpperCase() === String(pos.symbol ?? "").toUpperCase()
+                            && String(execution.direction ?? "") === positionSide(pos.type)
+                            && submittedAt > 0
+                            && now - submittedAt <= EXECUTION_RECOVERY_WINDOW_MS;
+                    })
+                );
+                if (!orphan) continue;
+
+                const [executionKey, orphanExecution] = orphan;
+                // The command must actually be in an unknown state: a still
+                // `queued` command was never claimed (so this position is not
+                // its), and a live claim still belongs to the EA.
+                const orphanClientOrderId = String(orphanExecution.clientOrderId ?? "");
+                if (!orphanClientOrderId) continue;
+                const commandSnap = await adminDatabase
+                    .ref(`trading_order_requests/${userId}/${orphanClientOrderId}`)
+                    .get();
+                const orphanCommand = (commandSnap.val() || {}) as Record<string, unknown>;
+                if (!canSettleFromBrokerEvidence(orphanCommand, now)) continue;
+
+                await updateExecution(studioMatch.botId, executionKey, {
+                    status: "filled",
+                    executionOutcome: "confirmed",
+                    mt5Ticket: Number(ticket) || undefined,
+                    fillPrice: Number(pos.openPrice || 0) || undefined,
+                    fillVolume: Number(pos.volume || 0) || undefined,
+                    synchronizedAt: now,
+                    recoveredAt: now,
+                    recoverySource: "broker_snapshot",
+                    reconciledAt: now,
+                    reconciliationRequired: false,
+                    latencyMs: {
+                        ...((orphanExecution.latencyMs as Record<string, number | undefined>) ?? {}),
+                        brokerToSync: typeof orphanExecution.brokerConfirmedAt === "number"
+                            ? Math.max(0, now - Number(orphanExecution.brokerConfirmedAt))
+                            : undefined,
+                    },
+                });
+
+                // Reflect the recovered outcome on the command record too, but
+                // never overwrite an already-confirmed ticket/result, and never
+                // fight a claim that is still alive.
+                {
+                    await adminDatabase
+                        .ref(`trading_order_requests/${userId}/${orphanClientOrderId}`)
+                        .transaction((current) => {
+                            if (!current || typeof current !== "object") return undefined;
+                            const cmd = current as Record<string, unknown>;
+                            if (cmd.status === "filled" && String(cmd.mt5Ticket ?? "") === ticket) return undefined;
+                            if (!canSettleFromBrokerEvidence(cmd, now)) return undefined;
+                            return {
+                                ...cmd,
+                                status: "filled",
+                                mt5Ticket: ticket,
+                                executionPrice: Number(pos.openPrice || 0) || cmd.executionPrice,
+                                volume: Number(pos.volume || 0) || cmd.volume,
+                                recoveredAt: now,
+                                reconciledAt: now,
+                                recoverySource: "broker_snapshot",
+                                reconciliationRequired: false,
+                                updatedAt: now,
+                            };
+                        });
                 }
                 continue;
             }

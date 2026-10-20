@@ -35,6 +35,7 @@ import { createUnifiedTradingService } from "@/lib/trading/unified/server";
 import { POST as postExecutionReport } from "@/app/api/trading/gateway/execution/route";
 import { POST as postSnapshot } from "@/app/api/trading/gateway/snapshot/route";
 import { POST as postLifecycle } from "@/app/api/bot-studio/deployments/[botId]/lifecycle/route";
+import { GET as pollCommands } from "@/app/api/trading/gateway/commands/route";
 import { rtDbStore } from "./firebase-admin-stub";
 
 const UID = "proBot";
@@ -236,7 +237,9 @@ const marketTruth: NonNullable<BotRuntimeOptions["marketTruth"]> = async () => {
         bid: last.close - 0.00005,
         ask: last.close + 0.00005,
         spread: 0.0001,
-        timestamp: Date.now(),
+        // Slightly before the gate's `now`, like a real feed sample: a quote
+        // timestamp ahead of the server clock is (correctly) treated as stale.
+        timestamp: Date.now() - 500,
         provider: "tradingview",
         timeframe: "M5",
     } as unknown as MarketSnapshot;
@@ -353,6 +356,29 @@ export async function runBotExecutionTests(): Promise<void> {
     const closeId = Object.keys(closeRequests)[0];
     const closeCommand = closeRequests[closeId];
 
+    // A report must never be accepted for a command the gateway was not given.
+    const unclaimedReport = await postExecutionReport(jsonRequest({
+        commandId: closeId,
+        accountNumber: ACCOUNT_NUMBER,
+        status: "filled",
+        retcode: 10009,
+        order: 555001,
+        volume: Number(closeCommand.volume),
+        price: 1.2,
+        timestamp: Math.floor(Date.now() / 1000),
+    }));
+    assert(unclaimedReport.status === 409, `an unclaimed command must not accept a report (got ${unclaimedReport.status})`);
+
+    // The EA polls (atomic claim) before executing and reporting.
+    const claimPoll = await pollCommands({
+        url: `https://algovault.test/api/trading/gateway/commands?accountNumber=${ACCOUNT_NUMBER}`,
+        headers: { get: (name: string) => (name === "authorization" ? `Bearer ${GATEWAY_TOKEN}` : null) },
+    } as unknown as Parameters<typeof pollCommands>[0]);
+    const claimBody = (await claimPoll.json()) as { commands: Array<Record<string, unknown>> };
+    const claimed = claimBody.commands.find((command) => command.id === closeId);
+    assert(!!claimed, "the queued command must be claimed before execution");
+    assert(typeof claimed?.claimId === "string", "the claim must identify the consumer");
+
     const wrongAccount = await postExecutionReport(jsonRequest({
         commandId: closeId,
         accountNumber: "99999999",
@@ -365,8 +391,8 @@ export async function runBotExecutionTests(): Promise<void> {
     }));
     assert(wrongAccount.status === 403, `a report for another account must be rejected (got ${wrongAccount.status})`);
     assert(
-        entriesUnder(`trading_order_requests/${UID}`)[closeId].status === "queued",
-        "a rejected report must not mutate the command",
+        entriesUnder(`trading_order_requests/${UID}`)[closeId].status === "executing",
+        "a rejected report must not mutate the claimed command",
     );
     assert(
         entriesUnder(`bot_executions/${BOT_ID}`)[submitted.executionId!].status === "submitted",
