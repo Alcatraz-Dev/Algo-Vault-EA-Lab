@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BotDeployment, BotDeploymentSummary } from "@/lib/bot-studio/types";
 
 type Tab = "positions" | "orders" | "history" | "log";
 
@@ -76,6 +77,9 @@ export default function AccountTradingPage() {
     const [orders, setOrders] = useState<PendingOrder[]>([]);
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
     const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
+    // Bot Studio Deployments
+    const [deployments, setDeployments] = useState<BotDeployment[]>([]);
+    const [deploymentsSummaries, setDeploymentsSummaries] = useState<Record<string, BotDeploymentSummary>>({});
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
