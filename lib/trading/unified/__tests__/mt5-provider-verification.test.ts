@@ -245,6 +245,10 @@ interface EaReportSpec {
     ticket?: string;
     volume?: number;
     executionPrice?: number;
+    /** Defaults to `filled`; `uncertain` models an ambiguous EA report. */
+    status?: string;
+    errorCode?: number;
+    errorMessage?: string;
 }
 
 /**
@@ -611,6 +615,16 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     s.check(transportResult?.error?.code === "EXECUTION_TIMEOUT", "the failure is reported as EXECUTION_TIMEOUT");
     s.check(transport.db.readCount(transportRequestPath) >= 2, "the execution-report poll loop actually polled before timing out");
     s.check(transport.db.writeCount(transportRequestPath) === 1, "the command was enqueued exactly once");
+
+    s.section("Ambiguous EA report (uncertain): settles UNKNOWN immediately, never a fill or rejection");
+    const uncertain = scenario({ eaReport: { status: "uncertain", errorCode: 10012, errorMessage: "timeout" } });
+    const uncertainStart = uncertain.clock.now();
+    const uncertainOutcome = await uncertain.provider.execute(uncertain.input);
+    const uncertainResult = valueOf(uncertainOutcome);
+    s.check(uncertainOutcome.ok && uncertainResult?.status === "UNKNOWN", "an uncertain EA report is UNKNOWN — not a fill, not a rejection");
+    s.check(uncertainResult?.error?.code === "EXECUTION_TIMEOUT", "retcode 10012 (timeout) keeps the EXECUTION_TIMEOUT code");
+    s.check(uncertainResult?.providerRef === null, "no ticket is invented from an uncertain report");
+    s.check(uncertain.clock.now() - uncertainStart < 1000, "the uncertain report returns without waiting out the execution window");
 
     s.section("Late EA report — T0 submit → T3 window expires → T4 report arrives late");
     // The report is intentionally delayed PAST the execution waiting window:

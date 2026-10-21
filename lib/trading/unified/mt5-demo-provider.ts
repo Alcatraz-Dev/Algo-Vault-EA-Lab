@@ -106,6 +106,11 @@ function decodeOrderType(value: unknown): { kind: TradingOrderKind; side: "BUY" 
     }
 }
 
+/** `uncertain` = the EA could not tell whether the broker executed the order. */
+function isUncertainReport(value: unknown): boolean {
+    return String(value ?? "").toLowerCase() === "uncertain";
+}
+
 /** Gateway execution status (written by /api/trading/gateway/execution). */
 function decodeExecutionState(value: unknown): TradingOrderState {
     const status = String(value ?? "").toLowerCase();
@@ -582,6 +587,21 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         }
 
         const state = decodeExecutionState(report.status);
+        if (isUncertainReport(report.status)) {
+            // Ambiguous broker outcome (timeout / connection loss): the order may
+            // have executed. Never claim a fill or a rejection; stay UNKNOWN so
+            // reconciliation can settle it.
+            const retcode = num(report.errorCode) ?? num(report.retcode) ?? 0;
+            return finish({
+                status: "UNKNOWN",
+                providerRef: str(report.mt5Ticket),
+                error: tradingError(
+                    retcode > 0 ? mapMt5Retcode(retcode) : "EXECUTION_TIMEOUT",
+                    str(report.errorMessage) ?? "The MetaTrader 5 gateway reported an ambiguous outcome.",
+                    { providerRetcode: retcode > 0 ? retcode : null }
+                ),
+            });
+        }
         if (state === "REJECTED") {
             const retcode = num(report.errorCode) ?? num(report.retcode) ?? 0;
             return finish({
@@ -749,7 +769,15 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             if (value && typeof value === "object") {
                 const record = value as Record<string, unknown>;
                 const state = decodeExecutionState(record.status);
-                if (state === "FILLED" || state === "PARTIALLY_FILLED" || state === "REJECTED" || state === "CANCELLED") {
+                // `uncertain` is a settled report from the EA (ambiguous broker
+                // outcome). Return it now instead of waiting out the clock.
+                if (
+                    state === "FILLED" ||
+                    state === "PARTIALLY_FILLED" ||
+                    state === "REJECTED" ||
+                    state === "CANCELLED" ||
+                    isUncertainReport(record.status)
+                ) {
                     return record;
                 }
             }
