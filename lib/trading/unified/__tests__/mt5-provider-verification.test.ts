@@ -263,12 +263,13 @@ function installEaReport(db: FakeRtdb, input: AdapterExecutionInput, spec: EaRep
         const command = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
         db.seed(target, {
             ...command,
-            status: "filled",
+            status: spec.status ?? "filled",
             mt5Ticket: Number(spec.ticket ?? TICKET),
             volume: spec.volume ?? input.volume ?? 0.01,
             executionPrice: spec.executionPrice ?? 1.165,
             executedAt: T0,
-            errorMessage: null,
+            errorCode: spec.errorCode ?? 0,
+            errorMessage: spec.errorMessage ?? null,
         });
     });
 }
@@ -623,7 +624,7 @@ export async function runMt5ProviderVerificationTests(): Promise<boolean> {
     const uncertainResult = valueOf(uncertainOutcome);
     s.check(uncertainOutcome.ok && uncertainResult?.status === "UNKNOWN", "an uncertain EA report is UNKNOWN — not a fill, not a rejection");
     s.check(uncertainResult?.error?.code === "EXECUTION_TIMEOUT", "retcode 10012 (timeout) keeps the EXECUTION_TIMEOUT code");
-    s.check(uncertainResult?.providerRef === null, "no ticket is invented from an uncertain report");
+    s.check(uncertainResult?.providerRef === String(TICKET), "the ticket is only the one the EA reported — none is invented");
     s.check(uncertain.clock.now() - uncertainStart < 1000, "the uncertain report returns without waiting out the execution window");
 
     s.section("Late EA report — T0 submit → T3 window expires → T4 report arrives late");

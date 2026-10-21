@@ -391,6 +391,7 @@ export async function runReconciliationTests(): Promise<boolean> {
 
         const second = await service.execute(closeInput("req-close-2"));
         s.check(second.result.error?.code === "DUPLICATE_REQUEST", "a second close with a new request id is refused while the first is UNKNOWN");
+        s.check(second.httpStatus === 409, "the target-lock refusal is HTTP 409 DUPLICATE_REQUEST");
         s.check(second.result.status === "REJECTED", "the refused close settles REJECTED because it was never sent");
 
         const modify = await service.execute({
@@ -398,7 +399,7 @@ export async function runReconciliationTests(): Promise<boolean> {
             executionType: "MODIFY_POSITION",
             stopLoss: 1.09,
         });
-        s.check(modify.result.error?.code === "DUPLICATE_REQUEST", "a modify on the same position is refused while the close is UNKNOWN");
+        s.check(modify.result.error?.code === "DUPLICATE_REQUEST" && modify.httpStatus === 409, "a modify on the same position is refused with HTTP 409 DUPLICATE_REQUEST while the close is UNKNOWN");
         s.check(provider.state.executeCalls === 1, "only the first management action reaches the provider");
 
         const replay = await service.execute(closeInput("req-close-1"));
