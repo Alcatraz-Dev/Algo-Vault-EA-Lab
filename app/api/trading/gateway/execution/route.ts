@@ -4,7 +4,11 @@ import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 import { getExecution, updateExecution } from "@/lib/bot-studio/database";
-import { nextReportStatus, normalizeReportedStatus } from "@/lib/trading/gateway/lifecycle";
+import {
+    isAmbiguousTradeRetcode,
+    nextReportStatus,
+    normalizeReportedStatus,
+} from "@/lib/trading/gateway/lifecycle";
 
 export const runtime = "nodejs";
 
@@ -95,13 +99,14 @@ export async function POST(request: NextRequest) {
 
         // The EA sends `success` + `retcode`; newer clients may send `status`.
         // MT5 success retcodes start at 10009 (TRADE_RETCODE_DONE).
-        const validStatuses = ["filled", "partially_filled", "rejected", "failed"];
+        const validStatuses = ["filled", "partially_filled", "rejected", "failed", "uncertain"];
         const explicitStatus = String(body.status || "").trim();
-        // A failed CTrade submission can still have an uncertain broker outcome
-        // (e.g. a transport interruption). Only an explicit terminal status or
-        // a known failing retcode is a rejection; an ambiguous report is never
-        // promoted into a fabricated fill.
-        const status = validStatuses.includes(explicitStatus)
+        // A timeout/connection retcode means the broker may already have
+        // executed the order. It is ALWAYS uncertain, even when the EA (or an
+        // explicit status) labels it a failure: a timeout is not a rejection.
+        const status = isAmbiguousTradeRetcode(retcode)
+            ? "uncertain"
+            : validStatuses.includes(explicitStatus)
             ? explicitStatus
             : body.success === false || (retcode > 0 && retcode < 10009)
             ? "rejected"

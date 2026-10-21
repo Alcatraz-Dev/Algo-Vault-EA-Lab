@@ -2631,6 +2631,14 @@ bool IsTradeSuccess(MqlTradeResult &result)
    return false;
 }
 
+// Timeout / connection loss: the broker may already have executed the order.
+// Such a result must be reported as UNCERTAIN, never as REJECTED.
+bool IsAmbiguousTradeRetcode(uint retcode)
+{
+   return (retcode == TRADE_RETCODE_TIMEOUT ||
+           retcode == TRADE_RETCODE_CONNECTION);
+}
+
 
 //+------------------------------------------------------------------+
 //| Account-mode enforcement                                         |
@@ -2825,7 +2833,9 @@ bool ReportExecution(string commandId,
       "," +
 
       "\"status\":\"" +
-      (success ? (result.retcode == TRADE_RETCODE_DONE_PARTIAL ? "partially_filled" : "filled") : "rejected") +
+      (success
+         ? (result.retcode == TRADE_RETCODE_DONE_PARTIAL ? "partially_filled" : "filled")
+         : (IsAmbiguousTradeRetcode(result.retcode) ? "uncertain" : "rejected")) +
       "\"," +
 
       "\"retcode\":" +

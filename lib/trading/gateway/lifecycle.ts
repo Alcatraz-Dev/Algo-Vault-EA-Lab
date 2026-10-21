@@ -52,6 +52,20 @@ export function isAwaitingBrokerOutcome(status: string): boolean {
 }
 
 /**
+ * MT5 retcodes whose broker outcome is unknown even though the submission
+ * reported a failure: the request may have reached the server before the
+ * terminal lost the answer.
+ *   10012 TRADE_RETCODE_TIMEOUT
+ *   10031 TRADE_RETCODE_CONNECTION
+ */
+export const AMBIGUOUS_TRADE_RETCODES: ReadonlySet<number> = new Set([10012, 10031]);
+
+/** True when a retcode means "maybe executed" — never a confirmed rejection. */
+export function isAmbiguousTradeRetcode(retcode: number): boolean {
+    return AMBIGUOUS_TRADE_RETCODES.has(retcode);
+}
+
+/**
  * Canonical command status for a report.
  *
  * The gateway reports `unknown` when CTrade could neither confirm nor reject

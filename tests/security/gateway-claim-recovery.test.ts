@@ -19,6 +19,7 @@ import { GET as pollCommands } from "@/app/api/trading/gateway/commands/route";
 import { GET as reconcileGateway, POST as reconcileGatewayPost } from "@/app/api/trading/gateway/reconcile/route";
 import { POST as postExecutionReport } from "@/app/api/trading/gateway/execution/route";
 import { POST as postSnapshot } from "@/app/api/trading/gateway/snapshot/route";
+import { POST as postDisconnect } from "@/app/api/trading/gateway/disconnect/route";
 import { deriveMagicNumber, buildOrderComment } from "@/lib/bot-studio/magic-numbers";
 import type { NextRequest } from "next/server";
 import { rtDbStore } from "./firebase-admin-stub";
@@ -465,6 +466,71 @@ export async function runGatewayClaimRecoveryTests(): Promise<void> {
     // ── 9. POST alias is authorized the same way ────────────────────────────
     const postUnauthorized = await reconcileGatewayPost(anonymousRequest());
     assert(postUnauthorized.status === 401, "the POST alias must require auth too");
+
+    // ── 10. Ambiguous timeouts are never reported as rejections ─────────────
+    // The EA labels a timed-out (10012) submission "rejected"; the server must
+    // keep it uncertain, because the broker may already have executed it.
+    seed();
+    seedCommand("cmd_timeout", {
+        status: "executing",
+        claimExpiresAt: Date.now() + 60_000,
+    });
+    const timeoutReport = await postExecutionReport(
+        gatewayRequest(executionBody("cmd_timeout", { success: false, status: "rejected", retcode: 10012 })),
+    );
+    assert(timeoutReport.status === 200, `a timeout report must be accepted (got ${timeoutReport.status})`);
+    const timedOut = entriesUnder(`trading_order_requests/${UID}`).cmd_timeout;
+    assert(timedOut.status === "uncertain", `a timeout must stay uncertain (got ${String(timedOut.status)})`);
+    assert(timedOut.reconciliationRequired === true, "a timeout must require reconciliation");
+
+    // Connection loss (10031) is the same ambiguous class.
+    seed();
+    seedCommand("cmd_conn", { status: "executing", claimExpiresAt: Date.now() + 60_000 });
+    await postExecutionReport(
+        gatewayRequest(executionBody("cmd_conn", { success: false, status: "rejected", retcode: 10031 })),
+    );
+    assert(
+        entriesUnder(`trading_order_requests/${UID}`).cmd_conn.status === "uncertain",
+        "a connection loss must stay uncertain",
+    );
+
+    // A genuine broker rejection is still a rejection.
+    seed();
+    seedCommand("cmd_rejected", { status: "executing", claimExpiresAt: Date.now() + 60_000 });
+    await postExecutionReport(
+        gatewayRequest(executionBody("cmd_rejected", { success: false, status: "rejected", retcode: 10016 })),
+    );
+    assert(
+        entriesUnder(`trading_order_requests/${UID}`).cmd_rejected.status === "rejected",
+        "a definitive broker rejection must stay rejected",
+    );
+
+    // ── 11. Disconnect: authenticated, owner-scoped, never touches commands ──
+    seed();
+    rtDbStore.set(`live_accounts/gateway_${ACCOUNT_NUMBER}`, {
+        userId: UID,
+        status: "online",
+        lastHeartbeatAt: Date.now(),
+    });
+    const disconnectAnon = await postDisconnect(
+        {
+            headers: { get: () => null },
+            json: async () => ({ accountNumber: ACCOUNT_NUMBER }),
+        } as unknown as Parameters<typeof postDisconnect>[0],
+    );
+    assert(disconnectAnon.status === 400, `a disconnect without a token must be rejected (got ${disconnectAnon.status})`);
+
+    const disconnectBadToken = await postDisconnect(
+        gatewayRequest({ accountNumber: ACCOUNT_NUMBER }, "not-a-real-token"),
+    );
+    assert(disconnectBadToken.status === 403, `an unknown token must be rejected (got ${disconnectBadToken.status})`);
+
+    const disconnectOk = await postDisconnect(gatewayRequest({ accountNumber: ACCOUNT_NUMBER }));
+    assert(disconnectOk.status === 200, `a valid disconnect must succeed (got ${disconnectOk.status})`);
+    assert(
+        entriesUnder("live_accounts")[`gateway_${ACCOUNT_NUMBER}`]?.status === "offline",
+        "a valid disconnect must mark the live account offline",
+    );
 
     console.log("  ✓ Gateway claim/recovery tests passed.");
     console.log("\nAll gateway claim/recovery tests passed.\n");
