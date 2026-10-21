@@ -13,7 +13,7 @@
  * established account (fail closed, §27).
   */
 
-import { useRef, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import { ListOrdered, TrendingUp, Wallet, Loader2, Lock, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ import { TradingProviderStatus } from "./TradingProviderStatus";
 import {
     ExecutionOutcomeTracker,
     isUnknownOutcome,
+    targetKeyFor,
     type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import { useTerminal } from "./TerminalContext";
@@ -41,7 +42,9 @@ const TABS: Array<{ id: Tab; label: string; icon: typeof TrendingUp }> = [
 export function AccountPanel() {
     const [tab, setTab] = useState<Tab>("positions");
     const [actionError, setActionError] = useState<string | null>(null);
-    const outcomes = useRef(new ExecutionOutcomeTracker());
+    const [, bumpOutcomes] = useReducer((n: number) => n + 1, 0);
+    const [outcomes] = useState(() => new ExecutionOutcomeTracker({ onChange: () => bumpOutcomes() }));
+    useEffect(() => () => outcomes.dispose(), [outcomes]);
     const { state } = useTerminal();
     const data = useTerminalData();
     const token = data.token;
@@ -59,16 +62,18 @@ export function AccountPanel() {
     ): Promise<void> => {
         if (!token || !accountId) return;
         setActionError(null);
-        // One outcome slot per position action: an UNKNOWN outcome locks further
-        // submissions for it. A repeat click replays the SAME clientRequestId.
-        const key = `${payload.executionType}:${payload.positionId ?? ""}`;
-        const tracker = outcomes.current;
+        // One SHARED lock per target: close and modify on the same position
+        // block each other. A repeat click replays the SAME clientRequestId.
+        const key = targetKeyFor(payload);
         try {
-            const result = tracker.hasUnresolved(key)
-                ? await tracker.retry(key, token)
-                : await tracker.submit(key, payload, token);
+            // run(): an identical action replays the owner's request; a different
+            // action on the same position is blocked, never sent.
+            const result = await outcomes.run(key, payload, token);
             if (result.status === "EXECUTED_PENDING_SYNC") {
                 setActionError(`${describe}: executed — syncing on the next snapshot.`);
+            }
+            if (result.status === "ACCEPTED") {
+                setActionError(`${describe}: queued on the broker, still unconfirmed. Click again to check the same request.`);
             }
         } catch (error) {
             const suffix = isUnknownOutcome(error)

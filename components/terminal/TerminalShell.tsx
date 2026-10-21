@@ -19,7 +19,7 @@
  * Mobile degrades to tabs over the same panels (§36) — no second engine.
   */
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Bot,
     CandlestickChart,
@@ -43,6 +43,7 @@ import {
 import {
     ExecutionOutcomeTracker,
     isUnknownOutcome,
+    targetKeyFor,
     type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import type { PanelId } from "@/lib/terminal/types";
@@ -184,6 +185,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
      * step aware), never derived from profit.
      */
     const outcomes = useRef(new ExecutionOutcomeTracker());
+    useEffect(() => () => outcomes.current.dispose(), []);
     const act = useCallback(
         async (
             payload: Omit<UnifiedExecutePayload, "clientRequestId">,
@@ -202,16 +204,17 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 return false;
             }
             setActionError(null);
-            // Same outcome guard as AccountPanel: an UNKNOWN outcome locks new
-            // submissions for this action; a repeat click replays the SAME request.
-            const key = `${payload.executionType}:${payload.positionId ?? payload.symbol ?? ""}:${payload.side ?? ""}`;
-            const tracker = outcomes.current;
+            // Same shared target lock as AccountPanel: an identical repeat click
+            // replays the SAME request; a different action on the target is blocked.
+            const key = targetKeyFor(payload);
             try {
-                const result = tracker.hasUnresolved(key)
-                    ? await tracker.retry(key, authToken)
-                    : await tracker.submit(key, payload, authToken);
+                const result = await outcomes.current.run(key, payload, authToken);
                 if (result.status === "EXECUTED_PENDING_SYNC") {
                     setActionError(`${describe}: executed on the broker — position syncs on the next account snapshot.`);
+                }
+                if (result.status === "ACCEPTED") {
+                    setActionError(`${describe}: queued on the broker, still unconfirmed. Click again to check the same request.`);
+                    return false;
                 }
                 return true;
             } catch (error) {

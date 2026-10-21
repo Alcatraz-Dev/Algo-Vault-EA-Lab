@@ -323,6 +323,7 @@ function createStack(): HistoryStack {
     const service = new UnifiedTradingService({
         registry: new TradingProviderRegistry([provider]),
         idempotency: store.idempotency,
+        targetLocks: store.targetLocks,
         persistResult: async (userId, result) => {
             await store.persistResult(userId, result);
             // Mirror the RTDB tree shape `saveExecutionResult` writes so the

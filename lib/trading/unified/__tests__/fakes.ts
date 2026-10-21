@@ -30,6 +30,7 @@ export function createFakeStore() {
     const results: TradingExecutionResult[] = [];
     const accounts: UnifiedAccountRecord[] = [];
     const audit: Array<Omit<TradingAuditEvent, "eventId"> & { eventId: string }> = [];
+    const locks = new Map<string, string>();
     let seq = 0;
 
     const key = (userId: string, id: string) => `${userId}:${id}`;
@@ -111,6 +112,26 @@ export function createFakeStore() {
         async audit(event: Omit<TradingAuditEvent, "eventId" | "timestamp">): Promise<void> {
             seq += 1;
             audit.push({ ...event, eventId: `evt-${seq}`, timestamp: Date.now() });
+        },
+
+        /** Same contract as the RTDB target lock: owner-guarded claim and release. */
+        targetLocks: {
+            locks,
+            async claim(userId: string, accountId: string, targetKey: string, clientRequestId: string) {
+                const k = `${userId}:${accountId}:${targetKey}`;
+                const owner = locks.get(k);
+                if (owner && owner !== clientRequestId) return { acquired: false, owner };
+                locks.set(k, clientRequestId);
+                return { acquired: true, owner: clientRequestId };
+            },
+            async release(userId: string, accountId: string, targetKey: string, clientRequestId: string) {
+                const k = `${userId}:${accountId}:${targetKey}`;
+                if (locks.get(k) === clientRequestId) locks.delete(k);
+            },
+            async readResult(userId: string, clientRequestId: string) {
+                const found = [...results].reverse().find((r) => r.clientRequestId === clientRequestId);
+                return found ?? requests.get(key(userId, clientRequestId))?.result ?? null;
+            },
         },
 
         resultLog(): TradingExecutionResult[] {

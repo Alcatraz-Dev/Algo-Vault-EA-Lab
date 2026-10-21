@@ -18,7 +18,14 @@ import { createSuite } from "@/lib/performance-arena/__tests__/harness";
 import { TradingProviderRegistry, type TradingProviderAdapter, type TradingResult } from "@/lib/trading/unified/adapter";
 import { UnifiedTradingService, type ExecuteInput } from "@/lib/trading/unified/service";
 import { tradingError } from "@/lib/trading/unified/errors";
-import type { TradingAccount, TradingHistory, TradingOrder, TradingOrderState } from "@/lib/trading/unified/domain";
+import type {
+    TradingAccount,
+    TradingExecutionResult,
+    TradingHistory,
+    TradingOrder,
+    TradingOrderState,
+    TradingPosition,
+} from "@/lib/trading/unified/domain";
 import { createFakeStore } from "./fakes";
 
 const NOW = 1_700_000_000_000;
@@ -85,7 +92,8 @@ type HistoryScript =
 function createScriptedProvider() {
     const state = {
         executeCalls: 0,
-        executeMode: "TIMEOUT" as const,
+        executeMode: "TIMEOUT" as "TIMEOUT" | "ACCEPTED",
+        positions: [] as TradingPosition[],
         history: { kind: "ok", orders: [] } as HistoryScript,
     };
     const adapter: TradingProviderAdapter = {
@@ -105,7 +113,7 @@ function createScriptedProvider() {
             userId === USER && accountId === ACCOUNT_ID
                 ? { ok: true, value: account }
                 : { ok: false, error: tradingError("ACCOUNT_NOT_FOUND", "Account is not registered for this user.") },
-        getPositions: async () => ({ ok: true, value: [] }),
+        getPositions: async () => ({ ok: true, value: state.positions }),
         getOrders: async () => ({ ok: true, value: [] }),
         getDeals: async () => ({ ok: true, value: [] }),
         getHistory: async (): Promise<TradingResult<TradingHistory>> => {
@@ -121,8 +129,32 @@ function createScriptedProvider() {
         getQuote: async () => ({ ok: false, error: tradingError("UNSUPPORTED_OPERATION", "stub") }),
         getQuotes: async () => ({ ok: true, value: [] }),
         getCandles: async () => ({ ok: true, value: [] }),
-        execute: async () => {
+        execute: async (input) => {
             state.executeCalls += 1;
+            if (state.executeMode === "ACCEPTED") {
+                // The command is durable and queued; no outcome is confirmed yet.
+                return {
+                    ok: true,
+                    value: {
+                        clientRequestId: input.request.clientRequestId,
+                        correlationId: input.request.correlationId,
+                        accountId: ACCOUNT_ID,
+                        provider: "MT5",
+                        environment: "DEMO",
+                        executionType: input.request.executionType,
+                        status: "ACCEPTED",
+                        providerRef: null,
+                        filledVolume: null,
+                        filledPrice: null,
+                        order: null,
+                        position: null,
+                        error: null,
+                        duplicate: false,
+                        createdAt: NOW,
+                        completedAt: NOW,
+                    } as TradingExecutionResult,
+                };
+            }
             // The broker never answered in time: the outcome is unknown.
             return { ok: false, error: tradingError("EXECUTION_TIMEOUT", "The provider did not confirm the execution in time.") };
         },
@@ -138,6 +170,7 @@ function createHarness() {
         idempotency: store.idempotency,
         persistResult: store.persistResult,
         resolveUnknown: store.resolveUnknown,
+        targetLocks: store.targetLocks,
         persistAccount: store.persistAccount,
         audit: store.audit,
         entitlement: async () => true,
@@ -155,6 +188,28 @@ function orderInput(clientRequestId: string): ExecuteInput {
         symbol: "EURUSD",
         side: "BUY",
         volume: 0.1,
+    };
+}
+
+function openPosition(id: string): TradingPosition {
+    return {
+        id,
+        accountId: ACCOUNT_ID,
+        provider: "MT5",
+        symbol: "EURUSD",
+        side: "BUY",
+        volume: 0.2,
+        entryPrice: 1.1,
+        currentPrice: 1.1,
+        stopLoss: null,
+        takeProfit: null,
+        profit: 0,
+        swap: 0,
+        commission: 0,
+        openedAt: NOW,
+        magicNumber: null,
+        comment: null,
+        providerRef: id,
     };
 }
 
@@ -317,6 +372,118 @@ export async function runReconciliationTests(): Promise<boolean> {
         s.check(outcome.httpStatus === 504, "existing clients still see HTTP 504 for a timeout");
         s.check(outcome.result.error?.code === "EXECUTION_TIMEOUT", "existing clients still key on the EXECUTION_TIMEOUT code");
         s.check(outcome.result.executionType === "PLACE_ORDER", "the execution type is preserved on the outcome");
+    }
+
+    // ── Management actions: one outstanding outcome per position ─────────────
+    {
+        const { provider, service } = createHarness();
+        provider.state.positions = [openPosition("POS-901")];
+        const closeInput = (clientRequestId: string): ExecuteInput => ({
+            userId: USER,
+            accountId: ACCOUNT_ID,
+            clientRequestId,
+            executionType: "CLOSE_POSITION",
+            positionId: "POS-901",
+        });
+        const first = await service.execute(closeInput("req-close-1"));
+        s.section("Close and modify share one outcome lock per position");
+        s.check(first.result.status === "UNKNOWN", "the first close times out as UNKNOWN");
+
+        const second = await service.execute(closeInput("req-close-2"));
+        s.check(second.result.error?.code === "DUPLICATE_REQUEST", "a second close with a new request id is refused while the first is UNKNOWN");
+        s.check(second.result.status === "REJECTED", "the refused close settles REJECTED because it was never sent");
+
+        const modify = await service.execute({
+            ...closeInput("req-modify-1"),
+            executionType: "MODIFY_POSITION",
+            stopLoss: 1.09,
+        });
+        s.check(modify.result.error?.code === "DUPLICATE_REQUEST", "a modify on the same position is refused while the close is UNKNOWN");
+        s.check(provider.state.executeCalls === 1, "only the first management action reaches the provider");
+
+        const replay = await service.execute(closeInput("req-close-1"));
+        s.check(replay.result.status === "UNKNOWN" && replay.result.duplicate === true, "replaying the original close keeps its UNKNOWN outcome");
+        s.check(provider.state.executeCalls === 1, "replaying the original close never resends it");
+
+        const entry = await service.execute(orderInput("req-entry-while-locked"));
+        s.check(entry.result.error?.code !== "DUPLICATE_REQUEST", "new entries are not blocked by a position lock");
+        s.check(provider.state.executeCalls === 2, "the entry is dispatched normally");
+    }
+
+    // ── Queued (ACCEPTED) close is unresolved and keeps the position locked ──
+    {
+        const { store, provider, service } = createHarness();
+        provider.state.positions = [openPosition("POS-905")];
+        provider.state.executeMode = "ACCEPTED";
+        const closeInput = (clientRequestId: string): ExecuteInput => ({
+            userId: USER,
+            accountId: ACCOUNT_ID,
+            clientRequestId,
+            executionType: "CLOSE_POSITION",
+            positionId: "POS-905",
+        });
+        const queued = await service.execute(closeInput("req-queued-close"));
+        s.section("A queued (ACCEPTED) close is unresolved and blocks duplicates");
+        s.check(queued.result.status === "ACCEPTED" && queued.httpStatus === 202, "the queued close is ACCEPTED (202), not settled");
+        s.check(provider.state.executeCalls === 1, "the queued close was dispatched once");
+
+        const duplicate = await service.execute(closeInput("req-queued-close-2"));
+        s.check(duplicate.result.error?.code === "DUPLICATE_REQUEST", "a second close with a new request id is refused while the queued close is unresolved");
+        s.check(provider.state.executeCalls === 1, "the duplicate close is never dispatched");
+
+        const replay = await service.execute(closeInput("req-queued-close"));
+        s.check(
+            replay.result.status === "ACCEPTED" && replay.httpStatus === 202 && replay.result.duplicate === true,
+            "replaying the queued close returns the still-pending ACCEPTED (202), not a settled outcome"
+        );
+        s.check(provider.state.executeCalls === 1, "replaying the queued close never dispatches it again");
+
+        // A definitive terminal result releases the lock for the next close.
+        await store.persistResult(USER, {
+            ...queued.result,
+            status: "SUCCEEDED",
+            error: null,
+            completedAt: Date.now(),
+        });
+        const settledReplay = await service.execute(closeInput("req-queued-close"));
+        s.check(settledReplay.result.status === "SUCCEEDED" && settledReplay.httpStatus === 200, "the replay reports the confirmed terminal result");
+        const afterSettle = await service.execute(closeInput("req-after-settle"));
+        s.check(afterSettle.result.error?.code !== "DUPLICATE_REQUEST", "a confirmed terminal result releases the position lock");
+        s.check(provider.state.executeCalls === 2, "the next close is dispatched only after the terminal result");
+    }
+
+    // ── Stale lock: a settled owner whose release was lost ───────────────────
+    {
+        const { store, provider, service } = createHarness();
+        provider.state.positions = [openPosition("POS-903")];
+        await store.targetLocks.claim(USER, ACCOUNT_ID, "POS-903", "req-stale-owner");
+        await store.persistResult(USER, {
+            clientRequestId: "req-stale-owner",
+            correlationId: "corr-stale",
+            accountId: ACCOUNT_ID,
+            provider: "MT5",
+            environment: "DEMO",
+            executionType: "CLOSE_POSITION",
+            status: "FAILED",
+            providerRef: null,
+            filledVolume: null,
+            filledPrice: null,
+            order: null,
+            position: null,
+            error: tradingError("INVALID_REQUEST", "stub"),
+            duplicate: false,
+            createdAt: NOW,
+            completedAt: NOW,
+        } as TradingExecutionResult);
+        const next = await service.execute({
+            userId: USER,
+            accountId: ACCOUNT_ID,
+            clientRequestId: "req-after-stale",
+            executionType: "CLOSE_POSITION",
+            positionId: "POS-903",
+        });
+        s.section("A settled owner never blocks the position");
+        s.check(provider.state.executeCalls === 1 && next.result.error?.code !== "DUPLICATE_REQUEST", "a stale lock from a settled owner is freed and the close is dispatched");
     }
 
     return s.finish();

@@ -31,6 +31,7 @@ import {
     executeUnified,
     isUnknownOutcome,
     friendlyMessage,
+    targetKeyFor,
 } from "@/lib/trading/unified/client";
 import type { TradingExecutionResult } from "@/lib/trading/unified/domain";
 import {
@@ -86,6 +87,7 @@ export default function AccountTradingPage() {
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const outcomes = useRef(new ExecutionOutcomeTracker());
+    useEffect(() => () => outcomes.current.dispose(), []);
     const [actionError, setActionError] = useState<string | null>(null);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
@@ -545,20 +547,20 @@ export default function AccountTradingPage() {
     ) => {
         if (!firebaseUser || !selectedAccountId) return;
         setActionError(null);
-        // Outcome guard: an UNKNOWN outcome locks new submissions for this action.
-        // A repeat click replays the SAME clientRequestId; nothing is resent automatically.
-        const key = `${payload.executionType}:${payload.positionId ?? payload.orderId ?? ""}`;
-        const tracker = outcomes.current;
+        // Shared target lock per position/order: close and modify block each other.
+        // An identical repeat click replays the SAME clientRequestId; nothing is resent automatically.
+        const key = targetKeyFor(payload);
         try {
             const token = await firebaseUser.getIdToken();
-            const result = tracker.hasUnresolved(key)
-                ? await tracker.retry(key, token)
-                : await tracker.submit(key, payload, token);
+            const result = await outcomes.current.run(key, payload, token);
             setLastExecution(result);
             if (result.status === "EXECUTED_PENDING_SYNC") {
                 setActionError(
                     `${describe}: executed on the broker — position syncs on the next account snapshot.`
                 );
+            }
+            if (result.status === "ACCEPTED") {
+                setActionError(`${describe}: queued on the broker, still unconfirmed. Click again to check the same request.`);
             }
             handleRefresh();
         } catch (err) {

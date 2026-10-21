@@ -144,6 +144,8 @@ export async function POST(request: NextRequest) {
                 // result.status, which the terminal renders verbatim.
                 success: result.status === "SUCCEEDED" || result.status === "EXECUTED_PENDING_SYNC",
                 duplicate: result.duplicate,
+                // ACCEPTED is a queued command awaiting confirmation (HTTP 202).
+                pending: result.status === "ACCEPTED",
                 result,
             },
             { status: httpStatus }

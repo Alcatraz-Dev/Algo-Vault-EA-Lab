@@ -46,6 +46,10 @@ import {
     resolveUnknownExecutionResult,
     saveUnifiedAccount,
     appendAuditEvent,
+    claimTargetLock,
+    releaseTargetLock,
+    readExecutionResult,
+    type TargetLockDeps,
 } from "./store";
 import { isUnifiedTradingEnabled, isMt5DemoEnabled, isDemoExecutionMode } from "../feature-flags";
 import { hasActiveTradingLicense } from "@/lib/gateway";
@@ -78,6 +82,8 @@ export interface UnifiedTradingDeps {
     resolveUnknown?: typeof resolveUnknownExecutionResult;
     persistAccount?: typeof saveUnifiedAccount;
     audit?: typeof appendAuditEvent;
+    /** Per-position/order lock for management actions; defaults to the RTDB-backed implementation. */
+    targetLocks?: TargetLockDeps;
     /** Trading-access entitlement probe; defaults to `hasActiveTradingLicense`. */
     entitlement?: (userId: string) => Promise<boolean>;
     now?: () => number;
@@ -129,6 +135,7 @@ export class UnifiedTradingService {
     private readonly resolveUnknown: typeof resolveUnknownExecutionResult;
     private readonly persistAccount: typeof saveUnifiedAccount;
     private readonly audit: typeof appendAuditEvent;
+    private readonly targetLocks: TargetLockDeps;
     private readonly entitlement: (userId: string) => Promise<boolean>;
     private readonly now: () => number;
 
@@ -137,6 +144,11 @@ export class UnifiedTradingService {
         this.persistResult = deps.persistResult ?? saveExecutionResult;
         this.resolveUnknown = deps.resolveUnknown ?? resolveUnknownExecutionResult;
         this.persistAccount = deps.persistAccount ?? saveUnifiedAccount;
+        this.targetLocks = deps.targetLocks ?? {
+            claim: claimTargetLock,
+            release: releaseTargetLock,
+            readResult: readExecutionResult,
+        };
         this.audit = deps.audit ?? appendAuditEvent;
         this.entitlement = deps.entitlement ?? hasActiveTradingLicense;
         this.now = deps.now ?? (() => Date.now());
@@ -269,7 +281,22 @@ export class UnifiedTradingService {
         // then this call reports the stored UNKNOWN and the next replay shows the winner.
         // Returns the settled value: ours, or the concurrent winner's (never the stale UNKNOWN).
         const settled = await this.resolveUnknown(userId, resolved);
-        return settled && settled.status !== "UNKNOWN" ? settled : stored;
+        if (!settled || settled.status === "UNKNOWN") return stored;
+        await this.releaseOwnerLock(userId, accountId, settled);
+        return settled;
+    }
+
+    /**
+     * Read-only status of one request by its original clientRequestId. Never
+     * dispatches: it returns the stored outcome, reconciling an UNKNOWN against
+     * gateway history only. A queued ACCEPTED stays ACCEPTED until the gateway
+     * report settles it.
+     */
+    async getExecutionStatus(userId: string, clientRequestId: string): Promise<TradingExecutionResult | null> {
+        const stored = await this.targetLocks.readResult(userId, clientRequestId);
+        if (!stored) return null;
+        if (stored.status === "UNKNOWN") return this.reconcileUnknown(userId, stored.accountId, stored);
+        return stored;
     }
 
     /** Persists the provider-neutral projection the unified UI reads. */
@@ -544,6 +571,17 @@ export class UnifiedTradingService {
                         : 200;
                 return { result: { ...current, duplicate: true }, httpStatus };
             }
+            if (stored && stored.status === "ACCEPTED") {
+                // Queued and unresolved: replay the original result, never resend.
+                void this.writeAudit({
+                    ...auditBase,
+                    action: "EXECUTION_DUPLICATE",
+                    environment: "DEMO",
+                    requestStatus: stored.status,
+                    result: stored.status,
+                });
+                return { result: { ...stored, duplicate: true }, httpStatus: 202 };
+            }
             if (stored && stored.status !== "ACCEPTED") {
                 void this.writeAudit({
                     ...auditBase,
@@ -633,6 +671,17 @@ export class UnifiedTradingService {
             volume = decision.volume ?? volume;
         }
 
+        // 10a. One outstanding outcome per position/order: a second management
+        // action on the same target is refused without dispatch while the first is UNKNOWN.
+        const lockKey = this.lockKeyFor(request, position, order);
+        if (lockKey) {
+            const blocked = await this.checkTargetLock(request, lockKey);
+            if (blocked) {
+                const outcome = await this.settle(request, correlationId, startedAt, "REJECTED", blocked, provider, null, position, order);
+                return { result: outcome, httpStatus: errorCodeToStatus(blocked) };
+            }
+        }
+
         // 10. Provider execution.
         const executed = await adapter.execute({
             request,
@@ -666,6 +715,7 @@ export class UnifiedTradingService {
                         : "EXECUTION_FAILED";
 
         await this.persistResult(request.userId, result);
+        await this.releaseOwnerLock(request.userId, request.accountId, result);
         void this.writeAudit({
             ...auditBase,
             action,
@@ -788,6 +838,55 @@ export class UnifiedTradingService {
         return 0;
     }
 
+    /** Management actions lock their position/order; entries never do. */
+    private lockKeyFor(
+        request: { executionType: string },
+        position: TradingPosition | null,
+        order: TradingOrder | null
+    ): string | null {
+        if (request.executionType === "PLACE_ORDER") return null;
+        return position?.id ?? order?.id ?? null;
+    }
+
+    /** Releases the target lock when this result is settled. Owner-guarded in the store. */
+    private async releaseOwnerLock(userId: string, accountId: string, result: TradingExecutionResult): Promise<void> {
+        // UNKNOWN and ACCEPTED (queued, awaiting the gateway report) are unresolved: the target stays locked.
+        if (result.status === "UNKNOWN" || result.status === "ACCEPTED") return;
+        const key = this.lockKeyFor(result, result.position, result.order);
+        if (key) await this.targetLocks.release(userId, accountId, key, result.clientRequestId);
+    }
+
+    /**
+     * Claims the target for this request. A refusal means another request still
+     * owns it with an unresolved outcome, so nothing is dispatched.
+     */
+    private async checkTargetLock(request: TradingExecutionRequest, key: string): Promise<TradingError | null> {
+        const { userId, accountId, clientRequestId } = request;
+        const first = await this.targetLocks.claim(userId, accountId, key, clientRequestId);
+        if (first.acquired) return null;
+
+        // Reconcile the owner. A settled owner means the lock is stale (its release was lost).
+        const owner = first.owner;
+        const ownerResult = owner ? await this.targetLocks.readResult(userId, owner) : null;
+        if (owner && ownerResult) {
+            const current =
+                ownerResult.status === "UNKNOWN"
+                    ? await this.reconcileUnknown(userId, accountId, ownerResult)
+                    : ownerResult;
+            // Only a settled owner frees the target; UNKNOWN and queued (ACCEPTED) owners stay unresolved.
+            if (current.status !== "UNKNOWN" && current.status !== "ACCEPTED") {
+                await this.targetLocks.release(userId, accountId, key, owner);
+            }
+        }
+
+        const retry = await this.targetLocks.claim(userId, accountId, key, clientRequestId);
+        if (retry.acquired) return null;
+        return tradingError(
+            "DUPLICATE_REQUEST",
+            "A previous action on this position or order is still unconfirmed. Confirm it before sending another."
+        );
+    }
+
     private async settle(
         request: TradingExecutionRequest,
         correlationId: string,
@@ -818,6 +917,7 @@ export class UnifiedTradingService {
             completedAt: this.now(),
         };
         await this.persistResult(request.userId, result);
+        await this.releaseOwnerLock(request.userId, request.accountId, result);
         void this.writeAudit({
             userId: request.userId,
             accountId: request.accountId,

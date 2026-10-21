@@ -204,6 +204,81 @@ export async function resolveUnknownExecutionResult(
     return outcome.written ? resolved : settled;
 }
 
+/**
+ * Target lock: at most one management action (close / partial close / modify /
+ * cancel) per position or order may be outstanding while its previous outcome
+ * is UNKNOWN. The owner is the clientRequestId that claimed the target.
+ */
+function targetLockPath(userId: string, accountId: string, targetKey: string): string {
+    const digest = crypto.createHash("sha256").update(targetKey).digest("hex").slice(0, 32);
+    return `tradingTargetLocks/${userId}/${accountId}/${digest}`;
+}
+
+interface TargetLockRecord {
+    clientRequestId: string;
+    createdAt: number;
+}
+
+export interface TargetLockDeps {
+    claim: typeof claimTargetLock;
+    release: typeof releaseTargetLock;
+    readResult: typeof readExecutionResult;
+}
+
+/** Claims the target for `clientRequestId`. Re-claiming by the same owner succeeds. */
+export async function claimTargetLock(
+    userId: string,
+    accountId: string,
+    targetKey: string,
+    clientRequestId: string
+): Promise<{ acquired: boolean; owner: string | null }> {
+    const ref = adminDatabase.ref(targetLockPath(userId, accountId, targetKey));
+    let acquired = false;
+    let owner: string | null = null;
+    await ref.transaction(
+        (current) => {
+            const existing = current as TargetLockRecord | null;
+            if (existing && typeof existing === "object" && existing.clientRequestId !== clientRequestId) {
+                acquired = false;
+                owner = existing.clientRequestId;
+                return undefined;
+            }
+            acquired = true;
+            owner = clientRequestId;
+            return { clientRequestId, createdAt: Date.now() };
+        },
+        undefined,
+        false
+    );
+    return { acquired, owner };
+}
+
+/** Releases the target only when `clientRequestId` still owns it. */
+export async function releaseTargetLock(
+    userId: string,
+    accountId: string,
+    targetKey: string,
+    clientRequestId: string
+): Promise<void> {
+    await adminDatabase.ref(targetLockPath(userId, accountId, targetKey)).transaction(
+        (current) => {
+            const existing = current as TargetLockRecord | null;
+            if (!existing || existing.clientRequestId !== clientRequestId) return undefined;
+            return null;
+        },
+        undefined,
+        false
+    );
+}
+
+export async function readExecutionResult(
+    userId: string,
+    clientRequestId: string
+): Promise<TradingExecutionResult | null> {
+    const snap = await adminDatabase.ref(UNIFIED_PATHS.result(userId, clientRequestId)).get();
+    return (snap.val() as TradingExecutionResult | null) ?? null;
+}
+
 export interface UnifiedAccountRecord {
     id: string;
     userId: string;
