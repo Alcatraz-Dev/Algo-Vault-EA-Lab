@@ -457,8 +457,10 @@ export async function runUnifiedTradingTests(): Promise<boolean> {
     s.check(classifyMt5Environment({ server: "ICMarketsSC-Demo" }) === "DEMO", "a demo server name classifies as DEMO");
     s.check(classifyMt5Environment({ server: "ICMarketsSC-Live" }) === "LIVE", "anything else classifies as LIVE");
     s.check(classifyMt5Environment({}) === "LIVE", "an unclassified account defaults to LIVE (fail closed)");
-    s.check(mapMt5Retcode(10020) === "INSUFFICIENT_MARGIN", "TRADE_RETCODE_NO_MONEY maps to INSUFFICIENT_MARGIN");
-    s.check(mapMt5Retcode(10019) === "MARKET_CLOSED", "TRADE_RETCODE_MARKET_CLOSED maps to MARKET_CLOSED");
+    s.check(mapMt5Retcode(10019) === "INSUFFICIENT_MARGIN", "TRADE_RETCODE_NO_MONEY (10019) maps to INSUFFICIENT_MARGIN");
+    s.check(mapMt5Retcode(10018) === "MARKET_CLOSED", "TRADE_RETCODE_MARKET_CLOSED (10018) maps to MARKET_CLOSED");
+    s.check(mapMt5Retcode(10017) === "TRADING_DISABLED", "TRADE_RETCODE_TRADE_DISABLED (10017) maps to TRADING_DISABLED");
+    s.check(mapMt5Retcode(10020) === "ORDER_REJECTED", "TRADE_RETCODE_PRICE_CHANGED (10020) maps to ORDER_REJECTED");
     s.check(mapMt5Retcode(99999) === "UNKNOWN_PROVIDER_ERROR", "an unknown retcode collapses to UNKNOWN_PROVIDER_ERROR");
 
     s.section("Provider-confirmed fill before the snapshot syncs (the race fix)");

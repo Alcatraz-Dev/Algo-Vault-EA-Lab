@@ -233,7 +233,7 @@ export default function OrderPanel({
     } catch (err) {
       const message =
         err instanceof UnifiedExecutionError
-          ? err.message
+          ? `${err.message} [${err.code}]`
           : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
       setError(message);
       if (!isUnknownOutcome(err)) unresolvedPayload.current = null;
