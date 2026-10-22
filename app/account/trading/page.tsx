@@ -215,9 +215,9 @@ export default function AccountTradingPage() {
                 // Keep a prior selection only if it reports a live connection;
                 // otherwise prefer the connected account (supports multi-account).
                 const previouslyConnected = list.find(
-                  (a) => a?.accountId === previouslySelected && a?.status === "connected"
+                  (a) => a?.accountId === previouslySelected && a && isAccountLive(a)
                 );
-                const connectedFirst = list.find((a) => a?.status === "connected");
+                const connectedFirst = list.find((a) => a && isAccountLive(a));
                 const fallback = previouslyConnected
                   ? previouslySelected
                   : (connectedFirst?.accountId ?? list[0]?.accountId ?? null);
@@ -1425,6 +1425,14 @@ function AccountSwitcher({
  *  the pattern used by `components/trading/AccountHeader`. */
 function currentTimestamp(): number {
     return Date.now();
+}
+
+/** Live = gateway reports connected with a heartbeat under 120s old (same rule as StatusDot). */
+function isAccountLive(a: { status: TradingAccount["status"]; lastHeartbeatAt?: number }): boolean {
+    return (
+        a.status === "connected" &&
+        Math.floor((currentTimestamp() - (a.lastHeartbeatAt || 0)) / 1000) < 120
+    );
 }
 
 function StatusDot({
