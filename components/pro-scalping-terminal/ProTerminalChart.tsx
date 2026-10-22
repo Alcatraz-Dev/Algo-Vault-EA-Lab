@@ -4783,13 +4783,13 @@ export function ProTerminalChart({
                                     </span>
                                 ) : null}
                                 {onClosePosition ? (
-                                    <span className="ml-auto inline-flex items-center gap-1">
+                                    <span className="flex w-full items-center justify-end gap-1 sm:ml-auto sm:w-auto">
                                         {[25, 50, 75].map((pct) => (
                                             <button
                                                 key={pct}
                                                 type="button"
                                                 onClick={() => onClosePosition(p.ticket, pct)}
-                                                className="rounded-md border border-border/60 bg-card/80 px-1.5 py-0.5 font-numeric text-micro text-muted-foreground transition hover:border-warning/50 hover:text-foreground"
+                                                className="min-h-8 flex-1 rounded-md border border-border/60 bg-card/80 px-2 py-1 font-numeric text-micro text-muted-foreground transition hover:border-warning/50 hover:text-foreground sm:min-h-0 sm:flex-none sm:px-1.5 sm:py-0.5"
                                                 title={`Close ${pct}% of the position VOLUME (${(p.volume * pct) / 100 >= 0.01 ? ((p.volume * pct) / 100).toFixed(2) : "0.01 min"} lot of ${p.volume.toFixed(2)}). This is volume, not profit.`}
                                             >
                                                 {pct}% vol
@@ -4798,7 +4798,7 @@ export function ProTerminalChart({
                                         <button
                                             type="button"
                                             onClick={() => onClosePosition(p.ticket, 100)}
-                                            className="rounded-md border border-negative/40 bg-negative/10 px-1.5 py-0.5 font-numeric text-micro font-semibold text-negative transition hover:bg-negative/20"
+                                            className="min-h-8 flex-1 rounded-md border border-negative/40 bg-negative/10 px-2 py-1 font-numeric text-micro font-semibold text-negative transition hover:bg-negative/20 sm:min-h-0 sm:flex-none sm:px-1.5 sm:py-0.5"
                                             title="Close the entire position"
                                         >
                                             Close
