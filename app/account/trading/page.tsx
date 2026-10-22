@@ -48,7 +48,9 @@ import {
     Layers,
     Trophy,
     ScrollText,
+    Bot,
 } from "lucide-react";
+import { BotListPanel } from "@/components/bot-studio/BotListPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -1107,6 +1109,31 @@ export default function AccountTradingPage() {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                {/* Bot List — XAUUSD M1 scalper card */}
+                <div className="max-w-2xl">
+                    <BotListPanel
+                        showBot
+                        deployed={false}
+                        initialConfig={{
+                            tp1Pips: 15,
+                            tp2Pips: 30,
+                            slPips: 10,
+                            riskPercent: 1.0,
+                            maxSpreadPoints: 15,
+                            magicNumber: 70001,
+                            direction: "long",
+                            enabled: true,
+                        }}
+                        onToggle={async (running) => {
+                            // Hook point for the backend activation path.
+                            console.debug(`[bot-list] toggle → ${running}`);
+                        }}
+                        onDeploy={() => {
+                            console.debug("[bot-list] deploy clicked");
+                        }}
+                    />
                 </div>
 
                 {/* Main Trading Area */}

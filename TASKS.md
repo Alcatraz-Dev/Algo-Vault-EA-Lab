@@ -74,3 +74,46 @@
 
 ### t_115a254e-report — Final report (planner)
 - Deliverables: concise summary of existing infrastructure, architecture implemented, created/modified files, completed features, test commands + actual results, remaining limitations, exact steps to run the first strategy on an MT5 demo account, confirmation that existing manual trading + Gateway remain operational.
+
+### t_xauusd-scalping-bot — XAUUSD M1 scalping bot + bot list on trading page [DONE]
+- Owner: frontend + backend
+- Depends on: t_115a254e (Bot Studio core)
+- Scope: add a ready-made XAUUSD M1 scalping bot (TP1/TP2 dual take-profit, hard SL, spread filter, configurable magic number, risk %, max positions) with a bot card UI embedded in the trading page's bottom dock. The card exposes start/stop, config form, deploy-to-MT5 hook, and a demo mode for previewing live activity.
+
+#### Created files
+- `lib/bot-studio/scalping/config.ts` — `XauUsdScalpingConfig` type + defaults + pip↔price helpers
+- `lib/bot-studio/scalping/strategy.ts` — `createXauUsdScalpingStrategy()` factory producing a `BotStrategy` with a `xauusd_scalping` entry rule + dual-TP exit rules
+- `lib/bot-studio/scalping/executor.ts` — `buildScalpingEntry()`, `signalFromOrder()`, `executionFromFill()` (dual-TP semantics)
+- `lib/bot-studio/scalping/index.ts` — typed barrel
+- `components/bot-studio/config-form-schema.ts` — Zod shape for the config form validation
+- `components/bot-studio/XauUsdScalperBot/XauUsdScalperBotCard.tsx` — the bot card: status strip, level readout, compact stats, action buttons, collapsible config form
+- `components/bot-studio/XauUsdScalperBot/XauUsdScalperBot.tsx` — wrapper that wires an RTDB-backed status feed (per `bot_scalpers/{botId}`) plus local running state and the toggle/deploy hooks
+- `components/bot-studio/XauUsdScalperBot/ScalpingConfigForm.tsx` — full config form (direction, TP1/TP2/SL pips, risk %, max spread, magic, max positions, enabled) with Zod validation
+- `components/bot-studio/XauUsdScalperBot/index.ts` — barrel
+- `components/bot-studio/BotListPanel/BotListPanel.tsx` — panel that renders the card with a demo-mode toggle, deployed badge, and level summary
+- `components/bot-studio/BotListPanel/index.ts` — barrel
+- `app/account/trading/page.tsx` — added `BotListPanel` import + widget in the main trading panel (hooks: `onToggle`, `onDeploy`)
+
+#### Verification
+- `npx tsc --noEmit` — no bot-studio / scalping / BotList / XauUsd errors (only pre-existing `.next/types` missing-route stubs)
+- Bot card renders in `AccountTradingPage` below the open-book risk panel and above the chart workspace.
+- Demo mode increments signal/execution counters every 8s and shows the live status dot.
+- Config form validates via Zod and applies changes to the card's runtime config.
+
+#### Remaining / next
+- Wire `onToggle`/`onDeploy` to the real Bot Studio deployment API routes (`/api/bot-studio/deployments`, `/api/bot-studio/deployments/{botId}/lifecycle`) so start/stop and MT5 deploy persist server-side.
+- Persist the scalper config under `bot_scalpers/{botId}` in RTDB and read it back on mount so edits survive reloads.
+- Add the backend `BotRuntimeSession` tick hook that calls `buildScalpingEntry` on each M1 tick and submits via the unified trading service.
+- Add a short position variant of the card/scalping config if the broker/strategy supports short scalping.
+
+### t_115a254e-verify — Verify: build, typecheck, lint, tests [REVIEWER]
+- Depends on: t_115a254e-ui + t_115a254e-harden
+- Files: entire bot-studio `app/api`, `lib/bot-studio`, `components/strategy-builder`
+- Acceptance criteria:
+  - `npm run lint` exits clean.
+  - `npx tsc --noEmit` exits 0 in the root project (the bot-studio app/api files are all reachable from tsconfig `include`).
+  - `npm run test:bot-studio` passes.
+  - No files in bot-studio app/api overlap with the UI task; confirm via git diff summary.
+
+### t_115a254e-report — Final report (planner)
+- Deliverables: concise summary of existing infrastructure, architecture implemented, created/modified files, completed features, test commands + actual results, remaining limitations, exact steps to run the first strategy on an MT5 demo account, confirmation that existing manual trading + Gateway remain operational.
