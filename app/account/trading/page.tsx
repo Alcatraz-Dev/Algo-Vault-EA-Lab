@@ -207,12 +207,20 @@ export default function AccountTradingPage() {
             // exists. A stale selection falls back to the first account.
             if (list.length > 0) {
                 const previouslySelected = selectedAccountId;
-                const stillExists = list.some(
-                    (a) => a?.accountId === previouslySelected
+                // Multi-account default: prefer the gateway-connected account so
+                // the connected one is always the one shown first after a
+                // snapshot change (falls back to the first account when none
+                // reports a live connection).
+                // Default to the gateway-connected account whenever possible.
+                // Keep a prior selection only if it reports a live connection;
+                // otherwise prefer the connected account (supports multi-account).
+                const previouslyConnected = list.find(
+                  (a) => a?.accountId === previouslySelected && a?.status === "connected"
                 );
-                const fallback = stillExists
-                    ? previouslySelected
-                    : list[0]?.accountId ?? null;
+                const connectedFirst = list.find((a) => a?.status === "connected");
+                const fallback = previouslyConnected
+                  ? previouslySelected
+                  : (connectedFirst?.accountId ?? list[0]?.accountId ?? null);
                 if (fallback) setSelectedAccountId(fallback);
             }
         });
@@ -818,48 +826,65 @@ export default function AccountTradingPage() {
             <div className="flex flex-col gap-6">
                 {/* Account & Connection Bar */}
                 <div className="grid gap-4 lg:grid-cols-4">
-                    <div className="lg:col-span-3">
+                    <div className="lg:col-span-4">
                         <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                            <div className="mb-4 flex items-center justify-between">
-                                <span className="text-xs font-medium text-muted-foreground">
-                                    Active Account
-                                </span>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={handleRefresh}
-                                    disabled={refreshing}
-                                    className="h-7 px-2 text-xs"
-                                >
-                                    <RefreshCw
-                                        className={cn(
-                                            "size-3.5 mr-1",
-                                            refreshing &&
-                                                "animate-spin"
-                                        )}
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+                                {/* Account selection */}
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-3 flex items-center justify-between">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            Active Account
+                                        </span>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={handleRefresh}
+                                            disabled={refreshing}
+                                            className="h-7 px-2 text-xs"
+                                        >
+                                            <RefreshCw
+                                                className={cn(
+                                                    "size-3.5 mr-1",
+                                                    refreshing &&
+                                                        "animate-spin"
+                                                )}
+                                            />
+                                            Sync
+                                        </Button>
+                                    </div>
+                                    <AccountSwitcher
+                                        accounts={accounts}
+                                        selectedAccountId={selectedAccountId}
+                                        onSelect={selectAccount}
                                     />
-                                    Sync
-                                </Button>
+                                </div>
+                                {/* Gateway connection state — same container as
+                                    the account picker so the live link and the
+                                    account it belongs to read together. */}
+                                <div className="flex shrink-0 flex-col justify-between rounded-lg border border-border bg-muted/30 px-3 py-2.5 lg:w-72">
+                                    <div className="mb-2 flex items-center justify-between gap-2">
+                                        <span className="text-xs font-medium text-muted-foreground">
+                                            Gateway Sync
+                                        </span>
+                                        <ConnectionStatus
+                                            status={selectedAccount?.status || "offline"}
+                                            lastHeartbeat={selectedAccount?.lastHeartbeatAt || 0}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <span className="font-numeric text-sm font-semibold tabular-nums text-foreground">
+                                            {selectedAccount?.mt5Account ?? "—"}
+                                        </span>
+                                        <span aria-hidden>·</span>
+                                        <span className="truncate">{selectedAccount?.broker ?? "—"}</span>
+                                        <span aria-hidden>·</span>
+                                        <span className="font-numeric tabular-nums">
+                                            {selectedAccount?.currency ?? "—"}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <AccountSwitcher
-                                accounts={accounts}
-                                selectedAccountId={selectedAccountId}
-                                onSelect={selectAccount}
-                            />
                         </div>
-                    </div>
-                    <div className="flex flex-col justify-between rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-medium text-muted-foreground">
-                                Gateway Sync
-                            </span>
-                        </div>
-                        <ConnectionStatus
-                            status={selectedAccount?.status || "offline"}
-                            lastHeartbeat={
-                                selectedAccount?.lastHeartbeatAt || 0
-                            }
-                        />
                     </div>
                 </div>
 
@@ -1360,7 +1385,7 @@ function AccountSwitcher({
                         className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         role="listbox"
                     >
-                        {accounts.map((acc) => (
+                        {[...accounts].sort((a, b) => (a.status === "connected" ? -1 : 1) - (b.status === "connected" ? -1 : 1)).map((acc) => (
                             <div
                                 key={acc.accountId}
                                 role="option"
