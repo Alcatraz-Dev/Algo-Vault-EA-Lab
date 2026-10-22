@@ -1143,8 +1143,8 @@ export default function AccountTradingPage() {
 
                 {/* Bottom Positions / Orders / History Tabs — compact terminal dock */}
                 <div className="rounded-xl border border-border bg-card shadow-sm">
-                    <div className="flex items-center justify-between border-b border-border px-3 pt-2">
-                        <div className="flex gap-1">
+                    <div className="flex min-w-0 items-center justify-between border-b border-border px-3 pt-2">
+                        <div className="flex min-w-0 max-w-full gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                             <button
                                 type="button"
                                 onClick={() =>

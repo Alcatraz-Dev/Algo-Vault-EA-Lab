@@ -183,9 +183,9 @@ export default function OpenPositions({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex flex-wrap items-center gap-x-8 gap-y-2">
+          <CardTitle className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2">
             {/* Title + live indicator */}
-            <span className="flex items-center gap-3">
+            <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
               <span className="font-heading text-[13px] font-semibold tracking-tight">Open Positions</span>
               <span className="font-numeric text-sm font-semibold tabular-nums">({positions.length})</span>
               <span className="ml-1 flex items-center gap-1.5 text-micro text-muted-foreground">
@@ -197,7 +197,7 @@ export default function OpenPositions({
               </span>
             </span>
             {/* Stats row */}
-            <span className="flex-1 flex items-center justify-between gap-x-4 min-w-0">
+            <span className="grid min-w-0 grid-cols-3 gap-2 sm:flex sm:flex-1 sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1">
               <span className="flex items-baseline gap-1.5">
                 <span className="text-micro text-muted-foreground">P/L</span>
                 <span
@@ -219,7 +219,7 @@ export default function OpenPositions({
               </span>
             </span>
             {/* Bulk actions */}
-            <span className="ml-auto inline-flex shrink-0 items-center divide-x divide-border/50 overflow-hidden rounded-lg border border-border/70 bg-card/60 shadow-sm">
+            <span className="grid w-full grid-cols-3 divide-x divide-border/50 overflow-hidden rounded-lg border border-border/70 bg-card/60 shadow-sm sm:ml-auto sm:inline-flex sm:w-auto sm:max-w-full sm:shrink-0 sm:items-center">
               <button
                 type="button"
                 disabled={positions.filter((p) => p.profit > 0).length === 0}
@@ -263,7 +263,105 @@ export default function OpenPositions({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          {/* Mobile: stacked position cards (no horizontal table scroll) */}
+          <ul className="flex flex-col gap-2 md:hidden">
+            {positions.map((pos) => {
+              const actionPending = busy === pos.ticket || busyTickets.includes(pos.ticket);
+              const marginBase = pos.openPrice > 0 ? pos.volume * pos.openPrice * 100 : 0;
+              const pnlPct = marginBase > 0 ? (pos.profit / marginBase) * 100 : null;
+              return (
+                <li
+                  key={`m-${pos.ticket}`}
+                  className="rounded-lg border border-border/70 bg-card/60 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="truncate font-semibold">{pos.symbol}</span>
+                      <span
+                        className={cn(
+                          "text-xs font-semibold",
+                          pos.type === "BUY" ? "text-positive" : "text-negative"
+                        )}
+                      >
+                        {pos.type}
+                      </span>
+                      {actionPending ? (
+                        <Loader2 className="size-3 animate-spin text-muted-foreground" />
+                      ) : null}
+                    </div>
+                    <span
+                      className={cn(
+                        "font-numeric text-sm font-semibold",
+                        pos.profit >= 0 ? "text-positive" : "text-negative"
+                      )}
+                    >
+                      {pos.profit >= 0 ? "+" : ""}${formatNumber(pos.profit)}
+                    </span>
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Volume</dt>
+                      <dd className="font-numeric">{formatNumber(pos.volume)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">P/L %</dt>
+                      <dd className="font-numeric">
+                        {pnlPct !== null ? `${pnlPct >= 0 ? "+" : ""}${formatNumber(pnlPct, 1)}%` : "—"}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Entry</dt>
+                      <dd className="font-numeric">{formatNumber(pos.openPrice, 5)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Current</dt>
+                      <dd className="font-numeric">
+                        {pos.currentPrice > 0 ? formatNumber(pos.currentPrice, 5) : "—"}
+                      </dd>
+                    </div>
+                    <div className="col-span-2 flex justify-between">
+                      <dt className="text-muted-foreground">SL / TP</dt>
+                      <dd className="font-numeric text-muted-foreground">
+                        {pos.sl > 0 ? formatNumber(pos.sl, 5) : "—"} /{" "}
+                        {pos.tp > 0 ? formatNumber(pos.tp, 5) : "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-border/60 pt-2">
+                    <span className="font-numeric text-[11px] text-muted-foreground">#{pos.ticket}</span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={actionPending}
+                        onClick={() => setPartialTicket(pos.ticket)}
+                      >
+                        Partial
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={actionPending}
+                        onClick={() => openModifyDialog(pos)}
+                      >
+                        SL/TP
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={actionPending}
+                        onClick={() => handleClose(pos.ticket)}
+                      >
+                        Close
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border text-left text-micro uppercase tracking-wider text-muted-foreground">
