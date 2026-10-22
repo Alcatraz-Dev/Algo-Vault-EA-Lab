@@ -323,6 +323,7 @@ function createStack(): HistoryStack {
     const service = new UnifiedTradingService({
         registry: new TradingProviderRegistry([provider]),
         idempotency: store.idempotency,
+        targetLocks: store.targetLocks,
         persistResult: async (userId, result) => {
             await store.persistResult(userId, result);
             // Mirror the RTDB tree shape `saveExecutionResult` writes so the
@@ -630,7 +631,7 @@ export async function runHistoryReadTests(): Promise<boolean> {
         USER,
         canonicalResult({
             clientRequestId: lateCid,
-            status: "FAILED",
+            status: "UNKNOWN",
             providerRef: null,
             error: {
                 code: "EXECUTION_TIMEOUT",
@@ -690,7 +691,7 @@ export async function runHistoryReadTests(): Promise<boolean> {
         "9. the actual fill is visible (FILLED + provider ticket) after the late report"
     );
     s.check(
-        lateEntry?.result === "FAILED",
+        lateEntry?.result === "UNKNOWN",
         "9. the canonical FAILED result stays exposed alongside the fill (two truths)"
     );
     s.check(
@@ -706,7 +707,7 @@ export async function runHistoryReadTests(): Promise<boolean> {
     const canonicalAfter = JSON.stringify(late.db.readSync(lateResultPath));
     s.check(
         canonicalAfter === canonicalBefore,
-        "10. reading history never mutates the canonical FAILED / EXECUTION_TIMEOUT result"
+        "10. reading history never mutates the canonical UNKNOWN / EXECUTION_TIMEOUT result"
     );
     s.check(
         late.db.totalWrites() === writesBefore,

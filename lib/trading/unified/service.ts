@@ -31,6 +31,7 @@ import type {
     TradingExecutionRequest,
     TradingExecutionResult,
     TradingExecutionType,
+    TradingHistory,
     TradingOrder,
     TradingPosition,
     TradingProvider,
@@ -42,11 +43,22 @@ import {
     claimExecutionRequest,
     hashRequest,
     saveExecutionResult,
+    resolveUnknownExecutionResult,
     saveUnifiedAccount,
     appendAuditEvent,
+    claimTargetLock,
+    releaseTargetLock,
+    readExecutionResult,
+    type TargetLockDeps,
 } from "./store";
 import { isUnifiedTradingEnabled, isMt5DemoEnabled, isDemoExecutionMode } from "../feature-flags";
 import { hasActiveTradingLicense } from "@/lib/gateway";
+
+/**
+ * Provider error codes raised after dispatch whose broker outcome is unknown.
+ * They settle as UNKNOWN (never FAILED) so the request is never retried blindly.
+ */
+const UNKNOWN_OUTCOME_ERROR_CODES: ReadonlySet<string> = new Set(["EXECUTION_TIMEOUT"]);
 
 export interface UnifiedExecutionOutcome {
     result: TradingExecutionResult;
@@ -66,8 +78,12 @@ export interface UnifiedTradingDeps {
     /** Injectable for tests; defaults to the RTDB-backed implementations. */
     idempotency?: typeof claimExecutionRequest;
     persistResult?: typeof saveExecutionResult;
+    /** Guarded UNKNOWN -> resolved write; injectable so tests exercise the same path. */
+    resolveUnknown?: typeof resolveUnknownExecutionResult;
     persistAccount?: typeof saveUnifiedAccount;
     audit?: typeof appendAuditEvent;
+    /** Per-position/order lock for management actions; defaults to the RTDB-backed implementation. */
+    targetLocks?: TargetLockDeps;
     /** Trading-access entitlement probe; defaults to `hasActiveTradingLicense`. */
     entitlement?: (userId: string) => Promise<boolean>;
     now?: () => number;
@@ -116,15 +132,23 @@ export interface ExecuteInput {
 export class UnifiedTradingService {
     private readonly idempotency: typeof claimExecutionRequest;
     private readonly persistResult: typeof saveExecutionResult;
+    private readonly resolveUnknown: typeof resolveUnknownExecutionResult;
     private readonly persistAccount: typeof saveUnifiedAccount;
     private readonly audit: typeof appendAuditEvent;
+    private readonly targetLocks: TargetLockDeps;
     private readonly entitlement: (userId: string) => Promise<boolean>;
     private readonly now: () => number;
 
     constructor(private readonly deps: UnifiedTradingDeps) {
         this.idempotency = deps.idempotency ?? claimExecutionRequest;
         this.persistResult = deps.persistResult ?? saveExecutionResult;
+        this.resolveUnknown = deps.resolveUnknown ?? resolveUnknownExecutionResult;
         this.persistAccount = deps.persistAccount ?? saveUnifiedAccount;
+        this.targetLocks = deps.targetLocks ?? {
+            claim: claimTargetLock,
+            release: releaseTargetLock,
+            readResult: readExecutionResult,
+        };
         this.audit = deps.audit ?? appendAuditEvent;
         this.entitlement = deps.entitlement ?? hasActiveTradingLicense;
         this.now = deps.now ?? (() => Date.now());
@@ -185,7 +209,11 @@ export class UnifiedTradingService {
         return adapter.value.getOrders(userId, accountId);
     }
 
-    async getHistory(userId: string, accountId: string, since?: number) {
+    async getHistory(
+        userId: string,
+        accountId: string,
+        since?: number
+    ): Promise<TradingResult<TradingHistory>> {
         if (!isUnifiedTradingEnabled()) {
             return fail(tradingError("TRADING_DISABLED", "Unified trading is disabled on this platform."));
         }
@@ -201,6 +229,74 @@ export class UnifiedTradingService {
         const adapter = this.resolveAdapter(accountId);
         if (!adapter.ok) return adapter;
         return adapter.value.getConnectionStatus(userId, accountId);
+    }
+
+    /**
+     * Resolves a stored UNKNOWN outcome from authoritative history only.
+     *
+     * - A FILLED / PARTIALLY_FILLED history order with a ticket resolves to SUCCEEDED.
+     * - A REJECTED history order resolves to REJECTED.
+     * - Anything else (absent, acknowledged-only, cancelled, stale or unreadable
+     *   history) is NOT evidence: the stored UNKNOWN is returned unchanged.
+     *
+     * An acknowledgment is never proof of execution, and a missing order is
+     * never proof of non-execution.
+     */
+    async reconcileUnknown(
+        userId: string,
+        accountId: string,
+        stored: TradingExecutionResult
+    ): Promise<TradingExecutionResult> {
+        if (stored.status !== "UNKNOWN") return stored;
+        const history = await this.getHistory(userId, accountId);
+        // Stale or unavailable gateway data is never treated as evidence.
+        if (!history.ok) return stored;
+
+        const order = history.value.orders.find((o) => o.id === stored.clientRequestId);
+        if (!order) return stored;
+
+        const now = this.now();
+        let resolved: TradingExecutionResult | null = null;
+        if ((order.state === "FILLED" || order.state === "PARTIALLY_FILLED") && order.providerRef) {
+            resolved = {
+                ...stored,
+                status: "SUCCEEDED",
+                providerRef: order.providerRef,
+                filledVolume: order.volume,
+                filledPrice: order.price,
+                error: null,
+                completedAt: now,
+            };
+        } else if (order.state === "REJECTED") {
+            resolved = {
+                ...stored,
+                status: "REJECTED",
+                error: tradingError("ORDER_REJECTED", "The broker rejected the order (confirmed in MT5 history)."),
+                completedAt: now,
+            };
+        }
+        if (!resolved) return stored;
+
+        // The guarded write fails if another reconciler already settled it;
+        // then this call reports the stored UNKNOWN and the next replay shows the winner.
+        // Returns the settled value: ours, or the concurrent winner's (never the stale UNKNOWN).
+        const settled = await this.resolveUnknown(userId, resolved);
+        if (!settled || settled.status === "UNKNOWN") return stored;
+        await this.releaseOwnerLock(userId, accountId, settled);
+        return settled;
+    }
+
+    /**
+     * Read-only status of one request by its original clientRequestId. Never
+     * dispatches: it returns the stored outcome, reconciling an UNKNOWN against
+     * gateway history only. A queued ACCEPTED stays ACCEPTED until the gateway
+     * report settles it.
+     */
+    async getExecutionStatus(userId: string, clientRequestId: string): Promise<TradingExecutionResult | null> {
+        const stored = await this.targetLocks.readResult(userId, clientRequestId);
+        if (!stored) return null;
+        if (stored.status === "UNKNOWN") return this.reconcileUnknown(userId, stored.accountId, stored);
+        return stored;
     }
 
     /** Persists the provider-neutral projection the unified UI reads. */
@@ -457,6 +553,35 @@ export class UnifiedTradingService {
 
         if (claim.kind === "REPLAY") {
             const stored = claim.result;
+            if (stored && stored.status === "UNKNOWN") {
+                // Reconcile against history before answering. Only confirmed
+                // evidence resolves it; otherwise the UNKNOWN outcome is replayed
+                // and nothing is sent to the provider again.
+                const current = await this.reconcileUnknown(input.userId, input.accountId, stored);
+                void this.writeAudit({
+                    ...auditBase,
+                    action: "EXECUTION_DUPLICATE",
+                    environment: "DEMO",
+                    requestStatus: current.status,
+                    result: current.status,
+                });
+                const httpStatus =
+                    current.status === "UNKNOWN"
+                        ? errorCodeToStatus(current.error ?? tradingError("EXECUTION_TIMEOUT", ""))
+                        : 200;
+                return { result: { ...current, duplicate: true }, httpStatus };
+            }
+            if (stored && stored.status === "ACCEPTED") {
+                // Queued and unresolved: replay the original result, never resend.
+                void this.writeAudit({
+                    ...auditBase,
+                    action: "EXECUTION_DUPLICATE",
+                    environment: "DEMO",
+                    requestStatus: stored.status,
+                    result: stored.status,
+                });
+                return { result: { ...stored, duplicate: true }, httpStatus: 202 };
+            }
             if (stored && stored.status !== "ACCEPTED") {
                 void this.writeAudit({
                     ...auditBase,
@@ -546,6 +671,17 @@ export class UnifiedTradingService {
             volume = decision.volume ?? volume;
         }
 
+        // 10a. One outstanding outcome per position/order: a second management
+        // action on the same target is refused without dispatch while the first is UNKNOWN.
+        const lockKey = this.lockKeyFor(request, position, order);
+        if (lockKey) {
+            const blocked = await this.checkTargetLock(request, lockKey);
+            if (blocked) {
+                const outcome = await this.settle(request, correlationId, startedAt, "REJECTED", blocked, provider, null, position, order);
+                return { result: outcome, httpStatus: errorCodeToStatus(blocked) };
+            }
+        }
+
         // 10. Provider execution.
         const executed = await adapter.execute({
             request,
@@ -557,7 +693,10 @@ export class UnifiedTradingService {
         });
 
         if (!executed.ok) {
-            const outcome = await this.settle(request, correlationId, startedAt, "FAILED", executed.error, provider, null, position, order);
+            // A timeout (or lost reply) after dispatch is UNKNOWN, never a
+            // confirmed failure. Pre-dispatch refusals stay FAILED.
+            const settledStatus = UNKNOWN_OUTCOME_ERROR_CODES.has(executed.error.code) ? "UNKNOWN" : "FAILED";
+            const outcome = await this.settle(request, correlationId, startedAt, settledStatus, executed.error, provider, null, position, order);
             return { result: outcome, httpStatus: errorCodeToStatus(executed.error) };
         }
 
@@ -571,9 +710,12 @@ export class UnifiedTradingService {
                     ? "EXECUTION_REJECTED"
                     : result.status === "ACCEPTED"
                       ? "EXECUTION_ACCEPTED"
-                      : "EXECUTION_FAILED";
+                      : result.status === "UNKNOWN"
+                        ? "EXECUTION_UNKNOWN"
+                        : "EXECUTION_FAILED";
 
         await this.persistResult(request.userId, result);
+        await this.releaseOwnerLock(request.userId, request.accountId, result);
         void this.writeAudit({
             ...auditBase,
             action,
@@ -696,6 +838,55 @@ export class UnifiedTradingService {
         return 0;
     }
 
+    /** Management actions lock their position/order; entries never do. */
+    private lockKeyFor(
+        request: { executionType: string },
+        position: TradingPosition | null,
+        order: TradingOrder | null
+    ): string | null {
+        if (request.executionType === "PLACE_ORDER") return null;
+        return position?.id ?? order?.id ?? null;
+    }
+
+    /** Releases the target lock when this result is settled. Owner-guarded in the store. */
+    private async releaseOwnerLock(userId: string, accountId: string, result: TradingExecutionResult): Promise<void> {
+        // UNKNOWN and ACCEPTED (queued, awaiting the gateway report) are unresolved: the target stays locked.
+        if (result.status === "UNKNOWN" || result.status === "ACCEPTED") return;
+        const key = this.lockKeyFor(result, result.position, result.order);
+        if (key) await this.targetLocks.release(userId, accountId, key, result.clientRequestId);
+    }
+
+    /**
+     * Claims the target for this request. A refusal means another request still
+     * owns it with an unresolved outcome, so nothing is dispatched.
+     */
+    private async checkTargetLock(request: TradingExecutionRequest, key: string): Promise<TradingError | null> {
+        const { userId, accountId, clientRequestId } = request;
+        const first = await this.targetLocks.claim(userId, accountId, key, clientRequestId);
+        if (first.acquired) return null;
+
+        // Reconcile the owner. A settled owner means the lock is stale (its release was lost).
+        const owner = first.owner;
+        const ownerResult = owner ? await this.targetLocks.readResult(userId, owner) : null;
+        if (owner && ownerResult) {
+            const current =
+                ownerResult.status === "UNKNOWN"
+                    ? await this.reconcileUnknown(userId, accountId, ownerResult)
+                    : ownerResult;
+            // Only a settled owner frees the target; UNKNOWN and queued (ACCEPTED) owners stay unresolved.
+            if (current.status !== "UNKNOWN" && current.status !== "ACCEPTED") {
+                await this.targetLocks.release(userId, accountId, key, owner);
+            }
+        }
+
+        const retry = await this.targetLocks.claim(userId, accountId, key, clientRequestId);
+        if (retry.acquired) return null;
+        return tradingError(
+            "DUPLICATE_REQUEST",
+            "A previous action on this position or order is still unconfirmed. Confirm it before sending another."
+        );
+    }
+
     private async settle(
         request: TradingExecutionRequest,
         correlationId: string,
@@ -726,6 +917,7 @@ export class UnifiedTradingService {
             completedAt: this.now(),
         };
         await this.persistResult(request.userId, result);
+        await this.releaseOwnerLock(request.userId, request.accountId, result);
         void this.writeAudit({
             userId: request.userId,
             accountId: request.accountId,
@@ -736,9 +928,11 @@ export class UnifiedTradingService {
             action:
                 status === "SUCCEEDED"
                     ? "EXECUTION_SUCCEEDED"
-                    : status === "FAILED"
-                      ? "EXECUTION_FAILED"
-                      : "EXECUTION_REJECTED",
+                    : status === "UNKNOWN"
+                      ? "EXECUTION_UNKNOWN"
+                      : status === "FAILED"
+                        ? "EXECUTION_FAILED"
+                        : "EXECUTION_REJECTED",
             symbol: request.symbol ?? null,
             volume: request.volume ?? null,
             requestStatus: "ACCEPTED",

@@ -3253,12 +3253,14 @@ export function ProTerminalChart({
     // ── Trade history markers (real entry/exit fills) ─────────────────────
     // Fills whose timestamps fall outside the loaded window are skipped —
     // markers are never placed at a time the chart cannot resolve.
+    // They are attached to the active price series so they persist across
+    // chart type switches (candlestick → line → area → baseline → bar).
     const historyKey = tradeHistory
         .map((f) => `${f.id}:${f.time}:${f.price}:${f.kind}:${f.side}:${f.label ?? ""}:${f.profit ?? ""}`)
         .join("|");
     useEffect(() => {
-        const cs = candleSeriesRef.current;
-        if (!cs) return;
+        const series = activePriceSeriesRef.current || candleSeriesRef.current;
+        if (!series) return;
         const api = historyMarkersRef.current;
         if (!cfg.display.historyMarkers || tradeHistory.length === 0 || candles.length === 0) {
             api?.setMarkers([]);
@@ -3304,7 +3306,7 @@ export function ProTerminalChart({
         if (api) {
             api.setMarkers(markers);
         } else if (markers.length > 0) {
-            historyMarkersRef.current = createSeriesMarkers(cs, markers);
+            historyMarkersRef.current = createSeriesMarkers(series, markers);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [cfg, historyKey, candles, symbol]);

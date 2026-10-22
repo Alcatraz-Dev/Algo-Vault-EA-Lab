@@ -32,7 +32,17 @@ export interface WorkspacePreset {
 
 /** Rail weights are normalised by the shell; they only express relative size. */
 function panels(spec: Partial<Record<PanelId, number>>, hidden: PanelId[] = []): Record<PanelId, PanelState> {
-    const ids: PanelId[] = ["watchlist", "chart", "intelligence", "account", "events", "chat", "sessions", "monitor"];
+    const ids: PanelId[] = [
+        "watchlist",
+        "chart",
+        "intelligence",
+        "account",
+        "bots",
+        "events",
+        "chat",
+        "sessions",
+        "monitor",
+    ];
     const out = {} as Record<PanelId, PanelState>;
     for (const id of ids) {
         out[id] = {
@@ -89,12 +99,12 @@ export const WORKSPACE_PRESETS: WorkspacePreset[] = [
     {
         id: "day-trading",
         label: "Day Trading",
-        description: "Balanced single-chart workspace with structure, positions and the event feed.",
+        description: "Balanced single-chart workspace with structure, positions, bots and the event feed.",
         defaultTimeframe: "M15",
         defaultIntelligenceMode: "structure",
         chatOpen: true,
         pro: false,
-        panels: panels({ watchlist: 1, chart: 3, intelligence: 1.2, account: 1.1, events: 1, chat: 1.2 }),
+        panels: panels({ watchlist: 1, chart: 3, intelligence: 1.2, account: 1.1, bots: 0.9, events: 1, chat: 1.2 }),
         layers: { ...BASE_LAYERS },
     },
     {
@@ -127,7 +137,7 @@ export const WORKSPACE_PRESETS: WorkspacePreset[] = [
         defaultIntelligenceMode: "risk",
         chatOpen: false,
         pro: true,
-        panels: panels({ watchlist: 1.2, chart: 2.4, intelligence: 1, account: 1.8, events: 0.9 }, ["chat"]),
+        panels: panels({ watchlist: 1.2, chart: 2.4, intelligence: 1, account: 1.8, bots: 1.3, events: 0.9 }, ["chat"]),
         layers: { ...BASE_LAYERS, volume: true },
     },
     {
@@ -138,7 +148,7 @@ export const WORKSPACE_PRESETS: WorkspacePreset[] = [
         defaultIntelligenceMode: "ai",
         chatOpen: true,
         pro: true,
-        panels: panels({ watchlist: 0.9, chart: 2.6, intelligence: 1.2, account: 1, events: 1, chat: 1.6 }),
+        panels: panels({ watchlist: 0.9, chart: 2.6, intelligence: 1.2, account: 1, bots: 1.1, events: 1, chat: 1.6 }),
         layers: { ...BASE_LAYERS },
     },
     {
@@ -149,7 +159,7 @@ export const WORKSPACE_PRESETS: WorkspacePreset[] = [
         defaultIntelligenceMode: "setups",
         chatOpen: true,
         pro: false,
-        panels: panels({ watchlist: 1, chart: 2.8, intelligence: 1.2, account: 1.5, events: 1, chat: 1.2 }),
+        panels: panels({ watchlist: 1, chart: 2.8, intelligence: 1.2, account: 1.5, bots: 0.9, events: 1, chat: 1.2 }),
         layers: { ...BASE_LAYERS },
     },
 ];

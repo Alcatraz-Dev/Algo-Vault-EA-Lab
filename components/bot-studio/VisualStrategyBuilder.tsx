@@ -872,6 +872,45 @@ export function VisualStrategyBuilder() {
                     </div>
                 </div>
 
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs font-medium text-muted-foreground">Symbol</label>
+                    <select
+                        value={symbol}
+                        onChange={(e) => setSymbol(e.target.value)}
+                        className="h-8 rounded-lg border border-border bg-card px-2 text-xs text-foreground"
+                    >
+                        <option value="EURUSD">EURUSD</option>
+                        <option value="GBPUSD">GBPUSD</option>
+                        <option value="USDJPY">USDJPY</option>
+                        <option value="USDCHF">USDCHF</option>
+                        <option value="AUDUSD">AUDUSD</option>
+                        <option value="NZDUSD">NZDUSD</option>
+                        <option value="USDCAD">USDCAD</option>
+                        <option value="EURGBP">EURGBP</option>
+                        <option value="EURJPY">EURJPY</option>
+                        <option value="GBPJPY">GBPJPY</option>
+                        <option value="AUDJPY">AUDJPY</option>
+                    </select>
+                </div>
+
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs font-medium text-muted-foreground">Timeframe</label>
+                    <select
+                        value={timeframe}
+                        onChange={(e) => setTimeframe(e.target.value)}
+                        className="h-8 rounded-lg border border-border bg-card px-2 text-xs text-foreground"
+                    >
+                        <option value="M1">1 Minute</option>
+                        <option value="M5">5 Minutes</option>
+                        <option value="M15">15 Minutes</option>
+                        <option value="M30">30 Minutes</option>
+                        <option value="H1">1 Hour</option>
+                        <option value="H4">4 Hours</option>
+                        <option value="D1">Daily</option>
+                        <option value="W1">Weekly</option>
+                    </select>
+                </div>
+
                 <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" size="sm" onClick={handleCompile} disabled={compiling}>
                         <RefreshCw className={compiling ? "animate-spin" : ""} />

@@ -10,6 +10,7 @@ import {
     getRecentExecutions,
     appendAudit,
 } from "@/lib/bot-studio/database";
+import { loadBotOpenPositions } from "@/lib/bot-studio/summaries";
 
 export async function GET(
     request: NextRequest,
@@ -30,11 +31,16 @@ export async function GET(
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
 
-        const [strategy, logs, signals, executions] = await Promise.all([
+        const [strategy, logs, signals, executions, positions] = await Promise.all([
             getStrategy(deployment.strategyId),
             getRecentLogs(botId, 50),
             getRecentSignals(botId, 30),
             getRecentExecutions(botId, 30),
+            // Bot-specific open positions, indexed from the account snapshot
+            // by magic number under `bot_positions/{botId}`. Owned by this
+            // deployment only, so the ownership check above is what protects
+            // them — the same check that protects the deployment itself.
+            loadBotOpenPositions(botId),
         ]);
 
         return NextResponse.json({
@@ -44,6 +50,7 @@ export async function GET(
             logs,
             signals,
             executions,
+            positions,
         });
     } catch (error) {
         return NextResponse.json(

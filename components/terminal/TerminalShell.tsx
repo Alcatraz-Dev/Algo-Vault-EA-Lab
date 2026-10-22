@@ -19,8 +19,9 @@
  * Mobile degrades to tabs over the same panels (§36) — no second engine.
   */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+    Bot,
     CandlestickChart,
     LayoutList,
     LineChart,
@@ -40,8 +41,9 @@ import {
     type ChartTradeFill,
 } from "@/components/pro-scalping-terminal/chart-settings";
 import {
-    executeUnified,
-    newClientRequestId,
+    ExecutionOutcomeTracker,
+    isUnknownOutcome,
+    targetKeyFor,
     type UnifiedExecutePayload,
 } from "@/lib/trading/unified/client";
 import type { PanelId } from "@/lib/terminal/types";
@@ -54,15 +56,18 @@ import { AccountPanel } from "./AccountPanel";
 import { RiskHud } from "./RiskHud";
 import { TradingChat } from "./TradingChat";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
+import { BotsPanel } from "./BotsPanel";
+import { BotsDataProvider } from "./BotsData";
 import { useTerminal, useTerminalClock } from "./TerminalContext";
 import { useTerminalData } from "./TerminalData";
 
-type MobileTab = "watchlist" | "chart" | "intelligence" | "account" | "chat";
+type MobileTab = "watchlist" | "chart" | "intelligence" | "bots" | "account" | "chat";
 
 const MOBILE_TABS: Array<{ id: MobileTab; label: string; icon: typeof LineChart }> = [
     { id: "watchlist", label: "Watch", icon: PanelsTopLeft },
     { id: "chart", label: "Chart", icon: CandlestickChart },
     { id: "intelligence", label: "Intel", icon: Signal },
+    { id: "bots", label: "Bots", icon: Bot },
     { id: "account", label: "Account", icon: Shield },
     { id: "chat", label: "Chat", icon: MessagesSquare },
 ];
@@ -71,6 +76,7 @@ const PANEL_TOGGLE: Array<{ id: PanelId; label: string }> = [
     { id: "watchlist", label: "Watchlist" },
     { id: "intelligence", label: "Intelligence" },
     { id: "events", label: "Monitor" },
+    { id: "bots", label: "Bots" },
     { id: "account", label: "Account" },
     { id: "chat", label: "Chat" },
 ];
@@ -178,6 +184,8 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
      * CURRENT VOLUME — computed and re-validated server-side (min lot / lot
      * step aware), never derived from profit.
      */
+    const outcomes = useRef(new ExecutionOutcomeTracker());
+    useEffect(() => () => outcomes.current.dispose(), []);
     const act = useCallback(
         async (
             payload: Omit<UnifiedExecutePayload, "clientRequestId">,
@@ -196,17 +204,26 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 return false;
             }
             setActionError(null);
+            // Same shared target lock as AccountPanel: an identical repeat click
+            // replays the SAME request; a different action on the target is blocked.
+            const key = targetKeyFor(payload);
             try {
-                const result = await executeUnified(
-                    { ...payload, clientRequestId: newClientRequestId("pt") },
-                    authToken
-                );
+                const result = await outcomes.current.run(key, payload, authToken);
                 if (result.status === "EXECUTED_PENDING_SYNC") {
                     setActionError(`${describe}: executed on the broker — position syncs on the next account snapshot.`);
                 }
+                if (result.status === "ACCEPTED") {
+                    setActionError(`${describe}: queued on the broker, still unconfirmed. Click again to check the same request.`);
+                    return false;
+                }
                 return true;
             } catch (error) {
-                setActionError(`${describe}: ${error instanceof Error ? error.message : "execution failed."}`);
+                const suffix = isUnknownOutcome(error)
+                    ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
+                    : "";
+                setActionError(
+                    `${describe}: ${error instanceof Error ? error.message : "execution failed."}${suffix}`
+                );
                 return false;
             }
         },
@@ -252,6 +269,10 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     );
 
     const visible = (id: PanelId) => state.panels[id]?.visible !== false;
+    // The Bots panel is the only bot source; its provider polls only while the
+    // panel is actually on screen (desktop panel or the mobile tab).
+    const botsVisible = visible("bots");
+    const botsEnabled = botsVisible || mobileTab === "bots";
 
     /**
      * SL/TP drag commit from the chart: merge the dragged stop with the
@@ -359,6 +380,7 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
     }
 
     return (
+        <BotsDataProvider enabled={botsEnabled}>
         <div className="mx-auto flex w-full max-w-full min-w-0 flex-col gap-2.5 px-2 sm:px-3 md:px-4 lg:px-6 py-1 sm:py-3">
             <TerminalTopBar now={now} isPro={isPro} />
 
@@ -472,6 +494,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             {actionError}
                         </p>
                     ) : null}
+                    {botsVisible ? (
+                        <PanelErrorBoundary name="Bots">
+                            <BotsPanel now={now} />
+                        </PanelErrorBoundary>
+                    ) : null}
                     {visible("account") ? <AccountPanel /> : null}
                 </main>
 
@@ -507,6 +534,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         {visible("events") ? <EventFeed now={now} /> : null}
                     </>
                 ) : null}
+                {mobileTab === "bots" ? (
+                    <PanelErrorBoundary name="Bots">
+                        <BotsPanel now={now} />
+                    </PanelErrorBoundary>
+                ) : null}
                 {mobileTab === "account" ? (
                     <>
                         {actionError ? (
@@ -527,5 +559,6 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                 Nothing on this screen is simulated unless the account badge reads PAPER. Not financial advice.
             </p>
         </div>
+        </BotsDataProvider>
     );
 }

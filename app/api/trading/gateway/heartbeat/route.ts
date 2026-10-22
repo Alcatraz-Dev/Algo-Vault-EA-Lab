@@ -179,25 +179,13 @@ export async function POST(request: NextRequest) {
             updatedAt: now,
         });
 
-        // Fetch-all + filter: avoids requiring a `trading_order_requests` RTDB
-        // index on `accountId` (consistent with the commands route).
-        const commandsSnap = await adminDatabase
-            .ref(`trading_order_requests/${userId}`)
-            .get();
-
-        const commandsData = commandsSnap.val() || {};
-        const pendingCommands: Array<Record<string, unknown>> = [];
-
-        for (const [commandId, raw] of Object.entries(commandsData)) {
-            if (!raw || typeof raw !== "object") continue;
-            const cmd = raw as Record<string, unknown>;
-            if (cmd.status === "queued" && String(cmd.accountId || "") === accountId) {
-                pendingCommands.push({ ...cmd, id: commandId });
-            }
-        }
-
+        // Command DELIVERY happens only through `/gateway/commands`, where each
+        // queue item is claimed inside an RTDB transaction. Returning queued
+        // commands here would create a second, unclaimed delivery channel that
+        // could be executed without a claim. The field is kept for wire
+        // compatibility and is always empty.
         return NextResponse.json(
-            { success: true, commands: pendingCommands },
+            { success: true, commands: [] },
             { status: 200, headers: corsHeaders }
         );
     } catch (error) {

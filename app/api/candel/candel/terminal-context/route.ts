@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
         account: { visible: false, size: 0.5 },
         chart: { visible: true, size: 1.0 },
         intelligence: { visible: true, size: 0.7 },
+        bots: { visible: false, size: 0.5 },
         events: { visible: true, size: 0.5 },
         chat: { visible: false, size: 0.6 },
         sessions: { visible: false, size: 0.5 },

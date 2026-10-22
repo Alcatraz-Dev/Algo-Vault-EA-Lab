@@ -867,6 +867,8 @@ bool SendHTTPRequest(string method,
    responseHeaders = "";
    httpCode = -1;
 
+   ulong startMs = GetMicrosecondCount() / 1000;
+
    string headers =
       "Content-Type: application/json\r\n" +
       "Accept: application/json\r\n" +
@@ -909,10 +911,11 @@ bool SendHTTPRequest(string method,
    {
       int errorCode = GetLastError();
 
-      Print("WebRequest failed.");
-      Print("Method: ", method);
-      Print("URL: ", url);
-      Print("Error: ", errorCode);
+      Print("[SendHTTPRequest] WebRequest failed.");
+      Print("[SendHTTPRequest] Method: ", method);
+      Print("[SendHTTPRequest] URL: ", url);
+      Print("[SendHTTPRequest] Error (GetLastError): ", errorCode);
+      Print("[SendHTTPRequest] ElapsedMs: ", startMs, "->", (GetMicrosecondCount() / 1000), "MS");
 
       consecutiveFails++;
 
@@ -920,6 +923,23 @@ bool SendHTTPRequest(string method,
 
       return false;
    }
+
+   ulong elapsedMs = GetMicrosecondCount() / 1000 - startMs;
+
+   Print("[SendHTTPRequest] Method: ", method, " | Status:", resultSize, " | BodyBytes: ", ArraySize(result));
+   Print("[SendHTTPRequest] URL: ", url);
+   Print("[SendHTTPRequest] ElapsedMs: ", elapsedMs);
+
+   // The official MQL5 docs declare WebRequest returns the HTTP status code or -1. Some
+   // MQL5 builds (and WinInet under certain conditions) return non-standard codes such as
+   // 1003 with an empty body for reused-connection stalls, so trust only the returned value
+   // when it is a recognized status, and log the full header block so the status line is
+   // visible in Experts log instead of trusting a magic number.
+   string hdr = responseHeaders;
+   StringTrimLeft(hdr);
+   StringTrimRight(hdr);
+   if(hdr == "") hdr = "(no headers)";
+   Print("[SendHTTPRequest] ResponseHeaders: ", StringSubstr(hdr, 0, MathMin(120, StringLen(hdr))));
 
    httpCode = resultSize;
 
@@ -944,9 +964,9 @@ bool SendHTTPRequest(string method,
       return true;
    }
 
-   Print("HTTP error: ", httpCode);
-   Print("URL: ", url);
-   Print("Response: ", response);
+   Print("[SendHTTPRequest] HTTP error (non-2xx): ", httpCode, " | URL: ", url);
+   Print("[SendHTTPRequest] Response (bytes): ", ArraySize(result), " | ElapsedMs: ", elapsedMs);
+   // Do NOT log full response when it may contain account or token data — log only length.
 
    consecutiveFails++;
 
@@ -2631,6 +2651,14 @@ bool IsTradeSuccess(MqlTradeResult &result)
    return false;
 }
 
+// Timeout / connection loss: the broker may already have executed the order.
+// Such a result must be reported as UNCERTAIN, never as REJECTED.
+bool IsAmbiguousTradeRetcode(uint retcode)
+{
+   return (retcode == TRADE_RETCODE_TIMEOUT ||
+           retcode == TRADE_RETCODE_CONNECTION);
+}
+
 
 //+------------------------------------------------------------------+
 //| Account-mode enforcement                                         |
@@ -2825,7 +2853,9 @@ bool ReportExecution(string commandId,
       "," +
 
       "\"status\":\"" +
-      (success ? (result.retcode == TRADE_RETCODE_DONE_PARTIAL ? "partially_filled" : "filled") : "rejected") +
+      (success
+         ? (result.retcode == TRADE_RETCODE_DONE_PARTIAL ? "partially_filled" : "filled")
+         : (IsAmbiguousTradeRetcode(result.retcode) ? "uncertain" : "rejected")) +
       "\"," +
 
       "\"retcode\":" +

@@ -106,6 +106,11 @@ function decodeOrderType(value: unknown): { kind: TradingOrderKind; side: "BUY" 
     }
 }
 
+/** `uncertain` = the EA could not tell whether the broker executed the order. */
+function isUncertainReport(value: unknown): boolean {
+    return String(value ?? "").toLowerCase() === "uncertain";
+}
+
 /** Gateway execution status (written by /api/trading/gateway/execution). */
 function decodeExecutionState(value: unknown): TradingOrderState {
     const status = String(value ?? "").toLowerCase();
@@ -565,16 +570,19 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             return finish({ status: "ACCEPTED" });
         }
 
+        console.info("[mt5-demo-provider] command queued", {
+            clientRequestId: request.clientRequestId,
+            executionType: request.executionType,
+        });
         const report = await this.awaitExecutionReport(request.userId, request.clientRequestId);
         if (!report) {
-            // Existing unified-trading contract: a provider that never confirmed
-            // settles FAILED / EXECUTION_TIMEOUT and never fabricates a fill.
-            // The command stays durable and idempotent, so a late report is
-            // still visible in execution history — but the canonical result is
-            // not rewritten. Callers must not treat this as a license to
-            // resubmit blindly; the idempotency key absorbs any replay.
+            // A provider that never confirmed is UNKNOWN, not FAILED: the order
+            // may still have executed on MT5. The command stays durable and
+            // idempotent (same clientRequestId), so a late report is visible in
+            // history and reconcileExecution() can resolve it. Nothing here
+            // resends the order, and nothing claims a fill.
             return finish({
-                status: "FAILED",
+                status: "UNKNOWN",
                 error: tradingError(
                     "EXECUTION_TIMEOUT",
                     "The MetaTrader 5 gateway did not confirm the execution in time."
@@ -583,6 +591,21 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         }
 
         const state = decodeExecutionState(report.status);
+        if (isUncertainReport(report.status)) {
+            // Ambiguous broker outcome (timeout / connection loss): the order may
+            // have executed. Never claim a fill or a rejection; stay UNKNOWN so
+            // reconciliation can settle it.
+            const retcode = num(report.errorCode) ?? num(report.retcode) ?? 0;
+            return finish({
+                status: "UNKNOWN",
+                providerRef: str(report.mt5Ticket),
+                error: tradingError(
+                    retcode > 0 ? mapMt5Retcode(retcode) : "EXECUTION_TIMEOUT",
+                    str(report.errorMessage) ?? "The MetaTrader 5 gateway reported an ambiguous outcome.",
+                    { providerRetcode: retcode > 0 ? retcode : null }
+                ),
+            });
+        }
         if (state === "REJECTED") {
             const retcode = num(report.errorCode) ?? num(report.retcode) ?? 0;
             return finish({
@@ -743,19 +766,38 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         clientRequestId: string
     ): Promise<Record<string, unknown> | null> {
         const ref = this.database.ref(`trading_order_requests/${userId}/${clientRequestId}`);
-        const deadline = this.config.clock() + this.config.executionTimeoutMs;
+        const startedAt = this.config.clock();
+        const deadline = startedAt + this.config.executionTimeoutMs;
+        let lastStatus: string | null = null;
         while (this.config.clock() < deadline) {
             const snap = await ref.get();
             const value = snap.val();
             if (value && typeof value === "object") {
                 const record = value as Record<string, unknown>;
+                lastStatus = String(record.status ?? "");
                 const state = decodeExecutionState(record.status);
-                if (state === "FILLED" || state === "PARTIALLY_FILLED" || state === "REJECTED" || state === "CANCELLED") {
+                // `uncertain` is a settled report from the EA (ambiguous broker
+                // outcome). Return it now instead of waiting out the clock.
+                if (
+                    state === "FILLED" ||
+                    state === "PARTIALLY_FILLED" ||
+                    state === "REJECTED" ||
+                    state === "CANCELLED" ||
+                    isUncertainReport(record.status)
+                ) {
                     return record;
                 }
             }
             await this.delay(this.config.pollIntervalMs);
         }
+        // Secret-free, correlated diagnostic. The request is neither resent nor
+        // failed here; lastStatus shows how far it got: "queued" = never claimed
+        // by the EA, "executing" = claimed but no report, null = no record.
+        console.warn("[mt5-demo-provider] execution report not received", {
+            clientRequestId,
+            waitedMs: this.config.clock() - startedAt,
+            lastStatus: lastStatus ?? "no-record",
+        });
         return null;
     }
 

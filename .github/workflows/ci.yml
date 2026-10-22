@@ -75,6 +75,15 @@ jobs:
       - name: Agent IDE suite
         run: npm run test:agent-ide
 
+      # Terminal → Trading → Bots. The panel's view model (panel states,
+      # lifecycle legality, eligibility gating) and the routes behind it
+      # (owner scoping, summaries, lifecycle authorization).
+      - name: Terminal Bots panel suite
+        run: npm run test:terminal-bots
+
+      - name: Terminal Bots API suite
+        run: npm run test:terminal-bots-api
+
       - name: Telegram signal parser/lifecycle suite
         run: node scripts/jiti-tsrun.mjs features/telegram-signals/tests/run-tests.ts
 

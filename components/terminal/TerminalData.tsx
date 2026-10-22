@@ -26,6 +26,7 @@ import type { TradingAccount } from "@/components/trading/AccountHeader";
 import type { TerminalEvent } from "@/lib/terminal/types";
 import type { ExecutionLogEntry } from "@/components/trading/ExecutionLog";
 import { deriveAccountMode } from "@/lib/terminal/account";
+import { isGatewayConnected } from "@/lib/trading/gateway/health";
 import {
     buildEventFeed,
     riskEvents,
@@ -95,6 +96,8 @@ export interface TerminalDataValue {
     /** Gateway execution logs for the selected account (chart fill source). */
     executionLogs: ExecutionLogEntry[];
     accountLoading: boolean;
+    gatewayAnyConnected: boolean;
+    gatewayAnyOnline: boolean;
     risk: RiskPayload | null;
     riskError: string | null;
     riskLoading: boolean;
@@ -164,6 +167,8 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
     const [orders, setOrders] = useState<PendingOrder[]>([]);
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
     const [accountLoading, setAccountLoading] = useState(true);
+    const [gatewayAnyConnected, setGatewayAnyConnected] = useState(false);
+    const [gatewayAnyOnline, setGatewayAnyOnline] = useState(false);
 
     /* eslint-disable react-hooks/set-state-in-effect -- Firebase auth/RTDB listeners: subscriptions can only be attached after the resolved session changes, and the callbacks that follow are the sanctioned place for setState. */
     useEffect(() => {
@@ -173,6 +178,8 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             setOrders([]);
             setExecutionLogs([]);
             setAccountLoading(false);
+            setGatewayAnyConnected(false);
+            setGatewayAnyOnline(false);
             setAccountMode("unknown");
             return;
         }
@@ -226,9 +233,7 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
         const unsubs = [
             onValue(accountRef, (snap) => {
                 const val = snap.val() as Record<string, Record<string, unknown>> | null;
-                const firstKey = val ? Object.keys(val)[0] : null;
-                const acc = firstKey ? val?.[firstKey] : null;
-                if (!acc) {
+                if (!val) {
                     setAccount(null);
                     setAccountMode("unknown");
                     if (logsAccountId !== null) {
@@ -237,46 +242,61 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
                         logsAccountId = null;
                         setExecutionLogs([]);
                     }
-                } else {
+                    setAccountLoading(false);
+                    return;
+                }
+                // Read ALL accounts under the user and build a map of accountId -> state
+                const accounts: Record<string, TradingAccount> = {};
+                let anyConnected = false;
+                let anyOnline = false;
+                for (const [accountId, raw] of Object.entries(val)) {
+                    const acc = raw as Record<string, unknown> | null;
+                    if (!acc) continue;
                     const hb = Number(acc.lastHeartbeatAt) || 0;
-                    // Absent broker fields stay null. `|| 0` / `|| "connected"`
-                    // turned "not reported yet" into a plausible-looking zero
-                    // and a healthy-looking status, so an account that had
-                    // never reported read as connected with a real balance.
-                    const num = (value: unknown): number | null =>
-                        value === undefined || value === null || value === ""
-                            ? null
-                            : Number.isFinite(Number(value))
-                              ? Number(value)
-                              : null;
                     const knownStatus = ["connected", "disconnected", "degraded", "halted"];
                     const rawStatus = typeof acc.status === "string" ? acc.status.toLowerCase() : "";
-                    setAccount({
-                        accountId: firstKey as string,
-                        mt5Account: String(acc.mt5Account || acc.account_id || firstKey),
+                    const connected = isGatewayConnected(
+                        { status: acc.status, lastHeartbeatAt: acc.lastHeartbeatAt },
+                        now
+                    );
+                    // Track if any account has a fresh heartbeat
+                    if (connected) anyConnected = true;
+                    if (String(acc.status ?? "") === "connected") anyOnline = true;
+                    accounts[accountId] = {
+                        accountId: accountId,
+                        mt5Account: String(acc.mt5Account || acc.account_id || accountId),
                         broker: acc.broker ? String(acc.broker) : "MetaTrader 5",
                         server: acc.server ? String(acc.server) : "Live Server",
                         currency: acc.currency ? String(acc.currency) : "USD",
                         leverage: acc.leverage ? `1:${acc.leverage}` : "1:100",
-                        balance: num(acc.balance),
-                        equity: num(acc.equity),
-                        margin: num(acc.margin),
-                        freeMargin: num(acc.freeMargin),
-                        marginLevel: num(acc.marginLevel),
+                        balance: acc.balance !== undefined ? Number(acc.balance) : null,
+                        equity: acc.equity !== undefined ? Number(acc.equity) : null,
+                        margin: acc.margin !== undefined ? Number(acc.margin) : null,
+                        freeMargin: acc.freeMargin !== undefined ? Number(acc.freeMargin) : null,
+                        marginLevel: acc.marginLevel !== undefined ? Number(acc.marginLevel) : null,
                         status: (knownStatus.includes(rawStatus)
                             ? rawStatus
                             : "unknown") as TradingAccount["status"],
                         lastHeartbeatAt: hb,
                         gatewayVersion: String(acc.gatewayVersion || ""),
-                    });
-                    setAccountMode(deriveAccountMode(acc));
-                    // Attach (or keep) the per-account execution-log
-                    // subscription — re-attach only when the ACCOUNT changes,
-                    // never on every heartbeat snapshot.
-                    if (firstKey && firstKey !== logsAccountId) {
-                        logsAccountId = firstKey;
-                        attachLogListener(firstKey);
-                    }
+                    };
+                }
+                // Select the first account that is online/connected as the primary display
+                // but mark all accounts' states so the UI can show per-account status
+                const firstKey = Object.keys(accounts)[0] || null;
+                const primaryAccount = firstKey ? accounts[firstKey] : null;
+                setAccount(primaryAccount);
+                setAccountMode(deriveAccountMode((primaryAccount ?? {}) as Record<string, unknown>));
+                // Mark whether ANY account is connected (for the gateway chip)
+                setGatewayAnyConnected(anyConnected);
+                // Mark whether ANY account is online (for UI)
+                setGatewayAnyOnline(anyOnline);
+                // Attach (or keep) the per-account execution-log
+                // subscription — re-attach only when a specific ACCOUNT changes,
+                // never on every heartbeat snapshot.
+                if (firstKey && firstKey !== logsAccountId) {
+                    logsAccountId = firstKey;
+                    attachLogListener(firstKey);
                 }
                 setAccountLoading(false);
             }),
@@ -385,6 +405,8 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             orders,
             executionLogs,
             accountLoading,
+            gatewayAnyConnected,
+            gatewayAnyOnline,
             risk: risk.data,
             riskError: risk.error,
             riskLoading: risk.loading,
@@ -411,6 +433,8 @@ export function TerminalDataProvider({ children }: { children: ReactNode }) {
             orders,
             executionLogs,
             accountLoading,
+            gatewayAnyConnected,
+            gatewayAnyOnline,
             risk.data,
             risk.error,
             risk.loading,

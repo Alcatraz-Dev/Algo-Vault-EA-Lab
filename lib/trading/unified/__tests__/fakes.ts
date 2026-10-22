@@ -30,6 +30,7 @@ export function createFakeStore() {
     const results: TradingExecutionResult[] = [];
     const accounts: UnifiedAccountRecord[] = [];
     const audit: Array<Omit<TradingAuditEvent, "eventId"> & { eventId: string }> = [];
+    const locks = new Map<string, string>();
     let seq = 0;
 
     const key = (userId: string, id: string) => `${userId}:${id}`;
@@ -85,6 +86,23 @@ export function createFakeStore() {
             }
         },
 
+        /** Same guarded contract as RTDB: writes only over a stored UNKNOWN. */
+        async resolveUnknown(userId: string, resolved: TradingExecutionResult): Promise<TradingExecutionResult | null> {
+            const k = key(userId, resolved.clientRequestId);
+            const existing = requests.get(k);
+            if (!existing) return null;
+            if (!existing.result || existing.result.status !== "UNKNOWN") return existing.result;
+            requests.set(k, {
+                record: { ...existing.record, status: resolved.status, completedAt: resolved.completedAt },
+                result: resolved,
+            });
+            // One canonical record per request, as in RTDB: replace the UNKNOWN entry in place.
+            const index = results.findIndex((r) => r.clientRequestId === resolved.clientRequestId);
+            if (index >= 0) results[index] = resolved;
+            else results.push(resolved);
+            return resolved;
+        },
+
         async persistAccount(account: UnifiedAccountRecord): Promise<void> {
             const index = accounts.findIndex((a) => a.userId === account.userId && a.id === account.id);
             if (index >= 0) accounts[index] = account;
@@ -94,6 +112,26 @@ export function createFakeStore() {
         async audit(event: Omit<TradingAuditEvent, "eventId" | "timestamp">): Promise<void> {
             seq += 1;
             audit.push({ ...event, eventId: `evt-${seq}`, timestamp: Date.now() });
+        },
+
+        /** Same contract as the RTDB target lock: owner-guarded claim and release. */
+        targetLocks: {
+            locks,
+            async claim(userId: string, accountId: string, targetKey: string, clientRequestId: string) {
+                const k = `${userId}:${accountId}:${targetKey}`;
+                const owner = locks.get(k);
+                if (owner && owner !== clientRequestId) return { acquired: false, owner };
+                locks.set(k, clientRequestId);
+                return { acquired: true, owner: clientRequestId };
+            },
+            async release(userId: string, accountId: string, targetKey: string, clientRequestId: string) {
+                const k = `${userId}:${accountId}:${targetKey}`;
+                if (locks.get(k) === clientRequestId) locks.delete(k);
+            },
+            async readResult(userId: string, clientRequestId: string) {
+                const found = [...results].reverse().find((r) => r.clientRequestId === clientRequestId);
+                return found ?? requests.get(key(userId, clientRequestId))?.result ?? null;
+            },
         },
 
         resultLog(): TradingExecutionResult[] {

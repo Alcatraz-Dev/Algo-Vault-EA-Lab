@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
@@ -27,9 +27,11 @@ import TradeHistory, {
 } from "@/components/trading/TradeHistory";
 import { cn } from "@/lib/utils";
 import {
+    ExecutionOutcomeTracker,
     executeUnified,
-    newClientRequestId,
+    isUnknownOutcome,
     friendlyMessage,
+    targetKeyFor,
 } from "@/lib/trading/unified/client";
 import type { TradingExecutionResult } from "@/lib/trading/unified/domain";
 import {
@@ -51,6 +53,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BotDeployment, BotDeploymentSummary } from "@/lib/bot-studio/types";
 
 type Tab = "positions" | "orders" | "history" | "log";
 
@@ -76,9 +79,19 @@ export default function AccountTradingPage() {
     const [orders, setOrders] = useState<PendingOrder[]>([]);
     const [executionLogs, setExecutionLogs] = useState<ExecutionLogEntry[]>([]);
     const [closedTrades, setClosedTrades] = useState<ClosedTrade[]>([]);
+    // Bot Studio Deployments
+    const [deployments, setDeployments] = useState<BotDeployment[]>([]);
+    const [deploymentsSummaries, setDeploymentsSummaries] = useState<Record<string, BotDeploymentSummary>>({});
+    const [deploymentsLoading, setDeploymentsLoading] = useState(false);
+    const [deploymentsError, setDeploymentsError] = useState<string | null>(null);
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
+    const outcomes = useRef(new ExecutionOutcomeTracker());
+    useEffect(() => () => outcomes.current.dispose(), []);
     const [actionError, setActionError] = useState<string | null>(null);
+    // Target key of an unresolved outcome that a manual "Check status" can reconcile.
+    const [pendingCheckKey, setPendingCheckKey] = useState<string | null>(null);
+    const [checkingStatus, setCheckingStatus] = useState(false);
 
     // Transient toast: action alerts auto-dismiss after 3s so a stale
     // rejection never sits on top of the live positions panel.
@@ -136,6 +149,46 @@ export default function AccountTradingPage() {
 
         checkAccess();
     }, [firebaseUser]);
+
+    // Bot Studio Deployments fetch
+    useEffect(() => {
+        if (!firebaseUser || !hasAccess) {
+            setDeployments([]);
+            setDeploymentsSummaries({});
+            return;
+        }
+
+        const uid = firebaseUser!.uid;
+        async function fetchDeployments() {
+            setDeploymentsLoading(true);
+            try {
+                const token = await firebaseUser!.getIdToken();
+                const res = await fetch("/api/bot-studio/deployments", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    setDeploymentsError(err.error || "Failed to load bot deployments");
+                    setDeployments([]);
+                    setDeploymentsSummaries({});
+                    return;
+                }
+                const data = await res.json();
+                // Filter to only the user's own deployments (same as the API does)
+                const userDeployments = data.deployments.filter((d: any) => d.ownerId === uid);
+                setDeployments(userDeployments);
+                // Use summaries from the API response (already computed server-side)
+                setDeploymentsSummaries(data.summaries);
+                setDeploymentsLoading(false);
+            } catch (err) {
+                setDeploymentsError(err instanceof Error ? err.message : "Unknown error");
+                setDeployments([]);
+                setDeploymentsSummaries({});
+            }
+        }
+
+        fetchDeployments();
+    }, [firebaseUser, hasAccess]);
 
     // RTDB listener for the account ledger — the source of truth for which
     // accounts exist and which one is selected.
@@ -513,17 +566,30 @@ export default function AccountTradingPage() {
     ) => {
         if (!firebaseUser || !selectedAccountId) return;
         setActionError(null);
+        // Shared target lock per position/order: close and modify block each other.
+        // An identical repeat click replays the SAME clientRequestId; nothing is resent automatically.
+        const key = targetKeyFor(payload);
         try {
             const token = await firebaseUser.getIdToken();
-            const result = await executeUnified(
-                { ...payload, clientRequestId: newClientRequestId("pt") },
-                token
-            );
+            const result = await outcomes.current.run(key, payload, token);
             setLastExecution(result);
+            setPendingCheckKey(result.status === "UNKNOWN" || result.status === "ACCEPTED" ? key : null);
+            if (result.status === "EXECUTED_PENDING_SYNC") {
+                setActionError(
+                    `${describe}: executed on the broker — position syncs on the next account snapshot.`
+                );
+            }
+            if (result.status === "ACCEPTED") {
+                setActionError(`${describe}: queued on the broker, still unconfirmed. Click again to check the same request.`);
+            }
             handleRefresh();
         } catch (err) {
             const message = err instanceof Error ? err.message : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
-            setActionError(`${describe}: ${message}`);
+            setPendingCheckKey(isUnknownOutcome(err) || outcomes.current.isLocked(key) ? key : null);
+            const suffix = isUnknownOutcome(err)
+                ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
+                : "";
+            setActionError(`${describe}: ${message}${suffix}`);
         }
     };
 
@@ -1239,6 +1305,37 @@ export default function AccountTradingPage() {
                                 {actionError}
                             </p>
                         ) : null}
+                        {pendingCheckKey ? (
+                            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span>
+                                    Outcome unconfirmed. The original request is still locked; it will not be resent. Verify the position in MT5 if the gateway has not reported yet.
+                                </span>
+                                <button
+                                    type="button"
+                                    disabled={checkingStatus}
+                                    onClick={async () => {
+                                        setCheckingStatus(true);
+                                        try {
+                                            const outcome = await outcomes.current.checkStatus(pendingCheckKey);
+                                            if (outcome === "SETTLED" || outcome === "NONE") setPendingCheckKey(null);
+                                            setActionError(
+                                                outcome === "SETTLED"
+                                                    ? "Status confirmed by the gateway. The lock is released."
+                                                    : outcome === "NONE"
+                                                      ? "Nothing is held for this position any more."
+                                                      : "Still unconfirmed. The gateway has not reported this execution yet. The lock stays and nothing was resent. Verify in MT5 before acting."
+                                            );
+                                            handleRefresh();
+                                        } finally {
+                                            setCheckingStatus(false);
+                                        }
+                                    }}
+                                    className="rounded-md border border-border px-2 py-0.5 font-medium text-foreground hover:bg-muted disabled:opacity-50"
+                                >
+                                    {checkingStatus ? "Checking…" : "Check status"}
+                                </button>
+                            </div>
+                        ) : null}
                         {lastExecution ? (
                             <p className="mb-2 text-[11px] text-muted-foreground">
                                 Last execution:{" "}
@@ -1250,7 +1347,9 @@ export default function AccountTradingPage() {
                                         ? "rejected"
                                         : lastExecution.status === "FAILED"
                                           ? "failed"
-                                          : lastExecution.status.toLowerCase()}
+                                          : lastExecution.status === "UNKNOWN"
+                                            ? "outcome unknown — verify in MT5 before retrying"
+                                            : lastExecution.status.toLowerCase()}
                                 {lastExecution.filledVolume ? ` ${lastExecution.filledVolume} lots` : ""}
                                 {lastExecution.position?.symbol || lastExecution.order?.symbol ? ` ${lastExecution.position?.symbol ?? lastExecution.order?.symbol}` : ""}
                                 {lastExecution.filledPrice ? ` @ ${lastExecution.filledPrice}` : ""}
