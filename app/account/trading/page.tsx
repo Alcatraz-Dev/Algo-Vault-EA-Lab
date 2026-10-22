@@ -215,9 +215,9 @@ export default function AccountTradingPage() {
                 // Keep a prior selection only if it reports a live connection;
                 // otherwise prefer the connected account (supports multi-account).
                 const previouslyConnected = list.find(
-                  (a) => a?.accountId === previouslySelected && a?.status === "connected"
+                  (a) => a?.accountId === previouslySelected && a && isAccountLive(a)
                 );
-                const connectedFirst = list.find((a) => a?.status === "connected");
+                const connectedFirst = list.find((a) => a && isAccountLive(a));
                 const fallback = previouslyConnected
                   ? previouslySelected
                   : (connectedFirst?.accountId ?? list[0]?.accountId ?? null);
@@ -1340,9 +1340,13 @@ function AccountSwitcher({
     selectedAccountId: string | null;
     onSelect: (accountId: string) => void;
 }) {
+    // Live accounts first, everywhere in this switcher (trigger fallback and list).
+    const ordered = [...accounts].sort(
+        (a, b) => (isAccountLive(a) ? -1 : 1) - (isAccountLive(b) ? -1 : 1)
+    );
     const selected = accounts.find(
         (a) => a.accountId === selectedAccountId
-    ) ?? accounts[0] ?? null;
+    ) ?? ordered[0] ?? null;
 
     const [open, setOpen] = useState(false);
 
@@ -1385,7 +1389,7 @@ function AccountSwitcher({
                         className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         role="listbox"
                     >
-                        {[...accounts].sort((a, b) => (a.status === "connected" ? -1 : 1) - (b.status === "connected" ? -1 : 1)).map((acc) => (
+                        {ordered.map((acc) => (
                             <div
                                 key={acc.accountId}
                                 role="option"
@@ -1427,6 +1431,14 @@ function currentTimestamp(): number {
     return Date.now();
 }
 
+/** Live = gateway reports connected with a heartbeat under 120s old (same rule as StatusDot). */
+function isAccountLive(a: { status: TradingAccount["status"]; lastHeartbeatAt?: number }): boolean {
+    return (
+        a.status === "connected" &&
+        Math.floor((currentTimestamp() - (a.lastHeartbeatAt || 0)) / 1000) < 120
+    );
+}
+
 function StatusDot({
     status,
     lastHeartbeat,
@@ -1434,8 +1446,7 @@ function StatusDot({
     status: TradingAccount["status"];
     lastHeartbeat: number;
 }) {
-    const age = Math.floor((currentTimestamp() - lastHeartbeat) / 1000);
-    const isConnected = status === "connected" && age < 120;
+    const isConnected = isAccountLive({ status, lastHeartbeatAt: lastHeartbeat });
 
     return (
         <span className="relative flex h-2.5 w-2.5">
