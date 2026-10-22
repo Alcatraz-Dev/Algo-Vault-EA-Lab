@@ -319,12 +319,6 @@ export default function OrderPanel({
             {formatTime(r.completedAt ?? r.createdAt)}
           </span>
         </div>
-        {r.status === "EXECUTED_PENDING_SYNC" ? (
-          <p className="pt-1 text-warning">
-            Executed on the broker — the position will appear when the next
-            account snapshot syncs.
-          </p>
-        ) : null}
       </div>
     );
   }, [ticket, symbol, side, parsedVolume, account]);
