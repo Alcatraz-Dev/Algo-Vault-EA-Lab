@@ -80,6 +80,14 @@ export default function AccountTradingPage() {
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
 
+    // Transient toast: action alerts auto-dismiss after 3s so a stale
+    // rejection never sits on top of the live positions panel.
+    useEffect(() => {
+        if (!actionError) return;
+        const timer = setTimeout(() => setActionError(null), 3000);
+        return () => clearTimeout(timer);
+    }, [actionError]);
+
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
@@ -504,11 +512,6 @@ export default function AccountTradingPage() {
                 token
             );
             setLastExecution(result);
-            if (result.status === "EXECUTED_PENDING_SYNC") {
-                setActionError(
-                    `${describe}: executed on the broker — position syncs on the next account snapshot.`
-                );
-            }
             handleRefresh();
         } catch (err) {
             const message = err instanceof Error ? err.message : friendlyMessage("UNKNOWN_PROVIDER_ERROR");

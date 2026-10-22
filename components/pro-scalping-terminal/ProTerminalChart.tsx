@@ -1507,6 +1507,27 @@ export function ProTerminalChart({
         [pendingOrders, symbol]
     );
 
+    // Bulk-close groups for this symbol. Profit is the broker's real mark in
+    // account currency — when it is unknown the position belongs to neither
+    // group, so it is only reachable via "Close all" (never silently bucketed).
+    const symbolCloseGroups = useMemo(() => {
+        let winners = 0;
+        let losers = 0;
+        const winningTickets: string[] = [];
+        const losingTickets: string[] = [];
+        for (const p of symbolPositions) {
+            if (typeof p.profit !== "number" || !Number.isFinite(p.profit)) continue;
+            if (p.profit > 0) {
+                winners += 1;
+                winningTickets.push(p.ticket);
+            } else if (p.profit < 0) {
+                losers += 1;
+                losingTickets.push(p.ticket);
+            }
+        }
+        return { winners, losers, winningTickets, losingTickets };
+    }, [symbolPositions]);
+
     // ── Market open/close notice ────────────────────────────────────────
     // A trader staring at a weekend chart should be told the moment trading
     // resumes (and told when it stops). Fires only on a real phase FLIP — the
@@ -4667,17 +4688,59 @@ export function ProTerminalChart({
                 simulated. */}
             {symbolPositions.length > 0 || symbolOrders.length > 0 ? (
                 <div className="border-t border-border bg-card/40 px-3 py-2.5 text-micro">
-                    <div className="flex items-center gap-2 pb-2 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 pb-2 font-numeric text-micro uppercase tracking-wide text-muted-foreground">
                         <span className="font-bold text-foreground">Trade</span>
                         <span>{symbolPositions.length} open</span>
                         <span aria-hidden>·</span>
                         <span>{symbolOrders.length} pending</span>
                         <span
-                            className="ml-auto normal-case text-muted-foreground/70"
+                            className="ml-1 max-w-[12rem] truncate normal-case text-muted-foreground/60"
                             title="Level lines on the chart show entry (solid), SL/TP (dashed) and pending orders (dotted)."
                         >
                             levels on chart ↑
                         </span>
+                        {symbolPositions.length > 0 && onClosePosition ? (
+                            <span className="ml-auto inline-flex shrink-0 items-center divide-x divide-border/50 overflow-hidden rounded-lg border border-border/60 bg-card/50">
+                                <button
+                                    type="button"
+                                    disabled={symbolCloseGroups.winners === 0}
+                                    className="px-3 py-1.5 font-numeric text-xs font-medium text-foreground/80 transition-colors hover:bg-positive/10 hover:text-positive active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                                    title={`${symbolCloseGroups.winners} winning position(s) on ${symbol} — locks in broker-reported profit`}
+                                    onClick={() => {
+                                        for (const ticket of symbolCloseGroups.winningTickets) {
+                                            onClosePosition(ticket, 100);
+                                        }
+                                    }}
+                                >
+                                    <span className="font-bold">Win</span> {symbolCloseGroups.winners}
+                                </button>
+                                <button
+                                    type="button"
+                                    disabled={symbolCloseGroups.losers === 0}
+                                    className="px-3 py-1.5 font-numeric text-xs font-medium text-foreground/80 transition-colors hover:bg-negative/10 hover:text-negative active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+                                    title={`${symbolCloseGroups.losers} losing position(s) on ${symbol} — cuts broker-reported loss`}
+                                    onClick={() => {
+                                        for (const ticket of symbolCloseGroups.losingTickets) {
+                                            onClosePosition(ticket, 100);
+                                        }
+                                    }}
+                                >
+                                    <span className="font-bold">Loss</span> {symbolCloseGroups.losers}
+                                </button>
+                                <button
+                                    type="button"
+                                    className="bg-negative/10 px-3 py-1.5 font-numeric text-xs font-bold text-negative transition-colors hover:bg-negative/20 active:scale-[0.98]"
+                                    title={`Close all ${symbolPositions.length} open position(s) on ${symbol}`}
+                                    onClick={() => {
+                                        for (const p of symbolPositions) {
+                                            onClosePosition(p.ticket, 100);
+                                        }
+                                    }}
+                                >
+                                    <span>All</span> {symbolPositions.length}
+                                </button>
+                            </span>
+                        ) : null}
                     </div>
                     <div className="flex flex-col gap-1.5">
                         {symbolPositions.map((p) => (

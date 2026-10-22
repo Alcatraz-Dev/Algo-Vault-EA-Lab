@@ -183,15 +183,82 @@ export default function OpenPositions({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Open Positions ({positions.length})</span>
-            <span
-              className={cn(
-                "font-numeric text-sm font-semibold",
-                totalProfit >= 0 ? "text-positive" : "text-negative"
-              )}
-            >
-              {totalProfit >= 0 ? "+" : ""}${formatNumber(totalProfit)}
+          <CardTitle className="flex flex-wrap items-center gap-x-8 gap-y-2">
+            {/* Title + live indicator */}
+            <span className="flex items-center gap-3">
+              <span className="font-heading text-[13px] font-semibold tracking-tight">Open Positions</span>
+              <span className="font-numeric text-sm font-semibold tabular-nums">({positions.length})</span>
+              <span className="ml-1 flex items-center gap-1.5 text-micro text-muted-foreground">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-positive opacity-60 motion-reduce:animate-none" />
+                  <span className="relative inline-flex size-2 rounded-full bg-positive" />
+                </span>
+                Live
+              </span>
+            </span>
+            {/* Stats row */}
+            <span className="flex-1 flex items-center justify-between gap-x-4 min-w-0">
+              <span className="flex items-baseline gap-1.5">
+                <span className="text-micro text-muted-foreground">P/L</span>
+                <span
+                  className={cn(
+                    "font-numeric text-sm font-semibold tabular-nums",
+                    totalProfit >= 0 ? "text-positive" : "text-negative"
+                  )}
+                >
+                  {totalProfit >= 0 ? "+" : ""}${formatNumber(totalProfit)}
+                </span>
+              </span>
+              <span className="flex items-baseline gap-1.5">
+                <span className="text-micro text-muted-foreground">Winners</span>
+                <span className="font-numeric text-sm font-semibold tabular-nums text-positive">{positions.filter((p) => p.profit > 0).length}</span>
+              </span>
+              <span className="flex items-baseline gap-1.5">
+                <span className="text-micro text-muted-foreground">Losses</span>
+                <span className="font-numeric text-sm font-semibold tabular-nums text-negative">{positions.filter((p) => p.profit < 0).length}</span>
+              </span>
+            </span>
+            {/* Bulk actions */}
+            <span className="ml-auto inline-flex shrink-0 items-center divide-x divide-border/50 overflow-hidden rounded-lg border border-border/70 bg-card/60 shadow-sm">
+              <button
+                type="button"
+                disabled={positions.filter((p) => p.profit > 0).length === 0}
+                className="px-2.5 py-1 font-numeric text-[11px] font-medium text-foreground/70 transition-colors hover:bg-positive/10 hover:text-positive active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted-foreground/40 disabled:hover:bg-transparent"
+                title={`Close all winning positions (${positions.filter((p) => p.profit > 0).length})`}
+                onClick={async () => {
+                  for (const p of positions.filter((p) => p.profit > 0)) {
+                    await onClose(p.ticket);
+                  }
+                }}
+              >
+                <span className="font-bold">Win</span> {positions.filter((p) => p.profit > 0).length}
+              </button>
+              <button
+                type="button"
+                disabled={positions.filter((p) => p.profit < 0).length === 0}
+                className="px-2.5 py-1 font-numeric text-[11px] font-medium text-foreground/70 transition-colors hover:bg-negative/10 hover:text-negative active:scale-[0.98] disabled:cursor-not-allowed disabled:text-muted-foreground/40 disabled:hover:bg-transparent"
+                title={`Close all losing positions (${positions.filter((p) => p.profit < 0).length})`}
+                onClick={async () => {
+                  for (const p of positions.filter((p) => p.profit < 0)) {
+                    await onClose(p.ticket);
+                  }
+                }}
+              >
+                <span className="font-bold">Loss</span> {positions.filter((p) => p.profit < 0).length}
+              </button>
+              <button
+                type="button"
+                disabled={positions.length === 0}
+                className="bg-negative/10 px-2.5 py-1 font-numeric text-[11px] font-bold text-negative transition-colors hover:bg-negative/20 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-transparent disabled:text-muted-foreground/40"
+                title="Close every open position"
+                onClick={async () => {
+                  for (const p of positions) {
+                    await onClose(p.ticket);
+                  }
+                }}
+              >
+                <span>All</span> {positions.length}
+              </button>
             </span>
           </CardTitle>
         </CardHeader>
