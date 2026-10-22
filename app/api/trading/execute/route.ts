@@ -71,6 +71,20 @@ export async function POST(request: NextRequest) {
         const service = createUnifiedTradingService();
         const { result, httpStatus } = await service.execute(input);
 
+        if (httpStatus >= 400) {
+            // Diagnostic: records the mapped reason for every refusal so a 409 can be traced to its cause.
+            console.warn(
+                "[trading/execute POST] refused",
+                JSON.stringify({
+                    httpStatus,
+                    executionType,
+                    clientRequestId: result.clientRequestId,
+                    status: result.status,
+                    errorCode: result.error?.code ?? null,
+                })
+            );
+        }
+
         // Real-time trade history: a confirmed close is written to
         // `trading_history` immediately so the terminal's Trade History tab
         // updates without waiting for the next gateway snapshot diff.

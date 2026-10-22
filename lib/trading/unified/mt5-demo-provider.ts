@@ -570,6 +570,10 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             return finish({ status: "ACCEPTED" });
         }
 
+        console.info("[mt5-demo-provider] command queued", {
+            clientRequestId: request.clientRequestId,
+            executionType: request.executionType,
+        });
         const report = await this.awaitExecutionReport(request.userId, request.clientRequestId);
         if (!report) {
             // A provider that never confirmed is UNKNOWN, not FAILED: the order
@@ -762,12 +766,15 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
         clientRequestId: string
     ): Promise<Record<string, unknown> | null> {
         const ref = this.database.ref(`trading_order_requests/${userId}/${clientRequestId}`);
-        const deadline = this.config.clock() + this.config.executionTimeoutMs;
+        const startedAt = this.config.clock();
+        const deadline = startedAt + this.config.executionTimeoutMs;
+        let lastStatus: string | null = null;
         while (this.config.clock() < deadline) {
             const snap = await ref.get();
             const value = snap.val();
             if (value && typeof value === "object") {
                 const record = value as Record<string, unknown>;
+                lastStatus = String(record.status ?? "");
                 const state = decodeExecutionState(record.status);
                 // `uncertain` is a settled report from the EA (ambiguous broker
                 // outcome). Return it now instead of waiting out the clock.
@@ -783,6 +790,14 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
             }
             await this.delay(this.config.pollIntervalMs);
         }
+        // Secret-free, correlated diagnostic. The request is neither resent nor
+        // failed here; lastStatus shows how far it got: "queued" = never claimed
+        // by the EA, "executing" = claimed but no report, null = no record.
+        console.warn("[mt5-demo-provider] execution report not received", {
+            clientRequestId,
+            waitedMs: this.config.clock() - startedAt,
+            lastStatus: lastStatus ?? "no-record",
+        });
         return null;
     }
 

@@ -154,6 +154,18 @@ export async function POST(request: NextRequest) {
         const persistedStatus = normalizeReportedStatus(appliedStatus);
         const staleReport = appliedStatus !== status;
 
+        // Secret-free lifecycle trace for the broker outcome: the reported and
+        // applied status, the MT5 retcode, and the prior command status.
+        console.info("[trading/gateway/execution POST] report received", {
+            clientRequestId: clientOrderId,
+            reportedStatus: status,
+            appliedStatus,
+            previousStatus,
+            staleReport,
+            retcode,
+            hasTicket: mt5Ticket.length > 0,
+        });
+
         await adminDatabase
             .ref(`trading_order_requests/${userId}/${clientOrderId}`)
             .update(

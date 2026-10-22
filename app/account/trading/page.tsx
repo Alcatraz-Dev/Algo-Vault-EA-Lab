@@ -89,6 +89,9 @@ export default function AccountTradingPage() {
     const outcomes = useRef(new ExecutionOutcomeTracker());
     useEffect(() => () => outcomes.current.dispose(), []);
     const [actionError, setActionError] = useState<string | null>(null);
+    // Target key of an unresolved outcome that a manual "Check status" can reconcile.
+    const [pendingCheckKey, setPendingCheckKey] = useState<string | null>(null);
+    const [checkingStatus, setCheckingStatus] = useState(false);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
@@ -554,6 +557,7 @@ export default function AccountTradingPage() {
             const token = await firebaseUser.getIdToken();
             const result = await outcomes.current.run(key, payload, token);
             setLastExecution(result);
+            setPendingCheckKey(result.status === "UNKNOWN" || result.status === "ACCEPTED" ? key : null);
             if (result.status === "EXECUTED_PENDING_SYNC") {
                 setActionError(
                     `${describe}: executed on the broker — position syncs on the next account snapshot.`
@@ -565,6 +569,7 @@ export default function AccountTradingPage() {
             handleRefresh();
         } catch (err) {
             const message = err instanceof Error ? err.message : friendlyMessage("UNKNOWN_PROVIDER_ERROR");
+            setPendingCheckKey(isUnknownOutcome(err) || outcomes.current.isLocked(key) ? key : null);
             const suffix = isUnknownOutcome(err)
                 ? " Outcome unconfirmed — nothing was resent. Click again to confirm the same request."
                 : "";
@@ -1266,6 +1271,37 @@ export default function AccountTradingPage() {
                             <p className="mb-2 rounded-lg border border-warning/20 bg-warning/[0.07] px-3 py-1.5 text-xs font-medium text-warning">
                                 {actionError}
                             </p>
+                        ) : null}
+                        {pendingCheckKey ? (
+                            <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                                <span>
+                                    Outcome unconfirmed. The original request is still locked; it will not be resent. Verify the position in MT5 if the gateway has not reported yet.
+                                </span>
+                                <button
+                                    type="button"
+                                    disabled={checkingStatus}
+                                    onClick={async () => {
+                                        setCheckingStatus(true);
+                                        try {
+                                            const outcome = await outcomes.current.checkStatus(pendingCheckKey);
+                                            if (outcome === "SETTLED" || outcome === "NONE") setPendingCheckKey(null);
+                                            setActionError(
+                                                outcome === "SETTLED"
+                                                    ? "Status confirmed by the gateway. The lock is released."
+                                                    : outcome === "NONE"
+                                                      ? "Nothing is held for this position any more."
+                                                      : "Still unconfirmed. The gateway has not reported this execution yet. The lock stays and nothing was resent. Verify in MT5 before acting."
+                                            );
+                                            handleRefresh();
+                                        } finally {
+                                            setCheckingStatus(false);
+                                        }
+                                    }}
+                                    className="rounded-md border border-border px-2 py-0.5 font-medium text-foreground hover:bg-muted disabled:opacity-50"
+                                >
+                                    {checkingStatus ? "Checking…" : "Check status"}
+                                </button>
+                            </div>
                         ) : null}
                         {lastExecution ? (
                             <p className="mb-2 text-[11px] text-muted-foreground">

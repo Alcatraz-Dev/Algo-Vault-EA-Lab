@@ -384,6 +384,14 @@ export class ExecutionOutcomeTracker {
         }
     }
 
+    /**
+     * Manual "Check status" for a held target. Reads the owner's stored outcome by its
+     * ORIGINAL clientRequestId. Never redispatches. Returns "NONE" when nothing is held.
+     */
+    checkStatus(key: string): Promise<"SETTLED" | "PENDING" | "NONE"> {
+        return this.reconcile(key);
+    }
+
     /** Schedules the next status read with capped backoff (2s to 30s). Browser-only by default. */
     private schedule(key: string): void {
         if (!this.autoPoll || this.disposed) return;

@@ -407,6 +407,22 @@ export async function runClientOutcomeTests(): Promise<boolean> {
         await freshAfterSettle.run(targetKeyFor(CLOSE), CLOSE, "token");
         s.check(posts.length === 2 && posts[1] !== posts[0], "after settlement a new action uses a new clientRequestId");
     });
+    s.section("Manual Check status: reconciles without redispatch and keeps the lock unless settled");
+    const manual = new ExecutionOutcomeTracker({ autoPoll: false });
+    await withFetch(routed, async () => {
+        resetRouted();
+        s.check((await manual.checkStatus(targetKeyFor(CLOSE))) === "NONE", "checkStatus with nothing held reports NONE");
+        await manual.run(targetKeyFor(CLOSE), CLOSE, "token");
+        statusQueue = [() => statusBody("UNKNOWN")];
+        s.check((await manual.checkStatus(targetKeyFor(CLOSE))) === "PENDING", "an unconfirmed outcome reports PENDING");
+        s.check(manual.isLocked(targetKeyFor(CLOSE)), "an unconfirmed outcome keeps the lock");
+        statusQueue = [() => statusBody("SUCCEEDED")];
+        s.check((await manual.checkStatus(targetKeyFor(CLOSE))) === "SETTLED", "a confirmed status reports SETTLED");
+        s.check(!manual.isLocked(targetKeyFor(CLOSE)), "a confirmed status releases the lock");
+        s.check(posts.length === 1, "manual checks never redispatch the close");
+    });
+    manual.dispose();
+
     dispose(autoTracker, unresolvedTracker, sharedTracker, modifyFirst, twoTargets, freshAfterSettle);
 
     return s.finish();

@@ -92,13 +92,23 @@ export async function GET(request: NextRequest) {
                 if (!outcome.committed) return null;
                 const claimed = outcome.snapshot.val();
                 if (!claimed || typeof claimed !== "object") return null;
-                return { ...(claimed as Record<string, unknown>), id: commandId };
+                return { ...(claimed as Record<string, unknown>), id: commandId } as Record<string, unknown> & { id: string };
             })
         );
 
         const commands = claims.filter(
             (command): command is NonNullable<typeof command> => command !== null
         );
+
+        // Secret-free lifecycle trace: which requests this poll claimed. Ids only;
+        // never the gateway token or account number.
+        if (commands.length > 0) {
+            console.info("[trading/gateway/commands GET] claimed", {
+                count: commands.length,
+                clientRequestIds: commands.map((c) => String(c.clientRequestId ?? c.id)),
+                claimAttempts: commands.map((c) => Number(c.claimAttempts ?? 0)),
+            });
+        }
 
         return NextResponse.json(
             {
