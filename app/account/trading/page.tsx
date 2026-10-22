@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
@@ -26,6 +26,7 @@ import TradeHistory, {
     type ClosedTrade,
 } from "@/components/trading/TradeHistory";
 import { cn } from "@/lib/utils";
+import { useLiveCandles } from "@/hooks/useLiveCandles";
 import {
     executeUnified,
     newClientRequestId,
@@ -48,9 +49,8 @@ import {
     Layers,
     Trophy,
     ScrollText,
-    Bot,
 } from "lucide-react";
-import { BotListPanel } from "@/components/bot-studio/BotListPanel";
+import { XauUsdScalperBot, setToken } from "@/components/bot-studio/XauUsdScalperBot";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -82,6 +82,41 @@ export default function AccountTradingPage() {
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
 
+    // Bot status override (optional, server-driven). When provided, the bot
+    // card shows the server's view of status / positions / trades.
+    const [serverStatus, setServerStatus] = useState<
+        | {
+              status: "idle" | "running" | "paused" | "error";
+              signalCount: number;
+              executionCount: number;
+              lastTickAt?: number;
+              lastSignalAt?: number;
+              lastExecutionAt?: number;
+              errorReason?: string | null;
+              currentPosition?: {
+                  ticket: string;
+                  side: "BUY" | "SELL";
+                  volume: number;
+                  entry: number;
+                  sl: number;
+                  tp1: number;
+                  tp2: number;
+                  openAt: number;
+              } | null;
+              recentTrades?: Array<{
+                  id: string;
+                  side: "BUY" | "SELL";
+                  entry: number;
+                  exit?: number;
+                  pnl?: number;
+                  tpLevel: 1 | 2 | "sl";
+                  status: "open" | "win" | "loss" | "sl";
+                  openedAt: number;
+              }>;
+          }
+        | null
+    >(null);
+
     // Transient toast: action alerts auto-dismiss after 3s so a stale
     // rejection never sits on top of the live positions panel.
     useEffect(() => {
@@ -91,6 +126,7 @@ export default function AccountTradingPage() {
     }, [actionError]);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
+    const { currentPrice: xauUsdPrice } = useLiveCandles(selectedSymbol, "M1");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
 
@@ -535,6 +571,44 @@ export default function AccountTradingPage() {
             `Close ${ticket}`
         );
 
+    const handleBotPositionChange = useCallback(
+        (pos: {
+            ticket: string;
+            symbol: string;
+            type: "BUY" | "SELL";
+            volume: number;
+            openPrice: number;
+            currentPrice: number;
+            sl: number;
+            tp: number;
+            profit: number;
+            swap: number;
+            magic: number;
+            openedAt: number;
+        } | null) => {
+            setPositions((prev) => {
+                if (!pos) {
+                    return prev.filter((p) => p.magic !== 70001);
+                }
+                return prev.filter((p) => p.magic !== 70001).concat({
+                    ticket: pos.ticket,
+                    symbol: pos.symbol,
+                    type: pos.type,
+                    volume: pos.volume,
+                    openPrice: pos.openPrice,
+                    currentPrice: pos.currentPrice,
+                    sl: pos.sl,
+                    tp: pos.tp,
+                    profit: pos.profit,
+                    swap: pos.swap,
+                    magic: pos.magic,
+                    openedAt: pos.openedAt,
+                });
+            });
+        },
+        [70001]
+    );
+
     /** percentage is % of the position's CURRENT VOLUME — the server computes
      *  the provider-valid close volume (min lot / lot step aware). */
     const handlePartialClosePosition = (ticket: string, percentage: number) =>
@@ -818,9 +892,7 @@ export default function AccountTradingPage() {
                 </div>
             </AccountShell>
         );
-    }
-
-    return (
+    }    return (
         <AccountShell
             title="Trading Terminal"
             subtitle="Live MT5 account trading, real-time candles & orders"
@@ -1111,10 +1183,12 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
-                {/* Bot List — XAUUSD M1 scalper card */}
-                <div className="max-w-2xl">
-                    <BotListPanel
-                        showBot
+                {/* XAUUSD M1 Scalper bot — full-width card above the chart.
+                    The bot runs here and submits orders through /api/trading/orders
+                    so the trades appear in MT5 via the gateway EA. */}
+                <div className="w-full">
+                    <XauUsdScalperBot
+                        botId="xauusd-m1-scalper"
                         deployed={false}
                         initialConfig={{
                             tp1Pips: 15,
@@ -1125,15 +1199,20 @@ export default function AccountTradingPage() {
                             magicNumber: 70001,
                             direction: "long",
                             enabled: true,
+                            warmUpCandles: 50,
+                            maxPositions: 1,
                         }}
-                        onToggle={async (running) => {
-                            // Hook point for the backend activation path.
-                            console.debug(`[bot-list] toggle → ${running}`);
+                        onToggle={async (running, reason) => {
+                            console.debug(`[bot] toggle → ${running}`, reason ?? "");
                         }}
-                        onDeploy={() => {
-                            console.debug("[bot-list] deploy clicked");
-                        }}
+                        currentPrice={xauUsdPrice}
+                        hasToken={!!userToken}
+                        accountId={selectedAccountId ?? undefined}
+                        serverStatus={serverStatus ?? null}
+                        onPositionChange={handleBotPositionChange}
                     />
+                    {/* Feed the auth token to the bot runtime once it is available. */}
+                    {userToken && <BotTokenSetter token={userToken} />}
                 </div>
 
                 {/* Main Trading Area */}
@@ -1460,6 +1539,16 @@ function isAccountLive(a: { status: TradingAccount["status"]; lastHeartbeatAt?: 
         a.status === "connected" &&
         Math.floor((currentTimestamp() - (a.lastHeartbeatAt || 0)) / 1000) < 120
     );
+}
+
+function BotTokenSetter({ token }: { token: string }) {
+    useEffect(() => {
+        // The bot runtime exposes a setToken helper that stores the current
+        // auth token into its internal ref so the M1 tick loop can submit
+        // orders through /api/trading/orders.
+        setToken(token);
+    }, [token]);
+    return null;
 }
 
 function StatusDot({
