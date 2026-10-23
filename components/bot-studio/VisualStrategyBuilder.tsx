@@ -823,11 +823,9 @@ export function VisualStrategyBuilder() {
         };
         const result = duplicateGraphSelection(nodes, edges, ids, mode, nextId);
         nodeCounter.current = counter;
-        setNodes((current) =>
-            current.map((n) =>
-                result.duplicatedNodeIds.includes(n.id) ? { ...n, selected: true } : { ...n, selected: false },
-            ),
-        );
+        setNodes(result.nodes.map((n) =>
+            result.duplicatedNodeIds.includes(n.id) ? { ...n, selected: true } : { ...n, selected: false },
+        ));
         setEdges(result.edges.map((e) => ({ ...e, selected: false })));
     }, [nodes, edges, selectedIds, setNodes, setEdges]);
 

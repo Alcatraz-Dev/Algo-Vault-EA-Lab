@@ -49,7 +49,7 @@ export const MT5_PROVIDER: TradingProvider = "MT5";
 export const MT5_ACCOUNT_PREFIX = "gateway_";
 
 export function isMt5AccountId(accountId: string): boolean {
-    return accountId.startsWith(MT5_ACCOUNT_PREFIX);
+    return accountId.startsWith(MT5_ACCOUNT_PREFIX) || /^\d{5,12}$/.test(accountId);
 }
 
 const num = (value: unknown): number | null => {
@@ -202,7 +202,10 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
     }
 
     private async rawAccount(userId: string, accountId: string): Promise<Record<string, unknown> | null> {
-        const snap = await this.database.ref(`trading_accounts/${userId}/${accountId}`).get();
+        let snap = await this.database.ref(`trading_accounts/${userId}/${accountId}`).get();
+        if (!snap.exists() && !accountId.startsWith(MT5_ACCOUNT_PREFIX) && /^\d+$/.test(accountId)) {
+            snap = await this.database.ref(`trading_accounts/${userId}/${MT5_ACCOUNT_PREFIX}${accountId}`).get();
+        }
         if (!snap.exists()) return null;
         const value = snap.val();
         return value && typeof value === "object" ? (value as Record<string, unknown>) : null;

@@ -69,12 +69,26 @@ export async function POST(request: NextRequest) {
 
         const now = Date.now();
         const botId = newBotId();
+        let targetAccount = mt5Account?.trim() || "";
+        if (!targetAccount || targetAccount === "default") {
+            try {
+                const { adminDatabase } = await import("@/lib/firebase-admin");
+                const accSnap = await adminDatabase.ref(`trading_accounts/${access.uid}`).get();
+                if (accSnap.exists()) {
+                    const keys = Object.keys(accSnap.val() || {});
+                    const match = keys.find((k) => k.startsWith("gateway_")) || keys[0];
+                    if (match) targetAccount = match;
+                }
+            } catch {
+                // Ignore fallback error
+            }
+        }
         const deployment: BotDeployment = {
             id: botId,
             strategyId,
             deployedFingerprint: strategy.fingerprint,
             ownerId: access.uid,
-            mt5Account: mt5Account?.trim() || "default",
+            mt5Account: targetAccount,
             accountMode: accountMode === "live" ? "live" : "demo",
             runtimeState: "ready",
             desiredState: accountMode === "live" ? "stopped" : "paper",

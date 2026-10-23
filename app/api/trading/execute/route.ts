@@ -42,10 +42,30 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        let accountId = String(body.accountId ?? "").trim();
+        if (!accountId || accountId === "default") {
+            try {
+                const { adminDatabase } = await import("@/lib/firebase-admin");
+                const accountsSnap = await adminDatabase.ref(`trading_accounts/${token.uid}`).get();
+                if (accountsSnap.exists()) {
+                    const accountsVal = accountsSnap.val() as Record<string, Record<string, unknown>>;
+                    const keys = Object.keys(accountsVal || {});
+                    // Prefer connected or live gateway account
+                    const liveMatch = keys.find((k) => k.startsWith("gateway_") && (accountsVal[k]?.status === "connected" || accountsVal[k]?.status === "online"));
+                    const gatewayMatch = keys.find((k) => k.startsWith("gateway_"));
+                    accountId = liveMatch || gatewayMatch || keys[0] || accountId;
+                }
+            } catch {
+                // Ignore resolution error and let UnifiedTradingService fail closed
+            }
+        } else if (!accountId.startsWith("gateway_") && /^\d+$/.test(accountId)) {
+            accountId = `gateway_${accountId}`;
+        }
+
         const input: ExecuteInput = {
             // userId comes from the verified token, never from the body.
             userId: token.uid,
-            accountId: String(body.accountId ?? "").trim(),
+            accountId,
             clientRequestId: String(body.clientRequestId ?? "").trim(),
             correlationId: typeof body.correlationId === "string" ? body.correlationId : undefined,
             executionType,
@@ -70,6 +90,17 @@ export async function POST(request: NextRequest) {
 
         const service = createUnifiedTradingService();
         const { result, httpStatus } = await service.execute(input);
+
+        // Diagnostic: surface rejection codes to the server log so 501/4xx are
+        // immediately identifiable without digging through the RTDB audit log.
+        if (result.status === "REJECTED" || result.status === "FAILED") {
+            console.warn("[trading/execute] rejected", {
+                accountId: input.accountId,
+                errorCode: result.error?.code,
+                errorMessage: result.error?.message,
+                httpStatus,
+            });
+        }
 
         // Real-time trade history: a confirmed close is written to
         // `trading_history` immediately so the terminal's Trade History tab

@@ -42,7 +42,10 @@ export async function authenticateToken(token: string) {
     if (typeof token !== "string" || token.trim() === "") return null;
     try {
         return await adminAuth.verifyIdToken(token);
-    } catch {
+    } catch (err) {
+        // Diagnostic: log the Firebase error code (never the token value).
+        const code = (err as { code?: string })?.code ?? "unknown";
+        console.warn("[admin-auth] verifyIdToken failed:", code);
         return null;
     }
 }

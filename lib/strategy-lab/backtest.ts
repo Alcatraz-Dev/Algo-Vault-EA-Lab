@@ -17,7 +17,7 @@ import {
     resolveFeatureAt,
     type SeriesMap,
 } from "@/lib/strategy-engine/decisions";
-import { StrategyEngine } from "@/lib/strategy-engine/engine";
+import { StrategyEngine, createManualOnlyStrategy } from "@/lib/strategy-engine/engine";
 import { SimulationAdapter } from "@/lib/strategy-engine/adapters";
 import { resetOrderIds } from "@/lib/strategy-engine/orders";
 import { cashValueForMove, legCosts, resetPositionIds, simSymbolSpec, type SimPosition } from "@/lib/strategy-engine/simulation";
@@ -197,7 +197,7 @@ function computeRuleDiagnostics(
 // ──────────── Backtest run ──────────────────────────────────────────────────
 
 export function backtestStrategy(
-    strategy: Strategy,
+    rawStrategy: Strategy,
     symbol: SupportedSymbol,
     candlesByTF: Partial<Record<Timeframe, MarketCandle[]>>,
     config: BacktestConfig,
@@ -205,8 +205,92 @@ export function backtestStrategy(
     to: number,
     entryWindow?: { from: number; to: number }
 ): BacktestResult {
+    // Normalise partial / legacy definitions so required arrays/objects exist.
+    const base = createManualOnlyStrategy(symbol, rawStrategy.timeframes?.setup ?? "M15");
+    const tf = Object.assign({}, base.timeframes, rawStrategy.timeframes || {}, {
+        macro: rawStrategy.timeframes?.macro ?? base.timeframes.macro,
+        structure: rawStrategy.timeframes?.structure ?? base.timeframes.structure,
+        setup: rawStrategy.timeframes?.setup ?? base.timeframes.setup,
+        entry: rawStrategy.timeframes?.entry ?? base.timeframes.entry,
+    });
+    const sl = Object.assign({}, base.stopLoss, rawStrategy.stopLoss || {}, {
+        mode: (rawStrategy.stopLoss?.mode as Strategy["stopLoss"]["mode"]) ?? base.stopLoss.mode,
+        atrMultiple: rawStrategy.stopLoss?.atrMultiple ?? base.stopLoss.atrMultiple,
+        levelOffset: rawStrategy.stopLoss?.levelOffset ?? base.stopLoss.levelOffset,
+        useSwing: rawStrategy.stopLoss?.useSwing ?? base.stopLoss.useSwing,
+    });
+    const tp = Object.assign({}, base.takeProfit, rawStrategy.takeProfit || {}, {
+        mode: (rawStrategy.takeProfit?.mode as Strategy["takeProfit"]["mode"]) ?? base.takeProfit.mode,
+        r1: rawStrategy.takeProfit?.r1 ?? base.takeProfit.r1,
+        r2: rawStrategy.takeProfit?.r2 ?? base.takeProfit.r2,
+        r3: rawStrategy.takeProfit?.r3 ?? base.takeProfit.r3,
+        fixedDistance: rawStrategy.takeProfit?.fixedDistance ?? base.takeProfit.fixedDistance,
+        partialCloses: rawStrategy.takeProfit?.partialCloses ?? base.takeProfit.partialCloses,
+        moveBeAfterTp1: rawStrategy.takeProfit?.moveBeAfterTp1 ?? base.takeProfit.moveBeAfterTp1,
+        lockAfterTp2: rawStrategy.takeProfit?.lockAfterTp2 ?? base.takeProfit.lockAfterTp2,
+        trailingEnabled: rawStrategy.takeProfit?.trailingEnabled ?? base.takeProfit.trailingEnabled,
+        trailingStopAtr: rawStrategy.takeProfit?.trailingStopAtr ?? base.takeProfit.trailingStopAtr,
+    });
+    const risk = Object.assign({}, base.risk, rawStrategy.risk || {}, {
+        mode: (rawStrategy.risk?.mode as Strategy["risk"]["mode"]) ?? base.risk.mode,
+        riskPercent: rawStrategy.risk?.riskPercent ?? base.risk.riskPercent,
+        fixedLot: rawStrategy.risk?.fixedLot ?? base.risk.fixedLot,
+        maxPositions: rawStrategy.risk?.maxPositions ?? base.risk.maxPositions,
+        dailyLossLimitPct: rawStrategy.risk?.dailyLossLimitPct ?? base.risk.dailyLossLimitPct,
+        maxDrawdownPct: rawStrategy.risk?.maxDrawdownPct ?? base.risk.maxDrawdownPct,
+    });
+    const filt = Object.assign({}, base.filters, rawStrategy.filters || {}, {
+        sessions: rawStrategy.filters?.sessions ?? base.filters.sessions,
+        daysOfWeek: rawStrategy.filters?.daysOfWeek ?? base.filters.daysOfWeek,
+        volatilityMinAtrPct: rawStrategy.filters?.volatilityMinAtrPct ?? base.filters.volatilityMinAtrPct,
+        volatilityMaxAtrPct: rawStrategy.filters?.volatilityMaxAtrPct ?? base.filters.volatilityMaxAtrPct,
+        maxTradesPerDay: rawStrategy.filters?.maxTradesPerDay ?? base.filters.maxTradesPerDay,
+        cooldownCandles: rawStrategy.filters?.cooldownCandles ?? base.filters.cooldownCandles,
+    });
+    const cst = Object.assign({}, base.costs, rawStrategy.costs || {}, {
+        spreadPips: rawStrategy.costs?.spreadPips ?? base.costs.spreadPips,
+        commissionPerLot: rawStrategy.costs?.commissionPerLot ?? base.costs.commissionPerLot,
+        slippagePips: rawStrategy.costs?.slippagePips ?? base.costs.slippagePips,
+    });
+    const wp = Object.assign({}, base.whyp, rawStrategy.whyp || {}, {
+        discovered: rawStrategy.whyp?.discovered ?? base.whyp.discovered,
+        conditionsSelected: rawStrategy.whyp?.conditionsSelected ?? base.whyp.conditionsSelected,
+        occurrenceFrequency: rawStrategy.whyp?.occurrenceFrequency ?? base.whyp.occurrenceFrequency,
+        historicalPerformance: rawStrategy.whyp?.historicalPerformance ?? base.whyp.historicalPerformance,
+        weaknesses: rawStrategy.whyp?.weaknesses ?? base.whyp.weaknesses,
+        poorRegimes: rawStrategy.whyp?.poorRegimes ?? base.whyp.poorRegimes,
+        generatedByProvider: rawStrategy.whyp?.generatedByProvider ?? base.whyp.generatedByProvider,
+    });
+    const s = Object.assign(
+        {} as Strategy,
+        base,
+        rawStrategy,
+        {
+            id: rawStrategy.id ?? base.id,
+            name: rawStrategy.name ?? base.name,
+            description: rawStrategy.description ?? base.description,
+            asset: rawStrategy.asset ?? base.asset,
+            direction: (rawStrategy.direction as Strategy["direction"]) ?? base.direction,
+            timeframes: tf,
+            regimeFilter: rawStrategy.regimeFilter ?? base.regimeFilter,
+            entryRules: rawStrategy.entryRules ?? base.entryRules,
+            confirmationRules: rawStrategy.confirmationRules ?? base.confirmationRules,
+            stopLoss: sl,
+            takeProfit: tp,
+            risk: risk,
+            filters: filt,
+            executionModel: (rawStrategy.executionModel as Strategy["executionModel"]) ?? base.executionModel,
+            costs: cst,
+            sourcePatternId: rawStrategy.sourcePatternId ?? base.sourcePatternId,
+            whyp: wp,
+            version: rawStrategy.version ?? base.version,
+            created: rawStrategy.created ?? base.created,
+            updated: rawStrategy.updated ?? base.updated,
+        }
+    );
     resetPositionIds();
     resetOrderIds();
+    const strategy = s; // normalized definition
 
     const spec = simSymbolSpec(symbol);
     const seriesMap = buildSeriesMap(candlesByTF);

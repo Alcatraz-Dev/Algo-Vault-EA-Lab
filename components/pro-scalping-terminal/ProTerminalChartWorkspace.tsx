@@ -209,6 +209,8 @@ export interface ProTerminalChartWorkspaceProps {
     canUseAiDraw?: boolean;
     /** Receives the AI draw plan whenever it recomputes (null when off). */
     onAiPlanChange?: (plan: AiDrawPlan | null) => void;
+    /** Bot running indicator shown on chart (next to LIVE badge). */
+    botRunning?: boolean;
     /** Extra classes for the outer container. */
     className?: string;
 }
@@ -242,6 +244,7 @@ export function ProTerminalChartWorkspace({
     canUseAiDraw,
     onAiPlanChange,
     className,
+    botRunning = false,
 }: ProTerminalChartWorkspaceProps) {
     // ── core workspace state ─────────────────────────────────────────────
     const [symbol, setSymbolRaw] = useState<string>(initialSymbol);
@@ -662,6 +665,7 @@ export function ProTerminalChartWorkspace({
                         replayActive={replayActive}
                         fullscreen={isFullscreen}
                         focusRequest={focusRequest}
+                        botRunning={botRunning}
                         onAiPlanChange={onAiPlanChange}
                         onClosePosition={onClosePosition}
                         onCancelOrder={onCancelOrder}

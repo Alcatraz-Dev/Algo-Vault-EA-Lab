@@ -104,7 +104,7 @@ import {
     type DrawingGeom,
     type MarketTimeTransform,
 } from "./drawing-utils";
-import { ChevronLeft, ChevronRight, Gauge, History, Pause, Pencil, Play, RotateCcw, SkipForward, Trash2 } from "lucide-react";
+import { Bot, ChevronLeft, ChevronRight, Gauge, History, Pause, Pencil, Play, RotateCcw, SkipForward, Trash2 } from "lucide-react";
 import { aiDrawLevels, computeAiDrawPlan, type AiDrawPlan } from "@/lib/chart-engine/ai-draw";
 
 export type ChartType = "candlestick" | "bar" | "line" | "area" | "baseline";
@@ -524,14 +524,20 @@ let clockTimer: number | null = null;
  * (Returning a fresh `Date.now()` from getSnapshot is an infinite render loop.)
   */
 let clockSnapshot = 0;
-
+let notifying = false;
 function subscribeClock(onStoreChange: () => void): () => void {
     clockSubscribers.add(onStoreChange);
     if (clockTimer === null) {
         clockSnapshot = Date.now();
         clockTimer = window.setInterval(() => {
+            if (notifying) return;
             clockSnapshot = Date.now();
-            for (const notify of [...clockSubscribers]) notify();
+            notifying = true;
+            const subs = [...clockSubscribers];
+            for (const notify of subs) {
+                try { notify(); } catch { /* suppress subscriber errors */ }
+            }
+            notifying = false;
         }, 250);
     }
     return () => {
@@ -693,11 +699,13 @@ export function ProTerminalChart({
     onModifyPositionStops,
     onClosePosition,
     onCancelOrder,
+    botRunning = false,
 }: {
     symbol: SupportedSymbol;
     timeframe: Timeframe;
     layers: Record<ChartLayerId, boolean>;
     analysis: AdvancedAnalysisResult | null;
+    botRunning?: boolean;
     /** Optional auth token; the OHLC feed works without one. */
     token?: string | null;
     height: number;
@@ -4582,6 +4590,11 @@ export function ProTerminalChart({
                         )}
                     </div>
                 ) : null}
+                {botRunning && (
+                    <div className="absolute left-16 top-2 z-10" title="Bot running">
+                        <Bot className="h-4 w-4 text-amber-500 animate-pulse" />
+                    </div>
+                )}
 
                 {/* Market open/close notice — shown for a few seconds after the real phase
                     flip, so the transition itself is impossible to miss (a

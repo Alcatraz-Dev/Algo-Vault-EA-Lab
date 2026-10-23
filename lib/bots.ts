@@ -150,6 +150,24 @@ export async function upsertBot(record: Omit<UserBot, "createdAt" | "updatedAt">
 }
 
 /**
+ * Deletes a user bot record, its index entry, and any associated custom-bot
+ * license. Only the owner may delete their own bot.
+ */
+export async function deleteBot(userId: string, botId: string): Promise<boolean> {
+    const bot = await getBot(userId, botId);
+    if (!bot) return false;
+    await adminDatabase.ref(`user_bots/${botId}`).remove();
+    await adminDatabase.ref(`user_bots_index/${userId}/${botId}`).remove();
+    // Clean up custom-bot entitlement license if present
+    const licId = `${botId}-LIC`;
+    const licSnap = await adminDatabase.ref(`licenses/${userId}/${licId}`).get();
+    if (licSnap.exists()) {
+        await adminDatabase.ref(`licenses/${userId}/${licId}`).remove();
+    }
+    return true;
+}
+
+/**
  * Custom-bot entitlement lives in the SAME license tree as Marketplace
  * licenses (`licenses/{uid}/{licenseId}`), tagged `type: "custom_bot"` and
  * linked back to the bot. Validity is tied to an active Pro/Enterprise

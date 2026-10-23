@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useMemo, useState } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
@@ -49,8 +49,9 @@ import {
     Layers,
     Trophy,
     ScrollText,
+    Bot,
 } from "lucide-react";
-import { XauUsdScalperBot, setToken } from "@/components/bot-studio/XauUsdScalperBot";
+import { BotStudioList } from "@/components/bot-studio/BotStudioList";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -81,6 +82,17 @@ export default function AccountTradingPage() {
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
+    const handleBotStatusChange = useCallback((running: boolean) => {
+        setServerStatus((prev) => {
+            const base = prev ?? { status: "idle" as const, signalCount: 0, executionCount: 0 };
+            if (running === (base.status === "running")) return base;
+            return running
+                ? { ...base, status: "running", executionCount: base.executionCount + 1 }
+                : { ...base, status: "idle" };
+        });
+    }, []);
+
+    const [notice, setNotice] = useState<string | null>(null);
 
     // Bot status override (optional, server-driven). When provided, the bot
     // card shows the server's view of status / positions / trades.
@@ -116,6 +128,17 @@ export default function AccountTradingPage() {
           }
         | null
     >(null);
+
+    // Flash user notice when bot starts running
+    const prevStatusRef = useRef<"error" | "idle" | "running" | "paused" | null>(null);
+    useEffect(() => {
+        if (prevStatusRef.current !== "running" && serverStatus?.status === "running") {
+            setNotice("Robot working — bot is running live orders");
+            const timer = setTimeout(() => setNotice(null), 4000);
+            return () => clearTimeout(timer);
+        }
+        prevStatusRef.current = serverStatus?.status ?? null;
+    }, [serverStatus?.status]);
 
     // Transient toast: action alerts auto-dismiss after 3s so a stale
     // rejection never sits on top of the live positions panel.
@@ -552,7 +575,7 @@ export default function AccountTradingPage() {
         if (!firebaseUser || !selectedAccountId) return;
         setActionError(null);
         try {
-            const token = await firebaseUser.getIdToken();
+        const token = await firebaseUser.getIdToken(/* forceRefresh */ true);
             const result = await executeUnified(
                 { ...payload, clientRequestId: newClientRequestId("pt") },
                 token
@@ -1183,37 +1206,14 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
-                {/* XAUUSD M1 Scalper bot — full-width card above the chart.
-                    The bot runs here and submits orders through /api/trading/orders
-                    so the trades appear in MT5 via the gateway EA. */}
-                <div className="w-full">
-                    <XauUsdScalperBot
-                        botId="xauusd-m1-scalper"
-                        deployed={false}
-                        initialConfig={{
-                            tp1Pips: 15,
-                            tp2Pips: 30,
-                            slPips: 10,
-                            riskPercent: 1.0,
-                            maxSpreadPoints: 15,
-                            magicNumber: 70001,
-                            direction: "long",
-                            enabled: true,
-                            warmUpCandles: 50,
-                            maxPositions: 1,
-                        }}
-                        onToggle={async (running, reason) => {
-                            console.debug(`[bot] toggle → ${running}`, reason ?? "");
-                        }}
-                        currentPrice={xauUsdPrice}
-                        hasToken={!!userToken}
-                        accountId={selectedAccountId ?? undefined}
-                        serverStatus={serverStatus ?? null}
-                        onPositionChange={handleBotPositionChange}
-                    />
-                    {/* Feed the auth token to the bot runtime once it is available. */}
-                    {userToken && <BotTokenSetter token={userToken} />}
-                </div>
+                {/* Bot Studio — Deployed Bots */}
+                <BotStudioList
+                    currentPrice={xauUsdPrice}
+                    hasToken={!!userToken}
+                    authToken={userToken ?? undefined}
+                    accountId={selectedAccountId ?? undefined}
+                    onStatusChange={handleBotStatusChange}
+                />
 
                 {/* Main Trading Area */}
                 <div className="grid gap-6 xl:grid-cols-4">
@@ -1222,12 +1222,13 @@ export default function AccountTradingPage() {
                         and per-symbol persistence live in the workspace — this
                         page only contributes the Order Panel + Watchlist
                         context. */}
-                    <div className="xl:col-span-3">
+                    <div className="xl:col-span-3 relative">
                         <ProTerminalChartWorkspace
                             initialSymbol={selectedSymbol}
                             token={userToken}
                             storageScope="account-trading"
                             hideWatchlist
+                            botRunning={serverStatus?.status === "running"}
                             onSymbolChange={setSelectedSymbol}
                             positions={chartPositions}
                             pendingOrders={chartOrders}
@@ -1340,6 +1341,11 @@ export default function AccountTradingPage() {
                     </div>
 
                     <div className="p-3">
+                        {notice ? (
+                            <p className="mb-2 rounded-lg border border-positive/20 bg-positive/[0.07] px-3 py-1.5 text-xs font-medium text-positive">
+                                {notice}
+                            </p>
+                        ) : null}
                         {actionError ? (
                             <p className="mb-2 rounded-lg border border-warning/20 bg-warning/[0.07] px-3 py-1.5 text-xs font-medium text-warning">
                                 {actionError}
@@ -1458,7 +1464,7 @@ function AccountSwitcher({
         <div className="relative">
             <button
                 type="button"
-                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 text-left transition hover:bg-muted"
+                className="flex w-full items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-left transition hover:bg-muted"
                 onClick={() => setOpen((o) => !o)}
             >
                 <StatusDot
@@ -1466,10 +1472,10 @@ function AccountSwitcher({
                     lastHeartbeat={selected?.lastHeartbeatAt ?? 0}
                 />
                 <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">
+                    <p className="text-xs font-semibold leading-tight truncate">
                         {selected?.broker ?? "No account"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-[9px] text-muted-foreground leading-none truncate">
                         {selected?.mt5Account} · {selected?.server}
                     </p>
                 </div>
@@ -1488,7 +1494,7 @@ function AccountSwitcher({
                         onClick={() => setOpen(false)}
                     />
                     <div
-                        className="absolute left-0 right-0 z-20 mt-1 overflow-auto rounded-lg border border-border bg-card p-2 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
+                        className="absolute left-0 right-0 z-20 mt-0.5 overflow-auto rounded-lg border border-border bg-card p-1.5 shadow-[0_1px_2px_rgb(0_0_0/0.05)]"
                         role="listbox"
                     >
                         {[...accounts].sort((a, b) => (a.status === "connected" ? -1 : 1) - (b.status === "connected" ? -1 : 1)).map((acc) => (
@@ -1497,7 +1503,7 @@ function AccountSwitcher({
                                 role="option"
                                 aria-selected={acc.accountId === selectedAccountId}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-left transition hover:bg-muted",
+                                    "flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition hover:bg-muted",
                                     acc.accountId === selectedAccountId &&
                                         "bg-muted"
                                 )}
@@ -1511,10 +1517,10 @@ function AccountSwitcher({
                                     lastHeartbeat={acc.lastHeartbeatAt}
                                 />
                                 <div className="min-w-0">
-                                    <p className="text-sm font-semibold">
+                                    <p className="text-xs font-semibold leading-tight truncate">
                                         {acc.broker}
                                     </p>
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-[9px] text-muted-foreground leading-none truncate">
                                         {acc.mt5Account} · {acc.server}
                                     </p>
                                 </div>
@@ -1539,16 +1545,6 @@ function isAccountLive(a: { status: TradingAccount["status"]; lastHeartbeatAt?: 
         a.status === "connected" &&
         Math.floor((currentTimestamp() - (a.lastHeartbeatAt || 0)) / 1000) < 120
     );
-}
-
-function BotTokenSetter({ token }: { token: string }) {
-    useEffect(() => {
-        // The bot runtime exposes a setToken helper that stores the current
-        // auth token into its internal ref so the M1 tick loop can submit
-        // orders through /api/trading/orders.
-        setToken(token);
-    }, [token]);
-    return null;
 }
 
 function StatusDot({
