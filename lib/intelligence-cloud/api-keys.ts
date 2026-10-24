@@ -25,6 +25,7 @@ import {
 import { generateApiKey, hashApiKey, parseApiKeyPrefix, safeEqualDigest } from "./crypto";
 import { errors, IntelligenceError } from "./errors";
 import { sanitizeSegment, type Tenant } from "./tenancy";
+import { recordAudit } from "./audit";
 
 /** RTDB root for Intelligence Cloud server-owned data. */
 export const CLOUD_ROOT = "intelligenceCloud";
@@ -147,6 +148,24 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreatedApi
         ...(input.rateLimit ? { rateLimit: input.rateLimit } : {}),
     });
 
+    // Audit log for key creation
+    try {
+        await recordAudit({
+            tenantId: record.tenantId,
+            action: "API_KEY_CREATED",
+            actorId: input.createdBy,
+            detail: {
+                keyId: record.keyId,
+                lookupPrefix: record.lookupPrefix,
+                scopes: record.scopes,
+                name: record.name,
+                ownerUserId: record.ownerUserId,
+            },
+        });
+    } catch {
+        // Audit logging must not block key creation
+    }
+
     const { hashedSecret: _secret, ...safe } = record;
     return { secret, record: safe };
 }
@@ -256,6 +275,22 @@ export async function revokeApiKey(
         revokedAt: Date.now(),
         revokedBy,
     });
+
+    // Audit log for key revocation
+    try {
+        await recordAudit({
+            tenantId: record.tenantId,
+            action: "API_KEY_REVOKED",
+            actorId: revokedBy,
+            detail: {
+                keyId: record.keyId,
+                lookupPrefix: record.lookupPrefix,
+                scopes: record.scopes,
+            },
+        });
+    } catch {
+        // Audit logging must not block key revocation
+    }
 }
 
 /** Keys for a tenant, with digests stripped. Safe to return from a portal. */

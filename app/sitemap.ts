@@ -25,7 +25,7 @@ async function getPublicProductsForSitemap(): Promise<SitemapProduct[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app";
+  const baseUrl = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app";
   const now = new Date();
 
   // Core static public pages

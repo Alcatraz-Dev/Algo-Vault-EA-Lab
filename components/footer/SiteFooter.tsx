@@ -122,20 +122,33 @@ export default function SiteFooter() {
 
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-                            Roadmap (Upcoming)
+                            Developers
                         </p>
                         <ul className="space-y-2">
                             <li>
-                                <span className="text-xs text-muted-foreground">Developer Platform</span>
+                                <Link href="/docs/api" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    API
+                                </Link>
                             </li>
                             <li>
-                                <span className="text-xs text-muted-foreground">MCP Integrations</span>
+                                <Link href="/docs/mcp" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    MCP
+                                </Link>
                             </li>
                             <li>
-                                <span className="text-xs text-muted-foreground">SDKs & API</span>
+                                <Link href="/docs/sdk" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    SDK
+                                </Link>
                             </li>
                             <li>
-                                <span className="text-xs text-muted-foreground">Automation & Webhooks</span>
+                                <Link href="/docs/webhooks" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Webhooks
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/developer/dashboard" className="text-xs text-muted-foreground hover:text-foreground transition">
+                                    Developer Dashboard
+                                </Link>
                             </li>
                         </ul>
                     </div>

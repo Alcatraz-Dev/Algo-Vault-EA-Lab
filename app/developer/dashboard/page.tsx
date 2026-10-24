@@ -5,7 +5,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Loader2, Shield, ArrowLeft, ExternalLink, DollarSign, Package, TrendingUp,
  Plus, Trash2, AlertTriangle, Eye, Star, Crown, Send, CheckCircle2, Clock, XCircle,
- RefreshCw, Store,
+ RefreshCw, Store, Key, Copy, Check,
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -202,7 +202,21 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  const [products, setProducts] = useState<Product[]>([]);
  const [earnings, setEarnings] = useState<Earnings | null>(null);
  const [loading, setLoading] = useState(true);
- const [tab, setTab] = useState<"overview" | "products" | "create">("overview");
+ const [tab, setTab] = useState<"overview" | "products" | "create" | "keys">("overview");
+
+ // API Keys
+ type ApiKeyRecord = { keyId: string; name?: string | null; prefix: string; lookupPrefix: string; scopes: string[]; createdAt: number; lastUsedAt?: number | null; expiresAt?: number | null; revokedAt?: number | null; createdBy?: string | null; ownerUserId?: string | null };
+ const [apiKeys, setApiKeys] = useState<ApiKeyRecord[]>([]);
+ const [apiKeysLoading, setApiKeysLoading] = useState(false);
+ const [apiKeysError, setApiKeysError] = useState<string | null>(null);
+ const [createKeyOpen, setCreateKeyOpen] = useState(false);
+ const [newKeyName, setNewKeyName] = useState("");
+ const [newKeyScopes, setNewKeyScopes] = useState<string[]>(["market:read", "indicators:read", "smartmoney:read"]);
+ const [creatingKey, setCreatingKey] = useState(false);
+ const [createdSecret, setCreatedSecret] = useState<string | null>(null);
+ const [secretCopied, setSecretCopied] = useState(false);
+ const [revokeTarget, setRevokeTarget] = useState<ApiKeyRecord | null>(null);
+ const [revoking, setRevoking] = useState(false);
  const [role, setRole] = useState("");
  const [devSub, setDevSub] = useState<DevSubscription | null>(null);
 
@@ -221,6 +235,82 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
  return () => unsub();
  }, []);
+
+ const fetchApiKeys = useCallback(async () => {
+ if (!user) return;
+ setApiKeysLoading(true);
+ setApiKeysError(null);
+ try {
+ const token = await user.getIdToken();
+ const res = await fetch("/api/developer/keys", { headers: { Authorization: `Bearer ${token}` } });
+ if (res.status === 401 || res.status === 403) {
+ setApiKeysError(res.status === 403 ? "Developer role required" : "Unauthorized");
+ setApiKeys([]);
+ return;
+ }
+ if (!res.ok) {
+ setApiKeysError("Failed to load API keys");
+ setApiKeys([]);
+ return;
+ }
+ const data = await res.json();
+ setApiKeys(Array.isArray(data.keys) ? data.keys : []);
+ } catch (e) {
+ setApiKeysError("Failed to load API keys");
+ setApiKeys([]);
+ } finally {
+ setApiKeysLoading(false);
+ }
+ }, [user]);
+
+ const createApiKeyFn = useCallback(async () => {
+ if (!user || creatingKey) return;
+ setCreatingKey(true);
+ try {
+ const token = await user.getIdToken();
+ const res = await fetch("/api/developer/keys", {
+ method: "POST",
+ headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+ body: JSON.stringify({ name: newKeyName.trim() || undefined, scopes: newKeyScopes }),
+ });
+ if (!res.ok) {
+ const err = await res.json().catch(() => ({}));
+ const msg = err.error || err.message || "Failed to create API key";
+ alert(msg);
+ return;
+ }
+ const data = await res.json();
+ setCreatedSecret(data.secret || null);
+ await fetchApiKeys();
+ } catch (e: any) {
+ alert(e?.message || "Failed to create API key");
+ } finally {
+ setCreatingKey(false);
+ }
+ }, [user, creatingKey, newKeyName, newKeyScopes, fetchApiKeys]);
+
+ const revokeApiKeyFn = useCallback(async () => {
+ if (!user || !revokeTarget || revoking) return;
+ setRevoking(true);
+ try {
+ const token = await user.getIdToken();
+ const res = await fetch(`/api/developer/keys/${revokeTarget.lookupPrefix}`, {
+ method: "DELETE",
+ headers: { Authorization: `Bearer ${token}` },
+ });
+ if (!res.ok) {
+ const err = await res.json().catch(() => ({}));
+ alert(err.error || "Failed to revoke API key");
+ return;
+ }
+ setRevokeTarget(null);
+ await fetchApiKeys();
+ } catch (e) {
+ alert("Failed to revoke API key");
+ } finally {
+ setRevoking(false);
+ }
+ }, [user, revokeTarget, revoking, fetchApiKeys]);
 
  const fetchAll = useCallback(async () => {
  if (!user) return;
@@ -261,6 +351,12 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  const load = async () => { if (user) await fetchAll(); };
  load();
  }, [user, fetchAll]);
+
+ useEffect(() => {
+ if (user && tab === "keys") {
+ fetchApiKeys();
+ }
+ }, [user, tab, fetchApiKeys]);
 
  const startOnboarding = async () => {
  if (!user) return;
@@ -538,21 +634,22 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  )}
 
  {/* Tabs */}
-                                                              <div className="mb-6 flex gap-2 rounded-xl border border-border/40 bg-muted/50 p-1">
- {(["overview", "products", "create"] as const).map((t) => (
+                                                              <div className="mb-6 flex gap-2 rounded-xl border border-border/40 bg-muted/50 p-1 flex-wrap">
+ {(["overview", "products", "create", "keys"] as const).map((t) => (
  <button
  key={t}
  type="button"
  onClick={() => setTab(t)}
  className={cn(
- "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all",
+ "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all min-w-[120px]",
  tab === t ? "bg-primary text-white " : "text-muted-foreground hover:text-muted-foreground hover:bg-muted"
  )}
  >
  {t === "overview" && <TrendingUp size={15} />}
  {t === "products" && <Package size={15} />}
  {t === "create" && <Plus size={15} />}
- {t.charAt(0).toUpperCase() + t.slice(1)}
+ {t === "keys" && <Key size={15} />}
+ {t === "keys" ? "API Keys" : t.charAt(0).toUpperCase() + t.slice(1)}
  </button>
  ))}
  </div>
@@ -710,6 +807,141 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </div>
  </div>
  )}
+
+ {tab === "keys" && (
+ <div className="space-y-4">
+ <div className="flex items-center justify-between">
+ <div>
+ <h3 className="text-sm font-semibold text-foreground">API Keys</h3>
+ <p className="text-xs text-muted-foreground">Manage keys for accessing the AlgoVault API</p>
+ </div>
+ <button
+ type="button"
+ onClick={() => { setCreateKeyOpen(true); setCreatedSecret(null); setSecretCopied(false); setNewKeyName(""); setNewKeyScopes(["market:read", "indicators:read", "smartmoney:read"]); }}
+ className="flex items-center gap-2 rounded-lg bg-black px-4 py-2.5 text-xs font-semibold text-white hover:bg-primary/90 transition"
+ >
+ <Plus size={12} /> Create API Key
+ </button>
+ </div>
+
+ {apiKeysError && (
+ <div className="rounded-xl border border-negative/20 bg-negative/[0.04] p-4 text-sm text-negative">{apiKeysError}</div>
+ )}
+
+ {apiKeysLoading ? (
+ <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+ ) : apiKeys.length === 0 ? (
+ <div className="rounded-xl border border-dashed border-border/40 p-12 text-center">
+ <Key size={28} className="mx-auto text-muted-foreground" />
+ <p className="mt-2 text-sm text-muted-foreground">No API keys yet</p>
+ <button type="button" onClick={() => { setCreateKeyOpen(true); setCreatedSecret(null); }} className="mt-2 text-xs text-primary hover:underline">Create your first API key</button>
+ </div>
+ ) : (
+ <div className="rounded-xl border border-border/40 bg-muted/50 overflow-hidden shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
+ <div className="overflow-x-auto">
+ <table className="w-full text-sm">
+ <thead>
+ <tr className="border-b border-border/40">
+ <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Name</th>
+ <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Key</th>
+ <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Scopes</th>
+ <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Created</th>
+ <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground">Status</th>
+ <th className="text-right py-3 px-4 text-xs font-medium text-muted-foreground">Actions</th>
+ </tr>
+ </thead>
+ <tbody>
+ {apiKeys.map((k) => (
+ <tr key={k.keyId} className="border-b border-border/20 last:border-0">
+ <td className="py-3 px-4 text-foreground">{k.name || "(unnamed)"}</td>
+ <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{k.prefix}…</td>
+ <td className="py-3 px-4 text-xs text-muted-foreground">{Array.isArray(k.scopes) ? k.scopes.join(", ") : ""}</td>
+ <td className="py-3 px-4 text-xs text-muted-foreground">{k.createdAt ? new Date(k.createdAt).toLocaleDateString() : "-"}</td>
+ <td className="py-3 px-4 text-xs">{k.revokedAt ? <span className="text-negative">Revoked</span> : <span className="text-positive">Active</span>}</td>
+ <td className="py-3 px-4 text-right">
+ {!k.revokedAt && <button type="button" onClick={() => setRevokeTarget(k)} className="text-xs text-negative hover:underline">Revoke</button>}
+ </td>
+ </tr>
+ ))}
+ </tbody>
+ </table>
+ </div>
+ </div>
+ )}
+ </div>
+ )}
+
+ {/* Create Key Dialog */}
+ {createKeyOpen && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+ <div className="w-full max-w-md rounded-xl border border-border/40 bg-background p-6 shadow-xl">
+ {!createdSecret ? (
+ <>
+ <div className="flex items-center justify-between mb-4">
+ <h3 className="text-lg font-semibold text-foreground">Create API Key</h3>
+ <button type="button" onClick={() => setCreateKeyOpen(false)} className="text-muted-foreground hover:text-foreground"><XCircle size={18} /></button>
+ </div>
+ <div className="space-y-4">
+ <div>
+ <label className="block text-xs font-medium text-muted-foreground mb-1.5">Key Name</label>
+ <input value={newKeyName} onChange={(e) => setNewKeyName(e.target.value)} className="w-full rounded-lg border border-border/40 bg-muted px-3 py-2 text-sm" placeholder="My App" />
+ </div>
+ <div>
+ <label className="block text-xs font-medium text-muted-foreground mb-1.5">Scopes</label>
+ <div className="space-y-2">
+ {["market:read", "indicators:read", "smartmoney:read", "research:read", "strategy:read", "portfolio:read"].map((s) => (
+ <label key={s} className="flex items-center gap-2 text-sm text-foreground">
+ <input type="checkbox" checked={newKeyScopes.includes(s)} onChange={(e) => {
+ if (e.target.checked) setNewKeyScopes([...newKeyScopes, s]);
+ else setNewKeyScopes(newKeyScopes.filter(x => x !== s));
+ }} />
+ {s}
+ </label>
+ ))}
+ </div>
+ </div>
+ <div className="flex gap-2">
+ <button type="button" onClick={() => setCreateKeyOpen(false)} className="flex-1 rounded-lg border border-border/40 px-4 py-2 text-sm">Cancel</button>
+ <button type="button" onClick={createApiKeyFn} disabled={creatingKey} className="flex-1 rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50">{creatingKey ? "Creating..." : "Create"}</button>
+ </div>
+ </div>
+ </>
+ ) : (
+ <>
+ <div className="flex items-center justify-between mb-4">
+ <h3 className="text-lg font-semibold text-foreground">Save Your API Key</h3>
+ </div>
+ <div className="space-y-4">
+ <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs text-warning">This key will only be shown once. Store it securely.</div>
+ <div className="flex items-center gap-2">
+ <code className="flex-1 rounded-lg bg-muted px-3 py-2 text-xs break-all">{createdSecret}</code>
+ <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(createdSecret); setSecretCopied(true); setTimeout(() => setSecretCopied(false), 1500); } catch {} }} className="rounded-lg border border-border/40 px-3 py-2 text-xs">{secretCopied ? "Copied" : "Copy"}</button>
+ </div>
+ <button type="button" onClick={() => { setCreateKeyOpen(false); setCreatedSecret(null); fetchApiKeys(); }} className="w-full rounded-lg bg-black px-4 py-2 text-sm text-white">Done</button>
+ </div>
+ </>
+ )}
+ </div>
+ </div>
+ )}
+
+ {/* Revoke Dialog */}
+ {revokeTarget && (
+ <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+ <div className="w-full max-w-md rounded-xl border border-border/40 bg-background p-6 shadow-xl">
+ <div className="flex items-center justify-between mb-4">
+ <h3 className="text-lg font-semibold text-foreground">Revoke API Key</h3>
+ <button type="button" onClick={() => setRevokeTarget(null)} className="text-muted-foreground hover:text-foreground"><XCircle size={18} /></button>
+ </div>
+ <p className="text-sm text-muted-foreground mb-4">Are you sure you want to revoke {revokeTarget.name || revokeTarget.prefix}? This action cannot be undone.</p>
+ <div className="flex gap-2">
+ <button type="button" onClick={() => setRevokeTarget(null)} className="flex-1 rounded-lg border border-border/40 px-4 py-2 text-sm">Cancel</button>
+ <button type="button" onClick={revokeApiKeyFn} disabled={revoking} className="flex-1 rounded-lg bg-negative px-4 py-2 text-sm text-white disabled:opacity-50">{revoking ? "Revoking..." : "Revoke"}</button>
+ </div>
+ </div>
+ </div>
+ )}
+
  </>
  )}
  </div>

@@ -1,0 +1,352 @@
+openapi: 3.1.0
+info:
+  title: AlgoVault Intelligence Cloud API
+  description: |
+    Public API for AlgoVault's Intelligence Cloud. 
+    
+    This API provides read-only access to market intelligence, indicators, analytics, 
+    research, and account data. All requests require API key authentication via the 
+    Intelligence Cloud pipeline with scope-based authorization.
+    
+    **Important:** This is the public Intelligence Cloud API, separate from:
+    - Internal developer portal routes
+    - TradingView MCP extension bridge
+    - Bot deployment, trade execution, or AI execution endpoints (not exposed publicly)
+  version: '1.0.0'
+  contact:
+    name: AlgoVault Developer Support
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://your-domain.com
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+tags:
+  - name: Market
+    description: Market data and structure
+  - name: Indicators
+    description: Technical indicators
+  - name: Smart Money
+    description: Smart money analysis
+  - name: Analytics
+    description: Portfolio analytics
+  - name: Research
+    description: Research jobs
+  - name: Strategies
+    description: Strategy validation
+  - name: Accounts
+    description: Account and position data
+  - name: System
+    description: System endpoints
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /api/v1/market:
+    get:
+      tags:
+        - Market
+      summary: Get market data
+      description: Retrieve current market state for a symbol
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Trading symbol
+        - name: timeframe
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Timeframe
+      responses:
+        '200':
+          description: Market data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/InternalError'
+  /api/v1/market/graph:
+    get:
+      tags:
+        - Market
+      summary: Get market graph
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Market graph data
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/market/relationships:
+    get:
+      tags:
+        - Market
+      summary: Get market relationships
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Market relationships data
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/indicators:
+    get:
+      tags:
+        - Indicators
+      summary: Get indicators
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: timeframe
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Indicators data
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/analytics:
+    get:
+      tags:
+        - Analytics
+      summary: Get analytics
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Analytics data
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/smart-money:
+    get:
+      tags:
+        - Smart Money
+      summary: Get smart money data
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: symbol
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Smart money data
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/strategies/validate:
+    post:
+      tags:
+        - Strategies
+      summary: Validate strategy
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StrategyValidateRequest'
+      responses:
+        '200':
+          description: Validation result
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/research:
+    get:
+      tags:
+        - Research
+      summary: List research jobs
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Research jobs list
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags:
+        - Research
+      summary: Create research job
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResearchCreateRequest'
+      responses:
+        '201':
+          description: Research job created
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/research/{jobId}:
+    get:
+      tags:
+        - Research
+      summary: Get research job
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Research job details
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/accounts:
+    get:
+      tags:
+        - Accounts
+      summary: Get accounts
+      description: Requires API key with user binding
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Accounts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /api/v1/positions:
+    get:
+      tags:
+        - Accounts
+      summary: Get positions
+      description: Requires API key with user binding
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: Positions retrieved
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: http
+      scheme: bearer
+      description: API key authentication via Intelligence Cloud. Keys are bound to tenant and may require user binding.
+
+  schemas:
+    MarketResponse:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+          example: v1
+        market:
+          type: object
+        requestId:
+          type: string
+    AccountsResponse:
+      type: object
+      properties:
+        apiVersion:
+          type: string
+        accounts:
+          type: array
+          items:
+            type: object
+        dataTimestamp:
+          type: number
+    StrategyValidateRequest:
+      type: object
+    ResearchCreateRequest:
+      type: object
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      required:
+        - error
+      properties:
+        error:
+          type: string
+        requestId:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: Rate limited
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Internal error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+

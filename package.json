@@ -56,7 +56,8 @@
     "test:release-notes": "node scripts/jiti-tsrun.mjs tests/release-notes.test.ts",
     "desktop:release-manifest": "node scripts/desktop-release-manifest.mjs",
     "test:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti tests/run-seo-security-tests.ts",
-    "validate:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti scripts/validate-seo-ai.ts"
+    "validate:seo-ai": "JITI_TSCONFIG_PATHS=1 jiti scripts/validate-seo-ai.ts",
+    "validate:openapi": "node scripts/validate-openapi.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

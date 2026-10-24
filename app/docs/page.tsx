@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import { getAllPublicDocs } from "@/lib/public-docs";
 import { StructuredData } from "@/components/seo/StructuredData";
 
+const SITE_URL = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app";
+
 export const metadata: Metadata = {
   title: "Public Documentation & Methodology Hub",
   description: "Explore canonical methodology docs for AlgoVault AI Market Intelligence, Smart Money Concepts, Scalping Terminal, and MetaTrader 5 EA Backtesting.",
@@ -22,13 +24,13 @@ export default function PublicDocsPage() {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://algovault.app",
+        item: SITE_URL,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Documentation",
-        item: "https://algovault.app/docs",
+        item: `${SITE_URL}/docs`,
       },
     ],
   };

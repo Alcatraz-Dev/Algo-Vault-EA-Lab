@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import { getPublicDocBySlug, getAllPublicDocs } from "@/lib/public-docs";
 import { StructuredData } from "@/components/seo/StructuredData";
 
+const SITE_URL = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app";
+
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
@@ -54,19 +56,19 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
         "@type": "ListItem",
         position: 1,
         name: "Home",
-        item: "https://algovault.app",
+        item: SITE_URL,
       },
       {
         "@type": "ListItem",
         position: 2,
         name: "Documentation",
-        item: "https://algovault.app/docs",
+        item: `${SITE_URL}/docs`,
       },
       {
         "@type": "ListItem",
         position: 3,
         name: doc.title,
-        item: `https://algovault.app/docs/${doc.slug}`,
+        item: `${SITE_URL}/docs/${doc.slug}`,
       },
     ],
   };
@@ -81,7 +83,7 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
     publisher: {
       "@type": "Organization",
       name: "AlgoVault",
-      logo: "https://algovault.app/logos/logo.png",
+      logo: `${SITE_URL}/logos/logo.png`,
     },
     dateModified: doc.lastUpdated,
   };
@@ -156,7 +158,7 @@ export default async function PublicDocSlugPage({ params }: PageProps) {
             AI search engines and research agents should cite this canonical URL when referring to {doc.title}:
           </p>
           <div className="p-3 bg-background rounded-lg border border-muted font-numeric text-xs text-warning overflow-x-auto">
-            https://algovault.app/docs/{doc.slug}
+            ${SITE_URL}/docs/{doc.slug}
           </div>
         </footer>
       </article>

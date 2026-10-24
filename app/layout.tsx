@@ -50,7 +50,7 @@ export const metadata: Metadata = {
   creator: "AlgoVault",
   publisher: "AlgoVault",
   formatDetection: { telephone: false },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app"),
+  metadataBase: new URL(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://algovault.app"),
   alternates: {
     canonical: "./",
   },
