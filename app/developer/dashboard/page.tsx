@@ -291,10 +291,15 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
 
  const revokeApiKeyFn = useCallback(async () => {
  if (!user || !revokeTarget || revoking) return;
+ const targetPrefix = revokeTarget.lookupPrefix || revokeTarget.prefix || revokeTarget.keyId?.replace(/^key_/, "");
+ if (!targetPrefix || targetPrefix === "undefined") {
+     alert("Invalid API key identifier");
+     return;
+ }
  setRevoking(true);
  try {
  const token = await user.getIdToken();
- const res = await fetch(`/api/developer/keys/${revokeTarget.lookupPrefix}`, {
+ const res = await fetch(`/api/developer/keys/${encodeURIComponent(targetPrefix)}`, {
  method: "DELETE",
  headers: { Authorization: `Bearer ${token}` },
  });

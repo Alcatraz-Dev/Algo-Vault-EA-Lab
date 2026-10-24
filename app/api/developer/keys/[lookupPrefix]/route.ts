@@ -42,9 +42,26 @@ export async function DELETE(
         const tenantId = userData.tenantId || uid;
         const { lookupPrefix } = await params;
 
-        await revokeApiKey(tenantId, lookupPrefix, uid);
+        if (!lookupPrefix || lookupPrefix === "undefined" || lookupPrefix === "null") {
+            return NextResponse.json(
+                { error: "Invalid API key lookup prefix" },
+                { status: 400 }
+            );
+        }
+
+        const cleanPrefix = lookupPrefix.startsWith("key_")
+            ? lookupPrefix.slice(4)
+            : lookupPrefix;
+
+        await revokeApiKey(tenantId, cleanPrefix, uid);
         return NextResponse.json({ success: true });
     } catch (error: any) {
+        if (error?.status && typeof error.status === "number") {
+            return NextResponse.json(
+                { error: error?.message || "Error revoking API key" },
+                { status: error.status }
+            );
+        }
         console.error("Revoke API key error:", error);
         return NextResponse.json({ error: error?.message || "Failed to revoke API key" }, { status: 500 });
     }

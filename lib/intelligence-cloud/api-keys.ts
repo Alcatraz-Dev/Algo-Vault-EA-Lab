@@ -293,9 +293,13 @@ export async function revokeApiKey(
     }
 }
 
+export type ApiKeySummary = Omit<ApiKeyRecord, "hashedSecret"> & {
+    prefix: string;
+};
+
 /** Keys for a tenant, with digests stripped. Safe to return from a portal. */
 export async function listApiKeys(tenantId: string): Promise<
-    Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">>
+    Array<ApiKeySummary>
 > {
     const cleanTenant = sanitizeSegment(tenantId);
     let snap;
@@ -310,23 +314,33 @@ export async function listApiKeys(tenantId: string): Promise<
                 `[intelligence-cloud] Index not defined for /${API_KEYS_PATH} tenantId, falling back to in-memory filtering. Deploy database.rules.json to fix this.`
             );
             snap = await adminDatabase.ref(`${API_KEYS_PATH}`).get();
-            const out: Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">> = [];
+            const out: Array<ApiKeySummary> = [];
             snap.forEach((child) => {
                 const record = child.val() as ApiKeyRecord | null;
                 if (record && record.tenantId === cleanTenant) {
-                    const { hashedSecret: _h, lookupPrefix: _p, ...safe } = record;
-                    out.push(safe);
+                    const { hashedSecret: _h, ...safe } = record;
+                    const lookupPrefix = record.lookupPrefix || (record.keyId ? record.keyId.replace(/^key_/, "") : child.key || "");
+                    out.push({
+                        ...safe,
+                        lookupPrefix,
+                        prefix: lookupPrefix,
+                    });
                 }
             });
             return out.sort((a, b) => b.createdAt - a.createdAt);
         }
         throw err;
     }
-    const out: Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">> = [];
+    const out: Array<ApiKeySummary> = [];
     snap.forEach((child) => {
         const record = child.val() as ApiKeyRecord;
-        const { hashedSecret: _h, lookupPrefix: _p, ...safe } = record;
-        out.push(safe);
+        const { hashedSecret: _h, ...safe } = record;
+        const lookupPrefix = record.lookupPrefix || (record.keyId ? record.keyId.replace(/^key_/, "") : child.key || "");
+        out.push({
+            ...safe,
+            lookupPrefix,
+            prefix: lookupPrefix,
+        });
     });
     return out.sort((a, b) => b.createdAt - a.createdAt);
 }
