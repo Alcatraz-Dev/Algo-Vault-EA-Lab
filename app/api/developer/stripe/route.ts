@@ -528,15 +528,22 @@ export async function POST(request: NextRequest) {
          * configurations must exactly match what's applied on the
          * account or Stripe rejects with a configuration mismatch.
          */
-         const onboardingConfigurations: string[] = [];
-         if (currentAccount.configuration?.merchant) {
-             onboardingConfigurations.push("merchant");
-         }
-         if (currentAccount.configuration?.customer) {
-             onboardingConfigurations.push("customer");
-         }
-         if (currentAccount.configuration?.recipient) {
-             onboardingConfigurations.push("recipient");
+         const onboardingConfigurations: string[] =
+             currentAccount.applied_configurations &&
+             currentAccount.applied_configurations.length > 0
+                 ? [...currentAccount.applied_configurations]
+                 : [];
+
+         if (onboardingConfigurations.length === 0) {
+             if (currentAccount.configuration?.merchant) {
+                 onboardingConfigurations.push("merchant");
+             }
+             if (currentAccount.configuration?.customer) {
+                 onboardingConfigurations.push("customer");
+             }
+             if (currentAccount.configuration?.recipient) {
+                 onboardingConfigurations.push("recipient");
+             }
          }
 
          // Defensive fallback: Stripe rejects empty configurations with

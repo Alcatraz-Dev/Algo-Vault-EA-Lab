@@ -519,9 +519,14 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  ? ` Deadline: ${new Date(stripe.requirements.currentDeadline).toLocaleDateString()}.`
  : ""}
  </p>
- {(stripe.requirements?.currentlyDue || []).slice(0, 3).map((req) => (
- <p key={req} className="mt-1 text-micro text-warning/80">• {req}</p>
- ))}
+ {(Array.from(new Set([...(stripe.requirements?.currentlyDue || []), ...(stripe.requirements?.pastDue || [])]))).slice(0, 3).map((req) => {
+     const friendly = req === "identity.individual.documents.primary_verification"
+         ? "Identity document verification (photo ID required)"
+         : req.replace(/^identity\.individual\./, "").replace(/_/g, " ");
+     return (
+         <p key={req} className="mt-1 text-micro text-warning/90 font-medium">• {friendly}</p>
+     );
+ })}
  </div>
  </div>
  <div className="flex items-center gap-2">

@@ -83,15 +83,15 @@ export function getV2AccountStatus(account: StripeAccountV2) {
     const requirements = getV2Requirements(account);
 
     let statusLabel: string;
-    if (cardPaymentsStatus === "restricted") {
-        statusLabel = "Restricted";
+    if (paymentsActive) {
+        statusLabel = "Payments Active";
     } else if (
         requirements.currentlyDue.length > 0 ||
         requirements.pastDue.length > 0
     ) {
         statusLabel = "Requirements Due";
-    } else if (paymentsActive) {
-        statusLabel = "Payments Active";
+    } else if (cardPaymentsStatus === "restricted") {
+        statusLabel = "Restricted";
     } else {
         statusLabel = "Stripe Connected";
     }
