@@ -1244,6 +1244,21 @@
       ".write": false,
       "apiKeys": {
         ".indexOn": ["tenantId"]
+      },
+      "audit": {
+        "$tenantId": {
+          ".indexOn": ["at"]
+        }
+      },
+      "jobs": {
+        "$tenantId": {
+          ".indexOn": ["createdAt", "status"]
+        }
+      },
+      "webhooks": {
+        "$tenantId": {
+          ".indexOn": ["webhookId"]
+        }
       }
     }
   }

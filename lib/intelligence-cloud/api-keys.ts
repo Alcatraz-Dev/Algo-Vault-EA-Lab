@@ -134,7 +134,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreatedApi
         tenantId: sanitizeSegment(input.tenantId),
         createdBy: input.createdBy,
         ...(input.ownerUserId ? { ownerUserId: sanitizeSegment(input.ownerUserId) } : {}),
-        name: input.name,
+        ...(input.name ? { name: input.name } : {}),
         scopes,
         status: "active",
         createdAt: now,
@@ -158,8 +158,8 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreatedApi
                 keyId: record.keyId,
                 lookupPrefix: record.lookupPrefix,
                 scopes: record.scopes,
-                name: record.name,
-                ownerUserId: record.ownerUserId,
+                ...(record.name ? { name: record.name } : {}),
+                ...(record.ownerUserId ? { ownerUserId: record.ownerUserId } : {}),
             },
         });
     } catch {
@@ -297,9 +297,31 @@ export async function revokeApiKey(
 export async function listApiKeys(tenantId: string): Promise<
     Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">>
 > {
-    const snap = await adminDatabase.ref(`${API_KEYS_PATH}`).orderByChild("tenantId").equalTo(
-        sanitizeSegment(tenantId)
-    ).get();
+    const cleanTenant = sanitizeSegment(tenantId);
+    let snap;
+    try {
+        snap = await adminDatabase.ref(`${API_KEYS_PATH}`).orderByChild("tenantId").equalTo(
+            cleanTenant
+        ).get();
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("Index not defined") || msg.includes(".indexOn")) {
+            console.warn(
+                `[intelligence-cloud] Index not defined for /${API_KEYS_PATH} tenantId, falling back to in-memory filtering. Deploy database.rules.json to fix this.`
+            );
+            snap = await adminDatabase.ref(`${API_KEYS_PATH}`).get();
+            const out: Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">> = [];
+            snap.forEach((child) => {
+                const record = child.val() as ApiKeyRecord | null;
+                if (record && record.tenantId === cleanTenant) {
+                    const { hashedSecret: _h, lookupPrefix: _p, ...safe } = record;
+                    out.push(safe);
+                }
+            });
+            return out.sort((a, b) => b.createdAt - a.createdAt);
+        }
+        throw err;
+    }
     const out: Array<Omit<ApiKeyRecord, "hashedSecret" | "lookupPrefix">> = [];
     snap.forEach((child) => {
         const record = child.val() as ApiKeyRecord;

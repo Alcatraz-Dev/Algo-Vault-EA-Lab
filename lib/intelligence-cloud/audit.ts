@@ -82,15 +82,22 @@ export async function recordAudit(input: {
     }
 
     const now = Date.now();
+    const cleanDetail: Record<string, unknown> = {};
+    if (input.detail) {
+        for (const [k, v] of Object.entries(input.detail)) {
+            if (v !== undefined) cleanDetail[k] = v;
+        }
+    }
+
     const base: Omit<AuditEntry, "auditId" | "hash"> = {
         tenantId: sanitizeSegment(input.tenantId),
         action: input.action,
         actorId: input.actorId,
-        requestId: input.requestId,
-        detail: input.detail ?? {},
+        ...(input.requestId ? { requestId: input.requestId } : {}),
+        detail: cleanDetail,
         at: now,
-        ip: input.ip,
-        prevHash,
+        ...(input.ip ? { ip: input.ip } : {}),
+        ...(prevHash ? { prevHash } : {}),
     };
 
     const entry: AuditEntry = {
