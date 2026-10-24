@@ -14,6 +14,7 @@ export const INCLUDE_ACCOUNT_SECTIONS: Stripe.V2.Core.AccountRetrieveParams.Incl
     "configuration.recipient",
     "configuration.customer",
     "requirements",
+    "identity",
 ];
 
 /**

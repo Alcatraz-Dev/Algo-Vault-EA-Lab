@@ -149,13 +149,41 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        const account =
-            await stripeClient.v2.core.accounts.retrieve(
-                accountId,
-                {
-                    include: INCLUDE_ACCOUNT_SECTIONS,
-                }
-            );
+        let account: StripeAccountV2;
+        try {
+            account =
+                await stripeClient.v2.core.accounts.retrieve(
+                    accountId,
+                    {
+                        include: INCLUDE_ACCOUNT_SECTIONS,
+                    }
+                );
+            if (account.closed) {
+                throw { code: "resource_missing", statusCode: 404 };
+            }
+        } catch (retrieveErr: unknown) {
+            const errCode = (retrieveErr as { code?: string; statusCode?: number })?.code;
+            const errStatus = (retrieveErr as { code?: string; statusCode?: number })?.statusCode;
+            if (errCode === "resource_missing" || errStatus === 404) {
+                return NextResponse.json({
+                    success: true,
+                    connected: false,
+                    accountId: null,
+                    statusLabel: "Onboarding Required",
+                    paymentsActive: false,
+                    chargesEnabled: false,
+                    payoutsEnabled: false,
+                    cardPaymentsStatus: null,
+                    requirements: {
+                        currentlyDue: [],
+                        eventuallyDue: [],
+                        pastDue: [],
+                        currentDeadline: null,
+                    },
+                });
+            }
+            throw retrieveErr;
+        }
 
         const status = getV2AccountStatus(account);
 
@@ -243,10 +271,14 @@ export async function POST(request: NextRequest) {
         const returnUrl =
             `${baseUrl}/developer/dashboard?stripe=return`;
 
+        const { iso, currency } = resolveCountry(
+            userData.country
+        );
+
         let accountId =
             userData?.stripeConnect?.accountId || null;
 
-        let account: StripeAccountV2;
+        let account: StripeAccountV2 | null = null;
 
         /**
          * ========================================================
@@ -254,62 +286,104 @@ export async function POST(request: NextRequest) {
          * ========================================================
          */
         if (accountId) {
-            account =
-                await stripeClient.v2.core.accounts.retrieve(
-                    accountId,
-                    { include: INCLUDE_ACCOUNT_SECTIONS }
-                );
+            try {
+                const retrieved =
+                    await stripeClient.v2.core.accounts.retrieve(
+                        accountId,
+                        { include: INCLUDE_ACCOUNT_SECTIONS }
+                    );
 
-            /**
-             * Accounts created before the card_payments requirement was in
-             * place may only have the old recipient/stripe_transfers config.
-             * Ensure the merchant card_payments AND recipient stripe_transfers
-             * capabilities are requested so both direct charges and transfers
-             * become available.
-             *
-             * Some Stripe V2 API configurations or proxies may reject update
-             * requests; if that happens, we log the error and proceed with
-             * the onboarding link so the developer can still complete setup.
-             */
-            if (
-                !account.configuration?.merchant ||
-                account.configuration?.merchant?.applied !== true ||
-                !account.configuration?.recipient ||
-                account.configuration?.recipient?.applied !== true
-            ) {
-                try {
-                    account =
-                        await stripeClient.v2.core.accounts.update(
-                            accountId,
-                            {
-                                configuration: {
-                                    merchant: {
-                                        capabilities: {
-                                            card_payments: {
-                                                requested: true,
-                                            },
-                                        },
-                                    },
-                                    recipient: {
-                                        capabilities: {
-                                            stripe_balance: {
-                                                stripe_transfers: {
+                if (!retrieved.closed) {
+                    account = retrieved;
+                } else {
+                    accountId = null;
+                }
+            } catch (retrieveErr: unknown) {
+                const errCode = (retrieveErr as { code?: string; statusCode?: number })?.code;
+                const errStatus = (retrieveErr as { code?: string; statusCode?: number })?.statusCode;
+                if (errCode === "resource_missing" || errStatus === 404) {
+                    accountId = null;
+                } else {
+                    throw retrieveErr;
+                }
+            }
+
+            if (account && accountId) {
+                /**
+                 * Accounts created before the card_payments requirement was in
+                 * place may only have the old recipient/stripe_transfers config.
+                 * Ensure the merchant card_payments AND recipient stripe_transfers
+                 * capabilities are requested so both direct charges and transfers
+                 * become available.
+                 *
+                 * Note: When updating an account with merchant or recipient
+                 * capabilities, Stripe V2 requires defaults.responsibilities
+                 * (fees_collector and losses_collector). If `dashboard` has not
+                 * been set on the account yet, Stripe also requires setting it;
+                 * once set, Stripe forbids changing it via API.
+                 */
+                if (
+                    !account.configuration?.merchant ||
+                    account.configuration?.merchant?.applied !== true ||
+                    !account.configuration?.recipient ||
+                    account.configuration?.recipient?.applied !== true
+                ) {
+                    try {
+                        account =
+                            await stripeClient.v2.core.accounts.update(
+                                accountId,
+                                {
+                                    ...(account.identity?.country
+                                        ? {}
+                                        : {
+                                              identity: {
+                                                  country: iso,
+                                                  entity_type: "individual",
+                                              },
+                                          }),
+                                    configuration: {
+                                        customer: {},
+                                        merchant: {
+                                            capabilities: {
+                                                card_payments: {
                                                     requested: true,
                                                 },
                                             },
                                         },
+                                        recipient: {
+                                            capabilities: {
+                                                stripe_balance: {
+                                                    stripe_transfers: {
+                                                        requested: true,
+                                                    },
+                                                },
+                                            },
+                                        },
                                     },
-                                },
-                            }
+                                    ...(account.dashboard
+                                        ? {}
+                                        : { dashboard: "full" }),
+                                    defaults: {
+                                        responsibilities: {
+                                            fees_collector: "stripe",
+                                            losses_collector: "stripe",
+                                        },
+                                    },
+                                    include: INCLUDE_ACCOUNT_SECTIONS,
+                                }
+                            );
+                    } catch (updateErr: unknown) {
+                        console.error(
+                            "Failed to update existing Stripe account:",
+                            updateErr
                         );
-                } catch (updateErr: unknown) {
-                    console.error(
-                        "Failed to update existing Stripe account:",
-                        updateErr
-                    );
+                        throw updateErr;
+                    }
                 }
             }
-        } else {
+        }
+
+        if (!accountId || !account) {
             /**
              * ====================================================
              * CREATE STRIPE CONNECT ACCOUNT V2
@@ -325,10 +399,6 @@ export async function POST(request: NextRequest) {
              * customer: {} enables subscription/billing flows.
              * dashboard: "full" → cobranded Stripe Dashboard.
              */
-            const { iso, currency } = resolveCountry(
-                userData.country
-            );
-
             const created =
                 await stripeClient.v2.core.accounts.create({
                     contact_email:
@@ -467,6 +537,12 @@ export async function POST(request: NextRequest) {
          }
          if (currentAccount.configuration?.recipient) {
              onboardingConfigurations.push("recipient");
+         }
+
+         // Defensive fallback: Stripe rejects empty configurations with
+         // "use_case: Must populate details for the use case you choose."
+         if (onboardingConfigurations.length === 0) {
+             onboardingConfigurations.push("merchant", "recipient");
          }
 
         /**

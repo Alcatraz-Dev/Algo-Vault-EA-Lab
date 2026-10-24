@@ -495,7 +495,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  type="button"
  onClick={startOnboarding}
  disabled={onboarding}
-                                          className="flex items-center gap-2 rounded-lg bg-negative/80 px-4 py-2.5 text-xs font-semibold text-negative-foreground hover:bg-negative transition disabled:opacity-50"
+                                                className="flex min-h-[44px] items-center gap-2 rounded-xl bg-negative px-4 py-2.5 text-xs font-semibold text-white hover:bg-negative/90 transition disabled:opacity-50"
  >
  {onboarding ? <Loader2 size={13} className="animate-spin" /> : <ExternalLink size={13} />}
  Resume Onboarding
