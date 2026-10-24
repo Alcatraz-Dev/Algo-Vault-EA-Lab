@@ -305,13 +305,13 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  });
  if (!res.ok) {
  const err = await res.json().catch(() => ({}));
- alert(err.error || "Failed to revoke API key");
+ alert(err.error || "Failed to delete API key");
  return;
  }
  setRevokeTarget(null);
  await fetchApiKeys();
  } catch (e) {
- alert("Failed to revoke API key");
+ alert("Failed to delete API key");
  } finally {
  setRevoking(false);
  }
@@ -869,7 +869,7 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  <td className="py-3 px-4 text-xs text-muted-foreground">{k.createdAt ? new Date(k.createdAt).toLocaleDateString() : "-"}</td>
  <td className="py-3 px-4 text-xs">{k.revokedAt ? <span className="text-negative">Revoked</span> : <span className="text-positive">Active</span>}</td>
  <td className="py-3 px-4 text-right">
- {!k.revokedAt && <button type="button" onClick={() => setRevokeTarget(k)} className="text-xs text-negative hover:underline">Revoke</button>}
+ <button type="button" onClick={() => setRevokeTarget(k)} className="text-xs text-negative hover:underline">Delete</button>
  </td>
  </tr>
  ))}
@@ -935,18 +935,18 @@ import ProductMediaUpload from "@/components/products/ProductMediaUpload";
  </div>
  )}
 
- {/* Revoke Dialog */}
+ {/* Delete Dialog */}
  {revokeTarget && (
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
  <div className="w-full max-w-md rounded-xl border border-border/40 bg-background p-6 shadow-xl">
  <div className="flex items-center justify-between mb-4">
- <h3 className="text-lg font-semibold text-foreground">Revoke API Key</h3>
+ <h3 className="text-lg font-semibold text-foreground">Delete API Key</h3>
  <button type="button" onClick={() => setRevokeTarget(null)} className="text-muted-foreground hover:text-foreground"><XCircle size={18} /></button>
  </div>
- <p className="text-sm text-muted-foreground mb-4">Are you sure you want to revoke {revokeTarget.name || revokeTarget.prefix}? This action cannot be undone.</p>
+ <p className="text-sm text-muted-foreground mb-4">Are you sure you want to delete {revokeTarget.name || revokeTarget.prefix}? It will be revoked and permanently removed from your API keys list.</p>
  <div className="flex gap-2">
  <button type="button" onClick={() => setRevokeTarget(null)} className="flex-1 rounded-lg border border-border/40 px-4 py-2 text-sm">Cancel</button>
- <button type="button" onClick={revokeApiKeyFn} disabled={revoking} className="flex-1 rounded-lg bg-negative px-4 py-2 text-sm text-white disabled:opacity-50">{revoking ? "Revoking..." : "Revoke"}</button>
+ <button type="button" onClick={revokeApiKeyFn} disabled={revoking} className="flex-1 rounded-lg bg-negative px-4 py-2 text-sm text-white disabled:opacity-50">{revoking ? "Deleting..." : "Delete"}</button>
  </div>
  </div>
  </div>
