@@ -1238,6 +1238,13 @@
         ".read": "auth != null && (auth.uid === $ownerId || auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": false
       }
+    },
+    "intelligenceCloud": {
+      ".read": false,
+      ".write": false,
+      "apiKeys": {
+        ".indexOn": ["tenantId"]
+      }
     }
   }
 }

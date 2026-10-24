@@ -138,7 +138,7 @@ export async function createApiKey(input: CreateApiKeyInput): Promise<CreatedApi
         scopes,
         status: "active",
         createdAt: now,
-        expiresAt: input.expiresAt,
+        ...(typeof input.expiresAt === "number" ? { expiresAt: input.expiresAt } : {}),
         usage: { requests: 0, billableUnits: 0, lastResetAt: now },
     };
 
