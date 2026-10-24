@@ -3,7 +3,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { adminAuth, adminDatabase } from "@/lib/firebase-admin";
-import { revokeApiKey } from "@/lib/intelligence-cloud/api-keys";
+import { revokeApiKey, deleteApiKey } from "@/lib/intelligence-cloud/api-keys";
 import { readBearerToken } from "@/lib/intelligence-cloud/route";
 
 export const dynamic = "force-dynamic";
@@ -53,16 +53,21 @@ export async function DELETE(
             ? lookupPrefix.slice(4)
             : lookupPrefix;
 
-        await revokeApiKey(tenantId, cleanPrefix, uid);
+        const action = request.nextUrl.searchParams.get("action");
+        if (action === "revoke") {
+            await revokeApiKey(tenantId, cleanPrefix, uid);
+        } else {
+            await deleteApiKey(tenantId, cleanPrefix, uid);
+        }
         return NextResponse.json({ success: true });
     } catch (error: any) {
         if (error?.status && typeof error.status === "number") {
             return NextResponse.json(
-                { error: error?.message || "Error revoking API key" },
+                { error: error?.message || "Error processing API key" },
                 { status: error.status }
             );
         }
-        console.error("Revoke API key error:", error);
-        return NextResponse.json({ error: error?.message || "Failed to revoke API key" }, { status: 500 });
+        console.error("Delete/Revoke API key error:", error);
+        return NextResponse.json({ error: error?.message || "Failed to process API key" }, { status: 500 });
     }
 }

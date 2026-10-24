@@ -293,14 +293,52 @@ export async function revokeApiKey(
     }
 }
 
+/** Permanently delete an API key record from RTDB and record an audit entry. */
+export async function deleteApiKey(
+    tenantId: string,
+    lookupPrefix: string,
+    deletedBy: string
+): Promise<void> {
+    const prefix = sanitizeSegment(lookupPrefix);
+    const ref = adminDatabase.ref(`${API_KEYS_PATH}/${prefix}`);
+    const snap = await ref.get();
+    if (!snap.exists()) throw errors.notFound("API key not found.");
+
+    const record = snap.val() as ApiKeyRecord;
+    // Tenant isolation: a key is only deletable by its own tenant.
+    if (record.tenantId !== sanitizeSegment(tenantId)) {
+        throw errors.forbidden("This API key belongs to another tenant.");
+    }
+
+    await ref.remove();
+
+    // Audit log for key deletion
+    try {
+        await recordAudit({
+            tenantId: record.tenantId,
+            action: "API_KEY_REVOKED",
+            actorId: deletedBy,
+            detail: {
+                keyId: record.keyId,
+                lookupPrefix: record.lookupPrefix,
+                scopes: record.scopes,
+                action: "deleted",
+            },
+        });
+    } catch {
+        // Audit logging must not block key deletion
+    }
+}
+
 export type ApiKeySummary = Omit<ApiKeyRecord, "hashedSecret"> & {
     prefix: string;
 };
 
-/** Keys for a tenant, with digests stripped. Safe to return from a portal. */
-export async function listApiKeys(tenantId: string): Promise<
-    Array<ApiKeySummary>
-> {
+/** Keys for a tenant, with digests stripped. Safe to return from a portal. Excludes revoked keys unless includeRevoked is true. */
+export async function listApiKeys(
+    tenantId: string,
+    options?: { includeRevoked?: boolean }
+): Promise<Array<ApiKeySummary>> {
     const cleanTenant = sanitizeSegment(tenantId);
     let snap;
     try {
@@ -318,6 +356,9 @@ export async function listApiKeys(tenantId: string): Promise<
             snap.forEach((child) => {
                 const record = child.val() as ApiKeyRecord | null;
                 if (record && record.tenantId === cleanTenant) {
+                    if (!options?.includeRevoked && (record.status === "revoked" || record.revokedAt)) {
+                        return;
+                    }
                     const { hashedSecret: _h, ...safe } = record;
                     const lookupPrefix = record.lookupPrefix || (record.keyId ? record.keyId.replace(/^key_/, "") : child.key || "");
                     out.push({
@@ -334,6 +375,9 @@ export async function listApiKeys(tenantId: string): Promise<
     const out: Array<ApiKeySummary> = [];
     snap.forEach((child) => {
         const record = child.val() as ApiKeyRecord;
+        if (!options?.includeRevoked && (record.status === "revoked" || record.revokedAt)) {
+            return;
+        }
         const { hashedSecret: _h, ...safe } = record;
         const lookupPrefix = record.lookupPrefix || (record.keyId ? record.keyId.replace(/^key_/, "") : child.key || "");
         out.push({

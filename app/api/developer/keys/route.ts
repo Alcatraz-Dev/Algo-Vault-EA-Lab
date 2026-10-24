@@ -41,8 +41,9 @@ export async function GET(request: NextRequest) {
 
         const { uid, userData } = auth;
         const tenantId = userData.tenantId || uid;
+        const includeRevoked = request.nextUrl.searchParams.get("includeRevoked") === "true";
 
-        const keys = await listApiKeys(tenantId);
+        const keys = await listApiKeys(tenantId, { includeRevoked });
         return NextResponse.json({ keys });
     } catch (error: any) {
         console.error("List API keys error:", error);
