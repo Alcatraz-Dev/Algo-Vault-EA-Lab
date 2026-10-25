@@ -4597,7 +4597,7 @@ export function ProTerminalChart({
                     </div>
                 ) : null}
                 {botRunning && (
-                    <div className="absolute right-16 top-2 z-10" title="Bot running">
+                    <div className="absolute right-3 bottom-2 z-10 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)]" title="Bot running">
                         <Bot className="h-4 w-4 text-amber-500 animate-pulse" />
                     </div>
                 )}
