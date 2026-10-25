@@ -149,7 +149,8 @@ export default function AccountTradingPage() {
     }, [actionError]);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
-    const { currentPrice: xauUsdPrice } = useLiveCandles(selectedSymbol, "M1");
+    const { currentPrice: xauUsdPrice, quality } = useLiveCandles(selectedSymbol, "M1");
+    const marketClosed = quality === "market_closed";
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
 
@@ -1243,6 +1244,7 @@ export default function AccountTradingPage() {
                         <OrderPanel
                             account={selectedAccount}
                             symbol={selectedSymbol}
+                            marketClosed={marketClosed}
                             onOrderPlaced={() => handleRefresh()}
                         />
                     </div>

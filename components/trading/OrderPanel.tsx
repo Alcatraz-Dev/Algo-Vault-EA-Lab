@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -84,10 +85,12 @@ export default function OrderPanel({
   account,
   onOrderPlaced,
   symbol: initialSymbol,
+  marketClosed = false,
 }: {
   account: TradingAccount | null;
   onOrderPlaced: (clientOrderId: string) => void;
   symbol?: string;
+  marketClosed?: boolean;
 }) {
   const [symbol, setSymbol] = useState(
     initialSymbol ? initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, "") : "XAUUSD"
@@ -135,6 +138,7 @@ export default function OrderPanel({
 
   const processing = ticket !== null && PHASE_TONE[ticket.phase] === "progress";
   const canSubmit =
+    !marketClosed &&
     account?.status === "connected" &&
     parsedVolume >= 0.01 &&
     !processing &&
@@ -270,15 +274,24 @@ export default function OrderPanel({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {marketClosed && (
+          <div className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-2 text-xs font-medium text-warning">
+            Market is closed — trading disabled.
+          </div>
+        )}
         {/* Symbol */}
         <div className="space-y-1.5">
           <label className="text-micro font-medium text-muted-foreground">Symbol</label>
-          <Input
+          <select
             value={symbol}
             onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-            placeholder="XAUUSD"
-            disabled={processing}
-          />
+            disabled={processing || marketClosed}
+            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+          >
+            {SUPPORTED_SYMBOLS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
         </div>
 
         {/* Side */}
@@ -287,7 +300,7 @@ export default function OrderPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              disabled={processing}
+              disabled={processing || marketClosed}
               onClick={() => setSide("BUY")}
               className={cn(
                 "flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-semibold transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
@@ -301,7 +314,7 @@ export default function OrderPanel({
             </button>
             <button
               type="button"
-              disabled={processing}
+              disabled={processing || marketClosed}
               onClick={() => setSide("SELL")}
               className={cn(
                 "flex items-center justify-center gap-2 rounded-lg border py-2 text-sm font-semibold transition-all active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50",
@@ -325,7 +338,7 @@ export default function OrderPanel({
             onChange={(e) => setVolume(e.target.value)}
             step="0.01"
             min="0.01"
-            disabled={processing}
+            disabled={processing || marketClosed}
           />
         </div>
 
@@ -337,7 +350,7 @@ export default function OrderPanel({
               <button
                 key={type}
                 type="button"
-                disabled={processing}
+                disabled={processing || marketClosed}
                 onClick={() => setOrderType(type)}
                 className={cn(
                   "rounded-md px-2 py-1.5 text-xs font-medium capitalize transition-all disabled:pointer-events-none disabled:opacity-50",
@@ -362,7 +375,7 @@ export default function OrderPanel({
               onChange={(e) => setPrice(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={processing}
+              disabled={processing || marketClosed}
             />
           </div>
         )}
@@ -377,7 +390,7 @@ export default function OrderPanel({
               onChange={(e) => setStopLoss(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={processing}
+              disabled={processing || marketClosed}
             />
           </div>
           <div className="space-y-1.5">
@@ -388,7 +401,7 @@ export default function OrderPanel({
               onChange={(e) => setTakeProfit(e.target.value)}
               placeholder="0.00"
               step="0.01"
-              disabled={processing}
+              disabled={processing || marketClosed}
             />
           </div>
         </div>
@@ -426,12 +439,12 @@ export default function OrderPanel({
           disabled={!canSubmit}
           className={cn(
             "w-full font-semibold shadow-sm",
-            side === "BUY"
+            marketClosed ? "border-muted bg-muted text-muted-foreground" : side === "BUY"
               ? "border-positive/50 bg-positive/15 text-positive hover:border-positive/70 hover:bg-positive/25"
               : "border-negative/50 bg-negative/15 text-negative hover:border-negative/70 hover:bg-negative/25"
           )}
         >
-          {processing ? "Submitting…" : `PLACE ${side} ORDER`}
+          {marketClosed ? "Market Closed" : processing ? "Submitting…" : `PLACE ${side} ORDER`}
         </Button>
 
         <p className="text-micro leading-4 text-muted-foreground">
