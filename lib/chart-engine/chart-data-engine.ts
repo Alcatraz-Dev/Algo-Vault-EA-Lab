@@ -694,22 +694,23 @@ export class ChartDataEngine {
         if (this.candles.length < 2) return gaps;
         // Only scan the recent window where ticks are authoritative; deep
         // history came from the provider as-is.
+        const newest = this.candles[this.candles.length - 1].timestamp;
         const scanFrom = Math.max(
             this.candles[0].timestamp,
-            candleOpenTime(Date.now(), this.timeframe) - this.pageSize * this.intervalMs(),
+            newest - this.pageSize * this.intervalMs(),
         );
         for (let i = 1; i < this.candles.length; i++) {
             const prev = this.candles[i - 1].timestamp;
             const cur = this.candles[i].timestamp;
+            if (cur < scanFrom) continue;
             if (cur <= prev) continue;
             if (cur - prev <= this.intervalMs()) continue;
             // Every expected open strictly between prev and cur that's missing.
-            const missing = expectedCandleOpens(prev, cur, this.timeframe, { alwaysOpen: this.crypto })
+            const missing = expectedCandleOpens(prev, cur, this.timeframe, { alwaysOpen: this.crypto, symbol: this.symbol })
                 .filter((t) => t > prev && t < cur);
             if (missing.length === 0) continue;
             gaps.push({ fromMs: missing[0], toMs: missing[missing.length - 1] });
         }
-        void scanFrom;
         return gaps;
     }
 

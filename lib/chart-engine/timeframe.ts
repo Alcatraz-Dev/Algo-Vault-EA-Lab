@@ -137,7 +137,7 @@ export function isMarketTradableAt(timestampMs: number, opts?: { alwaysOpen?: bo
  * (exclusive) and `toMs` (inclusive) while the market was tradable. Used for
  * gap detection: market-closed periods are NOT gaps.
  */
-export function expectedCandleOpens(fromMs: number, toMs: number, timeframe: ChartTimeframe, opts?: { alwaysOpen?: boolean }): number[] {
+export function expectedCandleOpens(fromMs: number, toMs: number, timeframe: ChartTimeframe, opts?: { alwaysOpen?: boolean; symbol?: string }): number[] {
     const interval = TIMEFRAME_MS[timeframe];
     const opens: number[] = [];
     const first = candleOpenTime(fromMs, timeframe) + interval;
