@@ -737,7 +737,14 @@ export class ChartDataEngine {
         // the new epoch.
         const gen = this.generation;
         const abort = this.beginRequest();
-        this.setStatus({ quality: "synchronizing" });
+        // Only announce "synchronizing" when the feed is not actively live.
+        // While ticks are flowing we repair silently so the chart never
+        // freezes into a snapshot just because a background fetch is in
+        // flight.
+        const feedIsLive = this.deriveQuality() === "live" || this.deriveQuality() === "delayed";
+        if (!feedIsLive) {
+            this.setStatus({ quality: "synchronizing" });
+        }
         try {
             let filled = false;
             if (this.sources.loadRange) {
@@ -772,15 +779,29 @@ export class ChartDataEngine {
             if (this.destroyed || gen !== this.generation) return false;
 
             const remaining = this.detectGaps().length;
+            // If the feed is live and gaps remain, they are historical holes
+            // the current tick stream has already "jumped over" — treat them
+            // as non-blocking and let deriveQuality() reflect the live feed
+            // rather than downgrading to gap_detected (which would pause the
+            // chart even though quotes are arriving normally).
+            const liveNow = this.deriveQuality();
+            const qualityAfterRepair =
+                remaining > 0 && liveNow !== "live" && liveNow !== "delayed"
+                    ? "gap_detected"
+                    : liveNow;
             this.setStatus({
-                quality: remaining > 0 ? "gap_detected" : this.deriveQuality(),
+                quality: qualityAfterRepair,
                 gapsDetected: this.status.gapsDetected + 1,
                 candlesLoaded: this.candles.length,
                 oldestLoadedTimestamp: this.candles[0]?.timestamp ?? null,
             });
             return filled;
         } catch {
-            if (!this.destroyed) this.setStatus({ quality: "gap_detected" });
+            // Only downgrade to gap_detected on error if the feed is not live.
+            if (!this.destroyed) {
+                const q = this.deriveQuality();
+                this.setStatus({ quality: q === "live" || q === "delayed" ? q : "gap_detected" });
+            }
             return false;
         } finally {
             this.repairInFlight = false;
@@ -850,7 +871,13 @@ export class ChartDataEngine {
         if (this.destroyed || this.candles.length === 0) return;
         const quality = this.deriveQuality();
         const gaps = this.detectGaps();
-        const patch: Partial<ChartEngineStatus> = { quality: gaps.length > 0 ? "gap_detected" : quality };
+        // Only surface gap_detected to consumers (which causes the chart to
+        // freeze via resolveSession) when the feed is NOT actively delivering
+        // ticks. While live, gap repair is a silent background operation — the
+        // chart continues streaming and the UI never takes a frozen snapshot.
+        const feedIsActive = quality === "live" || quality === "delayed";
+        const reportedQuality = gaps.length > 0 && !feedIsActive ? "gap_detected" : quality;
+        const patch: Partial<ChartEngineStatus> = { quality: reportedQuality };
         if (gaps.length > 0) {
             patch.gapsDetected = this.status.gapsDetected;
             void this.detectAndRepairGaps();

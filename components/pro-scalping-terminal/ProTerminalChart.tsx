@@ -1283,9 +1283,18 @@ export function ProTerminalChart({
         calendarOpen: marketOpen,
         feedStale: liveQuality === "stale",
         // A mid-week session break (metals/indices) shows up as candles the
-        // engine cannot fill, i.e. "gap_detected" — that is unusable data for a
-        // live chart just as much as silence is.
-        feedGap: liveQuality === "gap_detected",
+        // engine cannot fill — gap_detected — that is unusable data for a live
+        // chart just as much as silence is.
+        //
+        // CRITICAL: Do NOT treat gap_detected as a freeze reason while the feed
+        // is actively delivering ticks (liveConnection === "live"). When ticks
+        // are flowing the gap repair runs silently in the background; the chart
+        // must keep rendering live candles without interruption. A gap during
+        // an active live connection is a background sync event, not a session
+        // break. Only pause when the feed itself has gone quiet (reconnecting /
+        // error / not yet live) and a gap is also present — that combination
+        // genuinely means unusable data.
+        feedGap: liveQuality === "gap_detected" && liveConnection !== "live",
         alwaysOpen: cryptoSymbol,
     });
 
@@ -4657,14 +4666,7 @@ export function ProTerminalChart({
                 ) : null}
 
                 {/* Order Flow: data-quality + capability chip */}
-                {orderFlow.enabled && orderFlow.context ? (
-                    <div
-                        className="absolute right-3 top-2 z-10 rounded-full border border-border/50 bg-background/85 px-2 py-0.5 text-micro font-medium uppercase tracking-wide text-muted-foreground"
-                        title={`Order Flow data quality: ${orderFlow.context.dataQuality}. ${orderFlow.context.limitations[0] ?? ""}`}
-                    >
-                        OF · {orderFlow.context.dataQuality}
-                    </div>
-                ) : null}
+                {null}
 
                 {/* Estimated delta provenance chip — honest labelling for the
                     candle-direction proxy layers (never bid/ask delta) */}
