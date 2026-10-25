@@ -4,3 +4,4 @@ export { createXauUsdScalpingStrategy } from "./strategy";
 export type { XauUsdScalpingConfig as ScalpingConfig } from "./strategy";
 export { buildScalpingEntry, signalFromOrder, executionFromFill } from "./executor";
 export type { XauUsdScalpingOrderPayload } from "./executor";
+export { ScalpingBotRuntime } from "./runtime";

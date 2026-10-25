@@ -254,6 +254,61 @@ export async function getExecution(
     return (snap.val() as BotExecution) ?? null;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Scalper bot runtime config (RTDB persistence)
+//
+// Each scalper bot instance (e.g. XAUUSD M1 scalper) keeps its own config
+// under `bot_scalpers/{botId}`, separate from the deployment record in
+// `bot_deployments/{botId}`. This lets the runtime keep a per-bot, per-account
+// config that can be edited and survives a reload.
+// ─────────────────────────────────────────────────────────────────────────────
+
+import type { XauUsdScalpingConfig } from "./scalping";
+import { XAUUSD_SCALPING_DEFAULTS } from "./scalping/config";
+
+export async function getBotScalperConfig(botId: string): Promise<XauUsdScalpingConfig | null> {
+    const snap = await adminDatabase.ref(`bot_scalpers/${botId}`).get();
+    if (!snap.exists()) return null;
+    const val = snap.val();
+    if (!val || typeof val !== "object") return null;
+    const cfg = val as Record<string, unknown>;
+    // Normalize partial/missing fields against defaults so the runtime always
+    // works with a complete config. Only known keys are kept.
+    const defaults = XAUUSD_SCALPING_DEFAULTS;
+    const out: XauUsdScalpingConfig = {
+        timeframe: (cfg.timeframe as "M1") || defaults.timeframe,
+        direction: (cfg.direction as "long" | "short") || defaults.direction,
+        tp1Pips: toNumberOrNull(cfg.tp1Pips) ?? defaults.tp1Pips,
+        tp2Pips: toNumberOrNull(cfg.tp2Pips) ?? defaults.tp2Pips,
+        slPips: toNumberOrNull(cfg.slPips) ?? defaults.slPips,
+        riskPercent: toNumberOrNull(cfg.riskPercent) ?? defaults.riskPercent,
+        maxPositions: toNumberOrNull(cfg.maxPositions) ?? defaults.maxPositions,
+        warmUpCandles: toNumberOrNull(cfg.warmUpCandles) ?? defaults.warmUpCandles,
+        maxSpreadPoints: toNumberOrNull(cfg.maxSpreadPoints) ?? defaults.maxSpreadPoints,
+        magicNumber: toNumberOrNull(cfg.magicNumber) ?? defaults.magicNumber,
+        enabled: cfg.enabled === true || cfg.enabled === undefined ? true : false,
+    };
+    return out;
+}
+
+export async function saveBotScalperConfig(
+    botId: string,
+    config: Partial<XauUsdScalpingConfig>,
+): Promise<void> {
+    const clean = deepClean({
+        ...config,
+        timeframe: (config.timeframe as string) || XAUUSD_SCALPING_DEFAULTS.timeframe,
+        direction: (config.direction as "long" | "short") || XAUUSD_SCALPING_DEFAULTS.direction,
+    });
+    await adminDatabase.ref(`bot_scalpers/${botId}`).update(clean);
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toNumberOrNull(v: any): number | null {
+    if (v === null || v === undefined || v === "" || Number.isNaN(Number(v))) return null;
+    return Number(v);
+}
+
 export async function getRecentExecutions(botId: string, limit = 50): Promise<BotExecution[]> {
     const snap = await adminDatabase
         .ref(`bot_executions/${botId}`)

@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
 import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
-import { getDeployment, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
-import { BotRuntimeSession } from "@/lib/bot-studio/runtime";
-import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
-import type { SupportedSymbol } from "@/lib/market-data/types";
+import { getDeployment, updateDeploymentState } from "@/lib/bot-studio/database";
+import { ScalpingBotRuntime } from "@/lib/bot-studio/scalping";
 
-// In-memory cache of runtime sessions so sequential engine bars are preserved
-const sessions = new Map<string, BotRuntimeSession>();
+// In-memory cache of scalper runtime sessions (one per deployment).
+const sessions = new Map<string, ScalpingBotRuntime>();
 
 export async function POST(
     request: NextRequest,
@@ -28,39 +26,19 @@ export async function POST(
             return NextResponse.json({ ok: false, error: "Bot deployment not found" }, { status: 404 });
         }
 
-        const strategy = await getStrategy(deployment.strategyId);
-        if (!strategy) {
-            return NextResponse.json({ ok: false, error: "Strategy definition not found" }, { status: 404 });
-        }
-
-        // Candles are always loaded server-side on the strategy's OWN
-        // setup timeframe (the canonical evaluation series). A request body
-        // cannot inject prices into the decision path.
-        const symbol = strategy.definition.asset as SupportedSymbol;
-        const { candles, timeframe, series } = await loadBotStrategySeries(strategy.definition, symbol);
-
-        if (candles.length === 0) {
-            return NextResponse.json(
-                { ok: false, error: `No market candles available for ${symbol} ${timeframe}` },
-                { status: 400 }
-            );
-        }
-
+        // Scalper bots are pre-built strategies; the generic strategy runtime
+        // is NOT used for them. The scalping runtime drives the M1 tick loop
+        // and calls buildScalpingEntry directly.
         let session = sessions.get(botId);
         if (!session) {
-            session = new BotRuntimeSession({
-                deployment,
-                strategy: strategy.definition,
-                magicNumber: strategy.magicNumber,
-            });
-            await session.initialize();
+            session = new ScalpingBotRuntime(deployment, deployment.mt5Account || "");
             sessions.set(botId, session);
         } else {
             // Cached sessions must observe pausing/stopping immediately.
-            session.refreshDeployment(deployment);
+            await session.loadConfig();
         }
 
-        const tickResult = await session.tick({ candles, timeframe, series });
+        const tickResult = await session.tick();
 
         await updateDeploymentState(botId, {
             lastTickAt: Date.now(),
@@ -69,13 +47,13 @@ export async function POST(
         return NextResponse.json({
             ok: true,
             tickResult,
-            candlesProcessed: candles.length,
-            symbol,
-            timeframe,
+            botId,
+            symbol: "XAUUSD",
+            timeframe: "M1",
         });
     } catch (error) {
         return NextResponse.json(
-            { ok: false, error: errMessage(error, "Failed to execute tick on bot") },
+            { ok: false, error: errMessage(error, "Failed to execute scalper tick") },
             { status: 500 }
         );
     }
