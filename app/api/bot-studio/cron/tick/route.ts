@@ -5,6 +5,7 @@ import { BotRuntimeSession, type BotTickResult } from "@/lib/bot-studio/runtime"
 import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
 import type { SupportedSymbol } from "@/lib/market-data/types";
 import { isCronRequest } from "@/lib/security/cron-auth";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,6 +67,21 @@ export async function GET(request: NextRequest) {
                 }
 
                 const symbol = strategy.definition.asset as SupportedSymbol;
+                if (!isSymbolMarketOpen(symbol)) {
+                    results.push({
+                        botId: bot.id,
+                        strategyId: bot.strategyId,
+                        symbol,
+                        timeframe: strategy.definition.timeframes?.setup ?? "N/A",
+                        tickResult: {
+                            signalGenerated: false,
+                            gateApproved: false,
+                            gateCode: "MARKET_CLOSED",
+                            gateReason: `Market is closed for ${symbol} — bot sleeping`,
+                        },
+                    });
+                    continue;
+                }
                 // Server-side candles on the strategy's setup timeframe plus any
                 // rule-referenced timeframes — the same decision inputs the
                 // backtest uses.

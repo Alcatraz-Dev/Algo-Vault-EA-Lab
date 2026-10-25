@@ -327,7 +327,7 @@ void OnDeinit(const int reason)
 
 void OnTimer()
 {
-   datetime now = TimeCurrent();
+   datetime now = TimeLocal();
 
    // Registration retry.
    if(!isRegistered)
@@ -1042,7 +1042,7 @@ bool RegisterGateway()
    {
       isRegistered = true;
       isConnected  = true;
-      lastConnectTime = TimeCurrent();
+      lastConnectTime = TimeLocal();
 
       Print("AlgoVault gateway registered successfully.");
       Print("Account: ", accountNumber);
@@ -1063,7 +1063,7 @@ bool RegisterGateway()
 
 bool SendHeartbeat()
 {
-   lastHeartbeat = TimeCurrent();
+   lastHeartbeat = TimeLocal();
 
    if(!isRegistered)
       return false;
@@ -1082,7 +1082,7 @@ bool SendHeartbeat()
       "\"," +
 
       "\"timestamp\":" +
-      IntegerToString((long)TimeCurrent()) +
+      IntegerToString((long)TimeGMT()) +
       "," +
 
       "\"balance\":" +
@@ -1465,7 +1465,7 @@ string BuildOrdersJson()
 
 bool SendSnapshot()
 {
-   lastSnapshot = TimeCurrent();
+   lastSnapshot = TimeLocal();
 
    if(!isRegistered)
       return false;
@@ -1485,7 +1485,7 @@ bool SendSnapshot()
       "\"," +
 
       "\"timestamp\":" +
-      IntegerToString((long)TimeCurrent()) +
+      IntegerToString((long)TimeGMT()) +
       "," +
 
       "\"account\":" +
@@ -1766,7 +1766,7 @@ string BuildClosedDealsJson()
 
 bool PollCommands()
 {
-   lastCommandPoll = TimeCurrent();
+   lastCommandPoll = TimeLocal();
 
    if(!isRegistered)
       return false;
@@ -2204,6 +2204,29 @@ bool ExecuteCommand(string commandJson)
 
 
 //+------------------------------------------------------------------+
+//| Market-open & Symbol check                                       |
+//+------------------------------------------------------------------+
+
+bool IsSymbolTradeAllowed(string symbol, string &reason)
+{
+   if(!SymbolSelect(symbol, true))
+   {
+      reason = "Symbol not found";
+      return false;
+   }
+
+   long tradeMode = SymbolInfoInteger(symbol, SYMBOL_TRADE_MODE);
+   if(tradeMode == SYMBOL_TRADE_MODE_DISABLED)
+   {
+      reason = "Market closed: trading is disabled for " + symbol;
+      return false;
+   }
+
+   return true;
+}
+
+
+//+------------------------------------------------------------------+
 //| Market BUY                                                       |
 //+------------------------------------------------------------------+
 
@@ -2215,10 +2238,11 @@ bool ExecuteMarketBuy(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-      result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 
@@ -2256,10 +2280,11 @@ bool ExecuteMarketSell(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-      result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 
@@ -2298,10 +2323,11 @@ bool ExecuteBuyLimit(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-      result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 
@@ -2340,10 +2366,11 @@ bool ExecuteSellLimit(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-      result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 
@@ -2382,10 +2409,11 @@ bool ExecuteBuyStop(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-     result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 
@@ -2424,10 +2452,11 @@ bool ExecuteSellStop(string symbol,
 {
    ZeroMemory(result);
 
-   if(!SymbolSelect(symbol, true))
+   string reason = "";
+   if(!IsSymbolTradeAllowed(symbol, reason))
    {
-      result.retcode = TRADE_RETCODE_INVALID;
-      result.comment = "Symbol not found";
+      result.retcode = TRADE_RETCODE_MARKET_CLOSED;
+      result.comment = reason;
       return false;
    }
 

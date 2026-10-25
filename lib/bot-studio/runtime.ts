@@ -38,6 +38,7 @@ import { getGatewayTokenForUser, hasActiveTradingLicense } from "@/lib/gateway";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { loadAccountRiskSnapshot, accountKey } from "@/lib/risk/account-state";
 import { getMarketTruth } from "@/lib/market-data/market-truth";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
 import {
     appendLog,
     appendAudit,
@@ -207,6 +208,15 @@ export class BotRuntimeSession {
         // stopping, disabled bots, and stale cached sessions must not add entries.
         if (!canGenerateSignals(runtimeState) || desiredState !== "running") {
             return { signalGenerated: false };
+        }
+        // Market closed check: sleep when market is closed, never submit orders
+        if (!isSymbolMarketOpen(this.strategy.asset)) {
+            return {
+                signalGenerated: false,
+                gateApproved: false,
+                gateCode: "MARKET_CLOSED",
+                gateReason: `Market is closed for ${this.strategy.asset} — bot sleeping`,
+            };
         }
         if (this.tickInFlight) return { signalGenerated: false };
         this.tickInFlight = true;

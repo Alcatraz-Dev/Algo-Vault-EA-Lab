@@ -17,8 +17,10 @@ import {
     Clock,
     Trash2,
     Edit3,
+    Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
 
 interface WindowWithBotIntervals extends Window {
     __botIntervals?: Record<string, ReturnType<typeof setInterval>>;
@@ -169,6 +171,12 @@ export function BotStudioBotCard({
             setTimeout(() => setErrorReason(null), 3000);
             return;
         }
+        const symbol = template.symbol ?? "XAUUSD";
+        if (!isSymbolMarketOpen(symbol)) {
+            setErrorReason(`Market closed for ${symbol} — sleeping`);
+            setTimeout(() => setErrorReason(null), 3500);
+            return;
+        }
         const entry = currentPriceRef.current;
         if (!entry || entry <= 0) {
             setErrorReason("no live price — wait for market data");
@@ -283,6 +291,11 @@ export function BotStudioBotCard({
         if (!running || !hasToken || !hasAccount) return;
         const interval = setInterval(() => {
             setLastTickAt(Date.now());
+            // Market closed check: sleep and never place trades outside market hours
+            const symbol = template.symbol ?? "XAUUSD";
+            if (!isSymbolMarketOpen(symbol)) {
+                return;
+            }
             if (Math.random() < 0.15 && !currentPosition) {
                 const entry = currentPriceRef.current;
                 if (entry && entry > 0) {
@@ -300,7 +313,7 @@ export function BotStudioBotCard({
             wbi.__botIntervals && delete wbi.__botIntervals[template.id];
             onRunningChange?.(false);
         };
-    }, [running, hasToken, hasAccount, template.id, handleTestTrade, currentPosition, onRunningChange]);
+    }, [running, hasToken, hasAccount, template.id, template.symbol, handleTestTrade, currentPosition, onRunningChange]);
 
     useEffect(() => {
         return () => {
@@ -309,6 +322,8 @@ export function BotStudioBotCard({
             if (interval) clearInterval(interval);
         };
     }, [template.id]);
+
+    const isMarketOpenNow = isSymbolMarketOpen(template.symbol ?? "XAUUSD");
 
     return (
         <Card className={cn(
@@ -367,8 +382,25 @@ export function BotStudioBotCard({
                                         {template.timeframe}
                                     </span>
                                 )}
-                                <Badge variant={running ? "default" : "secondary"} className="px-2 py-0.5 shrink-0">
-                                    {running ? "running" : "idle"}
+                                <Badge
+                                    variant={running ? (isMarketOpenNow ? "default" : "outline") : "secondary"}
+                                    className={cn(
+                                        "px-2 py-0.5 shrink-0 flex items-center gap-1",
+                                        running && !isMarketOpenNow && "border-amber-500/40 text-amber-500 bg-amber-500/10 dark:bg-amber-500/20"
+                                    )}
+                                >
+                                    {running ? (
+                                        isMarketOpenNow ? (
+                                            "running"
+                                        ) : (
+                                            <>
+                                                <Moon className="size-2.5" />
+                                                <span>sleeping</span>
+                                            </>
+                                        )
+                                    ) : (
+                                        "idle"
+                                    )}
                                 </Badge>
                                 {errorReason && (
                                     <Badge variant="destructive" className="px-2 py-0.5 text-[10px] shrink-0">

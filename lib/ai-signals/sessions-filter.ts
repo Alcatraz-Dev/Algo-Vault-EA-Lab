@@ -26,7 +26,11 @@ const DEFAULT_SESSIONS: MarketSessionName[] = ["london", "new_york", "overlap"];
  * only a genuinely closed market does.
  */
 export function isSymbolMarketOpen(symbol: string, now: Date = new Date()): boolean {
-    const spec = getSymbolSpec(symbol);
+    const clean = String(symbol || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+    if (clean.startsWith("BTC") || clean.startsWith("ETH") || clean.startsWith("SOL") || clean.startsWith("XRP") || clean.startsWith("DOGE")) {
+        return true;
+    }
+    const spec = getSymbolSpec(clean) ?? getSymbolSpec(clean.slice(0, 6));
     if (spec?.category === "crypto") return true;
     return isMarketOpen(now);
 }

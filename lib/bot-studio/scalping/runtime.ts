@@ -37,6 +37,7 @@ import { XAUUSD_SCALPING_DEFAULTS } from "./config";
 import { newSignalId, newExecutionId } from "../database";
 import { executeUnified, newClientRequestId } from "@/lib/trading/unified/client";
 import { getMarketTruth } from "@/lib/market-data/market-truth";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
 
 /** Interval (ms) at which the cron tick route drives a scalper tick. */
 export const SCALPER_TICK_INTERVAL_MS = 60_000;
@@ -93,6 +94,11 @@ export class ScalpingBotRuntime {
         // do nothing.
         if (this.deployment.desiredState !== "running" || this.deployment.runtimeState !== "running") {
             return { ticks: 0, signalGenerated: false, submitted: false, skippedBySpread: false, error: undefined };
+        }
+
+        // Sleep when market is closed — do not send trades or poll empty order books
+        if (!isSymbolMarketOpen("XAUUSD")) {
+            return { ticks: 0, signalGenerated: false, submitted: false, skippedBySpread: false, error: "market closed — bot sleeping" };
         }
 
         const config = this.config;

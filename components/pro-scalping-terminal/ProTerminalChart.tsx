@@ -1280,7 +1280,7 @@ export function ProTerminalChart({
     // for its staleness window). A metals or index session can end mid-week
     // without the calendar changing, so silence is the only honest evidence.
     const rawSession = resolveSession({
-        calendarOpen: marketOpen,
+        calendarOpen: marketOpen && liveQuality !== "market_closed",
         feedStale: liveQuality === "stale",
         // A mid-week session break (metals/indices) shows up as candles the
         // engine cannot fill, i.e. "gap_detected" — that is unusable data for a

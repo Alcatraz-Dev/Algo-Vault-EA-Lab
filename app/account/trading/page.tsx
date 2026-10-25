@@ -199,8 +199,29 @@ export default function AccountTradingPage() {
         checkAccess();
     }, [firebaseUser]);
 
-    // RTDB listener for the account ledger — the source of truth for which
-    // accounts exist and which one is selected.
+    // ── Liveness tick: forces a re-render every 15s so StatusDot /
+    // ConnectionStatus re-evaluate heartbeat age with a fresh Date.now(),
+    // even when no RTDB push arrives (e.g. transient WebSocket hiccup).
+    const [, setLivenessTick] = useState(0);
+    useEffect(() => {
+        const id = setInterval(() => setLivenessTick((t) => t + 1), 15_000);
+        return () => clearInterval(id);
+    }, []);
+
+    // Use a ref for selectedAccountId inside the accounts listener so
+    // changing the selection does NOT tear down the RTDB subscription.
+    const selectedAccountIdRef = useRef(selectedAccountId);
+    useEffect(() => {
+        selectedAccountIdRef.current = selectedAccountId;
+    }, [selectedAccountId]);
+
+    // ── Effect 1: RTDB account ledger listener ────────────────────────
+    // Source of truth for which accounts exist and which one is selected.
+    // MUST NOT depend on selectedAccountId — that was the root cause of the
+    // "works then goes offline" bug: every selection change tore down and
+    // recreated this listener, briefly leaving the client without heartbeat
+    // updates. The 10s closed-trades poll then triggered a re-render that
+    // evaluated a stale lastHeartbeatAt against Date.now() → "Offline".
     useEffect(() => {
         if (!firebaseUser || !hasAccess) return;
 
@@ -268,7 +289,7 @@ export default function AccountTradingPage() {
             // Persist selection across reloads only while the account still
             // exists. A stale selection falls back to the first account.
             if (list.length > 0) {
-                const previouslySelected = selectedAccountId;
+                const currentSelected = selectedAccountIdRef.current;
                 // Multi-account default: prefer the gateway-connected account so
                 // the connected one is always the one shown first after a
                 // snapshot change (falls back to the first account when none
@@ -277,18 +298,29 @@ export default function AccountTradingPage() {
                 // Keep a prior selection only if it reports a live connection;
                 // otherwise prefer the connected account (supports multi-account).
                 const previouslyConnected = list.find(
-                  (a) => a?.accountId === previouslySelected && a && isAccountLive(a)
+                  (a) => a?.accountId === currentSelected && a && isAccountLive(a)
                 );
                 const connectedFirst = list.find((a) => a && isAccountLive(a));
                 const fallback = previouslyConnected
-                  ? previouslySelected
+                  ? currentSelected
                   : (connectedFirst?.accountId ?? list[0]?.accountId ?? null);
                 if (fallback) setSelectedAccountId(fallback);
             }
         });
 
-        // Live trading state is scoped to the selected account so switching
-        // accounts does not leak one account's positions/orders/events.
+        return () => {
+            accountsUnsub();
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [firebaseUser, hasAccess]);
+
+    // ── Effect 2: Per-account scoped listeners ────────────────────────
+    // Live trading state is scoped to the selected account so switching
+    // accounts does not leak one account's positions/orders/events.
+    useEffect(() => {
+        if (!firebaseUser || !hasAccess || !selectedAccountId) return;
+
+        const uid = firebaseUser.uid;
         const scopeRef = (accountId: string) =>
             `trading_positions/${uid}/${accountId}`;
         const ordersScopedRef = (accountId: string) =>
@@ -527,12 +559,9 @@ export default function AccountTradingPage() {
             );
         };
 
-        if (selectedAccountId) {
-            attachScopedListeners(selectedAccountId);
-        }
+        attachScopedListeners(selectedAccountId);
 
         return () => {
-            accountsUnsub();
             posUnsub?.();
             ordUnsub?.();
             logUnsub?.();

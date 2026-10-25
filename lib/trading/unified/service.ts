@@ -47,6 +47,7 @@ import {
 } from "./store";
 import { isUnifiedTradingEnabled, isMt5DemoEnabled, isDemoExecutionMode } from "../feature-flags";
 import { hasActiveTradingLicense } from "@/lib/gateway";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
 
 export interface UnifiedExecutionOutcome {
     result: TradingExecutionResult;
@@ -510,9 +511,28 @@ export class UnifiedTradingService {
             throw error;
         }
 
-        // 9. Risk engine. Management actions are always protective.
+        // 9. Risk engine & Market hours check. Management actions are always protective.
         const isEntry = request.executionType === "PLACE_ORDER";
         if (isEntry) {
+            if (request.symbol && !isSymbolMarketOpen(request.symbol)) {
+                const error = tradingError(
+                    "MARKET_CLOSED",
+                    `The market is closed for ${request.symbol}.`,
+                );
+                const outcome = await this.settle(
+                    request,
+                    correlationId,
+                    startedAt,
+                    "REJECTED",
+                    error,
+                    provider,
+                    null,
+                    null,
+                    null,
+                );
+                return { result: outcome, httpStatus: errorCodeToStatus(error) };
+            }
+
             const limits = this.riskLimits();
             const state: AccountRiskState = {
                 balance: account.metrics.balance ?? undefined,

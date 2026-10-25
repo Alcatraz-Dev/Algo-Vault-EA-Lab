@@ -6,8 +6,9 @@ import { XAUUSD_SCALPING_DEFAULTS, pipsToPrice, deriveLevels } from "@/lib/bot-s
 import { XauUsdScalperBotCard } from "./XauUsdScalperBotCard";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
 import { executeUnified, newClientRequestId } from "@/lib/trading/unified/client";
+import { isSymbolMarketOpen } from "@/lib/ai-signals/sessions-filter";
+import { Bot } from "lucide-react";
 
 type BotStatus = "idle" | "running" | "paused" | "error";
 
@@ -191,6 +192,10 @@ export function XauUsdScalperBot({
                     ? "SELL"
                     : undefined;
 
+            if (executionType === "PLACE_ORDER" && !isSymbolMarketOpen(order.symbol)) {
+                return { ok: false, error: `Market closed for ${order.symbol} — scalper sleeping` };
+            }
+
             try {
                 const result = await executeUnified(
                     {
@@ -242,6 +247,11 @@ export function XauUsdScalperBot({
         }
         tickTimerRef.current = setInterval(async () => {
             if (!running) return;
+            if (!isSymbolMarketOpen("XAUUSD")) {
+                setErrorReason("Market closed — scalper sleeping");
+                setLastTickAt(Date.now());
+                return;
+            }
             tickCountRef.current += 1;
             const warmUp = config.warmUpCandles;
             if (tickCountRef.current <= warmUp) {
