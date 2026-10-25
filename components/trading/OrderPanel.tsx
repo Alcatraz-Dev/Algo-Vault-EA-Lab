@@ -126,6 +126,11 @@ export default function OrderPanel({
   const [inFlight, setInFlight] = useState(false);
   const inFlightKey = useRef<string | null>(null);
 
+  useEffect(() => {
+    onSymbolChange?.(symbol);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol]);
+
   const parsedVolume = parseFloat(volume) || 0;
   const parsedSL = parseFloat(stopLoss) || 0;
   const parsedTP = parseFloat(takeProfit) || 0;
@@ -305,7 +310,6 @@ export default function OrderPanel({
                 type="button"
                 onClick={() => {
                   setSymbol(s);
-                  onSymbolChange?.(s);
                   setSearchSymbol("");
                 }}
                 disabled={processing || marketClosed}
@@ -332,7 +336,6 @@ export default function OrderPanel({
               disabled={!customSymbol || processing || marketClosed}
               onClick={() => {
                 setSymbol(customSymbol);
-                onSymbolChange?.(customSymbol);
                 setCustomSymbol("");
                 setSearchSymbol("");
               }}

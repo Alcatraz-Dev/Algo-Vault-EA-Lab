@@ -66,6 +66,23 @@ export function isInCandle(timestampMs: number, openTime: number, timeframe: Cha
 }
 
 /**
+ * Helper to determine if US Eastern Time is currently in Daylight Saving Time (EDT).
+ * US DST: second Sunday in March at 02:00 local to first Sunday in November at 02:00 local.
+ */
+export function isUSEasternDST(date: Date): boolean {
+    try {
+        const tzString = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            timeZoneName: "short",
+        }).format(date);
+        return tzString.includes("EDT");
+    } catch {
+        const month = date.getUTCMonth();
+        return month >= 2 && month <= 10;
+    }
+}
+
+/**
  * Is the (forex/CFD) market expected to be tradable at `timestampMs`?
  * Trading week: Sunday 21:00 UTC → Friday 21:00 UTC. Crypto exchanges trade
  * through the weekend — callers dealing with crypto-only symbols can pass
@@ -86,9 +103,15 @@ export function isMarketTradableAt(timestampMs: number, opts?: { alwaysOpen?: bo
 
     if (day === 6) return false; // Saturday: always closed
 
+    const isEDT = isUSEasternDST(d);
+    // Sunday open: Metals & Indices open 18:00 New York time
+    // In summer (EDT, UTC-4): 18:00 NY = 22:00 UTC
+    // In winter (EST, UTC-5): 18:00 NY = 23:00 UTC
+    const metalsOpenMin = isEDT ? 22 * 60 : 23 * 60;
+
     if (isMetal) {
-        // Metals open Sunday 23:00 UTC, close Friday 21:00 UTC
-        if (day === 0) return minutes >= 23 * 60;
+        // Metals open Sunday 18:00 NY time, close Friday 21:00 UTC
+        if (day === 0) return minutes >= metalsOpenMin;
         if (day === 5) return minutes < 21 * 60;
         // Daily break Monday - Thursday 21:00 to 22:00 UTC
         if (minutes >= 21 * 60 && minutes < 22 * 60) return false;
@@ -96,8 +119,8 @@ export function isMarketTradableAt(timestampMs: number, opts?: { alwaysOpen?: bo
     }
 
     if (isIndex) {
-        // Indices open Sunday 23:00 UTC, close Friday 21:00 UTC
-        if (day === 0) return minutes >= 23 * 60;
+        // Indices open Sunday 18:00 NY time, close Friday 21:00 UTC
+        if (day === 0) return minutes >= metalsOpenMin;
         if (day === 5) return minutes < 21 * 60;
         if (minutes >= 21 * 60 && minutes < 22 * 60) return false;
         return true;

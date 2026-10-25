@@ -18,7 +18,7 @@
  *     come, so a weekend chart never shows a live-looking bar timer.
  */
 
-import { isMarketTradableAt } from "./timeframe";
+import { isMarketTradableAt, isUSEasternDST } from "./timeframe";
 
 export interface BarCountdown {
     /** Start of the bar currently forming (ms, interval-grid aligned). */
@@ -196,7 +196,8 @@ export function marketStatusAt(
     const rawSymbol = opts?.symbol?.toUpperCase() || "";
     const isMetal = rawSymbol ? /XAU|XAG|GOLD|SILVER/i.test(rawSymbol) : false;
     const isIndex = rawSymbol ? /US30|NAS100|SPX500|GER40|UK100|DAX/i.test(rawSymbol) : false;
-    const weekOpenMin = (isMetal || isIndex) ? 23 * 60 : WEEK_OPEN_MIN;
+    const isEDT = isUSEasternDST(new Date(nowMs));
+    const weekOpenMin = (isMetal || isIndex) ? (isEDT ? 22 * 60 : 23 * 60) : WEEK_OPEN_MIN;
 
     const dayIndex = utcDayIndex(nowMs);
     const dow = sundayIndexedDow(dayIndex);

@@ -148,6 +148,14 @@ export function XauUsdScalperBot({
     }, [currentPrice]);
 
     const running = localRunning || serverStatus?.status === "running" || false;
+
+    // Use canonical market hours logic — exactly the same logic timer as the chart.
+    const [nowMs, setNowMs] = useState(() => Date.now());
+    useEffect(() => {
+        const timer = setInterval(() => setNowMs(Date.now()), 10_000);
+        return () => clearInterval(timer);
+    }, []);
+    const isMarketOpenNow = isSymbolMarketOpen("XAUUSD", new Date(nowMs));
     const effectiveStatus: BotStatus = serverStatus?.status ?? localStatus;
     const effectiveSignalCount = serverStatus?.signalCount ?? signalCount;
     const effectiveExecutionCount = serverStatus?.executionCount ?? executionCount;
@@ -192,7 +200,7 @@ export function XauUsdScalperBot({
                     ? "SELL"
                     : undefined;
 
-            if (executionType === "PLACE_ORDER" && !isSymbolMarketOpen(order.symbol)) {
+            if (executionType === "PLACE_ORDER" && !isMarketOpenNow) {
                 return { ok: false, error: `Market closed for ${order.symbol} — scalper sleeping` };
             }
 
@@ -247,7 +255,7 @@ export function XauUsdScalperBot({
         }
         tickTimerRef.current = setInterval(async () => {
             if (!running) return;
-            if (!isSymbolMarketOpen("XAUUSD")) {
+            if (!isMarketOpenNow) {
                 setErrorReason("Market closed — scalper sleeping");
                 setLastTickAt(Date.now());
                 return;

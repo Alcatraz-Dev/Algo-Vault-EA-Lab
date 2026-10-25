@@ -81,6 +81,15 @@ export function BotStudioBotCard({
         }
     });
     const [errorReason, setErrorReason] = useState<string | null>(null);
+
+    // Use canonical market hours logic — exactly the same logic timer as the chart.
+    const botSymbol = (template.symbol ?? "XAUUSD").replace(/^(FX|CRYPTO|INDICES|FOREX):/, "");
+    const [nowMs, setNowMs] = useState(() => Date.now());
+    useEffect(() => {
+        const timer = setInterval(() => setNowMs(Date.now()), 10_000);
+        return () => clearInterval(timer);
+    }, []);
+    const isMarketOpenNow = isSymbolMarketOpen(botSymbol, new Date(nowMs));
     const [signalCount, setSignalCount] = useState(0);
     const [executionCount, setExecutionCount] = useState(0);
     const [lastTickAt, setLastTickAt] = useState<number | undefined>(undefined);
@@ -172,7 +181,7 @@ export function BotStudioBotCard({
             return;
         }
         const symbol = template.symbol ?? "XAUUSD";
-        if (!isSymbolMarketOpen(symbol)) {
+        if (!isMarketOpenNow) {
             setErrorReason(`Market closed for ${symbol} — sleeping`);
             setTimeout(() => setErrorReason(null), 3500);
             return;
@@ -291,9 +300,8 @@ export function BotStudioBotCard({
         if (!running || !hasToken || !hasAccount) return;
         const interval = setInterval(() => {
             setLastTickAt(Date.now());
-            // Market closed check: sleep and never place trades outside market hours
-            const symbol = template.symbol ?? "XAUUSD";
-            if (!isSymbolMarketOpen(symbol)) {
+            // Market closed check: sleep when market is closed, run when open
+            if (!isSymbolMarketOpen(template.symbol ?? "XAUUSD")) {
                 return;
             }
             if (Math.random() < 0.15 && !currentPosition) {
@@ -323,7 +331,7 @@ export function BotStudioBotCard({
         };
     }, [template.id]);
 
-    const isMarketOpenNow = isSymbolMarketOpen(template.symbol ?? "XAUUSD");
+
 
     return (
         <Card className={cn(

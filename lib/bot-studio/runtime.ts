@@ -233,6 +233,7 @@ export class BotRuntimeSession {
         ownerId: string,
         strategyId: string,
     ): Promise<BotTickResult> {
+
         const candles = input.candles;
         if (!Array.isArray(candles) || candles.length === 0) {
             return { signalGenerated: false };
