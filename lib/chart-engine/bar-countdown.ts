@@ -185,7 +185,7 @@ function boundaryMs(daysFromEpoch: number, minuteOfDay: number): number {
  */
 export function marketStatusAt(
     nowMs: number,
-    opts?: { alwaysOpen?: boolean }
+    opts?: { alwaysOpen?: boolean; symbol?: string }
 ): MarketStatus {
     if (!Number.isFinite(nowMs)) {
         return { open: true, phase: "open", changeAt: null, untilChangeMs: 0 };
@@ -193,11 +193,25 @@ export function marketStatusAt(
     if (opts?.alwaysOpen) {
         return { open: true, phase: "open", changeAt: null, untilChangeMs: 0 };
     }
+    const rawSymbol = opts?.symbol?.toUpperCase() || "";
+    const isMetal = rawSymbol ? /XAU|XAG|GOLD|SILVER/i.test(rawSymbol) : false;
+    const isIndex = rawSymbol ? /US30|NAS100|SPX500|GER40|UK100|DAX/i.test(rawSymbol) : false;
+    const weekOpenMin = (isMetal || isIndex) ? 23 * 60 : WEEK_OPEN_MIN;
+
     const dayIndex = utcDayIndex(nowMs);
     const dow = sundayIndexedDow(dayIndex);
-    const open = isMarketTradableAt(nowMs);
+    const open = isMarketTradableAt(nowMs, opts);
 
     if (open) {
+        // Daily maintenance break: Mon - Thu 21:00 UTC
+        if ((isMetal || isIndex) && dow >= 1 && dow <= 4) {
+            const d = new Date(nowMs);
+            const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
+            if (minutes < 21 * 60) {
+                const changeAt = boundaryMs(dayIndex, 21 * 60);
+                return { open: true, phase: "open", changeAt, untilChangeMs: Math.max(0, changeAt - nowMs) };
+            }
+        }
         // Next close: Friday 21:00 UTC — later this week, or next week when the
         // clock is already past Friday's close window (Sunday 21:00+).
         const closeDay = dayIndex + ((5 - dow + 7) % 7);
@@ -205,10 +219,20 @@ export function marketStatusAt(
         return { open: true, phase: "open", changeAt, untilChangeMs: Math.max(0, changeAt - nowMs) };
     }
 
-    // Next open: Sunday 21:00 UTC — later today on a Sunday morning, otherwise
+    // Daily maintenance break recovery: Mon - Thu 22:00 UTC
+    if ((isMetal || isIndex) && dow >= 1 && dow <= 4) {
+        const d = new Date(nowMs);
+        const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
+        if (minutes >= 21 * 60 && minutes < 22 * 60) {
+            const changeAt = boundaryMs(dayIndex, 22 * 60);
+            return { open: false, phase: "closed", changeAt, untilChangeMs: Math.max(0, changeAt - nowMs) };
+        }
+    }
+
+    // Next open: Sunday weekOpenMin UTC — later today on a Sunday morning, otherwise
     // the coming Sunday (Saturday → +1 day, Friday evening → +2 days).
     const openDay = dow === 0 ? dayIndex : dayIndex + (dow === 6 ? 1 : 7 - dow);
-    const changeAt = boundaryMs(openDay, WEEK_OPEN_MIN);
+    const changeAt = boundaryMs(openDay, weekOpenMin);
     return { open: false, phase: "closed", changeAt, untilChangeMs: Math.max(0, changeAt - nowMs) };
 }
 
@@ -241,7 +265,7 @@ export const CLOSING_SOON_MS = 15 * 60_000;
 export function marketCountdown(
     nowMs: number,
     intervalMs: number,
-    opts?: { alwaysOpen?: boolean }
+    opts?: { alwaysOpen?: boolean; symbol?: string }
 ): MarketCountdown {
     const status = marketStatusAt(nowMs, opts);
     if (!status.open) {

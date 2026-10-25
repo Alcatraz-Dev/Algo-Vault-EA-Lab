@@ -1261,15 +1261,15 @@ export function ProTerminalChart({
     // Crypto exchanges never close; forex/CFDs run Sun 21:00 → Fri 21:00 UTC.
     const cryptoSymbol = /BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT/i.test(symbol);
     const marketStatus = useMemo(
-        () => marketStatusAt(nowMs, { alwaysOpen: cryptoSymbol }),
-        [nowMs, cryptoSymbol]
+        () => marketStatusAt(nowMs, { alwaysOpen: cryptoSymbol, symbol }),
+        [nowMs, cryptoSymbol, symbol]
     );
     // Bar close while the market trades; the wait to the next open once it does
     // not. While the session is PAUSED the chart shows the frozen clock below
     // instead, so no timer ticks on a market that is not trading.
     const marketCount = useMemo(
-        () => marketCountdown(nowMs, intervalMs, { alwaysOpen: cryptoSymbol }),
-        [nowMs, intervalMs, cryptoSymbol]
+        () => marketCountdown(nowMs, intervalMs, { alwaysOpen: cryptoSymbol, symbol }),
+        [nowMs, intervalMs, cryptoSymbol, symbol]
     );
     const marketOpen = marketStatus.open;
     const countdownLabel = formatCountdown(marketCount.remainingMs);
@@ -3137,13 +3137,10 @@ export function ProTerminalChart({
 
         const series = activePriceSeriesRef.current;
         if (!series || !cfg.display.showBarCloseCountdown) return;
-        // Nothing counts down to a bar close while the market is closed — the
-        // HUD chip carries "opens in HH:MM:SS" instead, so a frozen bar clock
-        // never sits on the price axis pretending to be live.
-        if (!sessionOpen) return;
         const last = candles[candles.length - 1];
         if (!last || !Number.isFinite(last.close) || last.close <= 0) return;
 
+        const countdownTitle = sessionOpen ? countdownLabel : "PAUSED";
         const line = series.createPriceLine({
                 // Follows the live quote when one is known, otherwise the last
                 // rendered close — the same price the candle is drawing at.
@@ -3152,8 +3149,8 @@ export function ProTerminalChart({
                 lineWidth: 1,
                 lineStyle: LineStyle.Dotted,
                 axisLabelVisible: true,
-                // "00:04:31" — always zero-padded HH:MM:SS.
-                title: countdownLabel,
+                // "00:04:31" while open; "PAUSED" while the market or feed is halted.
+                title: countdownTitle,
         });
         countdownLinesRef.current = [line];
         countdownLineOwnerRef.current = { series, lines: [line] };
@@ -4065,7 +4062,7 @@ export function ProTerminalChart({
                             : pauseReason === "feed-gap"
                                 ? "The feed is missing bars it cannot fill — the chart and its countdown are paused until data resumes."
                                 : marketStatus.changeAt !== null
-                                ? `${marketOpen ? "Market closes" : "Market opens"} ${formatBoundaryUtc(marketStatus.changeAt)} · forex week runs Sun 21:00 → Fri 21:00 UTC`
+                                ? `${marketOpen ? "Market closes" : "Market opens"} ${formatBoundaryUtc(marketStatus.changeAt)} · ${/XAU|XAG|GOLD|SILVER/i.test(symbol) ? "metals week runs Sun 23:00 → Fri 21:00 UTC (break 21:00–22:00)" : /US30|NAS100|SPX500|GER40|UK100|DAX/i.test(symbol) ? "indices week runs Sun 23:00 → Fri 21:00 UTC (break 21:00–22:00)" : "forex week runs Sun 21:00 → Fri 21:00 UTC"}`
                                 : "This market trades 24/7 — no session close."
                     }
                     data-testid="market-hours-chip"

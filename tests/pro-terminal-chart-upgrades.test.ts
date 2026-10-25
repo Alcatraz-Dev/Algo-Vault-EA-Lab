@@ -588,6 +588,24 @@ check("Friday 21:00 UTC is the close; Sunday 21:00 UTC is the open", () => {
     );
 });
 
+check("metals (XAUUSD) opens Sunday 23:00 UTC and observes daily 21:00-22:00 UTC break", () => {
+    // Sunday 21:55 UTC: Forex is open, but XAUUSD is still closed until 23:00 UTC
+    const sunday2155 = marketStatusAt(utc(2026, 1, 11, 21, 55), { symbol: "XAUUSD" });
+    assertEqual(sunday2155.open, false, "XAUUSD is closed at Sun 21:55 UTC");
+    assertEqual(new Date(sunday2155.changeAt as number).toISOString(), "2026-01-11T23:00:00.000Z", "opens Sun 23:00 UTC");
+    assertEqual(sunday2155.untilChangeMs, 65 * 60_000, "65 minutes until XAUUSD open");
+
+    // Sunday 23:00 UTC: XAUUSD opens
+    const sunday2300 = marketStatusAt(utc(2026, 1, 11, 23, 0), { symbol: "XAUUSD" });
+    assertEqual(sunday2300.open, true, "XAUUSD is open at Sun 23:00 UTC");
+
+    // Wednesday 21:30 UTC: Daily maintenance break (21:00 - 22:00 UTC)
+    const wedBreak = marketStatusAt(utc(2026, 1, 14, 21, 30), { symbol: "XAUUSD" });
+    assertEqual(wedBreak.open, false, "XAUUSD is in daily break at Wed 21:30 UTC");
+    assertEqual(new Date(wedBreak.changeAt as number).toISOString(), "2026-01-14T22:00:00.000Z", "resumes Wed 22:00 UTC");
+    assertEqual(wedBreak.untilChangeMs, 30 * 60_000, "30 minutes until break ends");
+});
+
 check("crypto never closes and keeps the bar countdown", () => {
     const sat = utc(2026, 1, 10, 12);
     const s = marketStatusAt(sat, { alwaysOpen: true });

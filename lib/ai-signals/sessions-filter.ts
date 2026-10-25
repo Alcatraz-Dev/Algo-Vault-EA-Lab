@@ -2,6 +2,7 @@ import { MarketSessionName, SignalConfig } from "./types";
 import { getCurrentSession, getSessionData, isMarketOpen } from "@/lib/analytics/sessions";
 import { getSymbolSpec } from "./symbol-specs";
 import { MarketCandle } from "@/lib/market-data/types";
+import { isMarketTradableAt } from "@/lib/chart-engine/timeframe";
 
 export interface SessionFilterResult {
     allowed: boolean;
@@ -32,7 +33,7 @@ export function isSymbolMarketOpen(symbol: string, now: Date = new Date()): bool
     }
     const spec = getSymbolSpec(clean) ?? getSymbolSpec(clean.slice(0, 6));
     if (spec?.category === "crypto") return true;
-    return isMarketOpen(now);
+    return isMarketTradableAt(now.getTime(), { symbol: clean });
 }
 
 export function isSessionAllowed(

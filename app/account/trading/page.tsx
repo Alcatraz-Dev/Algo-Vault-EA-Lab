@@ -1274,6 +1274,7 @@ export default function AccountTradingPage() {
                             account={selectedAccount}
                             symbol={selectedSymbol}
                             marketClosed={marketClosed}
+                            onSymbolChange={setSelectedSymbol}
                             onOrderPlaced={() => handleRefresh()}
                         />
                     </div>

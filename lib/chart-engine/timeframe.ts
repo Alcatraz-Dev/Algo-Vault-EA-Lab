@@ -71,14 +71,41 @@ export function isInCandle(timestampMs: number, openTime: number, timeframe: Cha
  * through the weekend — callers dealing with crypto-only symbols can pass
  * `alwaysOpen` to skip the weekend gate.
  */
-export function isMarketTradableAt(timestampMs: number, opts?: { alwaysOpen?: boolean }): boolean {
+export function isMarketTradableAt(timestampMs: number, opts?: { alwaysOpen?: boolean; symbol?: string }): boolean {
     if (opts?.alwaysOpen) return true;
+    const rawSymbol = opts?.symbol?.toUpperCase() || "";
+    const isCrypto = rawSymbol ? /BTC|ETH|SOL|XRP|ADA|DOGE|BNB|LTC|DOT/i.test(rawSymbol) : false;
+    if (isCrypto) return true;
+
+    const isMetal = rawSymbol ? /XAU|XAG|GOLD|SILVER/i.test(rawSymbol) : false;
+    const isIndex = rawSymbol ? /US30|NAS100|SPX500|GER40|UK100|DAX/i.test(rawSymbol) : false;
+
     const d = new Date(timestampMs);
     const day = d.getUTCDay(); // 0 = Sunday
     const minutes = d.getUTCHours() * 60 + d.getUTCMinutes();
-    if (day === 6) return false; // Saturday
-    if (day === 0) return minutes >= 21 * 60; // Sunday until 21:00 UTC
-    if (day === 5) return minutes < 21 * 60; // Friday after 21:00 UTC
+
+    if (day === 6) return false; // Saturday: always closed
+
+    if (isMetal) {
+        // Metals open Sunday 23:00 UTC, close Friday 21:00 UTC
+        if (day === 0) return minutes >= 23 * 60;
+        if (day === 5) return minutes < 21 * 60;
+        // Daily break Monday - Thursday 21:00 to 22:00 UTC
+        if (minutes >= 21 * 60 && minutes < 22 * 60) return false;
+        return true;
+    }
+
+    if (isIndex) {
+        // Indices open Sunday 23:00 UTC, close Friday 21:00 UTC
+        if (day === 0) return minutes >= 23 * 60;
+        if (day === 5) return minutes < 21 * 60;
+        if (minutes >= 21 * 60 && minutes < 22 * 60) return false;
+        return true;
+    }
+
+    // Default Forex: Sunday 21:00 UTC → Friday 21:00 UTC
+    if (day === 0) return minutes >= 21 * 60;
+    if (day === 5) return minutes < 21 * 60;
     return true;
 }
 

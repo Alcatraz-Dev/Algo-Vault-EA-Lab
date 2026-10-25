@@ -18,7 +18,7 @@
  * flight, so double clicks and network retries cannot place two trades.
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SUPPORTED_SYMBOLS } from "@/lib/market-data/types";
+import { marketOfSymbol } from "@/lib/performance-arena/execution";
 import {
   ArrowUpRight,
   ArrowDownRight,
@@ -86,11 +87,13 @@ export default function OrderPanel({
   onOrderPlaced,
   symbol: initialSymbol,
   marketClosed = false,
+  onSymbolChange,
 }: {
   account: TradingAccount | null;
   onOrderPlaced: (clientOrderId: string) => void;
   symbol?: string;
   marketClosed?: boolean;
+  onSymbolChange?: (symbol: string) => void;
 }) {
   const [symbol, setSymbol] = useState(
     initialSymbol ? initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, "") : "XAUUSD"
@@ -103,10 +106,13 @@ export default function OrderPanel({
   if (initialSymbol !== lastInitialSymbol) {
     setLastInitialSymbol(initialSymbol);
     if (initialSymbol) {
-      setSymbol(initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, ""));
+      const next = initialSymbol.replace(/^(FX|CRYPTO|INDICES|FOREX):/, "");
+      setSymbol(next);
     }
   }
   const [side, setSide] = useState<OrderSide>("BUY");
+  const [searchSymbol, setSearchSymbol] = useState("");
+  const [customSymbol, setCustomSymbol] = useState("");
   const [volume, setVolume] = useState("0.01");
   const [orderType, setOrderType] = useState<OrderType>("market");
   const [price, setPrice] = useState("");
@@ -279,19 +285,62 @@ export default function OrderPanel({
             Market is closed — trading disabled.
           </div>
         )}
-        {/* Symbol */}
+        {/* Symbol — searchable snippet picker */}
         <div className="space-y-1.5">
           <label className="text-micro font-medium text-muted-foreground">Symbol</label>
-          <select
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-            disabled={processing || marketClosed}
-            className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
-          >
-            {SUPPORTED_SYMBOLS.map((s) => (
-              <option key={s} value={s}>{s}</option>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchSymbol}
+              onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
+              placeholder="Search symbol..."
+              disabled={processing || marketClosed}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 pr-8 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+            />
+          </div>
+          <div className="max-h-48 overflow-y-auto rounded-md border border-border bg-muted/30 p-1 text-xs">
+            {(searchSymbol ? SUPPORTED_SYMBOLS.filter((s) => s.includes(searchSymbol)) : SUPPORTED_SYMBOLS).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  setSymbol(s);
+                  onSymbolChange?.(s);
+                  setSearchSymbol("");
+                }}
+                disabled={processing || marketClosed}
+                className={cn(
+                  "flex w-full items-center justify-between rounded px-2 py-1.5 text-left transition-colors hover:bg-background disabled:opacity-50",
+                  symbol === s ? "bg-primary/10 text-primary font-medium" : "text-foreground"
+                )}
+              >
+                <span className="font-numeric">{s}</span>
+                <span className="text-muted-foreground">· {marketOfSymbol(s) ?? "market"}</span>
+              </button>
             ))}
-          </select>
+          </div>
+          <div className="flex items-center gap-2 pt-0.5">
+            <input
+              value={customSymbol}
+              onChange={(e) => setCustomSymbol(e.target.value.toUpperCase())}
+              placeholder="Add custom symbol"
+              disabled={processing || marketClosed}
+              className="flex-1 rounded-md border border-border bg-background px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+            />
+            <button
+              type="button"
+              disabled={!customSymbol || processing || marketClosed}
+              onClick={() => {
+                setSymbol(customSymbol);
+                onSymbolChange?.(customSymbol);
+                setCustomSymbol("");
+                setSearchSymbol("");
+              }}
+              className="rounded-md bg-primary px-2.5 py-1.5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50"
+            >
+              Add
+            </button>
+          </div>
         </div>
 
         {/* Side */}
