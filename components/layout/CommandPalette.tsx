@@ -52,9 +52,9 @@ export function CommandPalette({
     return (
         <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
             <DialogPrimitive.Portal>
-                <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-background/80" />
+                <DialogPrimitive.Backdrop className="fixed inset-0 z-[70] bg-background/80" />
                 <DialogPrimitive.Popup
-                    className="fixed left-1/2 top-[12%] z-50 flex max-h-[min(70vh,32rem)] w-[min(92vw,44rem)] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg outline-none"
+                    className="fixed left-1/2 top-[12%] z-[70] flex max-h-[min(70vh,32rem)] w-[min(92vw,44rem)] -translate-x-1/2 flex-col overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-lg outline-none"
                     aria-label="Command palette"
                 >
                     <DialogPrimitive.Title className="sr-only">Command palette</DialogPrimitive.Title>

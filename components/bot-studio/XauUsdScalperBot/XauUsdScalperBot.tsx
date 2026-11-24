@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import type { MarketCandle } from "@/lib/market-data/types";
 import type { XauUsdScalpingConfig } from "@/lib/bot-studio/scalping";
-import { XAUUSD_SCALPING_DEFAULTS, pipsToPrice, deriveLevels } from "@/lib/bot-studio/scalping";
+import {
+    XAUUSD_SCALPING_DEFAULTS,
+    deriveLevels,
+    readSmartMoneyScalpDirection,
+    type SmartMoneyScalpRead,
+} from "@/lib/bot-studio/scalping";
 import { XauUsdScalperBotCard } from "./XauUsdScalperBotCard";
-import { cn } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bot } from "lucide-react";
-import { executeUnified, newClientRequestId } from "@/lib/trading/unified/client";
+import { executeUnified } from "@/lib/trading/unified/client";
 
 type BotStatus = "idle" | "running" | "paused" | "error";
 
@@ -18,22 +21,30 @@ interface XauUsdScalperBotProps {
     refreshKey?: number;
     className?: string;
     currentPrice?: number;
+    /** Closed + forming M1 candles used for the Smart Money read. */
+    candles?: readonly MarketCandle[];
     hasToken?: boolean;
     accountId?: string;
-    onPositionChange?: (position: {
-        ticket: string;
-        symbol: string;
-        type: "BUY" | "SELL";
-        volume: number;
-        openPrice: number;
-        currentPrice: number;
-        sl: number;
-        tp: number;
-        profit: number;
-        swap: number;
-        magic: number;
-        openedAt: number;
-    } | null) => void;
+    /** Controlled config panel state, so a desk can keep one card open. */
+    configOpen?: boolean;
+    onConfigOpenChange?: (next: boolean) => void;
+    onPositionChange?: (
+        position: {
+            ticket: string;
+            symbol: string;
+            type: "BUY" | "SELL";
+            volume: number;
+            openPrice: number;
+            currentPrice: number;
+            sl: number;
+            tp: number;
+            profit: number;
+            swap: number;
+            magic: number;
+            openedAt: number;
+        } | null,
+        magicNumber: number,
+    ) => void;
     onToggle?: (running: boolean, reason?: string) => void | Promise<void>;
     onDeploy?: () => void;
     serverStatus?: {
@@ -94,8 +105,11 @@ export function XauUsdScalperBot({
     refreshKey = 0,
     className,
     currentPrice,
+    candles,
     hasToken,
     accountId,
+    configOpen,
+    onConfigOpenChange,
     onPositionChange,
     onToggle,
     onDeploy,
@@ -139,14 +153,39 @@ export function XauUsdScalperBot({
     } | null>(null);
     const recentTradesRef = useRef<BotTrade[]>([]);
     const pendingCloseRef = useRef<Set<string>>(new Set());
-    const tickCountRef = useRef(0);
     const currentPriceRef = useRef<number | null>(null);
+    const configRef = useRef(config);
+    const runningRef = useRef(false);
+    const closedCandlesRef = useRef<readonly MarketCandle[]>([]);
+    const analysisRef = useRef<SmartMoneyScalpRead | null>(null);
 
     useEffect(() => {
         currentPriceRef.current = currentPrice != null && currentPrice > 0 ? currentPrice : null;
     }, [currentPrice]);
 
+    // The feed can end with a forming candle. Dropping the newest bar is a
+    // conservative, deterministic way to analyse closed candles only — the
+    // runtime re-checks bar age before it submits an order.
+    const closedCandles = useMemo(
+        () => (candles ?? []).slice(0, -1),
+        [candles],
+    );
+    const analysis = useMemo(
+        () => readSmartMoneyScalpDirection(closedCandles),
+        [closedCandles],
+    );
+
+    useEffect(() => {
+        configRef.current = config;
+        closedCandlesRef.current = closedCandles;
+        analysisRef.current = analysis;
+    }, [config, closedCandles, analysis]);
+
     const running = localRunning || serverStatus?.status === "running" || false;
+
+    useEffect(() => {
+        runningRef.current = running;
+    }, [running]);
     const effectiveStatus: BotStatus = serverStatus?.status ?? localStatus;
     const effectiveSignalCount = serverStatus?.signalCount ?? signalCount;
     const effectiveExecutionCount = serverStatus?.executionCount ?? executionCount;
@@ -235,40 +274,39 @@ export function XauUsdScalperBot({
         }
         setLocalRunning(true);
         setLocalStatus("running");
+        runningRef.current = true;
         setErrorReason(null);
-        tickCountRef.current = 0;
         if (tickTimerRef.current) {
             clearInterval(tickTimerRef.current);
-        }
-        tickTimerRef.current = setInterval(async () => {
-            if (!running) return;
-            tickCountRef.current += 1;
-            const warmUp = config.warmUpCandles;
-            if (tickCountRef.current <= warmUp) {
+        }        tickTimerRef.current = setInterval(async () => {
+            if (!runningRef.current) return;
+
+            const cfg = configRef.current;
+            if (closedCandlesRef.current.length < cfg.warmUpCandles) {
                 setLastTickAt(Date.now());
                 return;
             }
 
             const now = Date.now();
             const livePrice = currentPriceRef.current;
-            const basePrice = livePrice != null && livePrice > 0
-                ? livePrice
-                : 2650 + (tickCountRef.current % 40) * 0.15 - 3;
-            const ask = basePrice + 0.05;
-            const bid = basePrice - 0.05;
+            if (livePrice == null || livePrice <= 0) {
+                setLastTickAt(now);
+                return;
+            }
+            const ask = livePrice + 0.05;
+            const bid = livePrice - 0.05;
             const spreadPoints = Math.round((ask - bid) / 0.01);
 
             setLastTickAt(now);
-            setLastExecutionAt(now);
 
-            if (spreadPoints > config.maxSpreadPoints) {
-                setErrorReason(`spread ${spreadPoints}pts > cap ${config.maxSpreadPoints}pts — skipped`);
+            if (spreadPoints > cfg.maxSpreadPoints) {
+                setErrorReason(`spread ${spreadPoints}pts > cap ${cfg.maxSpreadPoints}pts — skipped`);
                 setTimeout(() => setErrorReason(null), 2500);
                 return;
             }
 
             const alreadyOpen = openPositionRef.current != null;
-            if (alreadyOpen && config.maxPositions <= 1) {
+            if (alreadyOpen && cfg.maxPositions <= 1) {
                 const pos = openPositionRef.current!;
                 const currentPrice = pos.side === "BUY" ? ask : bid;
                 const pnl = pos.side === "BUY"
@@ -423,13 +461,39 @@ export function XauUsdScalperBot({
                 return;
             }
 
-            if (!config.enabled) return;
+            if (!cfg.enabled) return;
 
-            const signalChance = 0.15;
-            if (Math.random() < signalChance) {
-                const side: "BUY" | "SELL" = config.direction === "long" ? "BUY" : "SELL";
+            const latestClosed = closedCandlesRef.current[closedCandlesRef.current.length - 1];
+            const structure = readSmartMoneyScalpDirection(closedCandlesRef.current);
+            let entrySide: "long" | "short" | null = null;
+
+            if (cfg.direction === "auto") {
+                const latestCloseAt = latestClosed
+                    ? latestClosed.timestamp + 60_000
+                    : 0;
+                const barAgeMs = latestCloseAt > 0
+                    ? now - latestCloseAt
+                    : Number.POSITIVE_INFINITY;
+                if (
+                    !structure.fresh ||
+                    structure.direction === "neutral" ||
+                    structure.confidence < 0.55 ||
+                    barAgeMs > 180_000
+                ) {
+                    setLastTickAt(now);
+                    return;
+                }
+                entrySide = structure.direction;
+            } else {
+                // Legacy single-side mode keeps its sampled entry cadence.
+                if (Math.random() >= 0.15) return;
+                entrySide = cfg.direction;
+            }
+
+            {
+                const side: "BUY" | "SELL" = entrySide === "long" ? "BUY" : "SELL";
                 const entry = side === "BUY" ? ask : bid;
-                const { tp1, tp2, sl } = deriveLevels(entry, config.tp1Pips, config.tp2Pips, config.slPips, config.direction);
+                const { tp1, tp2, sl } = deriveLevels(entry, cfg.tp1Pips, cfg.tp2Pips, cfg.slPips, entrySide);
                 const volume = 0.01;
 
                 const ticket = `BOT-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
@@ -482,11 +546,12 @@ export function XauUsdScalperBot({
             }
         }, 60000);
         return true;
-    }, [config, running, submitOrder, accountId]);
+    }, [submitOrder, accountId]);
 
     const stopBot = useCallback(() => {
         setLocalRunning(false);
         setLocalStatus("idle");
+        runningRef.current = false;
         if (tickTimerRef.current) {
             clearInterval(tickTimerRef.current);
             tickTimerRef.current = null;
@@ -532,8 +597,17 @@ export function XauUsdScalperBot({
             setTimeout(() => setErrorReason(null), 3000);
             return;
         }
-        const { tp1, tp2, sl } = deriveLevels(entry, config.tp1Pips, config.tp2Pips, config.slPips, config.direction);
-        const side: "BUY" | "SELL" = config.direction === "long" ? "BUY" : "SELL";
+        const entrySide =
+            config.direction === "auto"
+                ? (analysisRef.current?.direction ?? "neutral")
+                : config.direction;
+        if (entrySide !== "long" && entrySide !== "short") {
+            setErrorReason("no fresh Smart Money direction — staying flat");
+            setTimeout(() => setErrorReason(null), 3000);
+            return;
+        }
+        const { tp1, tp2, sl } = deriveLevels(entry, config.tp1Pips, config.tp2Pips, config.slPips, entrySide);
+        const side: "BUY" | "SELL" = entrySide === "long" ? "BUY" : "SELL";
         const ticket = `TEST-${Date.now()}`;
         const volume = 0.01;
         void submitOrder({
@@ -572,7 +646,7 @@ export function XauUsdScalperBot({
 
     useEffect(() => {
         if (!effectiveCurrentPosition) {
-            onPositionChange?.(null);
+            onPositionChange?.(null, config.magicNumber);
             return;
         }
         onPositionChange?.({
@@ -588,86 +662,33 @@ export function XauUsdScalperBot({
             swap: 0,
             magic: config.magicNumber,
             openedAt: effectiveCurrentPosition.openAt,
-        });
+        }, config.magicNumber);
     }, [effectiveCurrentPosition, onPositionChange, config]);
+
     return (
-        <Card className={cn("overflow-hidden", className)}>
-            <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2.5">
-                            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                <Bot className="size-4.5" />
-                            </div>
-                            <div className="min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <CardTitle className="text-sm font-semibold leading-tight">
-                                        XAUUSD M1 Scalper
-                                        {deployed ? (
-                                            <span className="ml-2 text-[11px] font-normal text-muted-foreground">
-                                                · deployed
-                                            </span>
-                                        ) : null}
-                                    </CardTitle>
-                                    {running && (
-                                        <span className="size-1.5 rounded-full bg-positive animate-pulse" />
-                                    )}
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px]">
-                                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-foreground">
-                                        XAUUSD · M1
-                                    </span>
-                                    {config.enabled ? (
-                                        <span className="rounded-full bg-positive/10 px-2 py-0.5 text-[10px] font-medium text-positive">
-                                            enabled
-                                        </span>
-                                    ) : (
-                                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                            disabled
-                                        </span>
-                                    )}
-                                    {running ? (
-                                        <span className="rounded-full bg-positive/10 px-2 py-0.5 text-[10px] font-medium text-positive">
-                                            running
-                                        </span>
-                                    ) : null}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                        {!deployed && onDeploy && (
-                            <button
-                                type="button"
-                                className="inline-flex items-center justify-center rounded-md border border-border bg-card px-2 py-1 text-[11px] font-medium text-foreground transition hover:bg-muted"
-                                onClick={onDeploy}
-                            >
-                                Deploy to MT5
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <XauUsdScalperBotCard
-                    config={config}
-                    running={running}
-                    signalCount={effectiveSignalCount}
-                    executionCount={effectiveExecutionCount}
-                    lastTickAt={effectiveLastTickAt}
-                    lastSignalAt={effectiveLastSignalAt}
-                    lastExecutionAt={effectiveLastExecutionAt}
-                    errorReason={effectiveErrorReason}
-                    status={effectiveStatus}
-                    currentPosition={effectiveCurrentPosition}
-                    currentPrice={currentPrice}
-                    recentTrades={effectiveRecentTrades}
-                    onToggle={handleToggle}
-                    onDeploy={deployed ? undefined : onDeploy}
-                    onTestTrade={handleTestTrade}
-                    onConfigChange={handleConfigChange}
-                    hasToken={hasToken}
-                />                </CardContent>
-        </Card>
+        <XauUsdScalperBotCard
+            config={config}
+            running={running}
+            signalCount={effectiveSignalCount}
+            executionCount={effectiveExecutionCount}
+            lastTickAt={effectiveLastTickAt}
+            lastSignalAt={effectiveLastSignalAt}
+            lastExecutionAt={effectiveLastExecutionAt}
+            errorReason={effectiveErrorReason}
+            status={effectiveStatus}
+            analysis={analysis}
+            deployed={deployed}
+            currentPosition={effectiveCurrentPosition}
+            currentPrice={currentPrice}
+            recentTrades={effectiveRecentTrades}
+            onToggle={handleToggle}
+            onDeploy={deployed ? undefined : onDeploy}
+            onTestTrade={handleTestTrade}
+            onConfigChange={handleConfigChange}
+            hasToken={hasToken}
+            configOpen={configOpen}
+            onConfigOpenChange={onConfigOpenChange}
+            className={className}
+        />
     );
 }

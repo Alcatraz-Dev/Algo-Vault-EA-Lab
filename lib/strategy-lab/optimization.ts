@@ -1,6 +1,13 @@
 import { MarketCandle, SupportedSymbol, Timeframe } from "@/lib/market-data/types";
 import { BacktestConfig, OptimizationOutcome, OptimizeParam, OptimizeRange, OptimizeResult, Strategy } from "./types";
 import { backtestStrategy } from "./backtest";
+import {
+    DEFAULT_PBO_BLOCKS,
+    blockReturnsFromEquity,
+    optimizationBlockBoundaries,
+    pboFromOptimizationSamples,
+    type OptimizationRunSample,
+} from "./optimization-pbo";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Parameter optimization (grid search with brute-force caps).
@@ -110,6 +117,10 @@ export function optimizeStrategy(
     let worst: OptimizeResult | null = null;
 
     const scores: number[] = [];
+    // PBO is computed from the SAME runs, reduced to block returns immediately
+    // so the equity curves are never retained (240 runs × every bar).
+    const boundaries = optimizationBlockBoundaries(from, to, DEFAULT_PBO_BLOCKS);
+    const pboSamples: OptimizationRunSample[] = [];
 
     for (const combo of sampled) {
         // Apply EVERY parameter in the combination — a grid over multiple
@@ -129,6 +140,10 @@ export function optimizeStrategy(
             scoreBreakdown: breakdown,
         };
         results.push(optimizeResult);
+        if (boundaries) {
+            const blockReturns = blockReturnsFromEquity(result.equity, boundaries, from);
+            if (blockReturns) pboSamples.push({ configKey: JSON.stringify(combo), returns: blockReturns });
+        }
         scores.push(score);
 
         if (!best || score > best.score) best = optimizeResult;
@@ -153,6 +168,11 @@ export function optimizeStrategy(
         best,
         worst,
         stabilityStdDev,
+        pbo: pboFromOptimizationSamples({
+            samples: pboSamples,
+            blocks: DEFAULT_PBO_BLOCKS,
+            sampledRuns: sampled.length,
+        }),
     };
 }
 

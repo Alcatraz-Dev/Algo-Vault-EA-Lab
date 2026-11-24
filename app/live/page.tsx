@@ -12,7 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Sparkles, Globe, Radio } from "lucide-react";
 import Link from "next/link";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 import { useLiveActivities } from "@/hooks/useLiveActivities";
 import { useLivePrices } from "@/hooks/useLivePrices";
@@ -28,7 +28,10 @@ import ScalpingTerminal from "@/components/live/ScalpingTerminal";
 function LiveTicker() {
   const symbols = [...MARKET_UNIVERSE];
   const [user, setUser] = useState<FirebaseUser | null>(null);
-  useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
+  useEffect(() => {
+    if (!isFirebaseClientConfigured()) return;
+    return onAuthStateChanged(auth, (u) => setUser(u));
+  }, []);
   // Quotes require auth — only poll for signed-in visitors.
   const { prices, isLive } = useLivePrices(user ? symbols : [], { intervalMs: 12_000 });
 
@@ -107,6 +110,8 @@ export default function LivePage() {
   }, []);
 
   useEffect(() => {
+    if (!isFirebaseClientConfigured()) return;
+
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });

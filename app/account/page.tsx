@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import Link from "next/link";
 import {
     Award,
@@ -76,9 +76,13 @@ export default function AccountPage() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
     const [licenseState, setLicenseState] = useState<LicenseState | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Without Firebase config there is nothing to wait for, so the page settles
+    // into its signed-out state instead of a permanent loading skeleton.
+    const [loading, setLoading] = useState(isFirebaseClientConfigured());
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user) {
                 router.replace("/login");

@@ -16,6 +16,8 @@
  */
 
 import type { Strategy } from "@/lib/strategy-lab/types";
+import type { ScalpingBotConfig } from "./scalping/profiles";
+import type { TradingPositionMode } from "@/lib/trading/position-mode";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Strategy lifecycle
@@ -120,6 +122,22 @@ export interface BotStrategy {
     lastBacktestNetPnl?: number;
     lastBacktestWinRate?: number;
     lastBacktestTrades?: number;
+    /**
+     * Scalping profile this strategy was compiled from. Present ONLY for
+     * scalping bots; it is the configuration the runtime evaluates and the UI
+     * edits. The canonical decision rules still live in `definition`.
+     */
+    scalpingConfig?: ScalpingBotConfig;
+}
+
+/** Per-direction lane state persisted for the terminal and for recovery. */
+export interface BotLaneState {
+    status: "POSITION_OPEN" | "SIGNAL_READY" | "WAITING" | "BLOCKED";
+    openPositions: number;
+    /** Explicit reason when the lane is BLOCKED; null when it may trade. */
+    blockedReason: string | null;
+    confidence: number;
+    updatedAt: number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,6 +179,33 @@ export interface BotDeployment {
     rejectionCount: number;
     /** Open position tickets attributed to this bot (by magic number). */
     openPositions: string[];
+    /**
+     * Last closed-bar decision recorded by the runtime. WAIT is stored too, so
+     * the terminal can show "no setup" honestly instead of inventing a signal.
+     */
+    lastEvaluation?: {
+        at: number;
+        barTimestamp: number;
+        decision: "LONG" | "SHORT" | "WAIT";
+        direction: "long" | "short" | null;
+        reason: string | null;
+        detail: string | null;
+        confidence: number | null;
+    };
+    /**
+     * Authoritative MT5 position accounting last seen for this bot's account.
+     * UNKNOWN (or absent) means independent opposing positions are unverified.
+     */
+    positionMode?: TradingPositionMode;
+    /**
+     * Independent LONG / SHORT lane state. Present only for bidirectional
+     * scalping bots; the aggregate `lastEvaluation` never replaces it.
+     */
+    lanes?: {
+        long: BotLaneState;
+        short: BotLaneState;
+        updatedAt: number;
+    };
     createdAt: number;
     updatedAt: number;
     startedAt?: number;

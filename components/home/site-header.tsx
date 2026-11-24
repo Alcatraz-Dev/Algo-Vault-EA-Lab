@@ -17,7 +17,7 @@ import {
     X,
 } from "lucide-react";
 import { signOut, onAuthStateChanged, User } from "firebase/auth";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
 import { onSubscriptionChange } from "@/lib/subscription";
 import SiteLogo from "@/components/ui/site-logo";
@@ -70,6 +70,8 @@ export default function SiteHeader() {
     }, []);
 
     useEffect(() => {
+        // No Firebase configured: keep the default site settings.
+        if (!isFirebaseClientConfigured()) return;
         const unsubscribe = onValue(ref(database, "settings"), (snapshot) => {
             const data = snapshot.val();
             if (data && typeof data === "object") {
@@ -80,6 +82,8 @@ export default function SiteHeader() {
     }, []);
 
     useEffect(() => {
+        // No Firebase configured: render the signed-out header.
+        if (!isFirebaseClientConfigured()) return;
         return onAuthStateChanged(auth, (u) => {
             setUser(u);
             if (!u) setHasPro(false);

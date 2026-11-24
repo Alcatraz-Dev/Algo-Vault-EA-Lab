@@ -78,6 +78,12 @@ export interface RiskLimits extends BrokerLimits {
     riskPercent?: number;
     /** Fallback volume when neither volume nor risk sizing applies. */
     defaultLot?: number;
+    /**
+     * Max notional (volume × contractSize × price) permitted per trading day,
+     * in account currency. Enforced only when `dailyNotionalUsed` is known —
+     * unknown usage never becomes "zero used".
+     */
+    maxDailyNotional?: number;
 }
 
 export interface AccountRiskState {
@@ -89,6 +95,20 @@ export interface AccountRiskState {
     dailyLossPercent?: number;
     drawdownPercent?: number;
     lastTradeAt?: number;
+    /** Notional already executed today (account currency); undefined = unknown. */
+    dailyNotionalUsed?: number;
+    /**
+     * True when today's notional accounting is missing at least one confirmed
+     * fill (e.g. a symbol without a resolved contract size). A configured
+     * budget can then not be enforced truthfully, so entries fail closed.
+     */
+    dailyNotionalIncomplete?: boolean;
+    /**
+     * Latched drawdown breaker from `lib/risk/drawdown-breaker`. When true the
+     * account has breached its drawdown limit and stays halted until an
+     * explicit, audited human reset — a bounce in equity does not clear it.
+     */
+    drawdownBreakerActive?: boolean;
 }
 
 export type RiskDecisionCode =
@@ -105,6 +125,9 @@ export type RiskDecisionCode =
     | "COOLDOWN_ACTIVE"
     | "DAILY_LOSS_LIMIT"
     | "MAX_DRAWDOWN"
+    | "DRAWDOWN_BREAKER_ACTIVE"
+    | "DAILY_NOTIONAL_BUDGET"
+    | "DAILY_NOTIONAL_UNKNOWN"
     | "MAX_OPEN_POSITIONS"
     | "SYMBOL_EXPOSURE_LIMIT"
     | "NO_RISK_FUNDS";
@@ -127,6 +150,18 @@ export function symbolRiskSpec(symbol: string): SymbolRiskSpec {
         pipSize: spec?.pipSize ?? 0.01,
         contractSize: spec?.contractSize ?? 100,
     };
+}
+
+/**
+ * Contract size ONLY when the platform actually knows the symbol.
+ *
+ * `symbolRiskSpec` supplies a 100-unit fallback because order sizing must
+ * always produce something; accounting must not: a guessed multiplier would
+ * silently corrupt a notional budget. This returns `undefined` instead.
+ */
+export function contractSizeFor(symbol: string): number | undefined {
+    const spec = getSymbolSpec(symbol);
+    return spec && spec.contractSize > 0 ? spec.contractSize : undefined;
 }
 
 const DEFAULT_STEP = 0.01;
@@ -228,6 +263,18 @@ function slotsReached(limit: number | undefined, value: number | undefined): boo
 }
 
 /**
+ * Notional of an order in account currency: volume × contractSize × price.
+ * Returns undefined when no entry reference price is known — callers must not
+ * invent one, and the notional budget then passes through honestly.
+ */
+export function orderNotional(intent: OrderIntent, volume: number): number | undefined {
+    if (!(intent.price > 0) || !(volume > 0)) return undefined;
+    const spec = symbolRiskSpec(intent.symbol);
+    if (!(spec.contractSize > 0)) return undefined;
+    return volume * spec.contractSize * intent.price;
+}
+
+/**
  * Evaluate an order intent against configured limits + known account state.
  * Deterministic. Always returns a decision; volume is only present when
  * approved.
@@ -303,6 +350,11 @@ export function evaluateOrder(
     if (slotsReached(limits.maxDailyLossPercent, state.dailyLossPercent)) {
         return reject("DAILY_LOSS_LIMIT", "Max daily loss limit reached.");
     }
+    // A latched breaker outranks a recovered drawdown figure: the account was
+    // halted for a reason and only an explicit human reset clears it.
+    if (state.drawdownBreakerActive === true) {
+        return reject("DRAWDOWN_BREAKER_ACTIVE", "Drawdown breaker is latched — new entries require an audited reset.");
+    }
     if (slotsReached(limits.maxDrawdownPercent, state.drawdownPercent)) {
         return reject("MAX_DRAWDOWN", "Max drawdown limit reached.");
     }
@@ -315,6 +367,24 @@ export function evaluateOrder(
         (state.symbolExposureLots ?? 0) + volume > limits.maxSymbolExposureLots + SNIPPET_EPSILON
     ) {
         return reject("SYMBOL_EXPOSURE_LIMIT", `Max symbol exposure limit reached for ${intent.symbol}.`);
+    }
+    // Daily notional budget — only when the budget and today's usage are
+    // known. A missing usage figure is unknown state, not zero, and an
+    // incomplete ledger cannot be enforced truthfully: both fail closed.
+    if (limits.maxDailyNotional !== undefined && limits.maxDailyNotional > 0 && state.dailyNotionalIncomplete === true) {
+        return reject(
+            "DAILY_NOTIONAL_UNKNOWN",
+            "Daily notional accounting is incomplete for a confirmed fill; the budget cannot be enforced.",
+        );
+    }
+    if (limits.maxDailyNotional !== undefined && limits.maxDailyNotional > 0 && state.dailyNotionalUsed !== undefined) {
+        const notional = orderNotional(intent, volume);
+        if (notional !== undefined && state.dailyNotionalUsed + notional > limits.maxDailyNotional + SNIPPET_EPSILON) {
+            return reject(
+                "DAILY_NOTIONAL_BUDGET",
+                `Daily notional budget reached (${Math.round(state.dailyNotionalUsed)} + ${Math.round(notional)} > ${Math.round(limits.maxDailyNotional)}).`
+            );
+        }
     }
 
     // 6. Cooldown.

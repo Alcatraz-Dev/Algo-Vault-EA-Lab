@@ -22,7 +22,7 @@ import {
     Star,
 } from "lucide-react";
 import { onValue, ref } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 import ProductBranding from "@/components/products/ProductBranding";
 
 type BrandingItem = {
@@ -98,13 +98,15 @@ type Filter =
 
 export default function MarketplacePage() {
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => isFirebaseClientConfigured());
     const [error, setError] = useState(false);
     const [activeFilter, setActiveFilter] =
         useState<Filter>("all");
     const [search, setSearch] = useState("");
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const productsRef = ref(database, "bots");
 
         const unsubscribe = onValue(

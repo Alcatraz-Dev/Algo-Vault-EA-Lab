@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import AdminShell from "@/components/admin/AdminShell";
 import BarCompareChart from "@/components/charts/BarCompareChart";
 import { Badge } from "@/components/ui/badge";
@@ -104,13 +104,17 @@ export default function AdminPage() {
         );
 
     const [loading, setLoading] =
-        useState(true);
+        useState(isFirebaseClientConfigured());
 
     const [refreshing, setRefreshing] =
         useState(false);
 
     const [error, setError] =
-        useState("");
+        useState(
+            isFirebaseClientConfigured()
+                ? ""
+                : "Firebase is not configured in this environment."
+        );
 
     async function loadDashboard(
         showRefresh = false
@@ -177,6 +181,8 @@ export default function AdminPage() {
     }
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe =
             onAuthStateChanged(
                 auth,

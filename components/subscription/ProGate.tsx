@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Lock, Zap } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 
 export default function ProGate({
@@ -12,10 +12,14 @@ export default function ProGate({
     children: React.ReactNode;
 }) {
     const [user, setUser] = useState<FirebaseUser | null>(null);
-    const [loading, setLoading] = useState(true);
+    // Without Firebase config the gate settles as signed out immediately rather
+    // than spinning on an auth event that will never arrive.
+    const [loading, setLoading] = useState(isFirebaseClientConfigured());
     const [hasPro, setHasPro] = useState(false);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
             if (!u) {

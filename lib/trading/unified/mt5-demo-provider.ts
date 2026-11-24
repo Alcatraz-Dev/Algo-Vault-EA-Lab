@@ -24,6 +24,7 @@
 
 import { adminDatabase } from "@/lib/firebase-admin";
 import { brokerLimitsFromAccount } from "@/lib/risk/risk-engine";
+import { normalizePositionMode } from "@/lib/trading/position-mode";
 import type {
     TradingAccount,
     TradingCandle,
@@ -263,6 +264,8 @@ export class Mt5DemoProvider implements TradingProviderAdapter {
                     ? tradingError("ACCOUNT_NOT_CONNECTED", "The MetaTrader 5 gateway is not connected.")
                     : null,
             gatewayVersion: str(record.gatewayVersion),
+            positionMode: normalizePositionMode(record.positionMode),
+            positionModeReportedAt: num(record.positionModeReportedAt),
         };
     }
 

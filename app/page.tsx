@@ -1,4 +1,5 @@
 import { getHomeData, type HomeData } from "@/lib/home-data";
+import { isFirebaseAdminConfigured } from "@/lib/firebase-admin-config";
 import HomePage from "@/components/home/HomePage";
 import { HomeNativeAd } from "@/components/growth/HomeNativeAd";
 
@@ -29,33 +30,43 @@ const OFFLINE_HOME_DATA: HomeData = {
   previewBacktests: false,
 };
 
+const OFFLINE_NOTICE =
+  "Live marketplace data is currently unavailable. Showing the offline homepage — your workspace and login still work.";
+
 export default async function Home() {
-  try {
-    const data = await getHomeData();
-    return (
-      <>
-        <HomePage data={data} />
-        {/* One subtle native/sponsored placement after the hero (non-intrusive).
-            Renders nothing unless an active, eligible placement exists. */}
-        <div className="mx-auto max-w-7xl px-6 pb-10">
-          <HomeNativeAd />
-        </div>
-      </>
+  let data: HomeData = OFFLINE_HOME_DATA;
+  let dataNotice: string | undefined = OFFLINE_NOTICE;
+
+  // A missing Admin config is an expected state (local development and the
+  // packaged desktop app, which never receives credentials), not a failure.
+  // Skip the fetch so it is reported as offline rather than logged as an error
+  // that the dev overlay would surface as a crash.
+  if (!isFirebaseAdminConfigured()) {
+    console.warn(
+      "Homepage data offline: Firebase Admin credentials are not configured. Showing the offline homepage."
     );
-  } catch (error) {
-    // Controlled degradation: log only the message (never credentials or
-    // stacks with secrets) and render usable UI with an explicit notice.
-    console.error(
-      "Homepage data unavailable:",
-      error instanceof Error ? error.message : String(error)
-    );
-    return (
-      <>
-        <HomePage data={OFFLINE_HOME_DATA} dataNotice="Live marketplace data is currently unavailable. Showing the offline homepage — your workspace and login still work." />
-        <div className="mx-auto max-w-7xl px-6 pb-10">
-          <HomeNativeAd />
-        </div>
-      </>
-    );
+  } else {
+    try {
+      data = await getHomeData();
+      dataNotice = undefined;
+    } catch (error) {
+      // Controlled degradation: log only the message (never credentials or
+      // stacks with secrets) and render usable UI with an explicit notice.
+      console.error(
+        "Homepage data unavailable:",
+        error instanceof Error ? error.message : String(error)
+      );
+    }
   }
+
+  return (
+    <>
+      <HomePage data={data} dataNotice={dataNotice} />
+      {/* One subtle native/sponsored placement after the hero (non-intrusive).
+          Renders nothing unless an active, eligible placement exists. */}
+      <div className="mx-auto max-w-7xl px-6 pb-10">
+        <HomeNativeAd />
+      </div>
+    </>
+  );
 }

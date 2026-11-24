@@ -1208,14 +1208,14 @@
     },
     "bot_signals": {
       "$botId": {
-        ".indexOn": ["timestamp"],
+        ".indexOn": ["generatedAt", "timestamp"],
         ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": false
       }
     },
     "bot_executions": {
       "$botId": {
-        ".indexOn": ["timestamp"],
+        ".indexOn": ["createdAt", "timestamp"],
         ".read": "auth != null && (auth.token.admin === true || root.child('users').child(auth.uid).child('role').val() === 'admin')",
         ".write": false
       }

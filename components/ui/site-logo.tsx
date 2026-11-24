@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ref as dbRef, onValue } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 type SiteLogoProps = {
     size?: number;
@@ -15,6 +15,8 @@ export default function SiteLogo({ size = 18, className }: SiteLogoProps) {
     const [imgError, setImgError] = useState(false);
 
     useEffect(() => {
+        // Without Firebase configured the bundled logo is the only source.
+        if (!isFirebaseClientConfigured()) return;
         return onValue(dbRef(database, "settings/siteLogo"), (snap) => {
             setLogoUrl(snap.val() || null);
         });

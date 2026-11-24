@@ -70,6 +70,15 @@ export function hashRequest(input: {
     executionType: string;
     symbol?: string;
     side?: string;
+    /**
+     * Order kind + protective levels are part of the payload: two requests
+     * that differ only in SL/TP (or LIMIT vs MARKET) are different orders and
+     * must never be mistaken for a replay of each other.
+     */
+    kind?: string;
+    price?: number | null;
+    stopLoss?: number | null;
+    takeProfit?: number | null;
     volume?: number;
     percentage?: number;
     positionId?: string;
@@ -89,6 +98,10 @@ export function hashRequest(input: {
         input.executionType,
         input.symbol ?? "",
         input.side ?? "",
+        input.kind ?? "",
+        input.price ?? "",
+        input.stopLoss ?? "",
+        input.takeProfit ?? "",
         input.volume ?? "",
         input.percentage ?? "",
         input.positionId ?? "",
@@ -113,14 +126,16 @@ export async function claimExecutionRequest(
     const ref = adminDatabase.ref(UNIFIED_PATHS.request(record.userId, record.clientRequestId));
     const now = Date.now();
 
-    let outcome: IdempotencyOutcome | null = null;
+    // Held in an object: TypeScript does not track assignments made inside the
+    // transaction callback on a plain `let`, and would narrow it to null.
+    const box: { outcome: IdempotencyOutcome | null } = { outcome: null };
 
     await ref.transaction(
         (current) => {
             if (current && typeof current === "object") {
                 const existing = current as ExecutionRequestRecord;
                 const sameBody = existing.requestHash === record.requestHash;
-                outcome = {
+                box.outcome = {
                     kind: sameBody ? "REPLAY" : "CONFLICT",
                     record: existing,
                     result: null,
@@ -128,14 +143,30 @@ export async function claimExecutionRequest(
                 // Return undefined → abort the write, leaving the original intact.
                 return undefined;
             }
-            outcome = { kind: "FRESH", record, result: null };
+            box.outcome = { kind: "FRESH", record, result: null };
             return { ...record, updatedAt: now };
         },
         undefined,
         false
     );
 
-    if (outcome) return outcome;
+    const outcome = box.outcome as IdempotencyOutcome | null;
+    if (outcome) {
+        // A REPLAY must return the FIRST request's stored result, across process
+        // restarts. Returning the record without its result made every retry of
+        // a completed order look like an in-flight duplicate (409) instead of
+        // replaying the settled result.
+        if (outcome.kind === "REPLAY") {
+            const resultSnap = await adminDatabase
+                .ref(UNIFIED_PATHS.result(record.userId, record.clientRequestId))
+                .get();
+            return {
+                ...outcome,
+                result: (resultSnap.val() as TradingExecutionResult | null) ?? null,
+            };
+        }
+        return outcome;
+    }
 
     // Transaction aborted because a record already existed.
     const stored = (await ref.get()).val() as ExecutionRequestRecord | null;

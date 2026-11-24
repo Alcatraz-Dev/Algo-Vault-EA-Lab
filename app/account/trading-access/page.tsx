@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import TradingAccessCard, {
     TradingAccessLicense,
@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import {
     WifiOff,
     Download,
-    ExternalLink,
     Shield,
     Activity,
     KeyRound,
@@ -95,7 +94,7 @@ function StatusDot({ status }: { status: string }) {
 export default function TradingAccessPage() {
     const router = useRouter();
     const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(isFirebaseClientConfigured());
     const [license, setLicense] = useState<TradingAccessLicense | null>(null);
     const [licenseLoading, setLicenseLoading] = useState(true);
     const [accounts, setAccounts] = useState<ConnectedAccount[]>([]);
@@ -106,8 +105,12 @@ export default function TradingAccessPage() {
     const [tokenRevoking, setTokenRevoking] = useState(false);
     const [copied, setCopied] = useState(false);
     const [refreshingAccounts, setRefreshingAccounts] = useState(false);
+    const [gatewayDownloading, setGatewayDownloading] = useState(false);
+    const [gatewayDownloadError, setGatewayDownloadError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user) {
                 router.replace("/login");
@@ -283,6 +286,53 @@ export default function TradingAccessPage() {
             console.error("Failed to revoke gateway token:", err);
         } finally {
             setTokenRevoking(false);
+        }
+    }
+
+    /**
+     * Download the Gateway EA.
+     *
+     * The link used to be a plain `href` to a page that did not exist, so it
+     * rendered a 404. The real artifact is served by an authenticated route
+     * with binary headers, so the request must carry the Firebase ID token and
+     * the response is saved from its blob rather than navigated to.
+     */
+    async function handleDownloadGateway() {
+        if (!firebaseUser || gatewayDownloading) return;
+        setGatewayDownloading(true);
+        setGatewayDownloadError(null);
+        try {
+            const token = await firebaseUser.getIdToken();
+            const res = await fetch("/api/trading/gateway/download", {
+                headers: { Authorization: `Bearer ${token}` },
+                cache: "no-store",
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => null);
+                throw new Error(
+                    (body && typeof body.error === "string" && body.error) ||
+                        `Download failed (HTTP ${res.status}).`
+                );
+            }
+            const disposition = res.headers.get("content-disposition") ?? "";
+            const filename =
+                /filename="([^"]+)"/.exec(disposition)?.[1] ?? "AlgoVaultTradeGateway.mq5";
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error("Gateway download failed:", err);
+            setGatewayDownloadError(
+                err instanceof Error ? err.message : "Gateway download failed."
+            );
+        } finally {
+            setGatewayDownloading(false);
         }
     }
 
@@ -514,19 +564,43 @@ export default function TradingAccessPage() {
                                     Step 1: Download the Gateway EA
                                 </h3>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                    Download the latest version of the AlgoVault Gateway
-                                    Expert Advisor for MetaTrader 5.
+                                    Download the AlgoVault Gateway Expert Advisor source
+                                    for MetaTrader 5. You compile it once in MetaEditor —
+                                    the download is the readable{" "}
+                                    <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                        .mq5
+                                    </code>{" "}
+                                    source, not a pre-built binary.
                                 </p>
-                                <a
-                                    href="/download/gateway-ea"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background hover:opacity-90"
+                                <button
+                                    type="button"
+                                    onClick={handleDownloadGateway}
+                                    disabled={gatewayDownloading || !firebaseUser}
+                                    className="mt-3 inline-flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-xs font-semibold text-background transition hover:opacity-90 disabled:opacity-50"
                                 >
                                     <Download size={13} />
-                                    Download Gateway EA v2.0
-                                    <ExternalLink size={11} />
-                                </a>
+                                    {gatewayDownloading
+                                        ? "Preparing download…"
+                                        : "Download Gateway EA (.mq5)"}
+                                </button>
+                                {gatewayDownloadError ? (
+                                    <p className="mt-2 text-xs text-destructive">
+                                        {gatewayDownloadError}
+                                    </p>
+                                ) : (
+                                    <p className="mt-2 text-[11px] text-muted-foreground">
+                                        Downloads{" "}
+                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                            AlgoVaultTradeGateway.mq5
+                                        </code>
+                                        . No compiled{" "}
+                                        <code className="rounded bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                            .ex5
+                                        </code>{" "}
+                                        is distributed — an MQL5 binary is only valid for
+                                        the MetaEditor build and terminal that produced it.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="rounded-lg border border-border bg-card p-4 shadow-[0_1px_2px_rgb(0_0_0/0.05)]">
@@ -535,20 +609,35 @@ export default function TradingAccessPage() {
                                 </h3>
                                 <ol className="mt-2 space-y-1.5 text-xs text-muted-foreground">
                                     <li>
-                                        1. Copy{" "}
+                                        1. In MT5 open{" "}
+                                        <span className="text-foreground">
+                                            File → Open Data Folder → MQL5 → Experts
+                                        </span>{" "}
+                                        and copy{" "}
                                         <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
-                                            AlgoVaultGateway.ex5
+                                            AlgoVaultTradeGateway.mq5
                                         </code>{" "}
-                                        to your MT5{" "}
+                                        there (a subfolder such as{" "}
                                         <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
-                                            Experts/Indicators
+                                            Experts/AlgoVault
                                         </code>{" "}
-                                        folder.
+                                        works too).
                                     </li>
-                                    <li>2. Restart MT5 or refresh the Expert Advisors list.</li>
                                     <li>
-                                        3. Drag the EA onto any chart. It will run in the
-                                        background.
+                                        2. Open it in MetaEditor and press{" "}
+                                        <span className="text-foreground">F7 (Compile)</span>{" "}
+                                        to produce{" "}
+                                        <code className="rounded-lg bg-muted px-1 py-0.5 font-numeric text-foreground">
+                                            AlgoVaultTradeGateway.ex5
+                                        </code>{" "}
+                                        next to the source. Compilation happens on your
+                                        machine — AlgoVault does not ship or claim to ship a
+                                        compiled binary.
+                                    </li>
+                                    <li>3. Restart MT5 or refresh the Expert Advisors list.</li>
+                                    <li>
+                                        4. Drag the EA onto any chart and allow algorithmic
+                                        trading. It will run in the background.
                                     </li>
                                 </ol>
                             </div>

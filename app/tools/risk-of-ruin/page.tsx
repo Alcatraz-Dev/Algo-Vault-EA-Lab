@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { AlertTriangle, Shield, Crown, Sparkles, ArrowUpRight, Info } from "lucide-react";
+import { Shield, Crown, Info } from "lucide-react";
 import { ToolPageShell } from "@/components/tools/ToolPageShell";
+import ProGate from "@/components/subscription/ProGate";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { expectedValuePerTrade, kellyResult, simulateRuin } from "@/lib/quant/risk-of-ruin";
+import { advertisableFeatures } from "@/lib/tools-capability-audit";
 
 /**
  * Risk of Ruin — Lite.
@@ -59,12 +61,11 @@ export default function RiskOfRuinCalculator() {
             icon={Shield}
             backHref="/tools"
             proHeadline="Pro adds the position-sizing math: Kelly fraction, half-Kelly, expected value per trade, and 1000-path Monte Carlo."
-            proFeatures={[
+            proFeatures={advertisableFeatures([
                 "Kelly criterion & half-Kelly position sizing",
                 "Expected value per trade in $",
                 "Monte-Carlo ruin distribution (1000 paths)",
-                "Save scenarios to your account",
-            ]}
+            ])}
         >
             <div className="grid gap-6 lg:grid-cols-2">
                 <div className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(0_0_0/0.05)] p-5">
@@ -153,44 +154,105 @@ export default function RiskOfRuinCalculator() {
                 </div>
             </div>
 
-            {/* Pro upsell row */}
-            <div className="grid gap-3 md:grid-cols-3">
-                <ProTile
-                    title="Kelly Criterion"
-                    description="Optimal position sizing from your edge (wr, RR). Includes half-Kelly."
+            {/* Pro analysis — real maths from lib/quant/risk-of-ruin */}
+            <ProGate>
+                <ProRuinAnalysis
+                    winRate={Number(winRate) / 100}
+                    riskReward={Number(riskReward)}
+                    riskPerTradePct={Number(riskPerTrade)}
+                    ruinDrawdownPct={Number(maxDrawdown)}
+                    accountSize={Number(accountSize)}
                 />
-                <ProTile
-                    title="Expected Value $"
-                    description="$ EV per trade from your win rate, RR and account size."
-                />
-                <ProTile
-                    title="Monte-Carlo Ruin"
-                    description="1000 simulated paths to show your real-world ruin distribution."
-                />
-            </div>
+            </ProGate>
         </ToolPageShell>
     );
 }
 
-function ProTile({ title, description }: { title: string; description: string }) {
+function ProRuinAnalysis({
+    winRate,
+    riskReward,
+    riskPerTradePct,
+    ruinDrawdownPct,
+    accountSize,
+}: {
+    winRate: number;
+    riskReward: number;
+    riskPerTradePct: number;
+    ruinDrawdownPct: number;
+    accountSize: number;
+}) {
+    const model = useMemo(() => {
+        const kelly = kellyResult({ winRate, riskReward, accountSize });
+        const ev = expectedValuePerTrade({ winRate, riskReward, riskPerTradePct, accountSize });
+        const ruin = simulateRuin({ winRate, riskReward, riskPerTradePct, ruinDrawdownPct, paths: 1000, tradesPerPath: 500, seed: 42 });
+        return { kelly, ev, ruin };
+    }, [winRate, riskReward, riskPerTradePct, ruinDrawdownPct, accountSize]);
+
+    if (!model.kelly || !model.ev || !model.ruin) {
+        return (
+            <div className="rounded-xl border border-dashed border-border p-5 text-xs text-muted-foreground">
+                Enter a win rate between 0–100%, a positive reward:risk ratio and a positive risk per trade.
+            </div>
+        );
+    }
+
+    const { kelly, ev, ruin } = model;
+    const pct = (v: number) => `${(v * 100).toFixed(2)}%`;
+
     return (
-        <Link
-            href="/pricing"
-            className="group flex flex-col gap-2 rounded-lg border border-dashed border-primary/25 bg-primary/[0.03] p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.05]"
-        >
+        <div className="space-y-4 rounded-xl border border-primary/25 bg-primary/[0.03] p-5">
             <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-foreground">{title}</h4>
-                <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary/10 px-1.5 py-0.5 text-micro font-bold uppercase tracking-wider text-primary">
-                    <Crown className="size-2.5" />
-                    Pro
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                    <Crown size={15} className="text-primary" /> Pro — sizing &amp; ruin model
+                </h2>
+                <span className="text-micro uppercase tracking-wider text-muted-foreground">
+                    seed {ruin.seed} · {ruin.paths.toLocaleString()} paths × {ruin.tradesPerPath} trades
                 </span>
             </div>
-            <p className="text-xs text-muted-foreground">{description}</p>
-            <span className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors group-hover:gap-1.5">
-                <Sparkles className="size-3" />
-                Unlock
-                <ArrowUpRight className="size-3" />
-            </span>
-        </Link>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <Stat label="Full Kelly" value={pct(kelly.kellyFraction)} tone={kelly.kellyFraction > 0 ? "positive" : "negative"} />
+                <Stat label="Half Kelly (recommended)" value={pct(kelly.halfKellyFraction)} />
+                <Stat label="EV / trade" value={ev.expectedValue === null ? `${ev.expectedR}R` : `$${ev.expectedValue.toFixed(2)}`} tone={ev.expectedR > 0 ? "positive" : "negative"} />
+                <Stat label="Simulated ruin probability" value={pct(ruin.ruinProbability)} tone={ruin.ruinProbability > 0.1 ? "negative" : "positive"} />
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+                <Stat label="Median ending equity" value={`${ruin.medianEquityMultiple.toFixed(2)}×`} />
+                <Stat label="Median max drawdown" value={`${ruin.maxDrawdown.median.toFixed(2)}%`} />
+                <Stat label="95th percentile drawdown" value={`${ruin.maxDrawdown.p95.toFixed(2)}%`} />
+            </div>
+
+            <p className="text-micro leading-relaxed text-muted-foreground">
+                Monte Carlo draws independent wins and losses from your inputs — it is a model of the assumptions, not a
+                forecast. Ruin means breaching {ruinDrawdownPct}% drawdown from peak. A positive Kelly fraction is not a
+                promise of profit.
+            </p>
+        </div>
+    );
+}
+
+function Stat({
+    label,
+    value,
+    tone,
+}: {
+    label: string;
+    value: string;
+    tone?: "positive" | "negative";
+}) {
+    return (
+        <div className="rounded-lg bg-muted p-4">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+            <p
+                className={cn(
+                    "mt-1 font-numeric text-sm font-semibold text-foreground",
+                    tone === "positive" && "text-positive",
+                    tone === "negative" && "text-negative",
+                )}
+            >
+                {value}
+            </p>
+        </div>
     );
 }

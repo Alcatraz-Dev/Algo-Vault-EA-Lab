@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { AppShell } from "@/components/layout/AppShell";
 import { ACCOUNT_NAV } from "./account-nav";
 
@@ -46,6 +46,8 @@ export default function AccountShell({
   };
 
   useEffect(() => {
+    if (!isFirebaseClientConfigured()) return;
+
     const unsub = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });

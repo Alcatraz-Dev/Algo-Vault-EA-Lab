@@ -36,7 +36,7 @@ import {
     User,
 } from "firebase/auth";
 import { onValue, ref, remove, set, update } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import AccountShell from "@/components/account/AccountShell";
 import { TradingViewIntegrationCard } from "@/components/account/TradingViewIntegrationCard";
 import { OrderFlowSettingsCard } from "@/components/account/OrderFlowSettingsCard";
@@ -102,7 +102,7 @@ export default function AccountSettingsPage() {
     const router = useRouter();
 
     const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(isFirebaseClientConfigured());
     const [activeTab, setActiveTab] = useState<TabType>("profile");
 
     // Profile State
@@ -181,6 +181,8 @@ export default function AccountSettingsPage() {
      * ---------------------------------------------------------
      */
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (!currentUser) {
                 router.replace("/login?redirect=/account/settings");

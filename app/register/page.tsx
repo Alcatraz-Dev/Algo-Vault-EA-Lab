@@ -8,7 +8,7 @@ import {
     updateProfile,
 } from "firebase/auth";
 import { ref as dbRef, onValue, set } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import {
     ArrowRight,
     Eye,
@@ -52,7 +52,11 @@ function RegisterForm() {
     const [error, setError] = useState("");
     const [siteName, setSiteName] = useState("AlgoVault");
 
+    const firebaseConfigured = isFirebaseClientConfigured();
+
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         return onValue(dbRef(database, "settings/siteName"), (snap) => {
             if (snap.exists()) setSiteName(snap.val());
         });
@@ -64,6 +68,13 @@ function RegisterForm() {
         e.preventDefault();
 
         setError("");
+
+        if (!firebaseConfigured) {
+            setError(
+                "Registration is unavailable because Firebase is not configured in this environment."
+            );
+            return;
+        }
 
         const cleanName = displayName.trim();
         const cleanEmail = email.trim();

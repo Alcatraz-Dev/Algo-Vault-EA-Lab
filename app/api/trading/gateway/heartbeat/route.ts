@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { syncBotStatuses } from "@/lib/bots";
+import { observeEquityForBreaker } from "@/lib/risk/breaker-persistence";
+import { normalizePositionMode } from "@/lib/trading/position-mode";
 
 export const runtime = "nodejs";
 
@@ -97,6 +99,12 @@ export async function POST(request: NextRequest) {
         const botsReported = Array.isArray(body.bots) ? body.bots : [];
         const terminalStatus = String(body.terminalStatus || body.status || "").trim();
         const gatewayVersion = String(body.gatewayVersion || body.eaVersion || "").trim();
+        // Authoritative MT5 position accounting. Heartbeats from an EA older
+        // than 1.4.0 do not report it: the stored value becomes UNKNOWN, which
+        // blocks unsupported opposing entries instead of assuming hedging.
+        const positionMode = normalizePositionMode(
+            body.marginMode ?? body.positionMode ?? body.accountMarginMode,
+        );
 
         const accountUpdate: Record<string, unknown> = {
             balance,
@@ -107,6 +115,9 @@ export async function POST(request: NextRequest) {
             positionsCount,
             pendingOrdersCount,
             status: "connected",
+            positionMode,
+            positionModeReportedAt: now,
+            positionModeSource: "mt5-account-margin-mode",
             lastHeartbeatAt: now,
             gatewayInstallationId: gatewayInstallationId || null,
             updatedAt: now,
@@ -122,6 +133,34 @@ export async function POST(request: NextRequest) {
         await adminDatabase
             .ref(`trading_accounts/${userId}/${accountId}`)
             .update(accountUpdate);
+
+        // ── Persisted drawdown breaker ──────────────────────────────────────
+        // This heartbeat is the authoritative equity feed. The breaker is
+        // evaluated against the configured limit and its state persisted to
+        // `trading_controls/.../drawdownBreaker`, the node the Risk Engine
+        // reads. A failure here never fabricates NORMAL/TRIPPED: the previous
+        // persisted state stays in force and the error is logged.
+        try {
+            const breaker = await observeEquityForBreaker({
+                userId,
+                accountKey: accountId,
+                equity,
+                now,
+            });
+            if (breaker.status === "PERSISTED" && breaker.state === "TRIPPED") {
+                console.warn("[trading/gateway/heartbeat] drawdown breaker TRIPPED", {
+                    userId,
+                    accountId,
+                    drawdownPercent: breaker.drawdownPercent,
+                });
+            }
+        } catch (error) {
+            console.error("[trading/gateway/heartbeat] drawdown breaker observation failed", {
+                userId,
+                accountId,
+                error: error instanceof Error ? error.message : "unknown",
+            });
+        }
 
         if (gatewayInstallationId) {
             await adminDatabase

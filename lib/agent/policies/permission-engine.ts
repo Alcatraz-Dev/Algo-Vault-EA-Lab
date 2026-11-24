@@ -33,7 +33,15 @@ export type AgentPermission =
     | "production_access"         // blocked
     | "external_filesystem"       // blocked
     | "memory_read"               // allowed
-    | "memory_write";             // allowed (sanitized)
+    | "memory_write"              // allowed (sanitized)
+    // ── Trading ────────────────────────────────────────────────────────────
+    // Execution is never implied by filesystem/terminal rights. demo
+    // execution requires an explicit per-run override; live execution is
+    // structurally blocked while the platform is demo-only.
+    | "trade_read"                // read account/order state
+    | "trade_execute_demo"        // authorize/extend a DEMO trade intent
+    | "trade_execute_live"        // structurally blocked (demo-only platform)
+    | "trade_limits_write";       // mutate account risk limits (admin)
 
 /** Static capability matrix per mode. Deliberately explicit, not additive magic. */
 export const MODE_PERMISSIONS: Record<AgentMode, readonly AgentPermission[]> = {
@@ -42,6 +50,7 @@ export const MODE_PERMISSIONS: Record<AgentMode, readonly AgentPermission[]> = {
         "terminal_safe",
         "git_status_diff_log",
         "memory_read",
+        "trade_read",
     ],
     assist: [
         "read_project_files",
@@ -50,6 +59,7 @@ export const MODE_PERMISSIONS: Record<AgentMode, readonly AgentPermission[]> = {
         "git_status_diff_log",
         "memory_read",
         "memory_write",
+        "trade_read",
     ],
     engineer: [
         "read_project_files",
@@ -61,6 +71,7 @@ export const MODE_PERMISSIONS: Record<AgentMode, readonly AgentPermission[]> = {
         "git_commit",
         "memory_read",
         "memory_write",
+        "trade_read",
     ],
     autonomous: [
         "read_project_files",
@@ -72,6 +83,7 @@ export const MODE_PERMISSIONS: Record<AgentMode, readonly AgentPermission[]> = {
         "git_commit",
         "memory_read",
         "memory_write",
+        "trade_read",
     ],
 };
 
@@ -86,6 +98,9 @@ export const STRUCTURALLY_BLOCKED: readonly AgentPermission[] = [
     "deployment",
     "production_access",
     "external_filesystem",
+    // The platform executes DEMO accounts only. No mode, override or
+    // confirmation token can authorize live execution.
+    "trade_execute_live",
 ];
 
 // ── Tool declarations ────────────────────────────────────────────────────────
@@ -99,7 +114,30 @@ export interface ToolPolicyDeclaration {
     category: ToolCategory;
     /** When true the tool can mutate the repo (drives diff-first accounting). */
     mutating: boolean;
+    /**
+     * Structurally disabled (e.g. a skills-registry record whose enabled flag
+     * is false). Denied regardless of mode, override or confirmation.
+     */
+    disabled?: boolean;
+    disabledReason?: string;
 }
+
+// ── Trading declarations ─────────────────────────────────────────────────────
+
+/**
+ * Declarations for the trading tools. Kept next to the permission vocabulary
+ * so a new execution surface cannot invent its own permission names.
+ *
+ * `trade.authorize` is an authorization *check* (intent fingerprint + typed
+ * confirmation), not a submission: it requires `trade_execute_demo`, which no
+ * mode grants — an explicit per-run override is mandatory. `trade.read` is the
+ * read-only account/order surface. `trade.limits.write` is admin-only.
+ */
+export const TRADE_TOOL_DECLARATIONS: Record<string, ToolPolicyDeclaration> = {
+    "trade.read": { requires: ["trade_read"], requiresConfirmation: false, category: "context", mutating: false },
+    "trade.authorize": { requires: ["trade_read", "trade_execute_demo"], requiresConfirmation: true, category: "context", mutating: false },
+    "trade.limits.write": { requires: ["trade_limits_write"], requiresConfirmation: true, category: "context", mutating: true },
+};
 
 // ── Decisions ────────────────────────────────────────────────────────────────
 
@@ -137,6 +175,15 @@ export function evaluatePolicy(input: PolicyInput): PolicyDecision {
 
     if (!toolId || !declaration) {
         return { allowed: false, code: "policy_missing_declaration", reason: "Tool is not registered with the policy layer (fail closed)." };
+    }
+
+    // 0. Structurally disabled declarations (e.g. an operator-disabled skill).
+    if (declaration.disabled === true) {
+        return {
+            allowed: false,
+            code: "tool_disabled",
+            reason: declaration.disabledReason ?? `Tool "${toolId}" is disabled by policy.`,
+        };
     }
 
     // 1. Structural blocks — cannot be overridden by mode or confirmation.
@@ -214,6 +261,21 @@ export function confirmationCodeFor(toolId: string, args: Record<string, unknown
         }
         case "tests.run": {
             return `tests.run:${typeof args.command === "string" ? args.command : ""}`;
+        }
+        case "trade.authorize": {
+            // The confirmation is bound to the exact order identity the tool
+            // computed (fingerprint) or, when absent, to the typed phrase — a
+            // token for one order cannot authorize another.
+            const identity =
+                typeof args.orderFingerprint === "string"
+                    ? args.orderFingerprint
+                    : typeof args.typedConfirmation === "string"
+                      ? args.typedConfirmation
+                      : "";
+            return `trade.authorize:${identity}`;
+        }
+        case "trade.limits.write": {
+            return `trade.limits.write:${typeof args.accountId === "string" ? args.accountId : ""}`;
         }
         default:
             return `${toolId}:*`;

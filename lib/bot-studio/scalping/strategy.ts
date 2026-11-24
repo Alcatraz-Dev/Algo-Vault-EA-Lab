@@ -21,10 +21,16 @@ export function createXauUsdScalpingStrategy(
         ...XAUUSD_SCALPING_DEFAULTS,
         ...opts,
     };
-    const name = opts.name ?? `XAUUSD M1 Scalper ${config.direction === "long" ? "Long" : "Short"}`;
+    const isAuto = config.direction === "auto";
+    const strategyDirection = config.direction === "short" ? "short" : "long";
+    const name =
+        opts.name ??
+        (isAuto
+            ? "XAUUSD M1 Smart Money Scalper"
+            : `XAUUSD M1 Scalper ${strategyDirection === "long" ? "Long" : "Short"}`);
     const description =
         opts.description ??
-        `M1 scalping bot for XAUUSD with dual take-profit (TP1 ${config.tp1Pips}p / TP2 ${config.tp2Pips}p), SL ${config.slPips}p, spread filter ≤${config.maxSpreadPoints}pts, magic ${config.magicNumber}.`;
+        `M1 scalping bot for XAUUSD with dual take-profit (TP1 ${config.tp1Pips}p / TP2 ${config.tp2Pips}p), SL ${config.slPips}p, spread filter ≤${config.maxSpreadPoints}pts, magic ${config.magicNumber}.${isAuto ? " Auto mode routes long or short from confirmed Smart Money structure." : ""}`;
 
     const strategy: BotStrategy = {
         id: "",
@@ -43,7 +49,10 @@ export function createXauUsdScalpingStrategy(
             name,
             symbol: "XAUUSD",
             timeframe: "M1",
-            direction: config.direction as "long" | "short",
+            // A static Strategy can only describe one side. Auto mode is
+            // evaluated by the dual-direction runtime; this document records
+            // the long template it is based on.
+            direction: strategyDirection,
             entryRules: [
                 {
                     id: "scalp-entry",

@@ -38,7 +38,7 @@ import {
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 import {
     AreaChart,
@@ -144,7 +144,7 @@ type ChartType = "equity" | "drawdown" | "weekday" | "session";
 
 export default function BacktestsPage() {
     const [user, setUser] = useState<User | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(() => isFirebaseClientConfigured());
 
     const [products, setProducts] = useState<Product[]>([]);
     const [licenses, setLicenses] = useState<License[]>([]);
@@ -174,6 +174,8 @@ export default function BacktestsPage() {
 
     // 1. Auth state listener
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setAuthLoading(false);
@@ -183,6 +185,8 @@ export default function BacktestsPage() {
 
     // 2. Load published bots from Firebase Realtime DB
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const productsRef = ref(database, "bots");
         const unsubscribe = onValue(productsRef, (snapshot) => {
             const raw = (snapshot.val() || {}) as Record<string, Product>;

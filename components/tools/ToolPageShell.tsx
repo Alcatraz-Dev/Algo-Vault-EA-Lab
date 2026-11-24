@@ -9,6 +9,7 @@ import { ArrowLeft, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ToolBadge, type ToolBadgeKind } from "@/components/tools/tier-ui";
 import { ToolUpgradeCTA } from "@/components/tools/ToolUpgradeCTA";
+import { advertisableFeatures } from "@/lib/tools-capability-audit";
 
 export function ToolPageShell({
     title,
@@ -34,6 +35,8 @@ export function ToolPageShell({
     className?: string;
 }) {
     const tier: ToolBadgeKind = badge ?? "free";
+    // Only capabilities with a real execution path are shown as Pro entitlements.
+    const features = advertisableFeatures(proFeatures);
 
     return (
         <div className="min-h-screen bg-background text-foreground">
@@ -76,11 +79,11 @@ export function ToolPageShell({
                     </div>
                 </header>
 
-                {showProCTA && tier === "free" && proHeadline && proFeatures ? (
+                {showProCTA && tier === "free" && proHeadline && features.length > 0 ? (
                     <div className="mb-6">
                         <ToolUpgradeCTA
                             proHeadline={proHeadline}
-                            proFeatures={proFeatures}
+                            proFeatures={features}
                             variant="panel"
                         />
                     </div>

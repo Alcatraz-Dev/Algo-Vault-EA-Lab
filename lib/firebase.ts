@@ -3,7 +3,12 @@ import type { Auth } from "firebase/auth";
 import { getAuth } from "firebase/auth";
 import type { Database } from "firebase/database";
 import { getDatabase } from "firebase/database";
+import { missingFirebaseEnvNames } from "./firebase-env";
 
+// Keep these as static `process.env.NEXT_PUBLIC_*` references. Next.js only
+// inlines public env values into the client bundle for literal member access;
+// dynamic lookup (process.env[name]) is undefined in the browser and causes
+// the server and client to disagree about whether Firebase is configured.
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -14,25 +19,19 @@ const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const requiredConfig = [
-    "apiKey",
-    "authDomain",
-    "databaseURL",
-    "projectId",
-    "storageBucket",
-    "messagingSenderId",
-    "appId",
-] as const;
+/** True when every public Firebase client env value is present. */
+export function isFirebaseClientConfigured(): boolean {
+    return missingFirebaseEnvNames(firebaseConfig).length === 0;
+}
 
 function getClientApp() {
     if (typeof window === "undefined") {
         throw new Error("Firebase client services cannot be accessed during server rendering.");
     }
 
-    const missing = requiredConfig.filter((key) => !firebaseConfig[key]);
+    const missing = missingFirebaseEnvNames(firebaseConfig);
     if (missing.length > 0) {
-        const envNames = missing.map((key) => `NEXT_PUBLIC_FIREBASE_${key.replace(/[A-Z]/g, (letter) => `_${letter}`).toUpperCase()}`);
-        throw new Error(`Firebase client configuration is missing: ${envNames.join(", ")}.`);
+        throw new Error(`Firebase client configuration is missing: ${missing.join(", ")}.`);
     }
 
     return getApps()[0] ?? initializeApp(firebaseConfig);

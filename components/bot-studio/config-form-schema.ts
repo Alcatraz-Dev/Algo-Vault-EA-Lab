@@ -2,7 +2,11 @@ import { z } from "zod";
 
 export const primitiveXauUsdScalpingConfigSchema = z.object({
     timeframe: z.literal("M1"),
-    direction: z.union([z.literal("long"), z.literal("short")]),
+    direction: z.union([
+        z.literal("long"),
+        z.literal("short"),
+        z.literal("auto"),
+    ]),
     tp1Pips: z.number().int().min(1).max(200),
     tp2Pips: z.number().int().min(1).max(400),
     slPips: z.number().int().min(1).max(400),

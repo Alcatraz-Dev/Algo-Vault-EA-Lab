@@ -56,6 +56,12 @@ const nextConfig: NextConfig = {
     "@google-cloud/storage",
     "lru-memoizer",
   ],
+  // The Gateway EA download route streams a repository file at runtime. Server
+  // bundles only include traced imports, so the MQL5 source must be declared
+  // explicitly or the route would work locally but not in a deployment.
+  outputFileTracingIncludes: {
+    "/api/trading/gateway/download": ["./MQL5/AlgoVaultTradeGateway/**/*"],
+  },
   headers: async () => [
     {
       source: "/:path*",
