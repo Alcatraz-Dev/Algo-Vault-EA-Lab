@@ -13,7 +13,7 @@
 //+------------------------------------------------------------------+
 
 input string GatewayToken         = "";
-input string PlatformURL          = "https://algovault.com";
+input string PlatformURL          = "https://algo-vault-ea-lab.vercel.app";
 
 input int    HeartbeatInterval    = 15;
 input int    SnapshotInterval     = 30;
