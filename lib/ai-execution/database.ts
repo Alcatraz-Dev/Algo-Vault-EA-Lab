@@ -195,7 +195,16 @@ export async function updatePlan(uid: string, planId: string, updates: Partial<T
  */
 export function submissionKeyFor(plan: TradePlan): string {
     const r = (v: number) => Math.round(v * 1e5) / 1e5;
-    return [plan.instrument, plan.direction, r(plan.entry), r(plan.stopLoss)].join("|");
+    // The size and first target are part of the order's identity: two orders
+    // with the same entry and stop but different volume are NOT duplicates,
+    // and an order with a different target is a different trade. Omitting
+    // volume produced false positives; omitting the target produced false
+    // negatives.
+    const size = typeof plan.positionSizeLots === "number" && Number.isFinite(plan.positionSizeLots)
+        ? plan.positionSizeLots.toFixed(6)
+        : "";
+    const target = r(plan.takeProfits?.[0]?.price ?? 0);
+    return [plan.instrument, plan.direction, r(plan.entry), r(plan.stopLoss), size, target].join("|");
 }
 
 const DUPLICATE_WINDOW_MS = 10 * 60_000;

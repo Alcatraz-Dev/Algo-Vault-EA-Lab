@@ -11,6 +11,7 @@ import {
 } from "@/lib/tools-catalog";
 import { ToolBadge } from "@/components/tools/tier-ui";
 import { cn } from "@/lib/utils";
+import { advertisableFeatures } from "@/lib/tools-capability-audit";
 import ModernPageHeader from "@/components/ui/modern-page-header";
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -151,7 +152,7 @@ function ToolCard({ tool }: { tool: ToolCatalogEntry }) {
                 </p>
             </div>
             <ul className="space-y-1.5">
-                {(isPro ? tool.proFeatures : tool.liteFeatures).slice(0, 3).map((f) => (
+                {(isPro ? advertisableFeatures(tool.proFeatures) : tool.liteFeatures).slice(0, 3).map((f) => (
                     <li key={f} className="flex items-start gap-1.5 text-micro text-muted-foreground">
                         <span className={cn("mt-1.5 inline-block h-1 w-1 shrink-0 rounded-full", isPro ? "bg-primary" : "bg-muted-foreground/50")} />
                         <span>{f}</span>

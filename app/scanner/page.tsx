@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import AccountShell from "@/components/account/AccountShell";
 import {
@@ -44,7 +44,7 @@ interface ImageScanResult {
 export default function ScannerPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(() => isFirebaseClientConfigured());
     const [results, setResults] = useState<ScannerResultRow[]>([]);
     const [filtered, setFiltered] = useState<ScannerResultRow[]>([]);
     const [loading, setLoading] = useState(false);
@@ -58,6 +58,8 @@ export default function ScannerPage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
         return () => unsub();
     }, []);

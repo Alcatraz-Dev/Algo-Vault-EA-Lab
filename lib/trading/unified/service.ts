@@ -20,7 +20,7 @@
  */
 
 import crypto from "crypto";
-import { evaluateOrder, type AccountRiskState, type RiskLimits } from "@/lib/risk/risk-engine";
+import { evaluateOrder, orderNotional, type AccountRiskState, type RiskLimits } from "@/lib/risk/risk-engine";
 import type {
     TradingAccount,
     TradingAuditAction,
@@ -47,6 +47,14 @@ import {
 } from "./store";
 import { isUnifiedTradingEnabled, isMt5DemoEnabled, isDemoExecutionMode } from "../feature-flags";
 import { hasActiveTradingLicense } from "@/lib/gateway";
+import { computeOrderIdentity, OrderFingerprintGuard } from "@/lib/risk/order-fingerprint";
+import type { FillObservation, ReserveOutcome } from "@/lib/risk/notional-ledger";
+
+/**
+ * How long an ACCEPTED idempotency claim may stay unresolved before a retry is
+ * told to reconcile instead of "wait". The record is never re-executed.
+ */
+const STALE_IN_FLIGHT_MS = 5 * 60_000;
 
 export interface UnifiedExecutionOutcome {
     result: TradingExecutionResult;
@@ -71,6 +79,45 @@ export interface UnifiedTradingDeps {
     /** Trading-access entitlement probe; defaults to `hasActiveTradingLicense`. */
     entitlement?: (userId: string) => Promise<boolean>;
     now?: () => number;
+    /**
+     * Per-process fingerprint window for semantic duplicate prevention (same
+     * economic order, different clientRequestId). Optional so existing callers
+     * and tests keep their behaviour; the server composition root enables it.
+     * This is a burst guard, NOT a replacement for the durable idempotency
+     * record — see lib/risk/order-fingerprint.ts.
+     */
+    duplicateGuard?: OrderFingerprintGuard;
+    /**
+     * Live account risk state + control limits for entries. When provided, the
+     * service enforces daily-loss, drawdown, breaker, exposure and notional
+     * budgets; when it throws, execution fails closed. Tests and in-process
+     * callers may omit it (the canonical engine then passes through on the
+     * axes it cannot know).
+     */
+    riskState?: (
+        userId: string,
+        accountId: string,
+        symbol?: string,
+    ) => Promise<{ limits: RiskLimits; state: AccountRiskState }>;
+    /**
+     * Daily notional accounting. Only enabled by the server composition root:
+     * an entry reserves its notional inside an RTDB transaction (so concurrent
+     * submissions cannot jointly exceed the budget), a broker fill converts
+     * the reservation into usage, and a rejection releases it. When the
+     * dependency is absent no reservation is made — exactly the pre-existing
+     * behaviour, kept for tests and in-process callers.
+     */
+    notional?: {
+        reserve: (input: {
+            userId: string;
+            accountId: string;
+            reservationId: string;
+            amount: number | undefined;
+            limit: number | undefined;
+        }) => Promise<ReserveOutcome>;
+        release: (input: { userId: string; accountId: string; reservationId: string }) => Promise<void>;
+        recordFill: (input: { userId: string; accountId: string; fill: FillObservation }) => Promise<unknown>;
+    };
 }
 
 /** Fields a client may set. Everything else is derived server-side. */
@@ -120,6 +167,9 @@ export class UnifiedTradingService {
     private readonly audit: typeof appendAuditEvent;
     private readonly entitlement: (userId: string) => Promise<boolean>;
     private readonly now: () => number;
+    private readonly duplicateGuard?: OrderFingerprintGuard;
+    private readonly riskState?: UnifiedTradingDeps["riskState"];
+    private readonly notional?: UnifiedTradingDeps["notional"];
 
     constructor(private readonly deps: UnifiedTradingDeps) {
         this.idempotency = deps.idempotency ?? claimExecutionRequest;
@@ -128,6 +178,9 @@ export class UnifiedTradingService {
         this.audit = deps.audit ?? appendAuditEvent;
         this.entitlement = deps.entitlement ?? hasActiveTradingLicense;
         this.now = deps.now ?? (() => Date.now());
+        this.duplicateGuard = deps.duplicateGuard;
+        this.riskState = deps.riskState;
+        this.notional = deps.notional;
     }
 
     // ── reads ────────────────────────────────────────────────────────────────
@@ -435,6 +488,10 @@ export class UnifiedTradingService {
                 executionType: request.executionType,
                 symbol: input.symbol,
                 side: input.side,
+                kind: input.kind,
+                price: input.price,
+                stopLoss: input.stopLoss,
+                takeProfit: input.takeProfit,
                 volume: input.volume,
                 percentage: input.percentage,
                 positionId: input.positionId,
@@ -467,10 +524,21 @@ export class UnifiedTradingService {
                 });
                 return { result: { ...stored, duplicate: true }, httpStatus: 200 };
             }
-            const error = tradingError(
-                "DUPLICATE_REQUEST",
-                "An identical request is already in flight. Wait for the original result."
-            );
+            // An in-flight claim that is old enough to be abandoned is NOT
+            // resubmitted automatically: the provider may already hold the
+            // order, and re-sending is exactly the duplicate the idempotency
+            // record exists to prevent. The caller is told to reconcile.
+            const claimAge = this.now() - Number(claim.record.createdAt ?? 0);
+            const stale = Number.isFinite(claimAge) && claimAge > STALE_IN_FLIGHT_MS;
+            const error = stale
+                ? tradingError(
+                      "EXECUTION_TIMEOUT",
+                      "This request was accepted but never settled. Reconcile the broker state before retrying; it will not be resubmitted automatically."
+                  )
+                : tradingError(
+                      "DUPLICATE_REQUEST",
+                      "An identical request is already in flight. Wait for the original result."
+                  );
             void this.writeAudit({ ...auditBase, action: "EXECUTION_DUPLICATE", errorCode: error.code });
             return {
                 result: this.emptyResult(input, correlationId, startedAt, "REJECTED", error, provider, account.environment),
@@ -512,16 +580,34 @@ export class UnifiedTradingService {
 
         // 9. Risk engine. Management actions are always protective.
         const isEntry = request.executionType === "PLACE_ORDER";
+        let entryLimits: RiskLimits | null = null;
+        let entryReferencePrice = 0;
         if (isEntry) {
-            const limits = this.riskLimits();
-            const state: AccountRiskState = {
+            let limits = this.riskLimits();
+            let state: AccountRiskState = {
                 balance: account.metrics.balance ?? undefined,
                 openPositionsCount: account.metrics.positionsCount ?? undefined,
             };
+            if (this.riskState) {
+                try {
+                    const live = await this.riskState(request.userId, request.accountId, request.symbol);
+                    limits = live.limits;
+                    state = live.state;
+                } catch {
+                    const error = tradingError(
+                        "RISK_REJECTED",
+                        "Account risk state could not be loaded — execution blocked (fail closed)."
+                    );
+                    const outcome = await this.settle(request, correlationId, startedAt, "REJECTED", error, provider, null, position, order);
+                    return { result: outcome, httpStatus: errorCodeToStatus(error) };
+                }
+            }
             // SL/TP geometry can only be validated against a real entry
             // reference. When none is known the provider validates it on fill
             // and reports INVALID_SL / MARKET_CLOSED — we never invent a price.
-            const referencePrice = await this.resolveEntryReferencePrice(adapter, request);
+            entryLimits = limits;
+            entryReferencePrice = await this.resolveEntryReferencePrice(adapter, request);
+            const referencePrice = entryReferencePrice;
             const geometryKnown = referencePrice > 0;
             const decision = evaluateOrder(
                 {
@@ -546,22 +632,174 @@ export class UnifiedTradingService {
             volume = decision.volume ?? volume;
         }
 
+        // 9b. Semantic duplicate prevention. The idempotency claim above keys
+        // on clientRequestId; two different request ids carrying the same
+        // economic order (double-click, two channels) would both pass it.
+        let duplicateClaim: { scope: string; fingerprint: string } | null = null;
+        if (isEntry && this.duplicateGuard) {
+            try {
+                const identity = computeOrderIdentity(request.userId, request.accountId, {
+                    symbol: request.symbol ?? "",
+                    side: request.side === "SELL" ? "SELL" : "BUY",
+                    kind: request.kind ?? "MARKET",
+                    volume: volume ?? 0,
+                    price: request.price ?? null,
+                    stopLoss: request.stopLoss ?? null,
+                    takeProfit: request.takeProfit ?? null,
+                });
+                const claim = this.duplicateGuard.claim(identity.scope, identity.fingerprint, this.now());
+                if (!claim.accepted) {
+                    const error = tradingError(
+                        "DUPLICATE_REQUEST",
+                        "An identical order for this account was submitted moments ago."
+                    );
+                    void this.writeAudit({ ...auditBase, action: "EXECUTION_DUPLICATE", errorCode: error.code });
+                    const outcome = await this.settle(request, correlationId, startedAt, "REJECTED", error, provider, null, position, order);
+                    return { result: outcome, httpStatus: errorCodeToStatus(error) };
+                }
+                duplicateClaim = { scope: identity.scope, fingerprint: identity.fingerprint };
+            } catch {
+                // An order that cannot be fingerprinted is still protected by
+                // the durable idempotency record; do not block on the burst guard.
+                duplicateClaim = null;
+            }
+        }
+
+        // 9c. Daily notional reservation. A submitted order is NOT a fill: it
+        // reserves its notional inside an RTDB transaction so two concurrent
+        // submissions cannot jointly exceed the configured budget. The broker
+        // fill report converts the reservation into committed usage.
+        let reservationHeld = false;
+        const releaseReservation = async (): Promise<void> => {
+            if (!reservationHeld || !this.notional) return;
+            reservationHeld = false;
+            try {
+                await this.notional.release({
+                    userId: request.userId,
+                    accountId: request.accountId,
+                    reservationId: request.clientRequestId,
+                });
+            } catch (error) {
+                console.error("[trading/unified] notional reservation release failed", {
+                    error: error instanceof Error ? error.message : "unknown",
+                    clientRequestId: request.clientRequestId,
+                });
+            }
+        };
+
+        const budget = entryLimits?.maxDailyNotional;
+        if (isEntry && this.notional && typeof budget === "number" && budget > 0) {
+            const amount = orderNotional(
+                {
+                    symbol: request.symbol ?? "",
+                    direction: request.side === "SELL" ? "SELL" : "BUY",
+                    entryKind: riskEntryKind(request.kind),
+                    price: entryReferencePrice,
+                },
+                volume ?? 0,
+            );
+            let reservation: ReserveOutcome;
+            try {
+                reservation = await this.notional.reserve({
+                    userId: request.userId,
+                    accountId: request.accountId,
+                    reservationId: request.clientRequestId,
+                    amount,
+                    limit: budget,
+                });
+            } catch (error) {
+                reservation = {
+                    ok: false,
+                    code: "STATE_UNAVAILABLE",
+                    reason: `Daily notional accounting is unavailable (${
+                        error instanceof Error ? error.message : "unknown error"
+                    }) — execution blocked (fail closed).`,
+                };
+            }
+            if (!reservation.ok) {
+                if (duplicateClaim) this.duplicateGuard?.release(duplicateClaim.scope, duplicateClaim.fingerprint);
+                const error = tradingError("RISK_REJECTED", reservation.reason);
+                const outcome = await this.settle(
+                    request,
+                    correlationId,
+                    startedAt,
+                    "REJECTED",
+                    error,
+                    provider,
+                    null,
+                    position,
+                    order,
+                );
+                return { result: outcome, httpStatus: errorCodeToStatus(error) };
+            }
+            reservationHeld = reservation.reserved;
+        }
+
         // 10. Provider execution.
-        const executed = await adapter.execute({
-            request,
-            account,
-            position,
-            order,
-            volume,
-            waitForReport: input.waitForReport,
-        });
+        let executed: Awaited<ReturnType<TradingProviderAdapter["execute"]>>;
+        try {
+            executed = await adapter.execute({
+                request,
+                account,
+                position,
+                order,
+                volume,
+                waitForReport: input.waitForReport,
+            });
+        } catch (error) {
+            await releaseReservation();
+            if (duplicateClaim) this.duplicateGuard?.release(duplicateClaim.scope, duplicateClaim.fingerprint);
+            throw error;
+        }
 
         if (!executed.ok) {
+            // A submission that never reached the provider must not occupy the
+            // fingerprint window or the notional budget — the caller may
+            // legitimately retry it.
+            if (duplicateClaim) this.duplicateGuard?.release(duplicateClaim.scope, duplicateClaim.fingerprint);
+            await releaseReservation();
             const outcome = await this.settle(request, correlationId, startedAt, "FAILED", executed.error, provider, null, position, order);
             return { result: outcome, httpStatus: errorCodeToStatus(executed.error) };
         }
 
         const result = executed.value;
+
+        // Settle the reservation from the provider's own fill data. A rejected
+        // or failed execution consumed nothing; a filled one becomes usage and
+        // the gateway report will see the same fill identity as a duplicate.
+        if (result.status === "REJECTED" || result.status === "FAILED") {
+            await releaseReservation();
+        } else if (
+            this.notional &&
+            reservationHeld &&
+            typeof result.filledVolume === "number" &&
+            result.filledVolume > 0 &&
+            typeof result.filledPrice === "number" &&
+            result.filledPrice > 0
+        ) {
+            try {
+                await this.notional.recordFill({
+                    userId: request.userId,
+                    accountId: request.accountId,
+                    fill: {
+                        fillId: `${request.clientRequestId}:${result.providerRef ?? "provider"}`,
+                        orderId: request.clientRequestId,
+                        symbol: request.symbol ?? "",
+                        volume: result.filledVolume,
+                        price: result.filledPrice,
+                        at: this.now(),
+                    },
+                });
+                reservationHeld = false;
+            } catch (error) {
+                // The trade is real; the reservation stays counted (conservative)
+                // and the gateway report can still commit the fill.
+                console.error("[trading/unified] notional fill accounting failed", {
+                    error: error instanceof Error ? error.message : "unknown",
+                    clientRequestId: request.clientRequestId,
+                });
+            }
+        }
         const action: TradingAuditAction =
             result.status === "SUCCEEDED"
                 ? "EXECUTION_SUCCEEDED"

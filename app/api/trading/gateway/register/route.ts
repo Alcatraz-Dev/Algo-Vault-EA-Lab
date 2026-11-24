@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDatabase } from "@/lib/firebase-admin";
 import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { syncBotStatuses } from "@/lib/bots";
+import { normalizePositionMode } from "@/lib/trading/position-mode";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,13 @@ export async function POST(request: NextRequest) {
         const balance = Number(body.balance || 0);
         const equity = Number(body.equity || 0);
         const gatewayVersion = String(body.gatewayVersion || body.eaVersion || "").trim();
+        // MT5's ACCOUNT_MARGIN_MODE (0=netting, 1=exchange, 2=hedging).
+        // Never inferred from the demo/real trade mode or open positions; a
+        // missing or malformed value is persisted as UNKNOWN so the runtime
+        // fails closed rather than assuming hedging.
+        const positionMode = normalizePositionMode(
+            body.marginMode ?? body.positionMode ?? body.accountMarginMode,
+        );
 
         if (!gatewayToken || !accountNumber) {
             return NextResponse.json(
@@ -113,6 +121,9 @@ export async function POST(request: NextRequest) {
             status: "connected" as const,
             lastHeartbeatAt: now,
             gatewayVersion,
+            positionMode,
+            positionModeReportedAt: now,
+            positionModeSource: "mt5-account-margin-mode",
             magicNumber: magicNumber || existing?.magicNumber || null,
             gatewayInstallationId: gatewayInstallationId || existing?.gatewayInstallationId || null,
             connectedAt: existing?.connectedAt || now,

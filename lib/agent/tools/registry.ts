@@ -54,6 +54,8 @@ import {
     TRADINGVIEW_AGENT_TOOLS,
 } from "./external-intelligence-tools";
 import { researchStatusTool } from "./research-tools";
+import { tradeAuthorizeTool } from "./trade-intent-tools";
+import { TRADE_TOOL_DECLARATIONS } from "../policies/permission-engine";
 
 // Declarations: what each tool requires from the policy layer.
 
@@ -90,6 +92,9 @@ export const TOOL_DECLARATIONS: Record<string, ToolPolicyDeclaration> = {
     "tradingview.alerts":           { requires: ["network_access"], requiresConfirmation: false, category: "context", mutating: false },
     // Strategy Research (read-only observability; never mutates missions or execution).
     "research.status":              { requires: ["memory_read"], requiresConfirmation: false, category: "context", mutating: false },
+    // Trading intent authorization (never submits; requires an explicit
+    // trade_execute_demo override — no agent mode grants it).
+    ...TRADE_TOOL_DECLARATIONS,
 };
 
 interface RegistryEntry {
@@ -252,6 +257,7 @@ export function createDefaultRegistry(): AgentToolRegistry {
         [docsSearchTool, TOOL_DECLARATIONS["docs.search"]],
         [profileGetTool, TOOL_DECLARATIONS["profile.get"]],
         [researchStatusTool, TOOL_DECLARATIONS["research.status"]],
+        [tradeAuthorizeTool, TRADE_TOOL_DECLARATIONS["trade.authorize"]],
         // TradingView MCP (external intelligence registry; fail-closed when the
         // feature flag is off — tools then return a typed disabled result).
         ...TRADINGVIEW_AGENT_TOOLS.map((tool) => [tool, TOOL_DECLARATIONS[tool.id]] as [AgentTool, ToolPolicyDeclaration | undefined]),

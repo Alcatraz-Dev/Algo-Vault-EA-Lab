@@ -126,7 +126,15 @@ export default function AccountTradingPage() {
     }, [actionError]);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
-    const { currentPrice: xauUsdPrice } = useLiveCandles(selectedSymbol, "M1");
+    // Accordion behaviour for the desk: opening one bot's config closes the
+    // other, so a click only expands the card the user asked for.
+    const [openConfigBotId, setOpenConfigBotId] = useState<string | null>(null);
+    // The gold scalpers always consume XAUUSD, independently of the chart
+    // symbol the user is currently browsing.
+    const {
+        currentPrice: xauUsdPrice,
+        candles: xauUsdCandles,
+    } = useLiveCandles("XAUUSD", "M1");
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
 
@@ -572,25 +580,29 @@ export default function AccountTradingPage() {
         );
 
     const handleBotPositionChange = useCallback(
-        (pos: {
-            ticket: string;
-            symbol: string;
-            type: "BUY" | "SELL";
-            volume: number;
-            openPrice: number;
-            currentPrice: number;
-            sl: number;
-            tp: number;
-            profit: number;
-            swap: number;
-            magic: number;
-            openedAt: number;
-        } | null) => {
+        (
+            pos: {
+                ticket: string;
+                symbol: string;
+                type: "BUY" | "SELL";
+                volume: number;
+                openPrice: number;
+                currentPrice: number;
+                sl: number;
+                tp: number;
+                profit: number;
+                swap: number;
+                magic: number;
+                openedAt: number;
+            } | null,
+            magicNumber: number,
+        ) => {
             setPositions((prev) => {
-                if (!pos) {
-                    return prev.filter((p) => p.magic !== 70001);
-                }
-                return prev.filter((p) => p.magic !== 70001).concat({
+                const withoutBot = prev.filter(
+                    (p) => p.magic !== magicNumber,
+                );
+                if (!pos) return withoutBot;
+                return withoutBot.concat({
                     ticket: pos.ticket,
                     symbol: pos.symbol,
                     type: pos.type,
@@ -606,7 +618,7 @@ export default function AccountTradingPage() {
                 });
             });
         },
-        [70001]
+        [],
     );
 
     /** percentage is % of the position's CURRENT VOLUME — the server computes
@@ -1183,37 +1195,105 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
-                {/* XAUUSD M1 Scalper bot — full-width card above the chart.
-                    The bot runs here and submits orders through /api/trading/orders
-                    so the trades appear in MT5 via the gateway EA. */}
-                <div className="w-full">
-                    <XauUsdScalperBot
-                        botId="xauusd-m1-scalper"
-                        deployed={false}
-                        initialConfig={{
-                            tp1Pips: 15,
-                            tp2Pips: 30,
-                            slPips: 10,
-                            riskPercent: 1.0,
-                            maxSpreadPoints: 15,
-                            magicNumber: 70001,
-                            direction: "long",
-                            enabled: true,
-                            warmUpCandles: 50,
-                            maxPositions: 1,
-                        }}
-                        onToggle={async (running, reason) => {
-                            console.debug(`[bot] toggle → ${running}`, reason ?? "");
-                        }}
-                        currentPrice={xauUsdPrice}
-                        hasToken={!!userToken}
-                        accountId={selectedAccountId ?? undefined}
-                        serverStatus={serverStatus ?? null}
-                        onPositionChange={handleBotPositionChange}
-                    />
-                    {/* Feed the auth token to the bot runtime once it is available. */}
+                {/* Gold scalping desk — one fixed-bias bot and one bot that
+                    routes long or short from confirmed M1 Smart Money
+                    structure. Both submit through the Unified execution path. */}
+                <section className="space-y-3" aria-labelledby="scalping-desk">
+                    <div className="flex flex-wrap items-end justify-between gap-2">
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <h2
+                                    id="scalping-desk"
+                                    className="text-sm font-semibold tracking-tight text-foreground"
+                                >
+                                    Gold scalping desk
+                                </h2>
+                                <Badge variant="outline">2 bots</Badge>
+                            </div>
+                            <p className="mt-0.5 text-[11px] text-muted-foreground">
+                                XAUUSD · M1 · dual take-profit · Smart Money
+                                structure routing
+                            </p>
+                        </div>
+                        <span className="text-[11px] text-muted-foreground">
+                            Orders route through the connected MT5 account
+                        </span>
+                    </div>
+
+                    {/* items-start keeps each card at its own height: opening
+                        one config panel must not stretch the sibling card. */}
+                    <div className="grid items-start gap-4 xl:grid-cols-2">
+                        <XauUsdScalperBot
+                            botId="xauusd-m1-scalper"
+                            initialConfig={{
+                                tp1Pips: 15,
+                                tp2Pips: 30,
+                                slPips: 10,
+                                riskPercent: 1.0,
+                                maxSpreadPoints: 15,
+                                magicNumber: 70001,
+                                direction: "long",
+                                enabled: true,
+                                warmUpCandles: 50,
+                                maxPositions: 1,
+                            }}
+                            onToggle={async (running, reason) => {
+                                console.debug(
+                                    `[bot:fixed] toggle → ${running}`,
+                                    reason ?? "",
+                                );
+                            }}
+                            currentPrice={xauUsdPrice}
+                            candles={xauUsdCandles}
+                            hasToken={!!userToken}
+                            accountId={selectedAccountId ?? undefined}
+                            serverStatus={serverStatus ?? null}
+                            onPositionChange={handleBotPositionChange}
+                            configOpen={openConfigBotId === "xauusd-m1-scalper"}
+                            onConfigOpenChange={(open) =>
+                                setOpenConfigBotId(
+                                    open ? "xauusd-m1-scalper" : null,
+                                )
+                            }
+                        />
+
+                        <XauUsdScalperBot
+                            botId="xauusd-smart-money-m1"
+                            initialConfig={{
+                                tp1Pips: 15,
+                                tp2Pips: 30,
+                                slPips: 10,
+                                riskPercent: 1.0,
+                                maxSpreadPoints: 15,
+                                magicNumber: 70002,
+                                direction: "auto",
+                                enabled: true,
+                                warmUpCandles: 50,
+                                maxPositions: 1,
+                            }}
+                            onToggle={async (running, reason) => {
+                                console.debug(
+                                    `[bot:smart-money] toggle → ${running}`,
+                                    reason ?? "",
+                                );
+                            }}
+                            currentPrice={xauUsdPrice}
+                            candles={xauUsdCandles}
+                            hasToken={!!userToken}
+                            accountId={selectedAccountId ?? undefined}
+                            serverStatus={serverStatus ?? null}
+                            onPositionChange={handleBotPositionChange}
+                            configOpen={openConfigBotId === "xauusd-smart-money-m1"}
+                            onConfigOpenChange={(open) =>
+                                setOpenConfigBotId(
+                                    open ? "xauusd-smart-money-m1" : null,
+                                )
+                            }
+                        />
+                    </div>
+                    {/* Feed the auth token to both bot runtimes once available. */}
                     {userToken && <BotTokenSetter token={userToken} />}
-                </div>
+                </section>
 
                 {/* Main Trading Area */}
                 <div className="grid gap-6 xl:grid-cols-4">

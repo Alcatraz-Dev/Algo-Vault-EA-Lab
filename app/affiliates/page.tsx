@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 
 import { onValue, ref } from "firebase/database";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 type BrandingItem = {
     fileName?: string;
@@ -56,17 +56,21 @@ function formatCommission(offer: AffiliateOffer) {
 
 export default function AffiliatesPage() {
     const [offers, setOffers] = useState<AffiliateOffer[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => isFirebaseClientConfigured());
     const [search, setSearch] = useState("");
     const [siteName, setSiteName] = useState("AlgoVault");
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         return onValue(ref(database, "settings/siteName"), (snap) => {
             if (snap.exists()) setSiteName(snap.val());
         });
     }, []);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const offersRef = ref(database, "affiliate_offers");
 
         const unsubscribe = onValue(

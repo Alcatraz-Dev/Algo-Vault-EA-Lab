@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import { FooterNativeAd } from "@/components/growth/FooterNativeAd";
 import { FooterAffiliateLink } from "@/components/growth/FooterAffiliateLink";
@@ -13,6 +13,8 @@ export default function SiteFooter() {
     const [siteName, setSiteName] = useState("AlgoVault");
 
     useEffect(() => {
+        // No Firebase configured: keep the default site name.
+        if (!isFirebaseClientConfigured()) return;
         const settingsRef = ref(database, "settings/siteName");
         const unsub = onValue(settingsRef, (snap) => {
             const val = snap.val();

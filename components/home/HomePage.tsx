@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onValue, ref } from "firebase/database";
 import type { HomeData } from "@/lib/home-data";
 import SiteHeader from "./site-header";
@@ -29,6 +29,7 @@ export default function HomePage({ data, dataNotice }: { data: HomeData; dataNot
     const [siteName, setSiteName] = useState("AlgoVault");
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
         const unsubscribe = onValue(ref(database, "settings/siteName"), (snapshot) => {
             const value = snapshot.val();
             if (typeof value === "string" && value.trim()) setSiteName(value.trim());

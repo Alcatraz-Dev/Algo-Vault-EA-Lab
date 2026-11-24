@@ -4,7 +4,7 @@ import { useEffect, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 type AdminGuardProps = {
     children: ReactNode;
@@ -19,6 +19,8 @@ export default function AdminGuard({
     const [allowed, setAllowed] = useState(false);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         let unsubscribeProfile: (() => void) | null = null;
 
         const unsubscribeAuth = onAuthStateChanged(
@@ -72,6 +74,18 @@ export default function AdminGuard({
             }
         };
     }, [router]);
+
+    // Without Firebase there is no way to prove an admin role. Never render the
+    // protected children — and say why instead of spinning forever.
+    if (!isFirebaseClientConfigured()) {
+        return (
+            <main className="flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
+                <p className="text-center text-sm text-muted-foreground">
+                    Firebase is not configured in this environment.
+                </p>
+            </main>
+        );
+    }
 
     if (checking || !allowed) {
         return (

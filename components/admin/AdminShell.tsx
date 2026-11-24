@@ -42,7 +42,7 @@ import {
     Server,
 } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
@@ -137,11 +137,15 @@ export default function AdminShell({
     };
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (currentUser) => setUser(currentUser));
         return () => unsub();
     }, []);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const settingsRef = ref(database, "settings/siteName");
         const unsub = onValue(settingsRef, (snap) => {
             const val = snap.val();

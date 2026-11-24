@@ -7,9 +7,10 @@ import {
     ArrowLeft, ArrowRight, Check, Crown, Sparkles, Star, Zap, Lock, CircleDot,
 } from "lucide-react";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { ToolBadge } from "@/components/tools/tier-ui";
 import { TOOL_CATALOG } from "@/lib/tools-catalog";
+import { advertisableFeatures } from "@/lib/tools-capability-audit";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ModernPageHeader from "@/components/ui/modern-page-header";
@@ -152,6 +153,8 @@ export default function PricingPage() {
     const router = useRouter();
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
         });
@@ -295,7 +298,7 @@ export default function PricingPage() {
                                 {proTools.map((tool) => (
                                     <li key={tool.id} className="flex items-start gap-2 text-xs text-muted-foreground">
                                         <Lock size={10} className="mt-0.5 shrink-0 text-primary" />
-                                        <span><span className="font-semibold text-foreground">{tool.title}</span> — {tool.proFeatures[0]}</span>
+                                        <span><span className="font-semibold text-foreground">{tool.title}</span> — {advertisableFeatures(tool.proFeatures)[0] ?? tool.description}</span>
                                     </li>
                                 ))}
                             </ul>

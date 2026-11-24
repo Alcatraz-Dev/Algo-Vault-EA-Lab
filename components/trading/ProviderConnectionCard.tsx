@@ -24,7 +24,7 @@ import {
   Wifi,
   WifiOff,
 } from "lucide-react";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 
 type ConnectionState =
@@ -87,7 +87,9 @@ function relative(timestamp: number | null): string {
 export default function ProviderConnectionCard({ className }: { className?: string }) {
   const [providers, setProviders] = useState<CatalogEntry[]>([]);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Nothing to fetch without Firebase, so the card settles instead of keeping a
+  // skeleton on screen forever.
+  const [loading, setLoading] = useState(isFirebaseClientConfigured());
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (token: string) => {
@@ -112,6 +114,8 @@ export default function ProviderConnectionCard({ className }: { className?: stri
   }, []);
 
   useEffect(() => {
+    if (!isFirebaseClientConfigured()) return;
+
     let timer: number | null = null;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {

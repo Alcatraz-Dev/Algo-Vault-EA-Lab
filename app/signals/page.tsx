@@ -27,7 +27,7 @@ import ModernPageHeader from "@/components/ui/modern-page-header";
 
 import { onAuthStateChanged, User } from "firebase/auth";
 import { equalTo, onValue, orderByChild, query, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 import SignalFeed from "@/components/signals/SignalFeed";
 import MarketOverview from "@/components/signals/MarketOverview";
@@ -48,7 +48,7 @@ export default function AiSignalsPage() {
     const [signals, setSignals] = useState<AISignal[]>([]);
     const [analytics, setAnalytics] = useState<SignalAnalytics | null>(null);
     const [sentiments, setSentiments] = useState<MarketSentiment[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => isFirebaseClientConfigured());
     const [scanning, setScanning] = useState(false);
     const [scanResult, setScanResult] = useState<{ generated: number; error?: string; message?: string } | null>(null);
     const [dailyCount, setDailyCount] = useState(0);
@@ -63,6 +63,8 @@ export default function AiSignalsPage() {
     const limitReached = dailyCount >= dailyLimit;
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
             if (!u) {

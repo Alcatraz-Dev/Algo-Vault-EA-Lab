@@ -9,17 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { TrendingUp, Shield, Wrench, DollarSign, Zap } from "lucide-react";
+import { BrainCircuit, TrendingUp, Shield, Wrench, DollarSign, Zap } from "lucide-react";
 
 interface ScalpingConfigFormProps {
     config: XauUsdScalpingConfig;
     onChange: (next: XauUsdScalpingConfig) => void;
     /** Live market price from the chart feed, if available. */
     currentPrice?: number;
+    /** Latest Smart Money side, used for the auto-mode level preview. */
+    analysisDirection?: "long" | "short" | "neutral";
     className?: string;
 }
 
-export function ScalpingConfigForm({ config, onChange, currentPrice, className }: ScalpingConfigFormProps) {
+export function ScalpingConfigForm({ config, onChange, currentPrice, analysisDirection = "neutral", className }: ScalpingConfigFormProps) {
     const [draft, setDraft] = useState<XauUsdScalpingConfig>(config);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -53,12 +55,19 @@ export function ScalpingConfigForm({ config, onChange, currentPrice, className }
         [],
     );
 
+    const previewDirection =
+        draft.direction === "auto"
+            ? analysisDirection === "short"
+                ? "short"
+                : "long"
+            : draft.direction;
+
     const preview = useMemo(() => {
         // Use live market price when available so the level readout is meaningful.
         const entry = currentPrice != null && currentPrice > 0 ? currentPrice : 2650.00;
-        const levels = deriveLevels(entry, config.tp1Pips, config.tp2Pips, config.slPips, config.direction);
+        const levels = deriveLevels(entry, draft.tp1Pips, draft.tp2Pips, draft.slPips, previewDirection);
         return { entry, ...levels };
-    }, [config.direction, config.tp1Pips, config.tp2Pips, config.slPips, currentPrice]);
+    }, [draft.tp1Pips, draft.tp2Pips, draft.slPips, currentPrice, previewDirection]);
 
     const field = (
         label: React.ReactNode,
@@ -87,47 +96,73 @@ export function ScalpingConfigForm({ config, onChange, currentPrice, className }
 
             {/* Direction */}
             {field(
-                "Direction",
+                "Direction mode",
                 <Select
                     className="text-sm"
                     value={draft.direction}
-                    onChange={(e) => set("direction", e.target.value as "long" | "short")}
+                    onChange={(e) =>
+                        set(
+                            "direction",
+                            e.target.value as XauUsdScalpingConfig["direction"],
+                        )
+                    }
                 >
-                    <option value="long">Long — buy dips, exit rallies</option>
-                    <option value="short">Short — sell rallies, exit dips</option>
+                    <option value="auto">Smart Money — long or short by structure</option>
+                    <option value="long">Long only — buy bullish structure</option>
+                    <option value="short">Short only — sell bearish structure</option>
                 </Select>,
+                undefined,
+                draft.direction === "auto"
+                    ? "Follows the latest confirmed BOS/CHoCH on closed M1 candles."
+                    : "Only the selected side is evaluated.",
+            )}
+
+            {draft.direction === "auto" && (
+                <div className="flex items-start gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-[11px] text-muted-foreground">
+                    <BrainCircuit className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                    <p>
+                        Bullish Smart Money structure routes a <strong className="text-positive">long</strong>;
+                        bearish structure routes a <strong className="text-negative">short</strong>.
+                        Neutral or stale structure keeps the bot flat.
+                    </p>
+                </div>
             )}
 
             {/* Level preview */}
             <div className="rounded-lg border border-border bg-muted/40 p-3 text-[11px]">
                 <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium text-foreground">Level preview</span>
+                    <span className="font-medium text-foreground">
+                        Level preview · {previewDirection}
+                    </span>
                     <span className="text-muted-foreground">
                         {currentPrice != null && currentPrice > 0
-                            ? `entry {currentPrice.toFixed(2)}`
+                            ? `entry ${currentPrice.toFixed(2)}`
                             : `entry ≈ ${preview.entry.toFixed(2)}`}
                     </span>
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center font-mono">
                     <div className="bg-positive/10 rounded px-2 py-1 text-positive">
-                        <div className="text-[10px] text-muted-foreground">TP1</div>
+                        <div className="text-[11px] text-muted-foreground">TP1</div>
                         <div className="text-sm font-semibold">{preview.tp1.toFixed(2)}</div>
-                        <div className="text-[10px] text-muted-foreground">{formatPipDistance(config.tp1Pips)}</div>
+                        <div className="text-[11px] text-muted-foreground">{formatPipDistance(draft.tp1Pips)}</div>
                     </div>
                     <div className="bg-positive/10 rounded px-2 py-1 text-positive">
-                        <div className="text-[10px] text-muted-foreground">TP2</div>
+                        <div className="text-[11px] text-muted-foreground">TP2</div>
                         <div className="text-sm font-semibold">{preview.tp2.toFixed(2)}</div>
-                        <div className="text-[10px] text-muted-foreground">{formatPipDistance(config.tp2Pips)}</div>
+                        <div className="text-[11px] text-muted-foreground">{formatPipDistance(draft.tp2Pips)}</div>
                     </div>
                     <div className="bg-negative/10 rounded px-2 py-1 text-negative">
-                        <div className="text-[10px] text-muted-foreground">SL</div>
+                        <div className="text-[11px] text-muted-foreground">SL</div>
                         <div className="text-sm font-semibold">{preview.sl.toFixed(2)}</div>
-                        <div className="text-[10px] text-muted-foreground">{formatPipDistance(config.slPips)}</div>
+                        <div className="text-[11px] text-muted-foreground">{formatPipDistance(draft.slPips)}</div>
                     </div>
                 </div>
-                <p className="mt-2 text-[10px] text-muted-foreground">
+                <p className="mt-2 text-[11px] text-muted-foreground">
                     TP1 closes 50% of the position, TP2 closes the remainder.
                     SL is firm for the full position.
+                    {draft.direction === "auto"
+                        ? " Auto mode re-resolves long/short on every closed M1 bar."
+                        : ""}
                 </p>
             </div>
 

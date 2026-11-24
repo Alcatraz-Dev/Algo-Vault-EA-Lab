@@ -1,6 +1,6 @@
 #property copyright "AlgoVault Trading Platform"
 #property link      "https://algovault.com"
-#property version   "1.3"
+#property version   "1.4"
 #property strict
 
 #include <Trade\Trade.mqh>
@@ -1014,10 +1014,15 @@ bool RegisterGateway()
       IntegerToString(MagicNumber) +
       "," +
 
-      "\"eaVersion\":\"1.3.0\"" +
+      "\"eaVersion\":\"1.4.0\"" +
 
       ",\"accountMode\":" +
       IntegerToString((long)AccountInfoInteger(ACCOUNT_TRADE_MODE)) +
+
+      // Authoritative position accounting (0=netting, 1=exchange, 2=hedging).
+      // ACCOUNT_TRADE_MODE above is demo/contest/real and is NOT the margin mode.
+      ",\"marginMode\":" +
+      IntegerToString((long)AccountInfoInteger(ACCOUNT_MARGIN_MODE)) +
 
       ",\"tradingAuthorized\":" +
       (g_tradingAuthorized ? "true" : "false") +
@@ -1107,6 +1112,9 @@ bool SendHeartbeat()
 
       "\"orders\":" +
       IntegerToString(CountManagedOrders()) +
+
+      ",\"marginMode\":" +
+      IntegerToString((long)AccountInfoInteger(ACCOUNT_MARGIN_MODE))
 
       "}";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { database } from "@/lib/firebase";
+import { database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { ref, onValue } from "firebase/database";
 import SiteHeader from "@/components/home/site-header";
 import SiteFooter from "@/components/footer/SiteFooter";
@@ -54,6 +54,8 @@ export default function PrivacyPolicyPage() {
     const [siteName, setSiteName] = useState("AlgoVault");
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const settingsRef = ref(database, "settings/siteName");
         const unsub = onValue(settingsRef, (snap) => {
             const val = snap.val();

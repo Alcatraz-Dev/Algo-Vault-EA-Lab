@@ -54,6 +54,19 @@ const securityAlias = isSecurityTest
       }
     : {};
 
+// `lib/firebase-admin.ts` calls `getFirebaseAdminConfig()` whenever
+// `getApps()` is empty. The stub's `initializeApp` only ever runs after that
+// check, so without placeholder credentials every authenticated caller is
+// rejected as unauthorized and the security suites cannot reach the routes
+// they exist to protect. These values are never used against Firebase: the
+// aliased stub answers every SDK call.
+if (isSecurityTest) {
+    process.env.FIREBASE_PROJECT_ID ||= "algo-vault-test";
+    process.env.FIREBASE_CLIENT_EMAIL ||= "test@algo-vault.invalid";
+    process.env.FIREBASE_PRIVATE_KEY ||= "-----BEGIN PRIVATE KEY-----\\ntest\\n-----END PRIVATE KEY-----";
+    process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL ||= "https://algo-vault-test.firebaseio.com";
+}
+
 const jiti = createJiti(process.cwd(), {
     // Enable tsconfig `paths` resolution ("@/*" → repo root).
     tsconfigPaths: true,

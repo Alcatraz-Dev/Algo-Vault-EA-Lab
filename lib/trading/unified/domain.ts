@@ -124,6 +124,14 @@ export interface TradingAccount {
     connectionError: TradingError | null;
     /** Provider version string when reported (EA version / API version). */
     gatewayVersion: string | null;
+    /**
+     * Authoritative MT5 position accounting. Present only when the provider
+     * reports it; consumers must treat a missing value as UNKNOWN (never as
+     * hedge-capable). See `lib/trading/position-mode.ts`.
+     */
+    positionMode?: "HEDGING" | "NETTING" | "EXCHANGE" | "UNKNOWN";
+    /** Epoch ms the terminal last reported its position accounting mode. */
+    positionModeReportedAt?: number | null;
 }
 
 /** Provider-neutral account read used by the terminal header. */

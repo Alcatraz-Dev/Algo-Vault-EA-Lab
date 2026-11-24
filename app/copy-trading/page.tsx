@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { onValue, ref } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -169,7 +169,7 @@ function StatPill({ label, value, positive }: { label: string; value: string; po
 
 export default function CopyTradingPage() {
     const [user, setUser] = useState<User | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(() => isFirebaseClientConfigured());
     const [licenses, setLicenses] = useState<License[]>([]);
     const [masterAccounts, setMasterAccounts] = useState<MasterAccount[]>([]);
     const [followerConfigs, setFollowerConfigs] = useState<FollowerConfig[]>([]);
@@ -196,6 +196,8 @@ export default function CopyTradingPage() {
 
     // ── Auth ────────────────────────────────────────────────────────────────
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsubscribe = onAuthStateChanged(auth, (u) => {
             setUser(u);
             setAuthLoading(false);

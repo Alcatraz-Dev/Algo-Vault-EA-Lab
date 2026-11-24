@@ -75,12 +75,8 @@ export const TOOL_CATALOG: ToolCatalogEntry[] = [
         href: "/tools/drawdown-calculator",
         group: "calculator",
         tier: "free",
-        proFeatures: [
-            "Monte-Carlo drawdown distribution",
-            "Variable loss-per-trade scenarios",
-            "Equity-curve export (CSV)",
-            "Save scenarios to your account",
-        ],
+        // No drawdown Pro surface is wired yet; advertising one would be a false entitlement.
+        proFeatures: [],
         liteFeatures: [
             "Compounding loss curve (fixed loss %)",
             "Recovery % needed to breakeven",
@@ -99,7 +95,6 @@ export const TOOL_CATALOG: ToolCatalogEntry[] = [
             "Kelly criterion & half-Kelly position sizing",
             "Expected value per trade in $",
             "Monte-Carlo ruin distribution (1000 paths)",
-            "Save scenarios to your account",
         ],
         liteFeatures: [
             "Single-point risk of ruin %",

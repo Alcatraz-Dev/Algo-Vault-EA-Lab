@@ -3,7 +3,7 @@
 import ModernPageHeader from "@/components/ui/modern-page-header";
 import { useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import {
     Loader2, Shield, RefreshCw, Trophy, ArrowDownRight, ArrowUpRight, BarChart3,
     ArrowLeft, TrendingUp, TrendingDown, Activity, Wallet, ChevronDown, ChevronUp,
@@ -63,7 +63,7 @@ function getValueColor(key: string, val: number): string {
 
 export default function ComparePage() {
     const [user, setUser] = useState<User | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(() => isFirebaseClientConfigured());
     const [accounts, setAccounts] = useState<AccountSnap[]>([]);
     const [comparison, setComparison] = useState<Comparison | null>(null);
     const [loading, setLoading] = useState(true);
@@ -71,6 +71,8 @@ export default function ComparePage() {
     const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => { setUser(u); setAuthLoading(false); });
         return () => unsub();
     }, []);

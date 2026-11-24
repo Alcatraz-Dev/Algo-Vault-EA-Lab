@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 import {
     AlertTriangle,
@@ -138,7 +138,7 @@ function buildPresetLayout(preset: DashboardPreset | null): DashboardWidget[] {
 export default function DashboardBuilderPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [authLoading, setAuthLoading] = useState(true);
+    const [authLoading, setAuthLoading] = useState(isFirebaseClientConfigured());
 
     const [dashboards, setDashboards] = useState<DashboardConfig[]>([]);
     const [activeDashId, setActiveDashId] = useState<string>("");
@@ -208,6 +208,8 @@ export default function DashboardBuilderPage() {
     }, [authLoading, user, refreshKey]);
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (u) => {
             setUser(u);
             setAuthLoading(false);

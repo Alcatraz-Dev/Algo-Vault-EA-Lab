@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { signOut, onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { ref, onValue } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import SiteLogo from "@/components/ui/site-logo";
 import ThemeToggle from "@/components/theme/theme-toggle";
 import { NotificationsMenu } from "@/components/layout/NotificationsMenu";
@@ -100,15 +100,22 @@ export function AppShell({
   const searchValue = navSearch !== undefined ? navSearch : internalNavSearch;
   const handleSearch = onNavSearch ?? setInternalNavSearch;
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const [authReady, setAuthReady] = useState(false);
+
+  // Without Firebase env vars the shell still renders (static site name, signed
+  // out header), so auth counts as settled immediately and never blocks the
+  // sidebar footer on a skeleton.
+  const firebaseConfigured = isFirebaseClientConfigured();
+  const [authReady, setAuthReady] = useState(!firebaseConfigured);
 
   useEffect(() => {
+    if (!firebaseConfigured) return;
+
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setAuthReady(true);
     });
     return () => unsub();
-  }, []);
+  }, [firebaseConfigured]);
 
   // Restore collapsed sidebar groups from the previous session.
   useEffect(() => {
@@ -168,13 +175,15 @@ export function AppShell({
   }, [mobileOpen]);
 
   useEffect(() => {
+    if (!firebaseConfigured) return;
+
     const settingsRef = ref(database, "settings/siteName");
     const unsub = onValue(settingsRef, (snap) => {
       const val = snap.val();
       if (val && typeof val === "string") setSiteName(val);
     });
     return () => unsub();
-  }, []);
+  }, [firebaseConfigured]);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -185,6 +194,11 @@ export function AppShell({
   }, []);
 
   const handleSignOut = async () => {
+    if (!firebaseConfigured) {
+      router.push("/");
+      return;
+    }
+
     await signOut(auth);
     router.push("/");
   };
@@ -558,7 +572,7 @@ export function AppShell({
           ref={mobileDrawerRef}
           data-app-mobile-drawer=""
           className={cn(
-            "fixed inset-0 z-50 transition-[visibility] duration-200 motion-reduce:transition-none lg:hidden",
+            "fixed inset-0 z-[60] transition-[visibility] duration-200 motion-reduce:transition-none lg:hidden",
             mobileOpen ? "visible" : "invisible pointer-events-none"
           )}
           inert={!mobileOpen}
@@ -599,13 +613,21 @@ export function AppShell({
           data-guide="page-header"
           data-shell-header=""
           className={cn(
-            "sticky top-0 z-40 bg-background/85 backdrop-blur-xl overflow-hidden",
+            // No overflow clipping here: the account and notification menus open
+            // downward past the header edge. The decorative glows are clipped by
+            // their own wrapper below instead.
+            "sticky top-0 z-50 bg-background/85 backdrop-blur-xl",
             compactHeader ? "px-3 py-2.5 sm:px-4" : "px-4 py-3 sm:px-6 sm:py-4"
           )}
         >
           {/* Modern header glow */}
-          <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 overflow-hidden"
+          >
+            <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-info/10 blur-3xl" />
+          </div>
           <div className="relative z-10">
           <div
             className={cn(

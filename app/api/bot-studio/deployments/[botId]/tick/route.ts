@@ -4,6 +4,7 @@ import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/au
 import { getDeployment, getStrategy, updateDeploymentState } from "@/lib/bot-studio/database";
 import { BotRuntimeSession } from "@/lib/bot-studio/runtime";
 import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
+import { buildScalpingSessionOptions, scalpingConfigFingerprint } from "@/lib/bot-studio/scalping/session";
 import type { SupportedSymbol } from "@/lib/market-data/types";
 
 // In-memory cache of runtime sessions so sequential engine bars are preserved
@@ -46,15 +47,31 @@ export async function POST(
             );
         }
 
-        let session = sessions.get(botId);
+        // Scalping bots add a directional evaluator + pacing filter to the
+        // SAME runtime. The cache key includes the configuration fingerprint.
+        const scalping = strategy.scalpingConfig;
+        const cacheKey = scalping ? `${botId}:${scalpingConfigFingerprint(scalping)}` : botId;
+
+        let session = sessions.get(cacheKey);
         if (!session) {
+            const scalpingOptions = scalping
+                ? buildScalpingSessionOptions({
+                      deployment,
+                      config: scalping,
+                      magicNumber: strategy.magicNumber,
+                  })
+                : {};
             session = new BotRuntimeSession({
                 deployment,
                 strategy: strategy.definition,
                 magicNumber: strategy.magicNumber,
+                ...scalpingOptions,
             });
             await session.initialize();
-            sessions.set(botId, session);
+            for (const key of sessions.keys()) {
+                if (key === botId || key.startsWith(`${botId}:`)) sessions.delete(key);
+            }
+            sessions.set(cacheKey, session);
         } else {
             // Cached sessions must observe pausing/stopping immediately.
             session.refreshDeployment(deployment);

@@ -16,7 +16,7 @@ import {
     Zap,
 } from "lucide-react";
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { auth, isFirebaseClientConfigured } from "@/lib/firebase";
 import { onSubscriptionChange } from "@/lib/subscription";
 import ModernPageHeader from "@/components/ui/modern-page-header";
 import { RealtimeFeed, type CompleteActionResult, type FollowActionResult, type TradeActionResult } from "@/features/telegram-signals/components/RealtimeFeed";
@@ -35,7 +35,9 @@ export default function ProSignalsPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
     const [hasPro, setHasPro] = useState(false);
-    const [loading, setLoading] = useState(true);
+    // Without Firebase config the page settles as signed out instead of waiting
+    // for an auth event that can never arrive.
+    const [loading, setLoading] = useState(isFirebaseClientConfigured());
     const [activeTab, setActiveTab] = useState<"live" | "analytics">("live");
     const [conflicts, setConflicts] = useState<SignalConflictSummary[]>([]);
     const [analytics, setAnalytics] = useState<SignalAnalyticsSegment | null>(null);
@@ -53,6 +55,8 @@ export default function ProSignalsPage() {
     const { prices: livePrices, isLive: pricesLive, lastUpdatedAt: pricesLastUpdatedAt } = useLivePrices(liveSymbols, { intervalMs: 5_000 });
 
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         const unsub = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             if (!currentUser) setLoading(false);

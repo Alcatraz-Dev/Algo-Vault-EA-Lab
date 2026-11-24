@@ -33,6 +33,7 @@ import type { AutomationPolicy, EvidenceItem, ExecutionGateResult, GateCheck, Tr
 import { clampAutomationPolicy } from "./types";
 import { validateTradePlan } from "./validate";
 import { getKillSwitch, submissionKeyFor } from "./database";
+import { typedConfirmationPhrase, verifyTypedConfirmation } from "@/lib/risk/order-fingerprint";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Pure helpers (exported for tests + replay adapter)
@@ -56,6 +57,14 @@ export interface GateContext {
     /** Recent submission keys for duplicate detection (pre-recorded). */
     recentSubmissionKeys?: string[];
     killSwitchEngaged?: boolean;
+    /**
+     * Human-approval paths may demand the exact typed phrase derived from the
+     * order ("BUY 0.50 XAUUSD"). Off by default so automation and existing
+     * approval flows keep their behaviour; when on, a missing or different
+     * phrase rejects instead of returning WAIT_APPROVAL.
+     */
+    requireTypedConfirmation?: boolean;
+    typedConfirmation?: string;
 }
 
 function check(stage: GateCheck["stage"], passed: boolean, code: string, reason?: string): GateCheck {
@@ -374,6 +383,42 @@ export function evaluateGate(input: EvaluateGateInput): ExecutionGateResult {
         const dup = duplicateCheck(plan, ctx.recentSubmissionKeys);
         checks.push(dup);
         if (!dup.passed) return finish("REJECT", checks, dup.code, dup.reason);
+
+        // 9. Typed confirmation (human approval paths only).
+        if (ctx.executionMode !== "AUTOMATION" && ctx.requireTypedConfirmation) {
+            const volume = decision.volume ?? plan.positionSizeLots;
+            if (typeof volume !== "number" || !(volume > 0)) {
+                return finish("REJECT", checks, "INVALID_VOLUME", "Typed confirmation requires a positive resolved volume.");
+            }
+            const order = {
+                symbol: plan.instrument,
+                side: plan.direction as "BUY" | "SELL",
+                kind: "MARKET" as const,
+                volume,
+                price: plan.entry ?? null,
+                stopLoss: plan.stopLoss ?? null,
+                takeProfit: plan.takeProfits?.[0]?.price ?? null,
+            };
+            const typed = verifyTypedConfirmation(order, ctx.typedConfirmation);
+            checks.push(
+                typed
+                    ? check("AUTHORIZATION", true, "TYPED_CONFIRMATION_OK")
+                    : check(
+                          "AUTHORIZATION",
+                          false,
+                          "TYPED_CONFIRMATION_REQUIRED",
+                          `Type exactly "${typedConfirmationPhrase(order)}" to authorize this order.`,
+                      ),
+            );
+            if (!typed) {
+                return finish(
+                    "REJECT",
+                    checks,
+                    "TYPED_CONFIRMATION_REQUIRED",
+                    `Type exactly "${typedConfirmationPhrase(order)}" to authorize this order.`,
+                );
+            }
+        }
 
         // Decision
         if (ctx.executionMode === "AUTOMATION") {

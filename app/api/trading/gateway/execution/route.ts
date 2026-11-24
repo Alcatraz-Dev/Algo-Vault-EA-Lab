@@ -4,6 +4,8 @@ import { verifyGatewayToken, resolveGatewayToken } from "@/lib/gateway";
 import { attachCopiedMt5Ticket } from "@/lib/copy-trading";
 import { writeClosedDealHistory } from "@/lib/trading/closed-deals";
 import { getExecution, updateExecution } from "@/lib/bot-studio/database";
+import { accountKey } from "@/lib/risk/account-state";
+import { recordFillNotional, releaseNotional } from "@/lib/risk/notional-ledger";
 
 export const runtime = "nodejs";
 
@@ -139,6 +141,65 @@ export async function POST(request: NextRequest) {
                 executedAt: timestamp || now,
                 updatedAt: now,
             });
+
+        // ── Daily notional accounting ────────────────────────────────────────
+        // This authenticated broker report is the authoritative fill event.
+        // Entry fills consume the daily notional budget; a rejection releases
+        // the submission's reservation. Non-entry actions (close/modify/
+        // cance) never consume notional. The fill identity makes a retried
+        // report a duplicate rather than a second charge, and an accounting
+        // failure returns 500 so the EA retries instead of losing usage.
+        const orderAction = String(orderData.action || "").toUpperCase();
+        const ENTRY_ACTIONS = new Set([
+            "BUY",
+            "SELL",
+            "BUY_LIMIT",
+            "SELL_LIMIT",
+            "BUY_STOP",
+            "SELL_STOP",
+        ]);
+        if (orderAccountId && ENTRY_ACTIONS.has(orderAction)) {
+            try {
+                if (status === "filled" || status === "partially_filled") {
+                    const reportedSymbol = symbol || String(orderData.symbol || "");
+                    await recordFillNotional({
+                        userId,
+                        accountKey: accountKey(orderAccountId),
+                        fill: {
+                            // One broker fill = one ledger identity. A re-posted
+                            // report (same ticket) is a duplicate, never a second
+                            // consumption; a later partial fill has its own ticket.
+                            fillId: `${clientOrderId}:${mt5Ticket || `at${timestamp || now}`}`,
+                            orderId: clientOrderId,
+                            symbol: reportedSymbol,
+                            volume: volume || Number(orderData.volume || 0),
+                            price: executionPrice,
+                            at: timestamp || now,
+                        },
+                        now,
+                    });
+                } else {
+                    await releaseNotional({
+                        userId,
+                        accountKey: accountKey(orderAccountId),
+                        reservationId: clientOrderId,
+                        now,
+                    });
+                }
+            } catch (error) {
+                console.error("[trading/gateway/execution] notional accounting failed", {
+                    error: error instanceof Error ? error.message : "unknown",
+                    clientOrderId,
+                });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Notional accounting failed. Retry the execution report.",
+                    },
+                    { status: 500, headers: corsHeaders }
+                );
+            }
+        }
 
         // Bot Studio attribution: the command carries the trusted botId +
         // executionId written by the server (never by a client), and the

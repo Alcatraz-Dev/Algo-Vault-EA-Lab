@@ -626,6 +626,11 @@ export type OptimizationOutcome = {
     best: OptimizeResult | null;
     worst: OptimizeResult | null;
     stabilityStdDev: number;
+    /**
+     * CSCV probability of backtest overfitting over these exact runs.
+     * Research evidence only — never a trading authorization.
+     */
+    pbo?: import("./optimization-pbo").OptimizationPboSummary;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

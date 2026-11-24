@@ -5,6 +5,7 @@ import { BotRuntimeSession, type BotTickResult } from "@/lib/bot-studio/runtime"
 import { loadBotStrategySeries } from "@/lib/bot-studio/market-series";
 import type { SupportedSymbol } from "@/lib/market-data/types";
 import { isCronRequest } from "@/lib/security/cron-auth";
+import { buildScalpingSessionOptions, scalpingConfigFingerprint } from "@/lib/bot-studio/scalping/session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,15 +82,36 @@ export async function GET(request: NextRequest) {
                     continue;
                 }
 
-                let session = sessions.get(bot.id);
+                // A scalping bot runs the SAME runtime with two optional seams:
+                // a directional evaluator and a strategy pacing filter. The
+                // cache key carries the configuration fingerprint so a
+                // reconfigured bot never resumes on a stale session.
+                const scalping = strategy.scalpingConfig;
+                const cacheKey = scalping
+                    ? `${bot.id}:${scalpingConfigFingerprint(scalping)}`
+                    : bot.id;
+
+                let session = sessions.get(cacheKey);
                 if (!session) {
+                    const scalpingOptions = scalping
+                        ? buildScalpingSessionOptions({
+                              deployment: bot,
+                              config: scalping,
+                              magicNumber: strategy.magicNumber,
+                          })
+                        : {};
                     session = new BotRuntimeSession({
                         deployment: bot,
                         strategy: strategy.definition,
                         magicNumber: strategy.magicNumber,
+                        ...scalpingOptions,
                     });
                     await session.initialize();
-                    sessions.set(bot.id, session);
+                    // Drop a previous configuration's session for this bot.
+                    for (const key of sessions.keys()) {
+                        if (key === bot.id || key.startsWith(`${bot.id}:`)) sessions.delete(key);
+                    }
+                    sessions.set(cacheKey, session);
                 } else {
                     // Lifecycle intent changed since this session was cached.
                     session.refreshDeployment(bot);

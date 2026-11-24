@@ -54,6 +54,8 @@ import { AccountPanel } from "./AccountPanel";
 import { RiskHud } from "./RiskHud";
 import { TradingChat } from "./TradingChat";
 import { PanelErrorBoundary } from "./PanelErrorBoundary";
+import { BotPanel } from "./BotPanel";
+import ProGate from "@/components/subscription/ProGate";
 import { useTerminal, useTerminalClock } from "./TerminalContext";
 import { useTerminalData } from "./TerminalData";
 
@@ -473,6 +475,13 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                         </p>
                     ) : null}
                     {visible("account") ? <AccountPanel /> : null}
+                    {/* Pro scalping bots. ProGate is UI-level only — every bot
+                        route re-derives entitlement server-side. */}
+                    <PanelErrorBoundary name="Bots">
+                        <ProGate>
+                            <BotPanel />
+                        </ProGate>
+                    </PanelErrorBoundary>
                 </main>
 
                 <aside className="flex min-w-0 flex-col gap-2.5">
@@ -515,6 +524,11 @@ export function TerminalShell({ isPro }: { isPro: boolean }) {
                             </p>
                         ) : null}
                         <AccountPanel />
+                        <PanelErrorBoundary name="Bots">
+                            <ProGate>
+                                <BotPanel />
+                            </ProGate>
+                        </PanelErrorBoundary>
                     </>
                 ) : null}
                 {mobileTab === "chat" ? <TradingChat now={now} /> : null}

@@ -11,7 +11,7 @@ import {
 
 } from "firebase/auth";
 import { ref as dbRef, onValue } from "firebase/database";
-import { auth, database } from "@/lib/firebase";
+import { auth, database, isFirebaseClientConfigured } from "@/lib/firebase";
 import { ArrowRight, Eye, EyeOff, Lock, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import SiteLogo from "@/components/ui/site-logo";
@@ -54,7 +54,11 @@ function LoginForm() {
     const [siteName, setSiteName] = useState("AlgoVault");
     const [redirectTarget, setRedirectTarget] = useState("/account");
 
+    const firebaseConfigured = isFirebaseClientConfigured();
+
     useEffect(() => {
+        if (!isFirebaseClientConfigured()) return;
+
         return onValue(dbRef(database, "settings/siteName"), (snap) => {
             if (snap.exists()) setSiteName(snap.val());
         });
@@ -65,6 +69,13 @@ function LoginForm() {
 
         setError("");
         setMessage("");
+
+        if (!firebaseConfigured) {
+            setError(
+                "Sign-in is unavailable because Firebase is not configured in this environment."
+            );
+            return;
+        }
 
         if (!email.trim() || !password) {
             setError("Please enter your email and password.");
@@ -135,6 +146,13 @@ function LoginForm() {
     async function handleForgotPassword() {
         setError("");
         setMessage("");
+
+        if (!firebaseConfigured) {
+            setError(
+                "Password reset is unavailable because Firebase is not configured in this environment."
+            );
+            return;
+        }
 
         const cleanEmail = email.trim();
 
@@ -232,6 +250,14 @@ function LoginForm() {
 
                     {/* Card */}
                     <Card className="relative gap-6 rounded-xl border-border bg-card p-6 shadow-[0_1px_2px_rgb(0_0_0/0.05)] sm:p-8">
+                        {!firebaseConfigured && (
+                            <FormError>
+                                Firebase client configuration is missing. Add the
+                                NEXT_PUBLIC_FIREBASE_* variables to your environment to
+                                enable sign-in.
+                            </FormError>
+                        )}
+
                         <form onSubmit={handleLogin} className="flex flex-col gap-4">
                             {/* Email */}
                             <div className="space-y-1.5">

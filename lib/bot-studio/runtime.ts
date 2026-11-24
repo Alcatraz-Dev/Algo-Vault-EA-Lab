@@ -58,6 +58,15 @@ import type {
 } from "./types";
 import { createUnifiedTradingService } from "@/lib/trading/unified/server";
 import type { ExecuteInput, UnifiedTradingService } from "@/lib/trading/unified/service";
+import { planDirectionalLanes, summarizeLanes, type LanePacing } from "./scalping/lanes";
+import { loadScalpingPacingContext } from "./scalping/pacing";
+import type { DirectionalScalpingEvaluation } from "./scalping/directional";
+import type { ScalpingBotConfig } from "./scalping/profiles";
+import {
+    loadAccountPositionMode,
+    type AccountPositionModeRecord,
+} from "@/lib/trading/account-position-mode";
+import type { TradingPositionMode } from "@/lib/trading/position-mode";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -112,6 +121,42 @@ export interface BotRuntimeOptions {
     /** Override automation policy bounds (still clamped to hard ceilings). */
     policyOverride?: Partial<AutomationPolicy>;
     /**
+     * OPTIONAL directional evaluator seam.
+     *
+     * A direction-aware strategy (the scalping bots) supplies an evaluator that
+     * resolves LONG/SHORT/WAIT per bar and returns the winning side. Unset
+     * preserves the existing single-direction behaviour exactly
+     * (`evaluateStrategySignal` + `strategy.direction`) for every other bot.
+     *
+     * The evaluator may only DECIDE a direction; it cannot approve execution —
+     * the gate and the unified service still run on every signal.
+     */
+    signalEvaluator?: BotSignalEvaluator;
+    /**
+     * OPTIONAL strategy pacing filter, run after a signal is produced and
+     * before the gate. It can only suppress an entry (trades/day, cooldown,
+     * bot notional cap). It never approves one.
+     */
+    preSignalCheck?: (signal: BotSignal) => Promise<{
+        ok: boolean;
+        code?: string;
+        reason?: string;
+    }>;
+    /**
+     * OPTIONAL bidirectional lane evaluator.
+     *
+     * When present, `tick()` evaluates BOTH directions from one bar and plans
+     * them through `planDirectionalLanes`. Each qualifying lane then runs the
+     * full existing pipeline independently (signal record, pacing, gate,
+     * unified service, idempotency). Unset preserves the single-direction path
+     * verbatim for every other bot.
+     */
+    laneEvaluator?: (input: BotSignalEvaluatorInput) => DirectionalScalpingEvaluation;
+    /** Configuration the lane planner enforces (per-direction limits/cooldown). */
+    laneConfig?: ScalpingBotConfig;
+    /** Test seam: authoritative account position-mode reader (defaults to RTDB). */
+    positionModeLoader?: (userId: string, accountId: string) => Promise<AccountPositionModeRecord>;
+    /**
      * Test-only seams. Production callers never pass these: the defaults are
      * the real market-truth reader and the real unified-trading composition.
      */
@@ -139,7 +184,34 @@ export interface BotTickResult {
     gateReason?: string;
     executionId?: string;
     error?: string;
+    /** Resolved side of the evaluated bar, when the evaluator produced one. */
+    direction?: "long" | "short";
+    /** True when the evaluator explicitly decided to WAIT. */
+    waited?: boolean;
+    /** Wait reason code (no_setup, conflicting_signals, low_confidence, ...). */
+    waitReason?: string;
 }
+
+/** One bar's directional decision, produced by a `BotSignalEvaluator`. */
+export interface BotSignalEvaluation {
+    fired: boolean;
+    /** Winning side; null when the evaluator decided to WAIT. */
+    direction: "long" | "short" | null;
+    atr: number;
+    regime: string;
+    /** Wait reason code when `fired` is false. */
+    waitReason?: string;
+    waitDetail?: string;
+    confidence?: number;
+}
+
+export interface BotSignalEvaluatorInput {
+    strategy: Strategy;
+    seriesByTF: Partial<Record<Timeframe, MarketCandle[]>>;
+    timestamp: number;
+}
+
+export type BotSignalEvaluator = (input: BotSignalEvaluatorInput) => BotSignalEvaluation;
 
 interface GateOutcome {
     approved: boolean;
@@ -149,6 +221,17 @@ interface GateOutcome {
     volume?: number;
 }
 
+/** Open position as the gateway reports it, with the side needed by lanes. */
+export interface AccountOpenPosition {
+    symbol: string;
+    volume: number;
+    ticket?: string;
+    side: "long" | "short" | null;
+    magic: number | null;
+}
+
+type LaneSignalOutcome = "skipped" | "pacing_rejected" | "gate_rejected" | "submitted" | "submit_failed";
+
 export class BotRuntimeSession {
     private deployment: BotDeployment;
     private readonly strategy: Strategy;
@@ -156,6 +239,11 @@ export class BotRuntimeSession {
     private readonly policy: Partial<AutomationPolicy>;
     private readonly marketTruth: typeof getMarketTruth;
     private readonly serviceFactory: () => UnifiedTradingService;
+    private readonly signalEvaluator?: BotSignalEvaluator;
+    private readonly preSignalCheck?: BotRuntimeOptions["preSignalCheck"];
+    private readonly laneEvaluator?: BotRuntimeOptions["laneEvaluator"];
+    private readonly laneConfig?: ScalpingBotConfig;
+    private readonly positionModeLoader?: BotRuntimeOptions["positionModeLoader"];
     /** Latest closed bar already evaluated (pages roll forward, length is fixed). */
     private lastEvaluatedTimestamp: number | null = null;
     /** A single in-process tick per deployment prevents concurrent duplicate evaluation. */
@@ -170,6 +258,11 @@ export class BotRuntimeSession {
         this.policy = { ...BOT_AUTOMATION_POLICY, ...options.policyOverride };
         this.marketTruth = options.marketTruth ?? getMarketTruth;
         this.serviceFactory = options.serviceFactory ?? createUnifiedTradingService;
+        this.signalEvaluator = options.signalEvaluator;
+        this.preSignalCheck = options.preSignalCheck;
+        this.laneEvaluator = options.laneEvaluator;
+        this.laneConfig = options.laneConfig;
+        this.positionModeLoader = options.positionModeLoader;
     }
 
     /** Refresh persisted lifecycle intent on every request; workers may cache sessions. */
@@ -247,7 +340,14 @@ export class BotRuntimeSession {
             return { signalGenerated: false };
         }
 
-        let evaluation;
+        // Bidirectional bots: evaluate both lanes from this same closed bar.
+        // The routing below is the ONLY difference; both lanes still pass
+        // through the identical gate + unified-service pipeline.
+        if (this.laneEvaluator) {
+            return this.evaluateLaneTick(input, bar, botId, ownerId, strategyId);
+        }
+
+        let evaluation: BotSignalEvaluation;
         try {
             // Canonical live-signal evaluator: primary = setup timeframe (backtest
             // parity), rule timeframes resolved by timestamp from their own series.
@@ -255,15 +355,46 @@ export class BotRuntimeSession {
                 ...(input.series ?? {}),
                 [this.strategy.timeframes.setup]: candles,
             };
-            evaluation = evaluateStrategySignal(this.strategy, seriesByTF, bar.timestamp);
+            evaluation = this.signalEvaluator
+                ? this.signalEvaluator({
+                      strategy: this.strategy,
+                      seriesByTF,
+                      timestamp: bar.timestamp,
+                  })
+                : evaluateSingleDirectionSignal(this.strategy, seriesByTF, bar.timestamp);
         } catch (e) {
             const msg = e instanceof Error ? e.message : String(e);
             await appendLog(botId, "error", `Signal evaluation error on tick: ${msg}`, { error: msg });
             return { signalGenerated: false, error: msg };
         }
 
-        if (!evaluation.fired) {
-            return { signalGenerated: false };
+        // Persist the closed bar's decision — including WAIT — so the terminal
+        // shows the bot's CURRENT state from recorded data, never an invented
+        // signal. This is one small update per closed bar.
+        await updateDeploymentState(botId, {
+            lastEvaluation: {
+                at: Date.now(),
+                barTimestamp: bar.timestamp,
+                decision: evaluation.fired
+                    ? evaluation.direction === "long"
+                        ? "LONG"
+                        : "SHORT"
+                    : "WAIT",
+                direction: evaluation.fired ? evaluation.direction : null,
+                reason: evaluation.fired ? null : evaluation.waitReason ?? null,
+                detail: evaluation.fired ? null : evaluation.waitDetail ?? null,
+                confidence: evaluation.confidence ?? null,
+            },
+        }).catch(() => {
+            // A failed state write must not turn into a trade decision.
+        });
+
+        if (!evaluation.fired || !evaluation.direction) {
+            return {
+                signalGenerated: false,
+                waited: true,
+                waitReason: evaluation.waitReason ?? "no_setup",
+            };
         }
         this.lastSignaledBarTimestamp = bar.timestamp;
 
@@ -276,7 +407,8 @@ export class BotRuntimeSession {
             return { signalGenerated: false, signalId, executionId: existingExecution.id };
         }
 
-        const direction = this.strategy.direction === "long" ? "BUY" : "SELL";
+        const resolvedSide = evaluation.direction;
+        const direction = resolvedSide === "long" ? "BUY" : "SELL";
 
         // ATR and regime come from the same evaluation the rules were decided
         // on; no adapter position or simulated fill is authoritative here.
@@ -313,6 +445,47 @@ export class BotRuntimeSession {
             proposedEntry: signal.proposedEntry,
         });
 
+        // Strategy pacing (trades/day, cooldown, bot notional cap). A pacing
+        // rejection is recorded as a rejected signal and never reaches the gate
+        // or the gateway. Pacing can only SUPPRESS entries.
+        if (this.preSignalCheck) {
+            let pacing: { ok: boolean; code?: string; reason?: string };
+            try {
+                pacing = await this.preSignalCheck(signal);
+            } catch (e) {
+                pacing = {
+                    ok: false,
+                    code: "PACING_UNAVAILABLE",
+                    reason: e instanceof Error ? e.message : "Pacing state unavailable.",
+                };
+            }
+            if (!pacing.ok) {
+                await updateSignal(botId, signalId, {
+                    outcome: "rejected",
+                    rejectionCode: pacing.code ?? "PACING_REJECTED",
+                    rejectionReason: pacing.reason,
+                });
+                await appendLog(
+                    botId,
+                    "warn",
+                    `Signal held by bot pacing: ${pacing.code ?? "PACING_REJECTED"} — ${pacing.reason ?? "no reason given"}`,
+                    { signalId, code: pacing.code },
+                );
+                await updateDeploymentState(botId, {
+                    rejectionCount: (this.deployment.rejectionCount ?? 0) + 1,
+                    lastSignalAt: Date.now(),
+                });
+                return {
+                    signalGenerated: true,
+                    signalId,
+                    gateApproved: false,
+                    gateCode: pacing.code,
+                    gateReason: pacing.reason,
+                    direction: resolvedSide,
+                };
+            }
+        }
+
         // Route through the AI Execution Gate.
         const gate = await this.runGate(signal, ownerId, stops.riskPrice, evaluation.regime);
         if (!gate.approved) {
@@ -335,6 +508,7 @@ export class BotRuntimeSession {
                 gateApproved: false,
                 gateCode: gate.code,
                 gateReason: gate.reason,
+                direction: resolvedSide,
             };
         }
 
@@ -360,7 +534,389 @@ export class BotRuntimeSession {
             signalId,
             gateApproved: true,
             executionId: execResult.executionId,
+            direction: resolvedSide,
         };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Bidirectional lanes
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Evaluate both directions once, then execute each qualifying lane through
+     * the existing pipeline.
+     *
+     * The account's position accounting mode and its live exposure are loaded
+     * BEFORE planning: an unreported mode or unreadable positions block both
+     * lanes rather than trading on an assumption. Both lanes share the same
+     * account budget because they call the same gate + unified service, whose
+     * notional ledger is account-scoped.
+     */
+    private async evaluateLaneTick(
+        input: BotTickInput,
+        bar: MarketCandle,
+        botId: string,
+        ownerId: string,
+        strategyId: string,
+    ): Promise<BotTickResult> {
+        if (!this.laneEvaluator || !this.laneConfig) {
+            await appendLog(botId, "error", "Bidirectional lane evaluation is not configured.");
+            return { signalGenerated: false, error: "LANE_CONFIGURATION_MISSING" };
+        }
+
+        const seriesByTF = {
+            ...(input.series ?? {}),
+            [this.strategy.timeframes.setup]: input.candles,
+        };
+
+        let lanes: DirectionalScalpingEvaluation;
+        try {
+            lanes = this.laneEvaluator({ strategy: this.strategy, seriesByTF, timestamp: bar.timestamp });
+        } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            await appendLog(botId, "error", `Lane evaluation error on tick: ${msg}`, { error: msg });
+            return { signalGenerated: false, error: msg };
+        }
+
+        // Authoritative MT5 position accounting (never inferred).
+        const account = accountKey(this.deployment.mt5Account);
+        let positionMode: TradingPositionMode = "UNKNOWN";
+        try {
+            const record = this.positionModeLoader
+                ? await this.positionModeLoader(ownerId, account)
+                : await loadAccountPositionMode(ownerId, account);
+            positionMode = record.mode;
+        } catch {
+            positionMode = "UNKNOWN";
+        }
+
+        let positions: AccountOpenPosition[];
+        try {
+            positions = account ? await this.loadOpenPositions(ownerId, account) : [];
+        } catch {
+            const now = Date.now();
+            await updateDeploymentState(botId, {
+                positionMode,
+                lanes: {
+                    long: { status: "BLOCKED", openPositions: 0, blockedReason: "positions_unavailable", confidence: 0, updatedAt: now },
+                    short: { status: "BLOCKED", openPositions: 0, blockedReason: "positions_unavailable", confidence: 0, updatedAt: now },
+                    updatedAt: now,
+                },
+            }).catch(() => {});
+            await appendLog(botId, "error", "Open positions could not be read — both lanes blocked.");
+            return { signalGenerated: false, error: "POSITIONS_UNAVAILABLE" };
+        }
+
+        const symbol = this.strategy.asset.toUpperCase();
+        const open = { long: 0, short: 0 };
+        for (const position of positions) {
+            if (position.symbol.toUpperCase() !== symbol) continue;
+            if (position.side === "long") open.long += 1;
+            else if (position.side === "short") open.short += 1;
+            // Exposure whose side is not reported counts in BOTH lanes: it must
+            // never be treated as a free slot in the opposite direction.
+            else {
+                open.long += 1;
+                open.short += 1;
+            }
+        }
+
+        const plan = planDirectionalLanes({
+            config: this.laneConfig,
+            evaluation: lanes,
+            positionMode,
+            open,
+            pacing: await this.loadLaneCooldowns(ownerId, account, botId),
+            now: Date.now(),
+            maxPositionsPerDirection: this.laneConfig.maxOpenPositions,
+        });
+
+        const outcomes: Array<{
+            side: "long" | "short";
+            outcome: LaneSignalOutcome;
+            result: BotTickResult;
+        }> = [];
+
+        for (const side of ["long", "short"] as const) {
+            if (!plan.intents[side].enter) continue;
+            const outcome = await this.runLaneSignal({
+                side,
+                signalId: this.laneSignalIdFor(botId, strategyId, bar.timestamp, side),
+                atr: lanes.atr,
+                regime: lanes.regime,
+                confidence: plan.intents[side].confidence,
+                bar,
+                botId,
+                ownerId,
+                strategyId,
+            });
+            outcomes.push({ side, ...outcome });
+        }
+
+        const submitted = outcomes.filter((o) => o.outcome === "submitted");
+        const rejected = outcomes.filter(
+            (o) => o.outcome === "pacing_rejected" || o.outcome === "gate_rejected" || o.outcome === "submit_failed",
+        );
+        const generated = outcomes.filter((o) => o.result.signalGenerated);
+        const firstSide = outcomes[0]?.side ?? null;
+        const now = Date.now();
+        const summary = summarizeLanes(plan, open);
+
+        await updateDeploymentState(botId, {
+            signalCount: (this.deployment.signalCount ?? 0) + generated.length,
+            executionCount: (this.deployment.executionCount ?? 0) + submitted.length,
+            rejectionCount: (this.deployment.rejectionCount ?? 0) + rejected.length,
+            lastSignalAt: generated.length ? now : this.deployment.lastSignalAt,
+            lastExecutionAt: submitted.length ? now : this.deployment.lastExecutionAt,
+            positionMode,
+            lanes: {
+                long: {
+                    status: summary.long.status,
+                    openPositions: summary.long.openPositions,
+                    blockedReason: plan.intents.long.reason,
+                    confidence: plan.intents.long.confidence,
+                    updatedAt: now,
+                },
+                short: {
+                    status: summary.short.status,
+                    openPositions: summary.short.openPositions,
+                    blockedReason: plan.intents.short.reason,
+                    confidence: plan.intents.short.confidence,
+                    updatedAt: now,
+                },
+                updatedAt: now,
+            },
+            lastEvaluation: {
+                at: now,
+                barTimestamp: bar.timestamp,
+                decision: firstSide ? (firstSide === "long" ? "LONG" : "SHORT") : "WAIT",
+                direction: firstSide,
+                reason: outcomes.length ? null : plan.intents.long.reason ?? plan.intents.short.reason ?? "no_setup",
+                detail: plan.detail,
+                confidence: Math.max(plan.intents.long.confidence, plan.intents.short.confidence),
+            },
+        }).catch(() => {
+            // A failed state write must not turn into a trade decision.
+        });
+
+        await appendLog(
+            botId,
+            submitted.length ? "execution" : "info",
+            `Lanes [${positionMode}]: ${plan.detail}`,
+            {
+                positionMode,
+                long: plan.intents.long.reason,
+                short: plan.intents.short.reason,
+                submitted: submitted.map((o) => o.side),
+            },
+        ).catch(() => {});
+
+        return {
+            signalGenerated: generated.length > 0,
+            signalId: generated[0]?.result.signalId,
+            gateApproved: submitted.length > 0,
+            gateCode: rejected[0]?.result.gateCode,
+            gateReason: rejected[0]?.result.gateReason,
+            executionId: submitted[0]?.result.executionId,
+            direction: firstSide ?? undefined,
+            waited: outcomes.length === 0,
+            waitReason:
+                outcomes.length === 0
+                    ? plan.intents.long.reason ?? plan.intents.short.reason ?? "no_setup"
+                    : undefined,
+            error: outcomes.find((o) => o.outcome === "submit_failed")?.result.error,
+        };
+    }
+
+    /**
+     * Direction-specific cooldowns. The daily caps and notional budget are NOT
+     * duplicated here: pacing and the unified ledger enforce those account-wide
+     * for both lanes (see `preSignalCheck` and the risk engine).
+     */
+    private async loadLaneCooldowns(
+        userId: string,
+        account: string,
+        botId: string,
+    ): Promise<LanePacing> {
+        const cooldownMs = Math.max(0, this.laneConfig?.cooldownSeconds ?? 0) * 1000;
+        if (cooldownMs <= 0) return { long: { lastEntryAt: null }, short: { lastEntryAt: null } };
+
+        // Reuse the persisted pacing reader: it already tolerates an unreadable
+        // execution log and reports the most recent submitted entry per
+        // direction. The pacing check and the gate/notional ledger still run on
+        // every entry, so a missing cooldown is never the only guard.
+        let latest: { long: number | null; short: number | null } = { long: null, short: null };
+        try {
+            const context = await loadScalpingPacingContext(userId, account, botId, this.magicNumber);
+            latest = {
+                long: context.lastEntryAtBySide?.long ?? null,
+                short: context.lastEntryAtBySide?.short ?? null,
+            };
+        } catch {
+            // Cooldown state unavailable: no cooldown is invented.
+        }
+
+        return {
+            long: {
+                lastEntryAt: latest.long,
+                cooldownUntil: latest.long ? latest.long + cooldownMs : undefined,
+            },
+            short: {
+                lastEntryAt: latest.short,
+                cooldownUntil: latest.short ? latest.short + cooldownMs : undefined,
+            },
+        };
+    }
+
+    /** Full existing pipeline for ONE lane (idempotency → gate → queue). */
+    private async runLaneSignal(params: {
+        side: "long" | "short";
+        signalId: string;
+        atr: number;
+        regime: string;
+        confidence?: number;
+        bar: MarketCandle;
+        botId: string;
+        ownerId: string;
+        strategyId: string;
+    }): Promise<{ outcome: LaneSignalOutcome; result: BotTickResult }> {
+        const { side, signalId, bar, botId, ownerId, strategyId } = params;
+        const direction = side === "long" ? "BUY" : "SELL";
+        const executionId = this.executionIdFor(signalId);
+
+        const existing = await getExecution(botId, executionId).catch(() => null);
+        if (existing && existing.status !== "failed") {
+            return { outcome: "skipped", result: { signalGenerated: false, signalId, executionId } };
+        }
+
+        const spec = simSymbolSpec(this.strategy.asset);
+        const stops = computeStops(
+            this.strategy,
+            bar.close,
+            params.atr,
+            direction === "BUY",
+            spec.digits,
+            spec.tickSize,
+        );
+
+        const signal: BotSignal = {
+            id: signalId,
+            botId,
+            strategyId,
+            symbol: this.strategy.asset,
+            direction,
+            barTimestamp: bar.timestamp,
+            generatedAt: Date.now(),
+            outcome: "pending",
+            proposedEntry: bar.close,
+            proposedSl: stops.sl,
+            proposedTp: stops.tp1,
+            proposedRiskPct: this.strategy.risk.riskPercent,
+        };
+
+        await saveSignal(signal);
+        await appendLog(botId, "signal", `${side === "long" ? "LONG" : "SHORT"} lane signal: ${direction} ${this.strategy.asset}`, {
+            signalId,
+            direction,
+            lane: side,
+            confidence: params.confidence,
+        });
+
+        if (this.preSignalCheck) {
+            let pacing: { ok: boolean; code?: string; reason?: string };
+            try {
+                pacing = await this.preSignalCheck(signal);
+            } catch (e) {
+                pacing = {
+                    ok: false,
+                    code: "PACING_UNAVAILABLE",
+                    reason: e instanceof Error ? e.message : "Pacing state unavailable.",
+                };
+            }
+            if (!pacing.ok) {
+                await updateSignal(botId, signalId, {
+                    outcome: "rejected",
+                    rejectionCode: pacing.code ?? "PACING_REJECTED",
+                    rejectionReason: pacing.reason,
+                });
+                await appendLog(
+                    botId,
+                    "warn",
+                    `${side.toUpperCase()} lane held by pacing: ${pacing.code ?? "PACING_REJECTED"} — ${pacing.reason ?? "no reason given"}`,
+                    { signalId, code: pacing.code, lane: side },
+                );
+                return {
+                    outcome: "pacing_rejected",
+                    result: {
+                        signalGenerated: true,
+                        signalId,
+                        gateApproved: false,
+                        gateCode: pacing.code,
+                        gateReason: pacing.reason,
+                        direction: side,
+                    },
+                };
+            }
+        }
+
+        const gate = await this.runGate(signal, ownerId, stops.riskPrice, params.regime);
+        if (!gate.approved) {
+            await updateSignal(botId, signalId, {
+                outcome: "rejected",
+                rejectionCode: gate.code,
+                rejectionReason: gate.reason,
+            });
+            await appendLog(
+                botId,
+                "warn",
+                `${side.toUpperCase()} lane gate rejected: ${gate.code} — ${gate.reason ?? "no reason given"}`,
+                { signalId, code: gate.code, lane: side },
+            );
+            return {
+                outcome: "gate_rejected",
+                result: {
+                    signalGenerated: true,
+                    signalId,
+                    gateApproved: false,
+                    gateCode: gate.code,
+                    gateReason: gate.reason,
+                    direction: side,
+                },
+            };
+        }
+
+        const execResult = await this.submitToGateway(signal, ownerId, gate.volume ?? 0);
+        await updateSignal(botId, signalId, {
+            outcome: execResult.ok ? "submitted" : "rejected",
+            executionId: execResult.executionId,
+            rejectionCode: execResult.ok ? undefined : execResult.error,
+            rejectionReason: execResult.ok ? undefined : execResult.error,
+        });
+
+        return {
+            outcome: execResult.ok ? "submitted" : "submit_failed",
+            result: {
+                signalGenerated: true,
+                signalId,
+                gateApproved: true,
+                executionId: execResult.executionId,
+                direction: side,
+                error: execResult.error,
+            },
+        };
+    }
+
+    /** Deterministic lane signal id — includes the side so lanes never collide. */
+    private laneSignalIdFor(
+        botId: string,
+        strategyId: string,
+        barTimestamp: number,
+        side: "long" | "short",
+    ): string {
+        return `SIG_${createHash("sha256")
+            .update(`${botId}:${strategyId}:${barTimestamp}:${side}`)
+            .digest("hex")
+            .slice(0, 24)}`;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -538,15 +1094,29 @@ export class BotRuntimeSession {
     private async loadOpenPositions(
         userId: string,
         account: string,
-    ): Promise<Array<{ symbol: string; volume: number; ticket?: string }>> {
+    ): Promise<AccountOpenPosition[]> {
         const snap = await adminDatabase.ref(`trading_positions/${userId}/${account}`).get();
         if (!snap.exists()) return [];
-        const val = (snap.val() || {}) as Record<string, { symbol?: string; volume?: number; ticket?: string }>;
-        return Object.entries(val).map(([ticket, p]) => ({
-            symbol: String(p?.symbol ?? "").toUpperCase(),
-            volume: Number(p?.volume) || 0,
-            ticket: p?.ticket ?? ticket,
-        }));
+        const val = (snap.val() || {}) as Record<
+            string,
+            { symbol?: string; volume?: number; ticket?: string; type?: string; magic?: number | string }
+        >;
+        return Object.entries(val).map(([ticket, p]) => {
+            const rawType = String(p?.type ?? "").trim().toUpperCase();
+            const side: AccountOpenPosition["side"] =
+                rawType === "BUY" || rawType === "0"
+                    ? "long"
+                    : rawType === "SELL" || rawType === "1"
+                      ? "short"
+                      : null;
+            return {
+                symbol: String(p?.symbol ?? "").toUpperCase(),
+                volume: Number(p?.volume) || 0,
+                ticket: p?.ticket ?? ticket,
+                side,
+                magic: Number.isFinite(Number(p?.magic)) ? Number(p?.magic) : null,
+            };
+        });
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -757,4 +1327,26 @@ export class BotRuntimeSession {
         this.tickInFlight = false;
         await appendLog(this.deployment.id, "info", `Bot runtime shut down: ${reason}`);
     }
+}
+
+/**
+ * Default evaluator: the canonical single-direction live-signal path.
+ *
+ * Kept identical to the previous inline call so every existing bot behaves
+ * exactly as before. Directional bots supply `options.signalEvaluator`.
+ */
+function evaluateSingleDirectionSignal(
+    strategy: Strategy,
+    seriesByTF: Partial<Record<Timeframe, MarketCandle[]>>,
+    timestamp: number,
+): BotSignalEvaluation {
+    const evaluation = evaluateStrategySignal(strategy, seriesByTF, timestamp);
+    return {
+        fired: evaluation.fired,
+        direction: strategy.direction,
+        atr: evaluation.atr,
+        regime: evaluation.regime,
+        waitReason: evaluation.fired ? undefined : "no_setup",
+        waitDetail: evaluation.fired ? undefined : "Strategy entry conditions did not qualify on this bar.",
+    };
 }

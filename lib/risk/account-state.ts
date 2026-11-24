@@ -11,6 +11,13 @@
 import { adminDatabase } from "@/lib/firebase-admin";
 import type { AccountRiskState, BrokerLimits, RiskLimits } from "./risk-engine";
 import { brokerLimitsFromAccount } from "./risk-engine";
+import type { DrawdownBreakerRecord } from "./drawdown-breaker";
+import {
+    effectiveDailyNotional,
+    normalizeNotionalLedger,
+    notionalAccountingIncomplete,
+    notionalDayKey,
+} from "./notional-ledger";
 
 export interface RiskSnapshot {
     emergencyStop: boolean;
@@ -88,6 +95,28 @@ export async function loadAccountRiskSnapshot(
         ? Math.abs(dailyLossPercentRaw)
         : undefined;
 
+    // Stateful breaker: the latched flag is authoritative. A legacy boolean is
+    // honoured, and a persisted breaker record counts only when TRIPPED — a
+    // recovered equity curve never clears it here.
+    const breaker = controls.drawdownBreaker as DrawdownBreakerRecord | undefined;
+    const drawdownBreakerActive = controls.drawdownBreakerActive === true || breaker?.state === "TRIPPED";
+
+    // Daily notional: the maintained ledger is authoritative (committed fills +
+    // in-flight reservations). A legacy `dailyNotionalUsed` value is honoured
+    // only when no ledger exists. A missing value stays undefined (unknown ≠
+    // zero), and an unaccounted fill marks the day incomplete so the budget
+    // check fails closed instead of enforcing a wrong number.
+    let dailyNotionalUsed: number | undefined;
+    let dailyNotionalIncomplete: boolean | undefined;
+    if (controls.notionalLedger && typeof controls.notionalLedger === "object") {
+        const ledger = normalizeNotionalLedger(controls.notionalLedger, notionalDayKey(Date.now()));
+        dailyNotionalUsed = effectiveDailyNotional(ledger);
+        dailyNotionalIncomplete = notionalAccountingIncomplete(ledger) || undefined;
+    } else {
+        const notionalRaw = Number(controls.dailyNotionalUsed);
+        dailyNotionalUsed = Number.isFinite(notionalRaw) && notionalRaw >= 0 ? notionalRaw : undefined;
+    }
+
     const account: AccountRiskState = {
         balance: Number.isFinite(balance) && balance > 0 ? balance : undefined,
         openPositionsCount,
@@ -95,6 +124,9 @@ export async function loadAccountRiskSnapshot(
         dailyLossPercent,
         drawdownPercent,
         lastTradeAt: Number(accountRecord.lastTradeAt) || undefined,
+        dailyNotionalUsed,
+        dailyNotionalIncomplete,
+        drawdownBreakerActive: drawdownBreakerActive ? true : undefined,
     };
 
     return {
@@ -130,6 +162,36 @@ export function buildEntryRiskLimits(snapshot: RiskSnapshot): RiskLimits {
     if (Number.isFinite(maxPos) && maxPos > 0) limits.maxOpenPositions = maxPos;
     const exposure = Number(controls.maxSymbolExposureLots);
     if (Number.isFinite(exposure) && exposure > 0) limits.maxSymbolExposureLots = exposure;
+    const notional = Number(controls.maxDailyNotional);
+    if (Number.isFinite(notional) && notional > 0) limits.maxDailyNotional = notional;
+
+    return limits;
+}
+
+/**
+ * Account-level limits ONLY — the discretionary controls an admin/EA wrote to
+ * `trading_controls`, plus the emergency stop. No broker defaults are
+ * invented: a path that cannot read symbol specifications must not pretend it
+ * knows the minimum lot or lot step.
+ *
+ * Used by the Unified Trading Service, whose provider has not published symbol
+ * specs yet. Limits that were never configured stay absent, so the canonical
+ * engine passes through on those axes instead of rejecting honest orders.
+ */
+export function buildControlRiskLimits(snapshot: RiskSnapshot): RiskLimits {
+    const controls = snapshot.controls;
+    const limits: RiskLimits = { emergencyStop: snapshot.emergencyStop };
+
+    const dailyLoss = Number(controls.maxDailyLossPercent);
+    if (Number.isFinite(dailyLoss) && dailyLoss > 0) limits.maxDailyLossPercent = dailyLoss;
+    const drawdown = Number(controls.maxDrawdownPercent);
+    if (Number.isFinite(drawdown) && drawdown > 0) limits.maxDrawdownPercent = drawdown;
+    const maxPos = Number(controls.maxOpenPositions);
+    if (Number.isFinite(maxPos) && maxPos > 0) limits.maxOpenPositions = maxPos;
+    const exposure = Number(controls.maxSymbolExposureLots);
+    if (Number.isFinite(exposure) && exposure > 0) limits.maxSymbolExposureLots = exposure;
+    const notional = Number(controls.maxDailyNotional);
+    if (Number.isFinite(notional) && notional > 0) limits.maxDailyNotional = notional;
 
     return limits;
 }

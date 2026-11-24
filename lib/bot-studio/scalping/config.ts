@@ -1,10 +1,14 @@
 export type XauUsdScalpingTpLevel = 1 | 2;
+export type XauUsdScalpingDirection = "long" | "short" | "auto";
 
 export interface XauUsdScalpingConfig {
     /** Entry timeframe — the M1 chart the bot trades on. */
     timeframe: "M1";
-    /** Direction bias for the scalping logic. */
-    direction: "long" | "short";
+    /**
+     * Direction bias for the scalping logic. `auto` follows the confirmed
+     * Smart Money structure break and can take both long and short trades.
+     */
+    direction: XauUsdScalpingDirection;
     /** Take-profit 1 in pips (e.g. 15 = 15 × $0.10 per standard lot on XAUUSD). */
     tp1Pips: number;
     /** Take-profit 2 in pips — locked partial after TP1 is hit. */
