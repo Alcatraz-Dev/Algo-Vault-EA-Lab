@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { errMessage } from "@/lib/admin-auth";
 import { requireBotStudioAccess, canAccessDeployment } from "@/lib/bot-studio/auth";
 import { getDeployment, updateDeploymentState } from "@/lib/bot-studio/database";
-import { ScalpingBotRuntime } from "@/lib/bot-studio/scalping";
+import { ScalpingBotRuntime } from "@/lib/bot-studio/scalping/runtime";
 
 // In-memory cache of scalper runtime sessions (one per deployment).
 const sessions = new Map<string, ScalpingBotRuntime>();

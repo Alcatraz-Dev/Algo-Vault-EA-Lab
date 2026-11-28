@@ -269,9 +269,14 @@ export function XauUsdScalperBot({
 
             const now = Date.now();
             const livePrice = currentPriceRef.current;
-            const basePrice = livePrice != null && livePrice > 0
-                ? livePrice
-                : 2650 + (tickCountRef.current % 40) * 0.15 - 3;
+            // Never derive levels from a fabricated price: without a live
+            // XAUUSD tick the scalper waits instead of quoting a made-up level.
+            if (livePrice == null || livePrice <= 0) {
+                setLastTickAt(now);
+                setErrorReason("no live XAUUSD price — waiting for the feed");
+                return;
+            }
+            const basePrice = livePrice;
             const ask = basePrice + 0.05;
             const bid = basePrice - 0.05;
             const spreadPoints = Math.round((ask - bid) / 0.01);

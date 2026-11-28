@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { UserBot } from "@/lib/bots";
 import { auth } from "@/lib/firebase";
+import { useLiveQuote } from "@/hooks/useLiveCandles";
 import { BotStudioBotCard } from "@/components/bot-studio/BotStudioBotCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ interface DeployedItem {
 }
 
 interface BotStudioListProps {
-    currentPrice?: number;
     hasToken?: boolean;
     authToken?: string;
     accountId?: string;
@@ -33,7 +33,6 @@ interface BotStudioListProps {
 }
 
 export function BotStudioList({
-    currentPrice,
     hasToken,
     authToken,
     accountId,
@@ -173,6 +172,23 @@ export function BotStudioList({
         void loadBots();
     }, [loadBots]);
 
+    // Each bot card quotes the price of the instrument THAT BOT trades — never
+    // whatever symbol the chart happens to show. Feeding a card the chart's
+    // symbol price made it derive SL/TP for one instrument from another's
+    // market and send those levels to the broker.
+    const botSymbols = useMemo(
+        () =>
+            Array.from(
+                new Set(bots.map((b) => b.symbol?.trim().toUpperCase() || "XAUUSD"))
+            ),
+        [bots]
+    );
+    const { quotes: botQuotes } = useLiveQuote(botSymbols, 10_000);
+    const priceForSymbol = (symbol?: string): number | undefined => {
+        const price = botQuotes[symbol?.trim().toUpperCase() || "XAUUSD"]?.price;
+        return typeof price === "number" && price > 0 ? price : undefined;
+    };
+
     if (loading && bots.length === 0) {
         return (
             <Card className={cn("border border-border bg-card", className)}>
@@ -242,7 +258,7 @@ export function BotStudioList({
                                         accountId: bot.accountId,
                                         magicNumber: bot.magicNumber,
                                     }}
-                                    currentPrice={currentPrice}
+                                    currentPrice={priceForSymbol(bot.symbol)}
                                     hasToken={hasToken}
                                     authToken={authToken}
                                     accountId={

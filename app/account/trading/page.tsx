@@ -13,6 +13,7 @@ import OpenPositions, { Position } from "@/components/trading/OpenPositions";
 import PendingOrders, { PendingOrder } from "@/components/trading/PendingOrders";
 import ExecutionLog, { ExecutionLogEntry } from "@/components/trading/ExecutionLog";
 import { ProTerminalChartWorkspace } from "@/components/pro-scalping-terminal/ProTerminalChartWorkspace";
+import Watchlist from "@/components/trading/Watchlist";
 import {
     normalisePendingOrderType,
     tradeFillFromExecution,
@@ -52,10 +53,15 @@ import {
     Bot,
 } from "lucide-react";
 import { BotStudioList } from "@/components/bot-studio/BotStudioList";
+import { XauUsdScalperBot, setToken } from "@/components/bot-studio/XauUsdScalperBot";
+import { BtcusdSmartMoneyBot } from "@/components/bot-studio/BtcusdSmartMoneyBot";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 type Tab = "positions" | "orders" | "history" | "log";
+
+/** Last instrument picked on this terminal — restored after a reload. */
+const SYMBOL_STORAGE_KEY = "trading_terminal_symbol_v1";
 
 export default function AccountTradingPage() {
     const router = useRouter();
@@ -82,6 +88,12 @@ export default function AccountTradingPage() {
     // Last Unified execution outcome, shown verbatim (never a fake fill).
     const [lastExecution, setLastExecution] = useState<TradingExecutionResult | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
+    // Independent run flags for the ready-made scalper cards. Keeping them
+    // separate from `serverStatus` (deployed bots) means starting one bot never
+    // makes another card read "running".
+    const [xauScalperRunning, setXauScalperRunning] = useState(false);
+    const [btcScalperRunning, setBtcScalperRunning] = useState(false);
+
     const handleBotStatusChange = useCallback((running: boolean) => {
         setServerStatus((prev) => {
             const base = prev ?? { status: "idle" as const, signalCount: 0, executionCount: 0 };
@@ -149,7 +161,37 @@ export default function AccountTradingPage() {
     }, [actionError]);
 
     const [selectedSymbol, setSelectedSymbol] = useState("XAUUSD");
-    const { currentPrice: xauUsdPrice, quality } = useLiveCandles(selectedSymbol, "M1");
+    // Restore / persist the chosen instrument. This runs after mount (never
+    // during render) so SSR and the first client render agree, then every
+    // watchlist, order-ticket or chart change is written back.
+    const [symbolRestored, setSymbolRestored] = useState(false);
+    useEffect(() => {
+        // Deferred one task so the effect body never calls setState
+        // synchronously (and SSR keeps rendering the default first).
+        const id = window.setTimeout(() => {
+            try {
+                const saved = window.localStorage.getItem(SYMBOL_STORAGE_KEY);
+                if (saved) setSelectedSymbol(saved);
+            } catch {
+                // localStorage unavailable (private mode) — keep the default.
+            }
+            setSymbolRestored(true);
+        }, 0);
+        return () => window.clearTimeout(id);
+    }, []);
+    useEffect(() => {
+        if (!symbolRestored) return;
+        try {
+            window.localStorage.setItem(SYMBOL_STORAGE_KEY, selectedSymbol);
+        } catch {
+            // Ignore storage quota / disabled storage.
+        }
+    }, [selectedSymbol, symbolRestored]);
+
+    const { quality } = useLiveCandles(selectedSymbol, "M1");
+    // Gold keeps its own feed: the XAUUSD bot card must always quote gold,
+    // whichever instrument the chart is showing.
+    const { currentPrice: xauUsdPrice } = useLiveCandles("XAUUSD", "M1");
     const marketClosed = quality === "market_closed";
     const [activeTab, setActiveTab] = useState<Tab>("positions");
     const [refreshing, setRefreshing] = useState(false);
@@ -813,6 +855,38 @@ export default function AccountTradingPage() {
         };
     }, [closedTrades]);
 
+    // Broker truth handed to the BTCUSD card: the account's actual positions
+    // (the card filters its own symbol) and the recent MT5 execution reports
+    // so a rejected bot order is visible without opening the Execution Log.
+    const brokerPositions = useMemo(
+        () =>
+            positions.map((p) => ({
+                ticket: p.ticket,
+                symbol: p.symbol,
+                side: p.type,
+                volume: p.volume,
+                entry: p.openPrice,
+                currentPrice: p.currentPrice,
+                profit: p.profit,
+                sl: p.sl,
+                tp: p.tp,
+                openedAt: p.openedAt,
+            })),
+        [positions]
+    );
+    const btcBrokerReports = useMemo(
+        () =>
+            executionLogs.slice(0, 20).map((l) => ({
+                id: l.clientOrderId,
+                symbol: l.symbol,
+                status: l.status,
+                message: l.errorMessage,
+                ticket: l.mt5Ticket || undefined,
+                at: l.executedAt || l.createdAt,
+            })),
+        [executionLogs]
+    );
+
     // Open book: aggregate exposure + best/worst floating position.
     const openBook = useMemo(() => {
         const totalLots = positions.reduce((s, p) => s + (p.volume || 0), 0);
@@ -1236,9 +1310,47 @@ export default function AccountTradingPage() {
                     </div>
                 </div>
 
+                {/* Ready-made scalpers — the XAUUSD M1 scalper and the BTCUSD
+                    smart-money scalper. Each card runs its own deterministic
+                    rules and submits through the shared Unified path. */}
+                <div className="grid gap-4 xl:grid-cols-2">
+                    <XauUsdScalperBot
+                        botId="xauusd-m1-scalper"
+                        deployed={false}
+                        initialConfig={{
+                            tp1Pips: 15,
+                            tp2Pips: 30,
+                            slPips: 10,
+                            riskPercent: 1.0,
+                            maxSpreadPoints: 15,
+                            magicNumber: 70001,
+                            direction: "long",
+                            enabled: true,
+                            warmUpCandles: 50,
+                            maxPositions: 1,
+                        }}
+                        onToggle={async (running, reason) => {
+                            console.debug(`[bot] toggle → ${running}`, reason ?? "");
+                            setXauScalperRunning(running);
+                        }}
+                        currentPrice={xauUsdPrice}
+                        hasToken={!!userToken}
+                        accountId={selectedAccountId ?? undefined}
+                        onPositionChange={handleBotPositionChange}
+                    />
+                    <BtcusdSmartMoneyBot
+                        token={userToken}
+                        accountId={selectedAccountId ?? undefined}
+                        positions={brokerPositions}
+                        brokerReports={btcBrokerReports}
+                        onStatusChange={setBtcScalperRunning}
+                    />
+                </div>
+                {/* Feed the auth token to the XAUUSD bot runtime once ready. */}
+                {userToken ? <BotTokenSetter token={userToken} /> : null}
+
                 {/* Bot Studio — Deployed Bots */}
                 <BotStudioList
-                    currentPrice={xauUsdPrice}
                     hasToken={!!userToken}
                     authToken={userToken ?? undefined}
                     accountId={selectedAccountId ?? undefined}
@@ -1258,7 +1370,11 @@ export default function AccountTradingPage() {
                             token={userToken}
                             storageScope="account-trading"
                             hideWatchlist
-                            botRunning={serverStatus?.status === "running"}
+                            botRunning={
+                                serverStatus?.status === "running" ||
+                                xauScalperRunning ||
+                                btcScalperRunning
+                            }
                             onSymbolChange={setSelectedSymbol}
                             positions={chartPositions}
                             pendingOrders={chartOrders}
@@ -1268,8 +1384,15 @@ export default function AccountTradingPage() {
                         />
                     </div>
 
-                    {/* Side Panel: Order Panel */}
+                    {/* Side Panel: Watchlist + Order Panel */}
                     <div className="flex flex-col gap-4 xl:col-span-1">
+                        {/* The watchlist is the symbol manager for this page:
+                            add / remove / reset symbols, and clicking a row
+                            switches both the chart and the order ticket. */}
+                        <Watchlist
+                            selectedSymbol={selectedSymbol}
+                            onSelect={setSelectedSymbol}
+                        />
                         <OrderPanel
                             account={selectedAccount}
                             symbol={selectedSymbol}
@@ -1563,6 +1686,15 @@ function AccountSwitcher({
             )}
         </div>
     );
+}
+
+/** Hands the auth token to the XAUUSD scalper's module-level runtime so its
+ *  tick loop can submit through the Unified Trading API. */
+function BotTokenSetter({ token }: { token: string }) {
+    useEffect(() => {
+        setToken(token);
+    }, [token]);
+    return null;
 }
 
 /** Indirection keeps `Date.now` out of render (react-hooks/purity), matching
